@@ -791,213 +791,326 @@ class LIFT_Docs_Admin {
         </script>
         
         <style type="text/css">
-        .file-input-row {
+        /* Document Files Container */
+        #lift_doc_files_container {
+            background: #fafafa;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            padding: 20px;
             margin-bottom: 15px;
+        }
+        
+        /* File Input Row */
+        .file-input-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            padding: 12px;
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            transition: all 0.2s ease;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: white;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
         }
         
         .file-input-row:hover {
-            border-color: #007cba;
-            box-shadow: 0 0 0 1px rgba(0, 124, 186, 0.1);
+            border-color: #0073aa;
+            box-shadow: 0 2px 8px rgba(0,115,170,0.1);
         }
         
+        .file-input-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* File URL Input */
         .file-input-row .file-url-input {
             flex: 1;
-            min-width: 300px;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            min-width: 250px;
+            padding: 10px 14px;
+            border: 2px solid #e1e1e1;
+            border-radius: 6px;
             font-size: 14px;
+            background: #fbfbfb;
         }
         
         .file-input-row .file-url-input:focus {
-            border-color: #007cba;
-            box-shadow: 0 0 0 1px rgba(0, 124, 186, 0.25);
             outline: none;
+            border-color: #0073aa;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0,115,170,0.1);
         }
         
+        .file-input-row .file-url-input:not(:placeholder-shown) {
+            background: white;
+            border-color: #46b450;
+        }
+        
+        /* Upload Button */
         .file-input-row .upload-file-button {
-            background: #007cba;
+            background: #0073aa;
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 10px 16px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 100px;
+            justify-content: center;
         }
         
         .file-input-row .upload-file-button:hover {
             background: #005a87;
         }
         
+        .file-input-row .upload-file-button:active {
+            background: #004567;
+        }
+        
+        /* Remove Button */
         .file-input-row .remove-file-button {
             background: #dc3545;
             color: white;
             border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
+            padding: 10px 14px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
+            font-weight: 600;
+            min-width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
         }
         
         .file-input-row .remove-file-button:hover {
             background: #c82333;
         }
         
-        .file-size-display {
-            color: #666;
-            font-size: 12px;
-            font-style: italic;
-            min-width: 120px;
+        .file-input-row .remove-file-button:active {
+            background: #a71d2a;
         }
         
+        /* File Size Display */
+        .file-size-display {
+            min-width: 150px;
+            font-size: 12px;
+            color: #666;
+            padding: 6px 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .file-size-display:empty {
+            background: transparent;
+            border: none;
+            min-width: 0;
+            padding: 0;
+        }
+        
+        .file-size-display span[style*="color: #0073aa"] {
+            background: #e3f2fd;
+            color: #0d47a1 !important;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #90caf9;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .file-size-display span[style*="color: #ff9800"] {
+            background: #fff3e0;
+            color: #e65100 !important;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ffb74d;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        /* File Row Number Badge */
+        .file-input-row::before {
+            content: attr(data-index);
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            background: #0073aa;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .file-input-row:nth-child(n+2)::before {
+            display: block;
+        }
+        
+        /* Action Buttons Container */
+        .file-actions-container {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e1e1e1;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        /* Add File Button */
         #add_file_button {
-            background: #28a745;
+            background: #0073aa;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 12px 20px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         #add_file_button:hover {
-            background: #218838;
+            background: #005a87;
         }
         
+        #add_file_button:active {
+            background: #004567;
+        }
+        
+        /* Clear All Button */
         #clear_all_files {
-            background: #6c757d;
+            background: #0073aa;
             color: white;
             border: none;
-            padding: 10px 16px;
-            border-radius: 4px;
+            padding: 12px 16px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 13px;
-            transition: background-color 0.2s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         
         #clear_all_files:hover {
-            background: #545b62;
+            background: #005a87;
         }
         
-        .download-link-item {
-            border-left: 4px solid #0073aa;
+        #clear_all_files:active {
+            background: #004567;
         }
         
-        .download-link-item strong {
+        /* Upload Success Animation */
+        .file-input-row.uploaded {
+            background: #d4edda;
+            border-color: #46b450;
+        }
+        
+        /* Empty State */
+        #lift_doc_files_container:empty::before {
+            content: "📁 <?php _e('No files added yet. Click "Add Another File" below to get started.', 'lift-docs-system'); ?>";
             display: block;
-            margin-bottom: 5px;
-            color: #23282d;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            border: 2px dashed #ced4da;
+            border-radius: 8px;
+            font-size: 14px;
         }
         
-        .multiple-download-links .download-link-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        /* File upload animations */
+        /* Loading States */
         .file-input-row.uploading {
             background: #e3f2fd;
             border-color: #2196f3;
         }
         
-        .file-input-row.uploaded {
-            background: #e8f5e8;
-            border-color: #28a745;
-            animation: uploadSuccess 0.5s ease-in-out;
-        }
-        
-        @keyframes uploadSuccess {
-            0% { background: #e8f5e8; }
-            50% { background: #d4edda; }
-            100% { background: #e8f5e8; }
-        }
-        
-        /* File type specific styling */
-        .file-size-display span[style*="color: #ff9800"] {
-            background: #fff3e0;
-            padding: 4px 8px;
-            border-radius: 3px;
-            border: 1px solid #ffb74d;
-        }
-        
-        .file-size-display span[style*="color: #0073aa"] {
-            background: #e3f2fd;
-            padding: 4px 8px;
-            border-radius: 3px;
-            border: 1px solid #90caf9;
-        }
-        
-        /* Enhanced file type icons */
-        .file-input-row .file-size-display {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        /* Improved button states */
-        .file-input-row .upload-file-button:active {
-            transform: translateY(1px);
-        }
-        
-        .file-input-row .remove-file-button:active {
-            transform: translateY(1px);
-        }
-        
-        /* File counter for multiple files */
-        .file-input-row:before {
-            content: attr(data-index);
-            position: absolute;
-            top: -8px;
-            left: 8px;
-            background: #007cba;
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-weight: bold;
-            display: none;
-        }
-        
-        .file-input-row:nth-child(n+2):before {
-            display: block;
-        }
-        
-        /* Empty state styling */
-        #lift_doc_files_container:empty:before {
-            content: "<?php _e('No files added yet. Click Upload or Add Another File to get started.', 'lift-docs-system'); ?>";
-            display: block;
-            text-align: center;
-            color: #999;
-            font-style: italic;
-            padding: 30px;
-            background: #f8f9fa;
-            border: 2px dashed #dee2e6;
-            border-radius: 6px;
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .file-input-row {
+                flex-wrap: wrap;
+            }
+            
+            .file-input-row .file-url-input {
+                min-width: 200px;
+                flex: 1 1 auto;
+            }
         }
         
         @media (max-width: 768px) {
             .file-input-row {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 10px;
+                gap: 12px;
+                padding: 16px;
             }
             
             .file-input-row .file-url-input {
                 min-width: auto;
+                width: 100%;
+            }
+            
+            .file-input-row .upload-file-button,
+            .file-input-row .remove-file-button {
+                width: 100%;
+                justify-content: center;
+                min-width: auto;
+            }
+            
+            .file-actions-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            #add_file_button,
+            #clear_all_files {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .file-size-display {
+                min-width: auto;
+                text-align: center;
+            }
+        }
+        
+        /* Focus Management */
+        .file-input-row:focus-within {
+            border-color: #0073aa;
+            box-shadow: 0 0 0 3px rgba(0,115,170,0.1);
+        }
+        
+        /* Button Icon Styling */
+        .upload-file-button::before {
+            content: '📁';
+            margin-right: 4px;
+        }
+        
+        .remove-file-button::before {
+            content: '🗑️';
+            margin-right: 2px;
+        }
+        
+        #add_file_button::before {
+            content: '➕';
+            margin-right: 4px;
+        }
+        
+        #clear_all_files::before {
+            content: '🧹';
+            margin-right: 4px;
+        }
+        </style>
             }
             
             .file-input-row button {
