@@ -166,7 +166,7 @@ class LIFT_Docs_Admin {
         $new_columns['cb'] = $columns['cb'];
         $new_columns['title'] = $columns['title'];
         $new_columns['category'] = __('Category', 'lift-docs-system');
-        $new_columns['view_url'] = __('View URL', 'lift-docs-system');
+        $new_columns['view_url'] = __('Secure View', 'lift-docs-system');
         $new_columns['download_url'] = __('Download URL', 'lift-docs-system');
         $new_columns['shortcode'] = __('Shortcode', 'lift-docs-system');
         $new_columns['views'] = __('Views', 'lift-docs-system');
@@ -225,7 +225,7 @@ class LIFT_Docs_Admin {
                     if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
                         $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($post_id);
                         echo '<br><input type="text" value="' . esc_attr($secure_download_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" placeholder="' . __('Secure Download URL', 'lift-docs-system') . '" />';
-                        echo '<br><small>' . __('Secure URL (permanent)', 'lift-docs-system') . '</small>';
+                        // echo '<br><small>' . __('Secure URL (permanent)', 'lift-docs-system') . '</small>';
                     }
                     
                     echo '</div>';
@@ -236,9 +236,9 @@ class LIFT_Docs_Admin {
                 
             case 'shortcode':
                 echo '<div class="lift-shortcode-field">';
-                echo '<input type="text" value="[lift_documents id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" placeholder="Display Shortcode" />';
+                // echo '<input type="text" value="[lift_documents id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" placeholder="Display Shortcode" />';
                 echo '<input type="text" value="[lift_document_download id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" placeholder="Download Shortcode" />';
-                echo '<br><small>' . __('Document display & download shortcodes', 'lift-docs-system') . '</small>';
+                // echo '<br><small>' . __('Document display & download shortcodes', 'lift-docs-system') . '</small>';
                 echo '</div>';
                 break;
                 
