@@ -153,6 +153,24 @@ class LIFT_Docs_Layout {
             wp_die('Access denied: Document not found');
         }
         
+        // Check if user has permission to download document
+        $frontend = LIFT_Docs_Frontend::get_instance();
+        if (!$frontend || !method_exists($frontend, 'can_user_download_document')) {
+            // Fallback to basic permission check
+            if (LIFT_Docs_Settings::get_setting('require_login_to_download', false) && !is_user_logged_in()) {
+                wp_die('Access denied: You need to log in to download this document');
+            }
+        } else {
+            // Use the proper permission checking method via reflection
+            $reflection = new ReflectionClass($frontend);
+            $method = $reflection->getMethod('can_user_download_document');
+            $method->setAccessible(true);
+            
+            if (!$method->invoke($frontend, $document_id)) {
+                wp_die('Access denied: You do not have permission to download this document');
+            }
+        }
+        
         $file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
         
         if (!$file_url) {

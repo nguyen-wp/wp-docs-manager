@@ -208,19 +208,53 @@ class LIFT_Docs_Admin {
         // Collect all data
         $view_url = '';
         $view_label = '';
-        if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
-            $view_url = LIFT_Docs_Settings::generate_secure_link($post_id);
-            $view_label = __('Secure View URL', 'lift-docs-system');
+        
+        // Get frontend instance to check permissions
+        $frontend = LIFT_Docs_Frontend::get_instance();
+        
+        // Check if user can view document before generating view URL
+        $can_view = false;
+        if ($frontend && method_exists($frontend, 'can_user_view_document')) {
+            $reflection = new ReflectionClass($frontend);
+            $method = $reflection->getMethod('can_user_view_document');
+            $method->setAccessible(true);
+            $can_view = $method->invoke($frontend, $post_id);
         } else {
-            $view_url = get_permalink($post_id);
-            $view_label = __('View URL', 'lift-docs-system');
+            // Fallback check
+            $can_view = !LIFT_Docs_Settings::get_setting('require_login_to_view', false) || is_user_logged_in();
+        }
+        
+        if ($can_view) {
+            if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+                $view_url = LIFT_Docs_Settings::generate_secure_link($post_id);
+                $view_label = __('Secure View URL', 'lift-docs-system');
+            } else {
+                $view_url = get_permalink($post_id);
+                $view_label = __('View URL', 'lift-docs-system');
+            }
+        } else {
+            $view_url = wp_login_url(get_permalink($post_id));
+            $view_label = __('Login Required for View', 'lift-docs-system');
         }
         
         $download_url = '';
         $secure_download_url = '';
         $online_view_url = '';
         $file_url = get_post_meta($post_id, '_lift_doc_file_url', true);
-        if ($file_url) {
+        
+        // Check if user can download before generating download URLs
+        $can_download = false;
+        if ($frontend && method_exists($frontend, 'can_user_download_document')) {
+            $reflection = new ReflectionClass($frontend);
+            $method = $reflection->getMethod('can_user_download_document');
+            $method->setAccessible(true);
+            $can_download = $method->invoke($frontend, $post_id);
+        } else {
+            // Fallback check
+            $can_download = !LIFT_Docs_Settings::get_setting('require_login_to_download', false) || is_user_logged_in();
+        }
+        
+        if ($file_url && $can_download) {
             $download_url = add_query_arg(array(
                 'lift_download' => $post_id,
                 'nonce' => wp_create_nonce('lift_download_' . $post_id)
@@ -235,6 +269,11 @@ class LIFT_Docs_Admin {
             if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
                 $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($post_id);
             }
+        } elseif ($file_url && !$can_download) {
+            // Set login URLs instead of download URLs
+            $download_url = wp_login_url(get_permalink($post_id));
+            $online_view_url = wp_login_url(get_permalink($post_id));
+            $secure_download_url = wp_login_url(get_permalink($post_id));
         }
         
         $shortcode = '[lift_document_download id="' . $post_id . '"]';
@@ -255,7 +294,9 @@ class LIFT_Docs_Admin {
                 data-shortcode="<?php echo esc_attr($shortcode); ?>"
                 data-views="<?php echo esc_attr($views ? number_format($views) : '0'); ?>"
                 data-downloads="<?php echo esc_attr($downloads ? number_format($downloads) : '0'); ?>"
-                data-file-size="<?php echo esc_attr($file_size ? size_format($file_size) : '—'); ?>">
+                data-file-size="<?php echo esc_attr($file_size ? size_format($file_size) : '—'); ?>"
+                data-can-view="<?php echo esc_attr($can_view ? 'true' : 'false'); ?>"
+                data-can-download="<?php echo esc_attr($can_download ? 'true' : 'false'); ?>">
             <?php _e('View Details', 'lift-docs-system'); ?>
         </button>
         <?php

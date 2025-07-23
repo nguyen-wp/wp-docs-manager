@@ -101,6 +101,26 @@ class LIFT_Docs_Secure_Links {
             return;
         }
         
+        // Check if user has permission to view document
+        $frontend = LIFT_Docs_Frontend::get_instance();
+        if (!$frontend || !method_exists($frontend, 'can_user_view_document')) {
+            // Fallback to basic permission check
+            if (LIFT_Docs_Settings::get_setting('require_login_to_view', false) && !is_user_logged_in()) {
+                $this->show_access_denied('You need to log in to view this document');
+                return;
+            }
+        } else {
+            // Use the proper permission checking method via reflection
+            $reflection = new ReflectionClass($frontend);
+            $method = $reflection->getMethod('can_user_view_document');
+            $method->setAccessible(true);
+            
+            if (!$method->invoke($frontend, $document_id)) {
+                $this->show_access_denied('You do not have permission to view this document');
+                return;
+            }
+        }
+        
         // Set secure access session
         session_start();
         $_SESSION['lift_secure_access_' . $document_id] = time();
@@ -153,6 +173,26 @@ class LIFT_Docs_Secure_Links {
         if (!$document || $document->post_type !== 'lift_document' || $document->post_status !== 'publish') {
             status_header(404);
             die('Document not found');
+        }
+        
+        // Check if user has permission to download document
+        $frontend = LIFT_Docs_Frontend::get_instance();
+        if (!$frontend || !method_exists($frontend, 'can_user_download_document')) {
+            // Fallback to basic permission check
+            if (LIFT_Docs_Settings::get_setting('require_login_to_download', false) && !is_user_logged_in()) {
+                status_header(403);
+                die('You need to log in to download this document');
+            }
+        } else {
+            // Use the proper permission checking method via reflection
+            $reflection = new ReflectionClass($frontend);
+            $method = $reflection->getMethod('can_user_download_document');
+            $method->setAccessible(true);
+            
+            if (!$method->invoke($frontend, $document_id)) {
+                status_header(403);
+                die('You do not have permission to download this document');
+            }
         }
         
         // Get file URL
