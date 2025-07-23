@@ -519,7 +519,7 @@ class LIFT_Docs_Secure_Links {
             </p>
             
             <?php 
-            // Generate secure download link
+            // Always show secure download link if file exists
             $file_url = get_post_meta($post->ID, '_lift_doc_file_url', true);
             if ($file_url):
                 $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0); // 0 = never expire
@@ -529,27 +529,32 @@ class LIFT_Docs_Secure_Links {
                 <textarea readonly class="widefat" rows="2" onclick="this.select()"><?php echo esc_textarea($download_link); ?></textarea>
                 <p class="description"><?php _e('Direct secure download link (never expires)', 'lift-docs-system'); ?></p>
             </div>
+            <?php else: ?>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                <p><strong><?php _e('Secure Download Link:', 'lift-docs-system'); ?></strong></p>
+                <p class="description" style="color: #999; font-style: italic;">
+                    <?php _e('No file URL specified. Add a file URL in the Document Details section to generate a secure download link.', 'lift-docs-system'); ?>
+                </p>
+            </div>
             <?php endif; ?>
             
-            <p>
-                <button type="button" class="button" onclick="generateNewSecureLink(<?php echo $post->ID; ?>)">
-                    <?php _e('Generate New Link', 'lift-docs-system'); ?>
+            <p style="margin-top: 15px;">
+                <button type="button" class="button" onclick="copyToClipboard(this)">
+                    <?php _e('Copy Secure Link', 'lift-docs-system'); ?>
                 </button>
                 
-                <button type="button" class="button" onclick="copyToClipboard(this)">
-                    <?php _e('Copy Link', 'lift-docs-system'); ?>
+                <?php if ($file_url): ?>
+                <button type="button" class="button" onclick="copyDownloadLink(this)">
+                    <?php _e('Copy Download Link', 'lift-docs-system'); ?>
                 </button>
+                <?php endif; ?>
             </p>
         </div>
         
         <script>
-        function generateNewSecureLink(postId) {
-            // This would need AJAX implementation
-            location.reload();
-        }
-        
         function copyToClipboard(button) {
-            var textarea = button.closest('.lift-docs-secure-link-meta').querySelector('textarea');
+            var metaBox = button.closest('.lift-docs-secure-link-meta');
+            var textarea = metaBox.querySelector('textarea:first-of-type');
             textarea.select();
             document.execCommand('copy');
             
@@ -558,6 +563,21 @@ class LIFT_Docs_Secure_Links {
             setTimeout(function() {
                 button.textContent = originalText;
             }, 2000);
+        }
+        
+        function copyDownloadLink(button) {
+            var metaBox = button.closest('.lift-docs-secure-link-meta');
+            var textareas = metaBox.querySelectorAll('textarea');
+            if (textareas.length > 1) {
+                textareas[1].select(); // Select the download link textarea
+                document.execCommand('copy');
+                
+                var originalText = button.textContent;
+                button.textContent = '<?php _e("Copied!", "lift-docs-system"); ?>';
+                setTimeout(function() {
+                    button.textContent = originalText;
+                }, 2000);
+            }
         }
         </script>
         <?php
