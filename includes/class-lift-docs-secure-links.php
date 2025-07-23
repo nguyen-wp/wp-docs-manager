@@ -115,9 +115,17 @@ class LIFT_Docs_Secure_Links {
             return;
         }
         
+        // Debug logging
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Secure download handler called');
+        }
+        
         $token = $_GET['lift_secure'] ?? '';
         
         if (empty($token)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Missing security token');
+            }
             status_header(403);
             die('Missing security token');
         }
@@ -125,8 +133,11 @@ class LIFT_Docs_Secure_Links {
         $document_id = LIFT_Docs_Settings::verify_secure_link($token);
         
         if (!$document_id) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Token verification failed for token: ' . $token);
+            }
             status_header(403);
-            die('Invalid or expired security token');
+            die('Invalid or expired download link. Please request a new download link.');
         }
         
         // Check if document exists and is published

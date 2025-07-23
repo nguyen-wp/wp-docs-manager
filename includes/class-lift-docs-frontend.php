@@ -29,7 +29,8 @@ class LIFT_Docs_Frontend {
         add_shortcode('lift_document_search', array($this, 'document_search_shortcode'));
         add_shortcode('lift_document_categories', array($this, 'document_categories_shortcode'));
         add_shortcode('lift_document_download', array($this, 'document_download_shortcode'));
-        add_action('init', array($this, 'handle_document_download'));
+        // Disabled old download handler in favor of secure links
+        // add_action('init', array($this, 'handle_document_download'));
         add_filter('document_class', array($this, 'add_document_classes'));
         add_action('wp_footer', array($this, 'add_document_tracking'));
     }
@@ -300,6 +301,11 @@ class LIFT_Docs_Frontend {
         
         // Generate secure download URL using the format /lift-docs/download/?lift_secure=*
         $download_url = LIFT_Docs_Settings::generate_secure_download_link($doc_id);
+        
+        // Debug: Add some debugging info for testing
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Generated download URL: ' . $download_url);
+        }
         
         // Build output
         $output = '<div class="lift-doc-download-widget">';

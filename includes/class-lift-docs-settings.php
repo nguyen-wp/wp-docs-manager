@@ -595,14 +595,11 @@ class LIFT_Docs_Settings {
      * Generate secure download link for document
      */
     public static function generate_secure_download_link($document_id, $expiry_hours = 1) {
-        if (!self::get_setting('enable_secure_links', false)) {
-            return get_post_meta($document_id, '_lift_doc_file_url', true);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Generating secure download link for document: ' . $document_id);
         }
         
-        $encryption_key = self::get_setting('encryption_key', '');
-        if (empty($encryption_key)) {
-            return get_post_meta($document_id, '_lift_doc_file_url', true);
-        }
+        $encryption_key = self::get_encryption_key();
         
         $expires = $expiry_hours > 0 ? time() + ($expiry_hours * 3600) : 0;
         
@@ -613,35 +610,62 @@ class LIFT_Docs_Settings {
             'type' => 'download'
         );
         
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Data to encrypt: ' . print_r($data, true));
+        }
+        
         $token = self::encrypt_data($data, $encryption_key);
         
-        return add_query_arg(array(
+        if (!$token) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Failed to encrypt data');
+            }
+            return home_url('/lift-docs/download/?error=encryption_failed');
+        }
+        
+        $url = add_query_arg(array(
             'lift_secure' => urlencode($token)
         ), home_url('/lift-docs/download/'));
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Final URL: ' . $url);
+        }
+        
+        return $url;
     }
     
     /**
      * Verify secure link
      */
     public static function verify_secure_link($token) {
-        if (!self::get_setting('enable_secure_links', false)) {
-            return false;
-        }
-        
-        $encryption_key = self::get_setting('encryption_key', '');
-        if (empty($encryption_key)) {
-            return false;
-        }
+        $encryption_key = self::get_encryption_key();
         
         $data = self::decrypt_data($token, $encryption_key);
         
-        if (!$data || !isset($data['document_id'])) {
+        if (!$data) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Failed to decrypt token: ' . $token);
+            }
+            return false;
+        }
+        
+        if (!isset($data['document_id'])) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Missing document_id in token data: ' . print_r($data, true));
+            }
             return false;
         }
         
         // Check expiry
-        if ($data['expires'] > 0 && time() > $data['expires']) {
+        if (isset($data['expires']) && $data['expires'] > 0 && time() > $data['expires']) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Token expired. Current time: ' . time() . ', Expires: ' . $data['expires']);
+            }
             return false;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Successfully verified token for document: ' . $data['document_id']);
         }
         
         return $data['document_id'];
@@ -652,19 +676,64 @@ class LIFT_Docs_Settings {
      */
     private static function encrypt_data($data, $key) {
         $json = json_encode($data);
-        $iv = openssl_random_pseudo_bytes(16);
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Encrypting data: ' . $json);
+        }
+        
+        // Ensure key is exactly 32 bytes for AES-256-CBC
+        $key = substr(hash('sha256', $key, true), 0, 32);
+        
+        // Use openssl_random_pseudo_bytes with fallback to random_bytes
+        if (function_exists('random_bytes')) {
+            $iv = random_bytes(16);
+        } else {
+            $iv = openssl_random_pseudo_bytes(16);
+        }
+        
         $encrypted = openssl_encrypt($json, 'AES-256-CBC', $key, 0, $iv);
-        return base64_encode($iv . $encrypted);
+        
+        if ($encrypted === false) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Encryption failed');
+            }
+            return false;
+        }
+        
+        $result = base64_encode($iv . $encrypted);
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Encrypted token: ' . $result);
+        }
+        
+        return $result;
     }
     
     /**
      * Decrypt data
      */
     private static function decrypt_data($token, $key) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Decrypting token: ' . $token);
+        }
+        
         $data = base64_decode($token);
         if ($data === false) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Base64 decode failed');
+            }
             return false;
         }
+        
+        if (strlen($data) < 16) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Data too short, length: ' . strlen($data));
+            }
+            return false;
+        }
+        
+        // Ensure key is exactly 32 bytes for AES-256-CBC
+        $key = substr(hash('sha256', $key, true), 0, 32);
         
         $iv = substr($data, 0, 16);
         $encrypted = substr($data, 16);
@@ -672,10 +741,19 @@ class LIFT_Docs_Settings {
         $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $key, 0, $iv);
         
         if ($decrypted === false) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - OpenSSL decrypt failed');
+            }
             return false;
         }
         
-        return json_decode($decrypted, true);
+        $result = json_decode($decrypted, true);
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Decrypted data: ' . print_r($result, true));
+        }
+        
+        return $result;
     }
     
     /**
@@ -684,11 +762,20 @@ class LIFT_Docs_Settings {
     private static function get_encryption_key() {
         $key = self::get_setting('encryption_key', '');
         if (empty($key)) {
-            // Auto-generate and save key if missing
-            $key = wp_generate_password(32, false);
+            // Auto-generate and save key if missing - ensure 32 bytes for AES-256
+            if (function_exists('random_bytes')) {
+                $key = base64_encode(random_bytes(32));
+            } else {
+                $key = wp_generate_password(32, false);
+            }
+            
             $settings = get_option('lift_docs_settings', array());
             $settings['encryption_key'] = $key;
             update_option('lift_docs_settings', $settings);
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Generated new encryption key in get_encryption_key: ' . $key);
+            }
         }
         return $key;
     }
