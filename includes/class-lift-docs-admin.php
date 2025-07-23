@@ -166,6 +166,9 @@ class LIFT_Docs_Admin {
         $new_columns['cb'] = $columns['cb'];
         $new_columns['title'] = $columns['title'];
         $new_columns['category'] = __('Category', 'lift-docs-system');
+        $new_columns['view_url'] = __('View URL', 'lift-docs-system');
+        $new_columns['download_url'] = __('Download URL', 'lift-docs-system');
+        $new_columns['shortcode'] = __('Shortcode', 'lift-docs-system');
         $new_columns['views'] = __('Views', 'lift-docs-system');
         $new_columns['file_size'] = __('File Size', 'lift-docs-system');
         $new_columns['date'] = $columns['date'];
@@ -191,9 +194,55 @@ class LIFT_Docs_Admin {
                 }
                 break;
                 
+            case 'view_url':
+                $view_url = get_permalink($post_id);
+                echo '<div class="lift-url-field">';
+                echo '<input type="text" value="' . esc_attr($view_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" />';
+                echo '<br><small><a href="' . esc_url($view_url) . '" target="_blank">' . __('Preview', 'lift-docs-system') . '</a></small>';
+                echo '</div>';
+                break;
+                
+            case 'download_url':
+                $file_url = get_post_meta($post_id, '_lift_doc_file_url', true);
+                if ($file_url) {
+                    $download_url = add_query_arg(array(
+                        'lift_download' => $post_id,
+                        'nonce' => wp_create_nonce('lift_download_' . $post_id)
+                    ), home_url());
+                    
+                    echo '<div class="lift-url-field">';
+                    echo '<input type="text" value="' . esc_attr($download_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" />';
+                    
+                    // Show secure download URL if enabled
+                    if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+                        $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($post_id);
+                        echo '<br><input type="text" value="' . esc_attr($secure_download_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" placeholder="' . __('Secure Download URL', 'lift-docs-system') . '" />';
+                        echo '<br><small>' . __('Secure URL (permanent)', 'lift-docs-system') . '</small>';
+                    }
+                    
+                    echo '</div>';
+                } else {
+                    echo '—';
+                }
+                break;
+                
+            case 'shortcode':
+                echo '<div class="lift-shortcode-field">';
+                // echo '<input type="text" value="[lift_documents category=&quot;&quot; limit=&quot;1&quot; id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" />';
+                echo '<input type="text" value="[lift_document_download id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" />';
+                echo '<br><small>' . __('Document display & download shortcodes', 'lift-docs-system') . '</small>';
+                echo '</div>';
+                break;
+                
             case 'views':
                 $views = get_post_meta($post_id, '_lift_doc_views', true);
-                echo $views ? $views : '0';
+                $downloads = get_post_meta($post_id, '_lift_doc_downloads', true);
+                echo '<div class="lift-stats">';
+                echo '<strong>' . ($views ? number_format($views) : '0') . '</strong> ' . __('views', 'lift-docs-system');
+                if ($downloads) {
+                    echo '<br><strong>' . number_format($downloads) . '</strong> ' . __('downloads', 'lift-docs-system');
+                }
+                echo '</div>';
                 break;
                 
             case 'file_size':

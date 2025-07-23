@@ -570,3 +570,83 @@
         color: #f0f0f1;
     }
 }
+
+/* Custom columns styling for document list */
+.lift-url-field input,
+.lift-shortcode-field input {
+    font-family: monospace;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 4px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.lift-url-field input:focus,
+.lift-shortcode-field input:focus {
+    background: #fff;
+    border-color: #007cba;
+    outline: none;
+    box-shadow: 0 0 2px rgba(0, 124, 186, 0.3);
+}
+
+.lift-url-field small a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.lift-url-field small a:hover {
+    text-decoration: underline;
+}
+
+.lift-stats {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.lift-stats strong {
+    color: #0073aa;
+    font-weight: 600;
+}
+
+/* Column width adjustments */
+.wp-list-table .column-view_url,
+.wp-list-table .column-download_url {
+    width: 200px;
+}
+
+.wp-list-table .column-shortcode {
+    width: 180px;
+}
+
+.wp-list-table .column-views {
+    width: 80px;
+    text-align: center;
+}
+
+.wp-list-table .column-file_size {
+    width: 80px;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 1200px) {
+    .wp-list-table .column-view_url,
+    .wp-list-table .column-download_url,
+    .wp-list-table .column-shortcode {
+        width: 150px;
+    }
+    
+    .lift-url-field input,
+    .lift-shortcode-field input {
+        font-size: 10px;
+    }
+}
+
+@media screen and (max-width: 960px) {
+    .wp-list-table .column-view_url,
+    .wp-list-table .column-download_url,
+    .wp-list-table .column-shortcode {
+        display: none;
+    }
+}

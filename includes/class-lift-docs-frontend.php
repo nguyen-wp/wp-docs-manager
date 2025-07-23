@@ -29,6 +29,7 @@ class LIFT_Docs_Frontend {
         add_shortcode('lift_documents', array($this, 'documents_shortcode'));
         add_shortcode('lift_document_search', array($this, 'document_search_shortcode'));
         add_shortcode('lift_document_categories', array($this, 'document_categories_shortcode'));
+        add_shortcode('lift_document_download', array($this, 'document_download_shortcode'));
         add_action('init', array($this, 'handle_document_download'));
         add_filter('document_class', array($this, 'add_document_classes'));
         add_action('wp_footer', array($this, 'add_document_tracking'));
@@ -267,6 +268,7 @@ class LIFT_Docs_Frontend {
      */
     public function documents_shortcode($atts) {
         $atts = shortcode_atts(array(
+            'id' => '',
             'category' => '',
             'tag' => '',
             'limit' => 10,
@@ -282,6 +284,12 @@ class LIFT_Docs_Frontend {
             'orderby' => $atts['orderby'],
             'order' => $atts['order']
         );
+        
+        // If specific ID is provided, show only that document
+        if ($atts['id']) {
+            $args['post__in'] = array(intval($atts['id']));
+            $args['posts_per_page'] = 1;
+        }
         
         if ($atts['category']) {
             $args['tax_query'][] = array(
@@ -327,12 +335,108 @@ class LIFT_Docs_Frontend {
                 $output .= '</div>';
             }
             
+            // Add download button for individual document display
+            if ($atts['id']) {
+                $file_url = get_post_meta($doc->ID, '_lift_doc_file_url', true);
+                if ($file_url) {
+                    $download_url = add_query_arg(array(
+                        'lift_download' => $doc->ID,
+                        'nonce' => wp_create_nonce('lift_download_' . $doc->ID)
+                    ), home_url());
+                    
+                    $output .= '<div class="doc-actions">';
+                    $output .= '<a href="' . esc_url($download_url) . '" class="button lift-download-btn">';
+                    $output .= '<span class="dashicons dashicons-download"></span> ' . __('Download', 'lift-docs-system');
+                    $output .= '</a>';
+                    $output .= '</div>';
+                }
+            }
+            
             $output .= '</div>';
         }
         
         $output .= '</div>';
         
         return $output;
+    }
+    
+    /**
+     * Single document download shortcode
+     */
+    public function document_download_shortcode($atts) {
+        $atts = shortcode_atts(array(
+            'id' => '',
+            'text' => __('Download', 'lift-docs-system'),
+            'show_title' => 'true',
+            'show_info' => 'false',
+            'class' => 'button'
+        ), $atts);
+        
+        if (empty($atts['id'])) {
+            return '<p class="error">' . __('Document ID is required.', 'lift-docs-system') . '</p>';
+        }
+        
+        $doc_id = intval($atts['id']);
+        $document = get_post($doc_id);
+        
+        if (!$document || $document->post_type !== 'lift_document') {
+            return '<p class="error">' . __('Document not found.', 'lift-docs-system') . '</p>';
+        }
+        
+        $file_url = get_post_meta($doc_id, '_lift_doc_file_url', true);
+        if (!$file_url) {
+            return '<p class="error">' . __('No file attached to this document.', 'lift-docs-system') . '</p>';
+        }
+        
+        $download_url = add_query_arg(array(
+            'lift_download' => $doc_id,
+            'nonce' => wp_create_nonce('lift_download_' . $doc_id)
+        ), home_url());
+        
+        $output = '<div class="lift-doc-download-widget">';
+        
+        if ($atts['show_title'] === 'true') {
+            $output .= '<h4 class="doc-title">' . esc_html($document->post_title) . '</h4>';
+        }
+        
+        if ($atts['show_info'] === 'true') {
+            $file_size = get_post_meta($doc_id, '_lift_doc_file_size', true);
+            $file_type = get_post_meta($doc_id, '_lift_doc_file_type', true);
+            
+            if ($file_size || $file_type) {
+                $output .= '<div class="doc-info">';
+                if ($file_type) {
+                    $output .= '<span class="file-type">' . esc_html(strtoupper($file_type)) . '</span>';
+                }
+                if ($file_size) {
+                    $output .= '<span class="file-size">' . esc_html($this->format_file_size($file_size)) . '</span>';
+                }
+                $output .= '</div>';
+            }
+        }
+        
+        $output .= '<a href="' . esc_url($download_url) . '" class="' . esc_attr($atts['class']) . ' lift-download-btn">';
+        $output .= '<span class="dashicons dashicons-download"></span> ' . esc_html($atts['text']);
+        $output .= '</a>';
+        
+        $output .= '</div>';
+        
+        return $output;
+    }
+    
+    /**
+     * Format file size
+     */
+    private function format_file_size($size) {
+        if ($size >= 1073741824) {
+            return number_format($size / 1073741824, 2) . ' GB';
+        } elseif ($size >= 1048576) {
+            return number_format($size / 1048576, 2) . ' MB';
+        } elseif ($size >= 1024) {
+            return number_format($size / 1024, 2) . ' KB';
+        } else {
+            return $size . ' bytes';
+        }
     }
     
     /**
