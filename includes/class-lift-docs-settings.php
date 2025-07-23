@@ -70,15 +70,6 @@ class LIFT_Docs_Settings {
         );
         
         add_settings_field(
-            'enable_search',
-            __('Enable Search', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-general',
-            'lift_docs_general_section',
-            array('field' => 'enable_search', 'description' => __('Add search functionality for documents', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
             'enable_categories',
             __('Enable Categories', 'lift-docs-system'),
             array($this, 'checkbox_field_callback'),
@@ -94,24 +85,6 @@ class LIFT_Docs_Settings {
             'lift-docs-general',
             'lift_docs_general_section',
             array('field' => 'enable_tags', 'description' => __('Enable document tags', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'allowed_file_types',
-            __('Allowed File Types', 'lift-docs-system'),
-            array($this, 'text_field_callback'),
-            'lift-docs-general',
-            'lift_docs_general_section',
-            array('field' => 'allowed_file_types', 'description' => __('Comma-separated list of allowed file extensions (e.g., pdf,doc,docx)', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'max_file_size',
-            __('Max File Size (MB)', 'lift-docs-system'),
-            array($this, 'number_field_callback'),
-            'lift-docs-general',
-            'lift_docs_general_section',
-            array('field' => 'max_file_size', 'description' => __('Maximum file size for uploads in megabytes', 'lift-docs-system'), 'min' => 1, 'max' => 1024)
         );
         
         // Security Tab Settings
@@ -138,24 +111,6 @@ class LIFT_Docs_Settings {
             'lift-docs-security',
             'lift_docs_security_section',
             array('field' => 'require_login_to_download', 'description' => __('Users must be logged in to download documents', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'enable_secure_links',
-            __('Enable Secure Links', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-security',
-            'lift_docs_security_section',
-            array('field' => 'enable_secure_links', 'description' => __('Generate secure, temporary links for documents', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'secure_link_expiry',
-            __('Secure Link Expiry (hours)', 'lift-docs-system'),
-            array($this, 'number_field_callback'),
-            'lift-docs-security',
-            'lift_docs_security_section',
-            array('field' => 'secure_link_expiry', 'description' => __('How many hours secure links remain valid (0 = never expire)', 'lift-docs-system'), 'min' => 0, 'max' => 8760)
         );
         
         add_settings_field(
@@ -513,7 +468,7 @@ class LIFT_Docs_Settings {
      * Security section callback
      */
     public function security_section_callback() {
-        echo '<p>' . __('Configure security and access control settings.', 'lift-docs-system') . '</p>';
+        echo '<p>' . __('Configure security and access control settings. <strong>Secure links are enabled by default for enhanced security.</strong>', 'lift-docs-system') . '</p>';
     }
     
     /**
@@ -644,12 +599,10 @@ class LIFT_Docs_Settings {
         
         // Boolean fields - only keep essential ones
         $boolean_fields = array(
-            'enable_search',
             'enable_categories',
             'enable_tags',
             'require_login_to_view',
             'require_login_to_download',
-            'enable_secure_links',
             'show_document_header',
             'show_document_description',
             'show_document_meta',
@@ -667,19 +620,7 @@ class LIFT_Docs_Settings {
             $validated['documents_per_page'] = max(1, min(100, intval($input['documents_per_page'])));
         }
         
-        if (isset($input['max_file_size'])) {
-            $validated['max_file_size'] = max(1, min(1024, intval($input['max_file_size'])));
-        }
-        
-        if (isset($input['secure_link_expiry'])) {
-            $validated['secure_link_expiry'] = max(0, min(8760, intval($input['secure_link_expiry'])));
-        }
-        
         // Text fields
-        if (isset($input['allowed_file_types'])) {
-            $validated['allowed_file_types'] = sanitize_text_field($input['allowed_file_types']);
-        }
-        
         if (isset($input['encryption_key'])) {
             $validated['encryption_key'] = sanitize_text_field($input['encryption_key']);
         }
@@ -691,15 +632,11 @@ class LIFT_Docs_Settings {
             $validated['layout_style'] = in_array($layout_style, $allowed_styles) ? $layout_style : 'default';
         }
         
-        // Check if secure links setting changed - flush rewrite rules if so
-        $current_settings = get_option('lift_docs_settings', array());
-        $current_secure_links = isset($current_settings['enable_secure_links']) ? $current_settings['enable_secure_links'] : false;
-        $new_secure_links = isset($validated['enable_secure_links']) ? $validated['enable_secure_links'] : false;
+        // Force secure links to always be enabled
+        $validated['enable_secure_links'] = true;
         
-        if ($current_secure_links !== $new_secure_links) {
-            // Schedule rewrite rules flush
-            add_action('shutdown', 'flush_rewrite_rules');
-        }
+        // Set default secure link expiry to 24 hours
+        $validated['secure_link_expiry'] = 24;
         
         return $validated;
     }
@@ -708,6 +645,16 @@ class LIFT_Docs_Settings {
      * Get setting value
      */
     public static function get_setting($key, $default = null) {
+        // Force secure links to always be enabled
+        if ($key === 'enable_secure_links') {
+            return true;
+        }
+        
+        // Set default secure link expiry to 24 hours
+        if ($key === 'secure_link_expiry') {
+            return 24;
+        }
+        
         $settings = get_option('lift_docs_settings', array());
         return isset($settings[$key]) ? $settings[$key] : $default;
     }
@@ -723,16 +670,13 @@ class LIFT_Docs_Settings {
      * Generate secure link for document
      */
     public static function generate_secure_link($document_id, $expiry_hours = null) {
-        if (!self::get_setting('enable_secure_links', false)) {
-            return get_permalink($document_id);
-        }
-        
+        // Secure links are always enabled
         $encryption_key = self::get_encryption_key_internal();
         if (empty($encryption_key)) {
             return get_permalink($document_id);
         }
         
-        $expiry_hours = $expiry_hours ?? self::get_setting('secure_link_expiry', 24);
+        $expiry_hours = $expiry_hours ?? 24; // Default to 24 hours
         $expires = $expiry_hours > 0 ? time() + ($expiry_hours * 3600) : 0;
         
         $data = array(
