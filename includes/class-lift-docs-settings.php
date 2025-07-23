@@ -18,6 +18,11 @@ class LIFT_Docs_Settings {
         }
         return self::$instance;
     }
+
+
+    public function layout_section_callback() {
+        echo '<p>' . __('Configure global layout settings for custom document pages. These settings apply to all documents accessed via secure links.', 'lift-docs-system') . '</p>';
+    }
     
     private function __construct() {
         $this->init_hooks();
@@ -73,6 +78,14 @@ class LIFT_Docs_Settings {
             'lift_docs_security_section',
             __('Security Settings', 'lift-docs-system'),
             array($this, 'security_section_callback'),
+            'lift-docs-settings'
+        );
+        
+        // Layout Settings Section
+        add_settings_section(
+            'lift_docs_layout_section',
+            __('Custom Layout Settings', 'lift-docs-system'),
+            array($this, 'layout_section_callback'),
             'lift-docs-settings'
         );
         
@@ -239,6 +252,78 @@ class LIFT_Docs_Settings {
             'lift_docs_security_section',
             array('field' => 'encryption_key', 'description' => __('Key used for encrypting secure links (auto-generated)', 'lift-docs-system'))
         );
+        
+        // Layout Settings Fields
+        add_settings_field(
+            'show_secure_access_notice',
+            __('Show Secure Access Notice', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_layout_section',
+            array('field' => 'show_secure_access_notice', 'description' => __('Display security notice on custom layout pages', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'show_document_header',
+            __('Show Document Header', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_layout_section',
+            array('field' => 'show_document_header', 'description' => __('Display document title and metadata', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'show_document_meta',
+            __('Show Document Meta Info', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_layout_section',
+            array('field' => 'show_document_meta', 'description' => __('Display document metadata (date, category, file size)', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'show_document_description',
+            __('Show Document Description', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_layout_section',
+            array('field' => 'show_document_description', 'description' => __('Display document content/description', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'show_download_button',
+            __('Show Download Button', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_layout_section',
+            array('field' => 'show_download_button', 'description' => __('Display download button on layout pages', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'show_related_docs',
+            __('Show Related Documents', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_layout_section',
+            array('field' => 'show_related_docs', 'description' => __('Display related documents section', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'layout_style',
+            __('Layout Style', 'lift-docs-system'),
+            array($this, 'select_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_layout_section',
+            array(
+                'field' => 'layout_style',
+                'description' => __('Choose the layout style for custom pages', 'lift-docs-system'),
+                'options' => array(
+                    'default' => __('Default', 'lift-docs-system'),
+                    'minimal' => __('Minimal', 'lift-docs-system'),
+                    'detailed' => __('Detailed', 'lift-docs-system')
+                )
+            )
+        );
     }
     
     /**
@@ -329,6 +414,28 @@ class LIFT_Docs_Settings {
         echo '<input type="text" name="lift_docs_settings[' . $field . ']" value="' . esc_attr($value) . '" class="regular-text" />';
         
         if ($description) {
+            echo '<p class="description">' . $description . '</p>';
+        }
+    }
+    
+    /**
+     * Select field callback
+     */
+    public function select_field_callback($args) {
+        $settings = get_option('lift_docs_settings', array());
+        $field = $args['field'];
+        $description = $args['description'] ?? '';
+        $options = $args['options'] ?? array();
+        $value = isset($settings[$field]) ? $settings[$field] : '';
+        
+        echo '<select name="lift_docs_settings[' . $field . ']" class="regular-text">';
+        foreach ($options as $option_value => $option_label) {
+            $selected = selected($value, $option_value, false);
+            echo '<option value="' . esc_attr($option_value) . '"' . $selected . '>' . esc_html($option_label) . '</option>';
+        }
+        echo '</select>';
+        
+        if (!empty($description)) {
             echo '<p class="description">' . $description . '</p>';
         }
     }
