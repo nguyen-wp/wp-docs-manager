@@ -195,10 +195,18 @@ class LIFT_Docs_Admin {
                 break;
                 
             case 'view_url':
-                $view_url = get_permalink($post_id);
+                // Use secure link for view URL if enabled, otherwise use permalink
+                if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+                    $view_url = LIFT_Docs_Settings::generate_secure_link($post_id);
+                    $label = __('Secure View URL', 'lift-docs-system');
+                } else {
+                    $view_url = get_permalink($post_id);
+                    $label = __('View URL', 'lift-docs-system');
+                }
+                
                 echo '<div class="lift-url-field">';
                 echo '<input type="text" value="' . esc_attr($view_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" />';
-                echo '<br><small><a href="' . esc_url($view_url) . '" target="_blank">' . __('Preview', 'lift-docs-system') . '</a></small>';
+                echo '<br><small><a href="' . esc_url($view_url) . '" target="_blank">' . __('Preview', 'lift-docs-system') . '</a> | ' . $label . '</small>';
                 echo '</div>';
                 break;
                 
@@ -228,8 +236,8 @@ class LIFT_Docs_Admin {
                 
             case 'shortcode':
                 echo '<div class="lift-shortcode-field">';
-                // echo '<input type="text" value="[lift_documents category=&quot;&quot; limit=&quot;1&quot; id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" />';
-                echo '<input type="text" value="[lift_document_download id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" />';
+                echo '<input type="text" value="[lift_documents id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" placeholder="Display Shortcode" />';
+                echo '<input type="text" value="[lift_document_download id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" placeholder="Download Shortcode" />';
                 echo '<br><small>' . __('Document display & download shortcodes', 'lift-docs-system') . '</small>';
                 echo '</div>';
                 break;

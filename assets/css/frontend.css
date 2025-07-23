@@ -527,40 +527,84 @@
 }
 
 /* Related Documents */
-.lift-docs-related {
-    margin: 30px 0;
-    padding: 20px;
+.related-documents {
+    margin-top: 20px;
+    padding: 15px;
     background: #f9f9f9;
-    border-radius: 6px;
+    border-radius: 5px;
 }
 
-.lift-docs-related h3 {
-    margin: 0 0 15px 0;
+.related-documents h4 {
+    margin: 0 0 10px 0;
     color: #333;
 }
 
-.lift-docs-related ul {
+.related-documents ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-.lift-docs-related li {
-    padding: 8px 0;
-    border-bottom: 1px solid #e1e1e1;
+.related-documents li {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
 }
 
-.lift-docs-related li:last-child {
+.related-documents li:last-child {
     border-bottom: none;
 }
 
-.lift-docs-related a {
-    color: #0073aa;
-    text-decoration: none;
+/* Document Download Widget */
+.lift-doc-download-widget {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #f9f9f9;
+    text-align: center;
 }
 
-.lift-docs-related a:hover {
-    text-decoration: underline;
+.lift-doc-download-widget .doc-title {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.lift-doc-download-widget .doc-info {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.lift-doc-download-widget .file-type,
+.lift-doc-download-widget .file-size {
+    display: inline-block;
+    margin: 0 5px;
+    padding: 2px 8px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.lift-doc-download-widget .lift-download-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #0073aa;
+    color: white;
+    text-decoration: none;
+    border-radius: 3px;
+    transition: background 0.3s;
+}
+
+.lift-doc-download-widget .lift-download-btn:hover {
+    background: #005a87;
+    color: white;
+}
+
+.lift-doc-download-widget .lift-download-btn .dashicons {
+    font-size: 16px;
+    vertical-align: text-top;
+    margin-right: 5px;
 }
 
 /* Search Form */
