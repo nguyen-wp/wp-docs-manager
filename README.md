@@ -102,9 +102,47 @@ Display a list of document categories.
 [lift_document_categories show_count="false"]
 ```
 
-## Template Override
+## Template Customization
 
-You can override the plugin templates by copying them to your theme:
+The plugin uses your current theme's default layout for displaying documents. This ensures:
+
+- **Complete theme compatibility** - Works with any WordPress theme
+- **Consistent styling** - Matches your site's design automatically  
+- **Block theme support** - Full compatibility with FSE themes
+- **Responsive design** - Inherits your theme's responsive behavior
+
+### Theme Integration
+
+The plugin enhances the default post display with:
+
+- Document metadata (file size, download count, view count)
+- Download buttons for attached files
+- Grid layout for archive pages
+- Document-specific styling that complements your theme
+
+### Advanced Customization
+
+If you need to customize the document display beyond the default enhancements:
+
+1. Use the provided CSS classes to style elements:
+   - `.single-lift_document` - Single document pages
+   - `.post-type-archive-lift_document` - Document archive pages
+   - `.lift-document-meta` - Document metadata sections
+   - `.lift-document-actions` - Download and action buttons
+
+2. Use WordPress hooks to modify content:
+   - `lift_docs_before_single` - Before single document content
+   - `lift_docs_after_single` - After single document content
+   - `lift_docs_before_archive` - Before archive content
+   - `lift_docs_after_archive` - After archive content
+
+3. Override specific functionality with filters:
+   - `lift_docs_document_meta` - Customize document metadata display
+   - `lift_docs_document_actions` - Customize action buttons
+
+### Previous Template Method (Deprecated)
+
+Previously, the plugin used custom templates that could be overridden:
 
 1. Copy `templates/archive-lift_document.php` to `your-theme/lift-docs/archive-lift_document.php`
 2. Copy `templates/single-lift_document.php` to `your-theme/lift-docs/single-lift_document.php`

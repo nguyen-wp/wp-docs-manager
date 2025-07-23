@@ -1,13 +1,300 @@
 /**
  * Frontend Styles for LIFT Docs System
+ * Compatible with default theme layouts
  */
 
-/* Document List Styles */
+/* Document content enhancement for single posts */
+.single-lift_document .entry-content,
+.lift-document-content {
+    position: relative;
+}
+
+/* Document meta information */
+.lift-document-meta {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    font-size: 0.9em;
+}
+
+.lift-document-meta .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.lift-document-meta .meta-row:last-child {
+    margin-bottom: 0;
+}
+
+.lift-document-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+}
+
+.lift-document-meta .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+/* Document actions */
+.lift-document-actions {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.lift-document-actions .action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.lift-document-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid;
+}
+
+.lift-document-actions .btn-primary {
+    background: #0073aa;
+    color: #fff;
+    border-color: #0073aa;
+}
+
+.lift-document-actions .btn-primary:hover {
+    background: #005a87;
+    border-color: #005a87;
+    color: #fff;
+}
+
+.lift-document-actions .btn-secondary {
+    background: #fff;
+    color: #0073aa;
+    border-color: #0073aa;
+}
+
+.lift-document-actions .btn-secondary:hover {
+    background: #0073aa;
+    color: #fff;
+}
+
+/* Related documents */
+.lift-related-documents {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.lift-related-documents h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+.lift-related-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.lift-related-item {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    transition: box-shadow 0.3s ease;
+}
+
+.lift-related-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.lift-related-item h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+}
+
+.lift-related-item h4 a {
+    text-decoration: none;
+    color: #333;
+}
+
+.lift-related-item h4 a:hover {
+    color: #0073aa;
+}
+
+.lift-related-item .excerpt {
+    color: #666;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+/* Document List Styles for shortcodes */
 .lift-docs-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
     margin: 20px 0;
+}
+
+/* Archive page styling for lift_document post type */
+.post-type-archive-lift_document .site-main,
+.tax-lift_doc_category .site-main,
+.tax-lift_doc_tag .site-main {
+    /* Override theme constraints if needed */
+    max-width: none;
+}
+
+/* Grid layout for archive pages */
+.post-type-archive-lift_document .posts-grid,
+.tax-lift_doc_category .posts-grid,
+.tax-lift_doc_tag .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+/* Individual post styling in archives */
+.post-type-archive-lift_document .post,
+.tax-lift_doc_category .post,
+.tax-lift_doc_tag .post {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+.post-type-archive-lift_document .post:hover,
+.tax-lift_doc_category .post:hover,
+.tax-lift_doc_tag .post:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.post-type-archive-lift_document .post-thumbnail,
+.tax-lift_doc_category .post-thumbnail,
+.tax-lift_doc_tag .post-thumbnail {
+    position: relative;
+    overflow: hidden;
+}
+
+.post-type-archive-lift_document .post-thumbnail img,
+.tax-lift_doc_category .post-thumbnail img,
+.tax-lift_doc_tag .post-thumbnail img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.post-type-archive-lift_document .post:hover .post-thumbnail img,
+.tax-lift_doc_category .post:hover .post-thumbnail img,
+.tax-lift_doc_tag .post:hover .post-thumbnail img {
+    transform: scale(1.05);
+}
+
+.post-type-archive-lift_document .entry-header,
+.post-type-archive-lift_document .entry-content,
+.post-type-archive-lift_document .entry-footer,
+.tax-lift_doc_category .entry-header,
+.tax-lift_doc_category .entry-content,
+.tax-lift_doc_category .entry-footer,
+.tax-lift_doc_tag .entry-header,
+.tax-lift_doc_tag .entry-content,
+.tax-lift_doc_tag .entry-footer {
+    padding: 1.5rem;
+}
+
+.post-type-archive-lift_document .entry-title,
+.tax-lift_doc_category .entry-title,
+.tax-lift_doc_tag .entry-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+    line-height: 1.3;
+}
+
+.post-type-archive-lift_document .entry-title a,
+.tax-lift_doc_category .entry-title a,
+.tax-lift_doc_tag .entry-title a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease;
+}
+
+.post-type-archive-lift_document .entry-title a:hover,
+.tax-lift_doc_category .entry-title a:hover,
+.tax-lift_doc_tag .entry-title a:hover {
+    color: #0073aa;
+}
+
+/* Document actions in archive */
+.lift-doc-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.lift-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #0073aa;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: background 0.3s ease;
+}
+
+.lift-download-btn:hover {
+    background: #005a87;
+    color: #fff;
+}
+
+.lift-download-btn .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+/* Document meta in archive */
+.lift-doc-meta {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.lift-view-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.lift-view-count .dashicons {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
 }
 
 .lift-doc-item {

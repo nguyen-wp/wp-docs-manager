@@ -34,6 +34,19 @@ class LIFT_Docs_Ajax {
         add_action('wp_ajax_lift_load_more_documents', array($this, 'load_more_documents'));
         add_action('wp_ajax_nopriv_lift_load_more_documents', array($this, 'load_more_documents'));
         
+        // New AJAX actions for default theme layout
+        add_action('wp_ajax_lift_get_document_download_url', array($this, 'get_document_download_url'));
+        add_action('wp_ajax_nopriv_lift_get_document_download_url', array($this, 'get_document_download_url'));
+        
+        add_action('wp_ajax_lift_get_document_views', array($this, 'get_document_views'));
+        add_action('wp_ajax_nopriv_lift_get_document_views', array($this, 'get_document_views'));
+        
+        add_action('wp_ajax_lift_track_document_view', array($this, 'track_document_view'));
+        add_action('wp_ajax_nopriv_lift_track_document_view', array($this, 'track_document_view'));
+        
+        add_action('wp_ajax_lift_track_download', array($this, 'track_download'));
+        add_action('wp_ajax_nopriv_lift_track_download', array($this, 'track_download'));
+        
         // Admin AJAX actions
         add_action('wp_ajax_lift_admin_analytics', array($this, 'admin_analytics'));
         add_action('wp_ajax_lift_bulk_action', array($this, 'bulk_action'));
@@ -518,6 +531,165 @@ class LIFT_Docs_Ajax {
             ));
         } else {
             wp_send_json_error(__('Failed to generate secure link', 'lift-docs-system'));
+        }
+    }
+    
+    /**
+     * Get document download URL for archive display
+     */
+    public function get_document_download_url() {
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_docs_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        
+        if (!$post_id || get_post_type($post_id) !== 'lift_document') {
+            wp_send_json_error(__('Invalid document', 'lift-docs-system'));
+        }
+        
+        $file_url = get_post_meta($post_id, '_lift_doc_file_url', true);
+        
+        if ($file_url && LIFT_Docs_Settings::get_setting('show_download_button', true)) {
+            $download_url = add_query_arg(array(
+                'lift_download' => $post_id,
+                'nonce' => wp_create_nonce('lift_download_' . $post_id)
+            ), home_url());
+            
+            wp_send_json_success(array(
+                'download_url' => $download_url,
+                'file_size' => size_format(get_post_meta($post_id, '_lift_doc_file_size', true))
+            ));
+        } else {
+            wp_send_json_error(__('No download available', 'lift-docs-system'));
+        }
+    }
+    
+    /**
+     * Get document view count
+     */
+    public function get_document_views() {
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_docs_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        
+        if (!$post_id || get_post_type($post_id) !== 'lift_document') {
+            wp_send_json_error(__('Invalid document', 'lift-docs-system'));
+        }
+        
+        $views = get_post_meta($post_id, '_lift_doc_views', true);
+        $views = $views ? intval($views) : 0;
+        
+        wp_send_json_success(array(
+            'views' => $views,
+            'formatted_views' => number_format($views)
+        ));
+    }
+    
+    /**
+     * Track document view
+     */
+    public function track_document_view() {
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_docs_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        
+        if (!$post_id || get_post_type($post_id) !== 'lift_document') {
+            wp_send_json_error(__('Invalid document', 'lift-docs-system'));
+        }
+        
+        // Get current view count
+        $views = get_post_meta($post_id, '_lift_doc_views', true);
+        $views = $views ? intval($views) : 0;
+        
+        // Increment view count
+        $new_views = $views + 1;
+        update_post_meta($post_id, '_lift_doc_views', $new_views);
+        
+        // Log the view
+        $this->log_document_activity($post_id, 'view', array(
+            'user_id' => get_current_user_id(),
+            'ip_address' => $this->get_user_ip(),
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            'timestamp' => current_time('mysql')
+        ));
+        
+        wp_send_json_success(array(
+            'views' => $new_views
+        ));
+    }
+    
+    /**
+     * Track download
+     */
+    public function track_download() {
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_docs_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        $document_id = intval($_POST['document_id']);
+        
+        if (!$document_id || get_post_type($document_id) !== 'lift_document') {
+            wp_send_json_error(__('Invalid document', 'lift-docs-system'));
+        }
+        
+        // Get current download count
+        $downloads = get_post_meta($document_id, '_lift_doc_downloads', true);
+        $downloads = $downloads ? intval($downloads) : 0;
+        
+        // Increment download count
+        $new_downloads = $downloads + 1;
+        update_post_meta($document_id, '_lift_doc_downloads', $new_downloads);
+        
+        // Log the download
+        $this->log_document_activity($document_id, 'download', array(
+            'user_id' => get_current_user_id(),
+            'ip_address' => $this->get_user_ip(),
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            'timestamp' => current_time('mysql')
+        ));
+        
+        wp_send_json_success(array(
+            'downloads' => $new_downloads
+        ));
+    }
+    
+    /**
+     * Log document activity
+     */
+    private function log_document_activity($document_id, $action, $data = array()) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'lift_docs_activity';
+        
+        $wpdb->insert(
+            $table_name,
+            array(
+                'document_id' => $document_id,
+                'action' => $action,
+                'user_id' => $data['user_id'] ?? 0,
+                'ip_address' => $data['ip_address'] ?? '',
+                'user_agent' => $data['user_agent'] ?? '',
+                'created_at' => $data['timestamp'] ?? current_time('mysql')
+            ),
+            array('%d', '%s', '%d', '%s', '%s', '%s')
+        );
+    }
+    
+    /**
+     * Get user IP address
+     */
+    private function get_user_ip() {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            return $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            return $_SERVER['REMOTE_ADDR'] ?? '';
         }
     }
 }

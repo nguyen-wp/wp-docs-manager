@@ -5,6 +5,13 @@
 jQuery(document).ready(function($) {
     'use strict';
     
+    // Initialize grid layout for document archives
+    initArchiveGridLayout();
+    
+    // Initialize document features
+    initDocumentTracking();
+    initDownloadTracking();
+    
     // Document search functionality
     var searchForm = $('.lift-docs-search');
     var searchInput = searchForm.find('input[type="search"]');
@@ -21,6 +28,160 @@ jQuery(document).ready(function($) {
                 }, 500);
             }
         });
+    }
+    
+    /**
+     * Initialize grid layout for archive pages
+     */
+    function initArchiveGridLayout() {
+        // Check if we're on a document archive page
+        if ($('body').hasClass('post-type-archive-lift_document') || 
+            $('body').hasClass('tax-lift_doc_category') || 
+            $('body').hasClass('tax-lift_doc_tag')) {
+            
+            // Wrap posts in grid container
+            var $posts = $('.site-main .post, .site-main article');
+            if ($posts.length > 1) {
+                $posts.wrapAll('<div class="posts-grid"></div>');
+            }
+            
+            // Add document meta to each post
+            $posts.each(function() {
+                var $post = $(this);
+                var postId = $post.attr('id');
+                
+                if (postId && postId.includes('post-')) {
+                    enhanceArchivePost($post);
+                }
+            });
+        }
+    }
+    
+    /**
+     * Enhance archive post display
+     */
+    function enhanceArchivePost($post) {
+        // Add document meta if not present
+        var $entryFooter = $post.find('.entry-footer');
+        if ($entryFooter.length && !$entryFooter.find('.lift-doc-meta').length) {
+            var postId = $post.attr('id').replace('post-', '');
+            
+            // Add download button if file exists
+            addDownloadButton($post, postId);
+            
+            // Add view count if enabled
+            addViewCount($post, postId);
+        }
+    }
+    
+    /**
+     * Add download button to archive post
+     */
+    function addDownloadButton($post, postId) {
+        $.ajax({
+            url: lift_docs_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'lift_get_document_download_url',
+                post_id: postId,
+                nonce: lift_docs_ajax.nonce
+            },
+            success: function(response) {
+                if (response.success && response.data.download_url) {
+                    var downloadBtn = '<a href="' + response.data.download_url + '" class="lift-download-btn" data-document-id="' + postId + '">' +
+                                    '<span class="dashicons dashicons-download"></span> Download' +
+                                    '</a>';
+                    
+                    var $entryFooter = $post.find('.entry-footer');
+                    if ($entryFooter.length) {
+                        $entryFooter.append('<div class="lift-doc-actions">' + downloadBtn + '</div>');
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * Add view count to archive post
+     */
+    function addViewCount($post, postId) {
+        $.ajax({
+            url: lift_docs_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'lift_get_document_views',
+                post_id: postId,
+                nonce: lift_docs_ajax.nonce
+            },
+            success: function(response) {
+                if (response.success && response.data.views > 0) {
+                    var viewCount = '<span class="lift-view-count">' +
+                                  '<span class="dashicons dashicons-visibility"></span> ' +
+                                  response.data.views + ' views' +
+                                  '</span>';
+                    
+                    var $entryFooter = $post.find('.entry-footer');
+                    if ($entryFooter.length) {
+                        if (!$entryFooter.find('.lift-doc-meta').length) {
+                            $entryFooter.append('<div class="lift-doc-meta"></div>');
+                        }
+                        $entryFooter.find('.lift-doc-meta').append(viewCount);
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * Initialize document view tracking
+     */
+    function initDocumentTracking() {
+        if ($('body').hasClass('single-lift_document')) {
+            var postId = $('article[id^="post-"]').attr('id');
+            if (postId) {
+                postId = postId.replace('post-', '');
+                
+                // Track page view
+                $.ajax({
+                    url: lift_docs_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'lift_track_document_view',
+                        post_id: postId,
+                        nonce: lift_docs_ajax.nonce
+                    }
+                });
+            }
+        }
+    }
+    
+    /**
+     * Initialize download tracking
+     */
+    function initDownloadTracking() {
+        $(document).on('click', '.lift-download-btn, a[href*="lift_download"]', function() {
+            var documentId = $(this).data('document-id') || getDocumentIdFromUrl($(this).attr('href'));
+            
+            if (documentId) {
+                $.ajax({
+                    url: lift_docs_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'lift_track_download',
+                        document_id: documentId,
+                        nonce: lift_docs_ajax.nonce
+                    }
+                });
+            }
+        });
+    }
+    
+    /**
+     * Extract document ID from download URL
+     */
+    function getDocumentIdFromUrl(url) {
+        var match = url.match(/lift_download=(\d+)/);
+        return match ? match[1] : null;
     }
     
     // Live search function
