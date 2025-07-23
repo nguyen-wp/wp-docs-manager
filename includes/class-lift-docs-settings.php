@@ -19,11 +19,6 @@ class LIFT_Docs_Settings {
         return self::$instance;
     }
 
-
-    public function layout_section_callback() {
-        echo '<p>' . __('Configure global layout settings for custom document pages. These settings apply to all documents accessed via secure links.', 'lift-docs-system') . '</p>';
-    }
-    
     private function __construct() {
         $this->init_hooks();
     }
@@ -48,7 +43,7 @@ class LIFT_Docs_Settings {
     }
     
     /**
-     * Initialize settings
+     * Initialize settings with tab-based organization
      */
     public function init_settings() {
         register_setting(
@@ -57,79 +52,37 @@ class LIFT_Docs_Settings {
             array($this, 'validate_settings')
         );
         
-        // General Settings Section
+        // General Tab Settings
         add_settings_section(
             'lift_docs_general_section',
             __('General Settings', 'lift-docs-system'),
             array($this, 'general_section_callback'),
-            'lift-docs-settings'
-        );
-        
-        // Display Settings Section
-        add_settings_section(
-            'lift_docs_display_section',
-            __('Display Settings', 'lift-docs-system'),
-            array($this, 'display_section_callback'),
-            'lift-docs-settings'
-        );
-        
-        // Security Settings Section
-        add_settings_section(
-            'lift_docs_security_section',
-            __('Security Settings', 'lift-docs-system'),
-            array($this, 'security_section_callback'),
-            'lift-docs-settings'
-        );
-        
-        // Layout Settings Section
-        add_settings_section(
-            'lift_docs_layout_section',
-            __('Custom Layout Settings', 'lift-docs-system'),
-            array($this, 'layout_section_callback'),
-            'lift-docs-settings'
-        );
-        
-        // Add settings fields
-        $this->add_settings_fields();
-    }
-    
-    /**
-     * Add settings fields
-     */
-    private function add_settings_fields() {
-        // General settings fields
-        add_settings_field(
-            'enable_analytics',
-            __('Enable Analytics', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_general_section',
-            array('field' => 'enable_analytics', 'description' => __('Track document views and downloads', 'lift-docs-system'))
+            'lift-docs-general'
         );
         
         add_settings_field(
-            'enable_comments',
-            __('Enable Comments', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
+            'documents_per_page',
+            __('Documents Per Page', 'lift-docs-system'),
+            array($this, 'number_field_callback'),
+            'lift-docs-general',
             'lift_docs_general_section',
-            array('field' => 'enable_comments', 'description' => __('Allow comments on documents', 'lift-docs-system'))
+            array('field' => 'documents_per_page', 'description' => __('Number of documents to display per page', 'lift-docs-system'), 'min' => 1, 'max' => 100)
         );
         
         add_settings_field(
             'enable_search',
             __('Enable Search', 'lift-docs-system'),
             array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
+            'lift-docs-general',
             'lift_docs_general_section',
-            array('field' => 'enable_search', 'description' => __('Enable document search functionality', 'lift-docs-system'))
+            array('field' => 'enable_search', 'description' => __('Add search functionality for documents', 'lift-docs-system'))
         );
         
         add_settings_field(
             'enable_categories',
             __('Enable Categories', 'lift-docs-system'),
             array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
+            'lift-docs-general',
             'lift_docs_general_section',
             array('field' => 'enable_categories', 'description' => __('Enable document categories', 'lift-docs-system'))
         );
@@ -138,26 +91,130 @@ class LIFT_Docs_Settings {
             'enable_tags',
             __('Enable Tags', 'lift-docs-system'),
             array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
+            'lift-docs-general',
             'lift_docs_general_section',
             array('field' => 'enable_tags', 'description' => __('Enable document tags', 'lift-docs-system'))
         );
         
-        // Display settings fields
         add_settings_field(
-            'documents_per_page',
-            __('Documents Per Page', 'lift-docs-system'),
+            'allowed_file_types',
+            __('Allowed File Types', 'lift-docs-system'),
+            array($this, 'text_field_callback'),
+            'lift-docs-general',
+            'lift_docs_general_section',
+            array('field' => 'allowed_file_types', 'description' => __('Comma-separated list of allowed file extensions (e.g., pdf,doc,docx)', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'max_file_size',
+            __('Max File Size (MB)', 'lift-docs-system'),
             array($this, 'number_field_callback'),
-            'lift-docs-settings',
+            'lift-docs-general',
+            'lift_docs_general_section',
+            array('field' => 'max_file_size', 'description' => __('Maximum file size for uploads in megabytes', 'lift-docs-system'), 'min' => 1, 'max' => 1024)
+        );
+        
+        // Security Tab Settings
+        add_settings_section(
+            'lift_docs_security_section',
+            __('Security & Access Control', 'lift-docs-system'),
+            array($this, 'security_section_callback'),
+            'lift-docs-security'
+        );
+        
+        add_settings_field(
+            'require_login_to_view',
+            __('Require Login to View', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-security',
+            'lift_docs_security_section',
+            array('field' => 'require_login_to_view', 'description' => __('Users must be logged in to view documents', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'require_login_to_download',
+            __('Require Login to Download', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-security',
+            'lift_docs_security_section',
+            array('field' => 'require_login_to_download', 'description' => __('Users must be logged in to download documents', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'enable_secure_links',
+            __('Enable Secure Links', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-security',
+            'lift_docs_security_section',
+            array('field' => 'enable_secure_links', 'description' => __('Generate secure, temporary links for documents', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'secure_link_expiry',
+            __('Secure Link Expiry (hours)', 'lift-docs-system'),
+            array($this, 'number_field_callback'),
+            'lift-docs-security',
+            'lift_docs_security_section',
+            array('field' => 'secure_link_expiry', 'description' => __('How many hours secure links remain valid (0 = never expire)', 'lift-docs-system'), 'min' => 0, 'max' => 8760)
+        );
+        
+        add_settings_field(
+            'encryption_key',
+            __('Encryption Key', 'lift-docs-system'),
+            array($this, 'encryption_key_field_callback'),
+            'lift-docs-security',
+            'lift_docs_security_section',
+            array('field' => 'encryption_key', 'description' => __('Key used for encrypting secure links', 'lift-docs-system'))
+        );
+        
+        // Display Tab Settings  
+        add_settings_section(
             'lift_docs_display_section',
-            array('field' => 'documents_per_page', 'description' => __('Number of documents to display per page', 'lift-docs-system'), 'min' => 1, 'max' => 100)
+            __('Display & Layout Options', 'lift-docs-system'),
+            array($this, 'display_section_callback'),
+            'lift-docs-display'
+        );
+        
+        add_settings_field(
+            'layout_style',
+            __('Layout Style', 'lift-docs-system'),
+            array($this, 'select_field_callback'),
+            'lift-docs-display',
+            'lift_docs_display_section',
+            array(
+                'field' => 'layout_style',
+                'description' => __('Choose the layout style for document pages', 'lift-docs-system'),
+                'options' => array(
+                    'default' => __('Default', 'lift-docs-system'),
+                    'minimal' => __('Minimal', 'lift-docs-system'),
+                    'detailed' => __('Detailed', 'lift-docs-system')
+                )
+            )
+        );
+        
+        add_settings_field(
+            'show_document_header',
+            __('Show Document Header', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-display',
+            'lift_docs_display_section',
+            array('field' => 'show_document_header', 'description' => __('Display document header with title and meta info', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'show_document_description',
+            __('Show Document Description', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-display',
+            'lift_docs_display_section',
+            array('field' => 'show_document_description', 'description' => __('Display document description/excerpt', 'lift-docs-system'))
         );
         
         add_settings_field(
             'show_document_meta',
             __('Show Document Meta', 'lift-docs-system'),
             array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
+            'lift-docs-display',
             'lift_docs_display_section',
             array('field' => 'show_document_meta', 'description' => __('Display document metadata (date, author, etc.)', 'lift-docs-system'))
         );
@@ -166,182 +223,118 @@ class LIFT_Docs_Settings {
             'show_download_button',
             __('Show Download Button', 'lift-docs-system'),
             array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
+            'lift-docs-display',
             'lift_docs_display_section',
             array('field' => 'show_download_button', 'description' => __('Display download button for documents', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'show_view_count',
-            __('Show View Count', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_display_section',
-            array('field' => 'show_view_count', 'description' => __('Display view count for documents', 'lift-docs-system'))
-        );
-        
-        // Security settings fields
-        add_settings_field(
-            'require_login_to_view',
-            __('Require Login to View', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_security_section',
-            array('field' => 'require_login_to_view', 'description' => __('Require users to be logged in to view documents', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'require_login_to_download',
-            __('Require Login to Download', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_security_section',
-            array('field' => 'require_login_to_download', 'description' => __('Require users to be logged in to download documents', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'allowed_file_types',
-            __('Allowed File Types', 'lift-docs-system'),
-            array($this, 'text_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_security_section',
-            array('field' => 'allowed_file_types', 'description' => __('Comma-separated list of allowed file extensions (e.g., pdf,doc,docx)', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'max_file_size',
-            __('Max File Size (MB)', 'lift-docs-system'),
-            array($this, 'number_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_security_section',
-            array('field' => 'max_file_size', 'description' => __('Maximum file size allowed for uploads', 'lift-docs-system'), 'min' => 1, 'max' => 1024)
-        );
-        
-        add_settings_field(
-            'enable_secure_links',
-            __('Enable Secure Links', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_security_section',
-            array('field' => 'enable_secure_links', 'description' => __('Documents can only be accessed via encrypted secure links', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'hide_from_sitemap',
-            __('Hide from Sitemap', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_security_section',
-            array('field' => 'hide_from_sitemap', 'description' => __('Exclude documents from XML sitemaps and search engines', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'secure_link_expiry',
-            __('Secure Link Expiry (hours)', 'lift-docs-system'),
-            array($this, 'number_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_security_section',
-            array('field' => 'secure_link_expiry', 'description' => __('How long secure links remain valid (0 = never expire)', 'lift-docs-system'), 'min' => 0, 'max' => 8760)
-        );
-        
-        add_settings_field(
-            'encryption_key',
-            __('Encryption Key', 'lift-docs-system'),
-            array($this, 'encryption_key_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_security_section',
-            array('field' => 'encryption_key', 'description' => __('Key used for encrypting secure links (auto-generated)', 'lift-docs-system'))
-        );
-        
-        // Layout Settings Fields
-        add_settings_field(
-            'show_secure_access_notice',
-            __('Show Secure Access Notice', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_layout_section',
-            array('field' => 'show_secure_access_notice', 'description' => __('Display security notice on custom layout pages', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'show_document_header',
-            __('Show Document Header', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_layout_section',
-            array('field' => 'show_document_header', 'description' => __('Display document title and metadata', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'show_document_meta',
-            __('Show Document Meta Info', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_layout_section',
-            array('field' => 'show_document_meta', 'description' => __('Display document metadata (date, category, file size)', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'show_document_description',
-            __('Show Document Description', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_layout_section',
-            array('field' => 'show_document_description', 'description' => __('Display document content/description', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'show_download_button',
-            __('Show Download Button', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_layout_section',
-            array('field' => 'show_download_button', 'description' => __('Display download button on layout pages', 'lift-docs-system'))
         );
         
         add_settings_field(
             'show_related_docs',
             __('Show Related Documents', 'lift-docs-system'),
             array($this, 'checkbox_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_layout_section',
+            'lift-docs-display',
+            'lift_docs_display_section',
             array('field' => 'show_related_docs', 'description' => __('Display related documents section', 'lift-docs-system'))
         );
         
         add_settings_field(
-            'layout_style',
-            __('Layout Style', 'lift-docs-system'),
-            array($this, 'select_field_callback'),
-            'lift-docs-settings',
-            'lift_docs_layout_section',
-            array(
-                'field' => 'layout_style',
-                'description' => __('Choose the layout style for custom pages', 'lift-docs-system'),
-                'options' => array(
-                    'default' => __('Default', 'lift-docs-system'),
-                    'minimal' => __('Minimal', 'lift-docs-system'),
-                    'detailed' => __('Detailed', 'lift-docs-system')
-                )
-            )
+            'show_secure_access_notice',
+            __('Show Secure Access Notice', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-display',
+            'lift_docs_display_section',
+            array('field' => 'show_secure_access_notice', 'description' => __('Display notice when accessing via secure link', 'lift-docs-system'))
         );
     }
     
     /**
-     * Settings page callback
+     * Settings page callback with tabbed interface
      */
     public function settings_page() {
+        $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
         ?>
         <div class="wrap">
             <h1><?php _e('LIFT Docs System Settings', 'lift-docs-system'); ?></h1>
             
+            <h2 class="nav-tab-wrapper">
+                <a href="?page=lift-docs-settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>"><?php _e('General', 'lift-docs-system'); ?></a>
+                <a href="?page=lift-docs-settings&tab=security" class="nav-tab <?php echo $active_tab == 'security' ? 'nav-tab-active' : ''; ?>"><?php _e('Security', 'lift-docs-system'); ?></a>
+                <a href="?page=lift-docs-settings&tab=display" class="nav-tab <?php echo $active_tab == 'display' ? 'nav-tab-active' : ''; ?>"><?php _e('Display', 'lift-docs-system'); ?></a>
+            </h2>
+            
             <form method="post" action="options.php">
                 <?php
                 settings_fields('lift_docs_settings_group');
-                do_settings_sections('lift-docs-settings');
+                
+                switch($active_tab) {
+                    case 'security':
+                        do_settings_sections('lift-docs-security');
+                        break;
+                    case 'display':
+                        do_settings_sections('lift-docs-display');
+                        break;
+                    default:
+                        do_settings_sections('lift-docs-general');
+                        break;
+                }
+                
                 submit_button();
                 ?>
             </form>
         </div>
+        
+        <style>
+            .nav-tab-wrapper {
+                margin-bottom: 20px;
+                border-bottom: 1px solid #ccd0d4;
+            }
+            .nav-tab {
+                text-decoration: none;
+                border: 1px solid #ccd0d4;
+                border-bottom: none;
+                background: #f1f1f1;
+                color: #555;
+                padding: 10px 15px;
+                margin-right: 5px;
+                border-radius: 3px 3px 0 0;
+                transition: all 0.3s ease;
+            }
+            .nav-tab:hover {
+                background: #e8e8e8;
+                color: #333;
+            }
+            .nav-tab-active {
+                background: #fff;
+                border-bottom: 1px solid #fff;
+                color: #000;
+                position: relative;
+                top: 1px;
+            }
+            .form-table {
+                margin-top: 20px;
+            }
+            .form-table th {
+                width: 200px;
+                font-weight: 600;
+            }
+            .form-table td {
+                padding: 15px 10px;
+            }
+            .description {
+                color: #666;
+                font-style: italic;
+                margin-top: 5px;
+            }
+            .settings-section {
+                background: #fff;
+                padding: 20px;
+                border: 1px solid #ccd0d4;
+                border-radius: 5px;
+                margin-top: 20px;
+            }
+        </style>
+            }
+        </style>
         <?php
     }
     
@@ -492,25 +485,20 @@ class LIFT_Docs_Settings {
     public function validate_settings($input) {
         $validated = array();
         
-        // Boolean fields
+        // Boolean fields - only keep essential ones
         $boolean_fields = array(
-            'enable_analytics',
-            'enable_comments',
             'enable_search',
             'enable_categories',
             'enable_tags',
-            'show_document_meta',
-            'show_download_button',
-            'show_view_count',
             'require_login_to_view',
             'require_login_to_download',
             'enable_secure_links',
-            'hide_from_sitemap',
-            // Layout settings
-            'show_secure_access_notice',
             'show_document_header',
             'show_document_description',
-            'show_related_docs'
+            'show_document_meta',
+            'show_download_button',
+            'show_related_docs',
+            'show_secure_access_notice'
         );
         
         foreach ($boolean_fields as $field) {
