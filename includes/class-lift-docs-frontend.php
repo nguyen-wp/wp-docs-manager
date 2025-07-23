@@ -26,7 +26,6 @@ class LIFT_Docs_Frontend {
     private function init_hooks() {
         add_filter('the_content', array($this, 'enhance_document_content'));
         add_action('wp_head', array($this, 'add_document_meta'));
-        // add_shortcode('lift_documents', array($this, 'documents_shortcode'));
         add_shortcode('lift_document_search', array($this, 'document_search_shortcode'));
         add_shortcode('lift_document_categories', array($this, 'document_categories_shortcode'));
         add_shortcode('lift_document_download', array($this, 'document_download_shortcode'));
@@ -388,8 +387,16 @@ class LIFT_Docs_Frontend {
             return '<p class="error">' . __('No file attached to this document.', 'lift-docs-system') . '</p>';
         }
         
-        // Generate secure download URL
-        $download_url = LIFT_Docs_Layout::generate_secure_download_url($doc_id);
+        // Generate secure download URL - check if Layout class exists
+        if (class_exists('LIFT_Docs_Layout') && method_exists('LIFT_Docs_Layout', 'generate_secure_download_url')) {
+            $download_url = LIFT_Docs_Layout::generate_secure_download_url($doc_id);
+        } else {
+            // Fallback to regular download URL
+            $download_url = add_query_arg(array(
+                'lift_download' => $doc_id,
+                'nonce' => wp_create_nonce('lift_download_' . $doc_id)
+            ), home_url());
+        }
         
         $output = '<div class="lift-doc-download-widget">';
         
@@ -557,8 +564,8 @@ class LIFT_Docs_Frontend {
                 'document_id' => $document_id,
                 'user_id' => $user_id,
                 'action' => $action,
-                'ip_address' => $_SERVER['REMOTE_ADDR'],
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'],
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
                 'timestamp' => current_time('mysql')
             ),
             array('%d', '%d', '%s', '%s', '%s', '%s')

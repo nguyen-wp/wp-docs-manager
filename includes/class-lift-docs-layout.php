@@ -133,8 +133,69 @@ class LIFT_Docs_Layout {
         }
         
         // Process download
-        $frontend = LIFT_Docs_Frontend::get_instance();
-        $frontend->handle_download($doc_id);
+        $this->process_file_download($doc_id);
+    }
+    
+    /**
+     * Process file download
+     */
+    private function process_file_download($doc_id) {
+        // Check if user can download
+        if (LIFT_Docs_Settings::get_setting('require_login_to_download', false) && !is_user_logged_in()) {
+            wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+            exit;
+        }
+        
+        $file_url = get_post_meta($doc_id, '_lift_doc_file_url', true);
+        
+        if (!$file_url) {
+            wp_die(__('File not found.', 'lift-docs-system'));
+        }
+        
+        // Track download
+        $this->track_download($doc_id);
+        
+        // Redirect to file
+        wp_redirect($file_url);
+        exit;
+    }
+    
+    /**
+     * Track document download
+     */
+    private function track_download($doc_id) {
+        // Update download count
+        $current_downloads = get_post_meta($doc_id, '_lift_doc_downloads', true);
+        $current_downloads = $current_downloads ? intval($current_downloads) : 0;
+        update_post_meta($doc_id, '_lift_doc_downloads', $current_downloads + 1);
+        
+        // Record analytics event
+        $this->record_analytics_event($doc_id, 'download');
+    }
+    
+    /**
+     * Record analytics event
+     */
+    private function record_analytics_event($doc_id, $action) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'lift_docs_analytics';
+        
+        $user_id = get_current_user_id();
+        $user_id = $user_id ? $user_id : null;
+        
+        $wpdb->insert(
+            $table_name,
+            array(
+                'document_id' => $doc_id,
+                'user_id' => $user_id,
+                'action' => $action,
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+                'timestamp' => current_time('mysql')
+            ),
+            array('%d', '%d', '%s', '%s', '%s', '%s')
+        );
     }
     
     /**
