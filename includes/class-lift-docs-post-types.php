@@ -83,7 +83,7 @@ class LIFT_Docs_Post_Types {
             'hierarchical'       => false,
             'menu_position'      => null,
             'menu_icon'          => 'dashicons-media-document',
-            'supports'           => array('title', 'editor', 'excerpt', 'thumbnail', 'comments', 'author'),
+            'supports'           => array('title', 'editor', 'thumbnail', 'author'),
             'show_in_rest'       => false, // Disable REST API and Gutenberg
             'rest_base'          => 'documents',
             'rest_controller_class' => 'WP_REST_Posts_Controller',

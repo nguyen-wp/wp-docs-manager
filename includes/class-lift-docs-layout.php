@@ -171,21 +171,56 @@ class LIFT_Docs_Layout {
             }
         }
         
-        $file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+        // Get file index from verification data
+        $file_index = isset($verification['file_index']) ? intval($verification['file_index']) : 0;
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - File index: ' . $file_index);
+        }
+        
+        // Handle multiple files - get all file URLs
+        $file_urls = get_post_meta($document_id, '_lift_doc_file_urls', true);
+        if (empty($file_urls)) {
+            // Check for legacy single file URL
+            $legacy_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+            if ($legacy_url) {
+                $file_urls = array($legacy_url);
+            } else {
+                $file_urls = array();
+            }
+        }
+        
+        // Filter out empty URLs
+        $file_urls = array_filter($file_urls);
+        
+        if (empty($file_urls)) {
+            wp_die('Access denied: No files attached to this document');
+        }
+        
+        // Check if file index exists
+        if (!isset($file_urls[$file_index])) {
+            wp_die('Access denied: File index not found');
+        }
+        
+        $file_url = $file_urls[$file_index];
         
         if (!$file_url) {
-            wp_die('Access denied: No file attached to this document');
+            wp_die('Access denied: File URL is empty');
         }
         
         // For external URLs, redirect to the file
         if (filter_var($file_url, FILTER_VALIDATE_URL)) {
+            // Get proper filename for the specific file
+            $file_name = basename(parse_url($file_url, PHP_URL_PATH));
+            $document_title = $file_name ?: $post->post_title;
+            
             // Check if it's a local file URL
             $upload_dir = wp_upload_dir();
             if (strpos($file_url, $upload_dir['baseurl']) === 0) {
                 // Local file - serve securely
                 $file_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $file_url);
                 if (file_exists($file_path)) {
-                    $this->serve_local_file($file_path, $post->post_title);
+                    $this->serve_local_file($file_path, $document_title);
                     exit;
                 }
             }
@@ -377,15 +412,54 @@ class LIFT_Docs_Layout {
                 <?php if ($settings['show_download_button']): ?>
                 <div class="document-actions">
                     <?php
-                    $file_url = get_post_meta($document->ID, '_lift_doc_file_url', true);
-                    if ($file_url):
-                        $secure_download_token = LIFT_Docs_Settings::generate_secure_token($document->ID, 'download');
-                        $download_url = home_url('/lift-docs/download/?lift_secure=' . $secure_download_token);
+                    // Handle multiple files - get all file URLs
+                    $file_urls = get_post_meta($document->ID, '_lift_doc_file_urls', true);
+                    if (empty($file_urls)) {
+                        // Check for legacy single file URL
+                        $legacy_url = get_post_meta($document->ID, '_lift_doc_file_url', true);
+                        if ($legacy_url) {
+                            $file_urls = array($legacy_url);
+                        } else {
+                            $file_urls = array();
+                        }
+                    }
+                    
+                    // Filter out empty URLs
+                    $file_urls = array_filter($file_urls);
+                    
+                    if (!empty($file_urls)):
                     ?>
-                    <a href="<?php echo esc_url($download_url); ?>" class="button button-primary lift-download-btn">
-                        <span class="dashicons dashicons-download"></span>
-                        <?php _e('Download Document', 'lift-docs-system'); ?>
-                    </a>
+                    
+                    <div class="download-section">
+                        <h3 class="download-section-title">
+                            <span class="dashicons dashicons-download"></span>
+                            <?php _e('Download Files', 'lift-docs-system'); ?>
+                            <span class="files-count">(<?php echo count($file_urls); ?> <?php echo count($file_urls) === 1 ? __('file', 'lift-docs-system') : __('files', 'lift-docs-system'); ?>)</span>
+                        </h3>
+                        
+                        <div class="files-list">
+                            <?php foreach ($file_urls as $index => $file_url): 
+                                $file_name = basename(parse_url($file_url, PHP_URL_PATH));
+                                $download_url = LIFT_Docs_Settings::generate_secure_download_link($document->ID, 0, $index);
+                                
+                                // Get file icon based on extension
+                                $file_extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+                                $file_icon = $this->get_file_icon($file_extension);
+                            ?>
+                            <div class="file-item">
+                                <div class="file-info">
+                                    <span class="file-icon"><?php echo $file_icon; ?></span>
+                                    <span class="file-name"><?php echo esc_html($file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1)); ?></span>
+                                </div>
+                                <a href="<?php echo esc_url($download_url); ?>" class="button button-primary lift-download-btn">
+                                    <span class="dashicons dashicons-download"></span>
+                                    <?php _e('Download', 'lift-docs-system'); ?>
+                                </a>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    
                     <?php endif; ?>
                 </div>
                 <?php endif; ?>
@@ -473,23 +547,117 @@ class LIFT_Docs_Layout {
         }
         
         .document-actions {
-            text-align: center;
             margin: 30px 0;
         }
         
+        .download-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: left;
+        }
+        
+        .download-section-title {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .download-section-title .dashicons {
+            color: #0073aa;
+        }
+        
+        .files-count {
+            color: #666;
+            font-weight: normal;
+            font-size: 0.9em;
+        }
+        
+        .files-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .file-item:hover {
+            border-color: #0073aa;
+            box-shadow: 0 2px 5px rgba(0, 115, 170, 0.1);
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .file-icon {
+            font-size: 20px;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: #333;
+            word-break: break-word;
+        }
+        
         .lift-download-btn {
-            display: inline-block;
-            padding: 15px 30px;
-            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            font-size: 14px;
             font-weight: 500;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 4px;
             transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .lift-download-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 115, 170, 0.3);
         }
         
         .lift-download-btn .dashicons {
-            margin-right: 8px;
-            vertical-align: middle;
+            font-size: 16px;
+        }
+        
+        /* Responsive design for mobile */
+        @media (max-width: 768px) {
+            .file-item {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .file-info {
+                justify-content: center;
+            }
+            
+            .lift-download-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .files-list {
+                gap: 20px;
+            }
         }
         
         .related-documents {
@@ -607,6 +775,29 @@ class LIFT_Docs_Layout {
     public static function generate_secure_download_url($doc_id) {
         $secure_token = LIFT_Docs_Settings::generate_secure_token($doc_id, 'download');
         return home_url('/lift-docs/download/?lift_secure=' . $secure_token);
+    }
+    
+    /**
+     * Get file icon based on file extension
+     */
+    private function get_file_icon($extension) {
+        $icons = array(
+            // Images
+            'jpg' => '🖼️', 'jpeg' => '🖼️', 'png' => '🖼️', 'gif' => '🖼️', 'webp' => '🖼️', 'svg' => '🖼️',
+            // Videos
+            'mp4' => '🎥', 'avi' => '🎥', 'mov' => '🎥', 'wmv' => '🎥', 'flv' => '🎥', 'webm' => '🎥',
+            // Audio
+            'mp3' => '🎵', 'wav' => '🎵', 'ogg' => '🎵', 'flac' => '🎵', 'aac' => '🎵',
+            // Documents
+            'pdf' => '📕',
+            'doc' => '📘', 'docx' => '📘',
+            'xls' => '📗', 'xlsx' => '📗',
+            'ppt' => '📙', 'pptx' => '📙',
+            // Archives
+            'zip' => '📦', 'rar' => '📦', '7z' => '📦', 'tar' => '📦', 'gz' => '📦'
+        );
+        
+        return $icons[strtolower($extension)] ?? '📄';
     }
     
     /**

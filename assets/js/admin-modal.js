@@ -202,39 +202,31 @@
                 $('#lift-online-view').hide();
             }
             
-            // Handle secure download URLs
+            // Handle secure download URLs - always use multiple files layout for consistency
             if (secureDownloadUrls.length > 0) {
                 $('#lift-secure-download-group').show();
                 
-                if (secureDownloadUrls.length > 1) {
-                    // Multiple secure files
-                    $('#lift-single-secure-download').hide();
-                    $('#lift-multiple-secure-downloads').show();
-                    
-                    var secureHtml = '<div class="multiple-files-list">';
-                    secureDownloadUrls.forEach(function(fileData, index) {
-                        var fileIcon = getFileIcon(fileData.name);
-                        secureHtml += '<div class="file-item" style="margin-bottom: 10px; padding: 10px; background: #f0f8ff; border-radius: 4px; border-left: 3px solid #0073aa;">';
-                        secureHtml += '<div class="file-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">';
-                        secureHtml += '<span style="font-size: 16px;">🔒</span>';
-                        secureHtml += '<span style="font-size: 14px;">' + fileIcon + '</span>';
-                        secureHtml += '<strong style="color: #0073aa;">' + (fileData.name || 'File ' + (index + 1)) + '</strong>';
-                        secureHtml += '</div>';
-                        secureHtml += '<div class="lift-input-group">';
-                        secureHtml += '<input type="text" value="' + fileData.url + '" readonly onclick="this.select()" style="font-size: 12px;" />';
-                        secureHtml += '<button type="button" class="button lift-copy-btn" data-target-text="' + fileData.url + '">Copy Secure</button>';
-                        secureHtml += '</div>';
-                        secureHtml += '</div>';
-                    });
+                // Always use multiple files layout for consistent UI
+                $('#lift-single-secure-download').hide();
+                $('#lift-multiple-secure-downloads').show();
+                
+                var secureHtml = '<div class="multiple-files-list">';
+                secureDownloadUrls.forEach(function(fileData, index) {
+                    var fileIcon = getFileIcon(fileData.name);
+                    secureHtml += '<div class="file-item" style="margin-bottom: 10px; padding: 10px; background: #f0f8ff; border-radius: 4px; border-left: 3px solid #0073aa;">';
+                    secureHtml += '<div class="file-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">';
+                    secureHtml += '<span style="font-size: 16px;">🔒</span>';
+                    secureHtml += '<span style="font-size: 14px;">' + fileIcon + '</span>';
+                    secureHtml += '<strong style="color: #0073aa;">' + (fileData.name || 'File ' + (index + 1)) + '</strong>';
                     secureHtml += '</div>';
-                    $('#lift-multiple-secure-downloads').html(secureHtml);
-                    
-                } else {
-                    // Single secure file
-                    $('#lift-single-secure-download').show();
-                    $('#lift-multiple-secure-downloads').hide();
-                    $('#lift-secure-download-url').val(secureDownloadUrls[0].url || '');
-                }
+                    secureHtml += '<div class="lift-input-group">';
+                    secureHtml += '<input type="text" value="' + fileData.url + '" readonly onclick="this.select()" style="font-size: 12px;" />';
+                    secureHtml += '<button type="button" class="button lift-copy-btn" data-target-text="' + fileData.url + '">Copy Secure</button>';
+                    secureHtml += '</div>';
+                    secureHtml += '</div>';
+                });
+                secureHtml += '</div>';
+                $('#lift-multiple-secure-downloads').html(secureHtml);
             } else {
                 $('#lift-secure-download-group').hide();
             }

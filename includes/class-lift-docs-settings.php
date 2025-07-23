@@ -113,14 +113,7 @@ class LIFT_Docs_Settings {
             array('field' => 'require_login_to_download', 'description' => __('Users must be logged in to download documents', 'lift-docs-system'))
         );
         
-        add_settings_field(
-            'encryption_key',
-            __('Encryption Key', 'lift-docs-system'),
-            array($this, 'encryption_key_field_callback'),
-            'lift-docs-security',
-            'lift_docs_security_section',
-            array('field' => 'encryption_key', 'description' => __('Key used for encrypting secure links', 'lift-docs-system'))
-        );
+        // Note: Encryption key removed - now using permanent hash-based tokens
         
         // Display Tab Settings  
         add_settings_section(
@@ -551,48 +544,9 @@ class LIFT_Docs_Settings {
     /**
      * Encryption key field callback
      */
-    public function encryption_key_field_callback($args) {
-        $settings = get_option('lift_docs_settings', array());
-        $field = $args['field'];
-        $description = $args['description'] ?? '';
-        $value = isset($settings[$field]) ? $settings[$field] : '';
-        
-        // Auto-generate key if empty
-        if (empty($value)) {
-            $value = $this->generate_encryption_key();
-            $settings[$field] = $value;
-            update_option('lift_docs_settings', $settings);
-        }
-        
-        echo '<input type="text" name="lift_docs_settings[' . $field . ']" value="' . esc_attr($value) . '" class="regular-text" readonly />';
-        echo '<button type="button" class="button" onclick="generateNewKey()">' . __('Generate New Key', 'lift-docs-system') . '</button>';
-        
-        if ($description) {
-            echo '<p class="description">' . $description . '</p>';
-        }
-        
-        echo '<p class="description" style="color: red;"><strong>' . __('Warning: Changing this key will invalidate all existing secure links!', 'lift-docs-system') . '</strong></p>';
-        
-        ?>
-        <script>
-        function generateNewKey() {
-            if (confirm('<?php _e("This will invalidate all existing secure links. Continue?", "lift-docs-system"); ?>')) {
-                var newKey = generateRandomKey(32);
-                document.querySelector('input[name="lift_docs_settings[encryption_key]"]').value = newKey;
-            }
-        }
-        
-        function generateRandomKey(length) {
-            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            var result = '';
-            for (var i = 0; i < length; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
-        }
-        </script>
-        <?php
-    }
+    /**
+     * Note: Encryption key field removed - now using permanent hash-based tokens
+     */
     
     /**
      * Validate settings
@@ -670,111 +624,97 @@ class LIFT_Docs_Settings {
     }
     
     /**
-     * Generate secure link for document
+     * Generate permanent secure view URL for document
+     * Uses document ID + salt + creation time to create unique, permanent URL
      */
     public static function generate_secure_link($document_id, $expiry_hours = null) {
-        // Secure links are always enabled
-        $encryption_key = self::get_encryption_key_internal();
-        if (empty($encryption_key)) {
-            return get_permalink($document_id);
+        // Get or create permanent token for this document
+        $permanent_token = get_post_meta($document_id, '_lift_doc_permanent_token', true);
+        
+        if (empty($permanent_token)) {
+            // Generate a unique, permanent token based on document data
+            $post = get_post($document_id);
+            if (!$post) {
+                return get_permalink($document_id);
+            }
+            
+            // Create a unique hash using document ID, creation time, and WordPress salt
+            $data_to_hash = $document_id . '|' . $post->post_date . '|' . wp_salt('secure_auth');
+            $permanent_token = hash('sha256', $data_to_hash);
+            
+            // Store the permanent token
+            update_post_meta($document_id, '_lift_doc_permanent_token', $permanent_token);
         }
         
-        $expiry_hours = $expiry_hours ?? 24; // Default to 24 hours
-        $expires = $expiry_hours > 0 ? time() + ($expiry_hours * 3600) : 0;
-        
-        $data = array(
-            'document_id' => $document_id,
-            'expires' => $expires,
-            'timestamp' => time()
-        );
-        
-        $token = self::encrypt_data($data, $encryption_key);
-        
-        return add_query_arg(array(
-            'lift_secure' => urlencode($token)
-        ), home_url('/lift-docs/secure/'));
+        return home_url('/lift-docs/secure/?lift_secure=' . $permanent_token);
     }
     
     /**
      * Generate secure download link for document
      */
-    public static function generate_secure_download_link($document_id, $expiry_hours = 1, $file_index = 0) {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Generating secure download link for document: ' . $document_id . ', file index: ' . $file_index);
+    /**
+     * Generate permanent secure download URL for document file
+     */
+    public static function generate_secure_download_link($document_id, $expiry_hours = 0, $file_index = 0) {
+        // Get or create permanent token for this document
+        $permanent_token = get_post_meta($document_id, '_lift_doc_permanent_token', true);
+        
+        if (empty($permanent_token)) {
+            // Use the secure link generation to create permanent token
+            self::generate_secure_link($document_id);
+            $permanent_token = get_post_meta($document_id, '_lift_doc_permanent_token', true);
         }
         
-        $encryption_key = self::get_encryption_key_internal();
-        
-        $expires = $expiry_hours > 0 ? time() + ($expiry_hours * 3600) : 0;
-        
-        $data = array(
-            'document_id' => $document_id,
-            'expires' => $expires,
-            'timestamp' => time(),
-            'type' => 'download',
-            'file_index' => $file_index
-        );
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Data to encrypt: ' . print_r($data, true));
+        // For download links, append file index if multiple files
+        $download_token = $permanent_token;
+        if ($file_index > 0) {
+            $download_token .= '_file_' . $file_index;
         }
         
-        $token = self::encrypt_data($data, $encryption_key);
-        
-        if (!$token) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Failed to encrypt data');
-            }
-            return home_url('/lift-docs/download/?error=encryption_failed');
-        }
-        
-        $url = add_query_arg(array(
-            'lift_secure' => urlencode($token)
-        ), home_url('/lift-docs/download/'));
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Final URL: ' . $url);
-        }
-        
-        return $url;
+        return home_url('/lift-docs/download/?lift_secure=' . $download_token);
     }
     
     /**
-     * Verify secure link
+     * Verify secure link token (permanent tokens)
      */
     public static function verify_secure_link($token) {
-        $encryption_key = self::get_encryption_key_internal();
+        // Parse file index from token if present
+        $file_index = 0;
+        $base_token = $token;
         
-        $data = self::decrypt_data($token, $encryption_key);
+        if (strpos($token, '_file_') !== false) {
+            $parts = explode('_file_', $token);
+            $base_token = $parts[0];
+            $file_index = isset($parts[1]) ? intval($parts[1]) : 0;
+        }
         
-        if (!$data) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Failed to decrypt token: ' . $token);
-            }
+        // Find document with this permanent token
+        global $wpdb;
+        $document_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->postmeta} 
+             WHERE meta_key = '_lift_doc_permanent_token' 
+             AND meta_value = %s 
+             LIMIT 1",
+            $base_token
+        ));
+        
+        if (!$document_id) {
             return false;
         }
         
-        if (!isset($data['document_id'])) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Missing document_id in token data: ' . print_r($data, true));
-            }
+        // Verify document still exists and is valid
+        $post = get_post($document_id);
+        if (!$post || $post->post_type !== 'lift_document') {
             return false;
         }
         
-        // Check expiry
-        if (isset($data['expires']) && $data['expires'] > 0 && time() > $data['expires']) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Token expired. Current time: ' . time() . ', Expires: ' . $data['expires']);
-            }
-            return false;
-        }
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Successfully verified token for document: ' . $data['document_id']);
-        }
-        
-        // Return the full data array instead of just document_id
-        return $data;
+        return array(
+            'document_id' => $document_id,
+            'file_index' => $file_index,
+            'expires' => 0, // Never expires
+            'timestamp' => time(),
+            'type' => strpos($token, '_file_') !== false ? 'download' : 'view'
+        );
     }
     
     /**
