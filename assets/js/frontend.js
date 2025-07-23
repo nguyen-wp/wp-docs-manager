@@ -1,0 +1,400 @@
+/**
+ * Frontend JavaScript for LIFT Docs System
+ */
+
+jQuery(document).ready(function($) {
+    'use strict';
+    
+    // Document search functionality
+    var searchForm = $('.lift-docs-search');
+    var searchInput = searchForm.find('input[type="search"]');
+    var searchTimeout;
+    
+    if (searchInput.length) {
+        searchInput.on('input', function() {
+            clearTimeout(searchTimeout);
+            var searchTerm = $(this).val();
+            
+            if (searchTerm.length >= 3) {
+                searchTimeout = setTimeout(function() {
+                    performSearch(searchTerm);
+                }, 500);
+            }
+        });
+    }
+    
+    // Live search function
+    function performSearch(searchTerm) {
+        var resultsContainer = $('.lift-docs-search-results');
+        
+        if (!resultsContainer.length) {
+            resultsContainer = $('<div class="lift-docs-search-results"></div>');
+            searchForm.after(resultsContainer);
+        }
+        
+        resultsContainer.html('<div class="lift-docs-loading"><div class="lift-docs-spinner"></div> Searching...</div>');
+        
+        $.ajax({
+            url: lift_docs_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'lift_search_documents',
+                search_term: searchTerm,
+                nonce: lift_docs_ajax.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    displaySearchResults(response.data.documents, resultsContainer);
+                } else {
+                    resultsContainer.html('<p>No documents found.</p>');
+                }
+            },
+            error: function() {
+                resultsContainer.html('<p>Search failed. Please try again.</p>');
+            }
+        });
+    }
+    
+    // Display search results
+    function displaySearchResults(documents, container) {
+        if (documents.length === 0) {
+            container.html('<p>No documents found.</p>');
+            return;
+        }
+        
+        var html = '<div class="lift-docs-search-list">';
+        
+        $.each(documents, function(index, doc) {
+            html += '<div class="lift-doc-search-item">';
+            html += '<h4><a href="' + doc.permalink + '">' + doc.title + '</a></h4>';
+            
+            if (doc.excerpt) {
+                html += '<p class="excerpt">' + doc.excerpt + '</p>';
+            }
+            
+            html += '<div class="doc-meta">';
+            html += '<span class="date">' + doc.date + '</span>';
+            
+            if (doc.categories.length > 0) {
+                html += ' | <span class="category">' + doc.categories[0] + '</span>';
+            }
+            
+            if (doc.views > 0) {
+                html += ' | <span class="views">' + doc.views + ' views</span>';
+            }
+            
+            html += '</div>';
+            html += '</div>';
+        });
+        
+        html += '</div>';
+        container.html(html);
+    }
+    
+    // Load more documents functionality
+    var loadMoreBtn = $('.lift-docs-load-more button');
+    var currentPage = 1;
+    var isLoading = false;
+    
+    if (loadMoreBtn.length) {
+        loadMoreBtn.on('click', function(e) {
+            e.preventDefault();
+            
+            if (isLoading) return;
+            
+            isLoading = true;
+            loadMoreBtn.prop('disabled', true).text('Loading...');
+            
+            currentPage++;
+            
+            $.ajax({
+                url: lift_docs_ajax.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'lift_load_more_documents',
+                    page: currentPage,
+                    category: loadMoreBtn.data('category') || '',
+                    tag: loadMoreBtn.data('tag') || '',
+                    orderby: loadMoreBtn.data('orderby') || 'date',
+                    order: loadMoreBtn.data('order') || 'DESC',
+                    nonce: lift_docs_ajax.nonce
+                },
+                success: function(response) {
+                    isLoading = false;
+                    loadMoreBtn.prop('disabled', false).text('Load More');
+                    
+                    if (response.success) {
+                        $('.lift-docs-list').append(response.data.html);
+                        
+                        if (!response.data.has_more) {
+                            loadMoreBtn.fadeOut();
+                        }
+                    } else {
+                        loadMoreBtn.fadeOut();
+                    }
+                },
+                error: function() {
+                    isLoading = false;
+                    loadMoreBtn.prop('disabled', false).text('Load More');
+                    alert('Failed to load more documents. Please try again.');
+                }
+            });
+        });
+    }
+    
+    // Infinite scroll
+    if ($('.lift-docs-infinite-scroll').length) {
+        $(window).on('scroll', function() {
+            if (isLoading) return;
+            
+            var scrollTop = $(window).scrollTop();
+            var windowHeight = $(window).height();
+            var documentHeight = $(document).height();
+            
+            if (scrollTop + windowHeight >= documentHeight - 500) {
+                loadMoreBtn.trigger('click');
+            }
+        });
+    }
+    
+    // Share functionality
+    $(document).on('click', '.lift-docs-share-btn', function(e) {
+        e.preventDefault();
+        
+        var url = $(this).data('url');
+        var title = document.title;
+        
+        if (navigator.share) {
+            // Use native Web Share API if available
+            navigator.share({
+                title: title,
+                url: url
+            }).catch(function(error) {
+                console.log('Error sharing:', error);
+            });
+        } else {
+            // Fallback to copy to clipboard
+            copyToClipboard(url);
+            showNotification('Link copied to clipboard!', 'success');
+        }
+    });
+    
+    // Copy to clipboard function
+    function copyToClipboard(text) {
+        var textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+        
+        document.body.removeChild(textArea);
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+        var notification = $('<div class="lift-docs-notification lift-docs-notification-' + type + '">' + message + '</div>');
+        
+        $('body').append(notification);
+        
+        notification.fadeIn(300);
+        
+        setTimeout(function() {
+            notification.fadeOut(300, function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+    
+    // Filter functionality
+    $('.lift-docs-filter').on('change', function() {
+        var filterType = $(this).data('filter');
+        var filterValue = $(this).val();
+        var documentsContainer = $('.lift-docs-list');
+        
+        documentsContainer.addClass('lift-docs-loading');
+        
+        $.ajax({
+            url: lift_docs_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'lift_search_documents',
+                [filterType]: filterValue,
+                nonce: lift_docs_ajax.nonce
+            },
+            success: function(response) {
+                documentsContainer.removeClass('lift-docs-loading');
+                
+                if (response.success) {
+                    updateDocumentsList(response.data.documents);
+                } else {
+                    documentsContainer.html('<p>No documents found for the selected filter.</p>');
+                }
+            },
+            error: function() {
+                documentsContainer.removeClass('lift-docs-loading');
+                alert('Filter failed. Please try again.');
+            }
+        });
+    });
+    
+    // Update documents list
+    function updateDocumentsList(documents) {
+        var container = $('.lift-docs-list');
+        container.empty();
+        
+        if (documents.length === 0) {
+            container.html('<p>No documents found.</p>');
+            return;
+        }
+        
+        $.each(documents, function(index, doc) {
+            var docHtml = '<div class="lift-doc-item">';
+            docHtml += '<h3><a href="' + doc.permalink + '">' + doc.title + '</a></h3>';
+            
+            if (doc.excerpt) {
+                docHtml += '<p class="excerpt">' + doc.excerpt + '</p>';
+            }
+            
+            docHtml += '<div class="doc-meta">';
+            docHtml += '<span class="date">' + doc.date + '</span>';
+            docHtml += '<span class="author"> by ' + doc.author + '</span>';
+            
+            if (doc.categories.length > 0) {
+                docHtml += '<span class="category"> | ' + doc.categories.join(', ') + '</span>';
+            }
+            
+            if (doc.views > 0) {
+                docHtml += '<span class="views"> | ' + doc.views + ' views</span>';
+            }
+            
+            docHtml += '</div>';
+            docHtml += '</div>';
+            
+            container.append(docHtml);
+        });
+    }
+    
+    // Smooth scrolling for anchor links
+    $('a[href^="#"]').on('click', function(e) {
+        e.preventDefault();
+        
+        var target = $(this.getAttribute('href'));
+        
+        if (target.length) {
+            $('html, body').stop().animate({
+                scrollTop: target.offset().top - 80
+            }, 600);
+        }
+    });
+    
+    // Document card hover effects
+    $(document).on('mouseenter', '.lift-doc-card', function() {
+        $(this).addClass('hovered');
+    }).on('mouseleave', '.lift-doc-card', function() {
+        $(this).removeClass('hovered');
+    });
+    
+    // Lazy loading for images
+    if ('IntersectionObserver' in window) {
+        var imageObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove('lazy');
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+        
+        $('.lift-doc-card img.lazy').each(function() {
+            imageObserver.observe(this);
+        });
+    }
+    
+    // Reading progress indicator
+    if ($('.lift-document-single').length) {
+        var progressBar = $('<div class="reading-progress"><div class="progress-bar"></div></div>');
+        $('body').prepend(progressBar);
+        
+        $(window).on('scroll', function() {
+            var scrollTop = $(window).scrollTop();
+            var documentHeight = $(document).height() - $(window).height();
+            var progress = (scrollTop / documentHeight) * 100;
+            
+            $('.progress-bar').css('width', progress + '%');
+        });
+    }
+    
+    // Document download tracking
+    $(document).on('click', '.lift-docs-download-btn', function() {
+        var documentId = $(this).data('document-id');
+        
+        if (documentId) {
+            // Track download event
+            $.ajax({
+                url: lift_docs_ajax.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'lift_track_download',
+                    document_id: documentId,
+                    nonce: lift_docs_ajax.nonce
+                }
+            });
+        }
+    });
+    
+    // Auto-hide notifications
+    setTimeout(function() {
+        $('.notice.is-dismissible').fadeOut();
+    }, 5000);
+    
+    // Keyboard shortcuts
+    $(document).on('keydown', function(e) {
+        // Ctrl/Cmd + K for search
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === 75) {
+            e.preventDefault();
+            searchInput.focus();
+        }
+        
+        // ESC to close search results
+        if (e.keyCode === 27) {
+            $('.lift-docs-search-results').slideUp();
+        }
+    });
+    
+    // Print functionality
+    $('.print-document').on('click', function(e) {
+        e.preventDefault();
+        window.print();
+    });
+    
+    // Back to top button
+    var backToTopBtn = $('<button class="back-to-top" title="Back to top">↑</button>');
+    $('body').append(backToTopBtn);
+    
+    $(window).on('scroll', function() {
+        if ($(window).scrollTop() > 300) {
+            backToTopBtn.fadeIn();
+        } else {
+            backToTopBtn.fadeOut();
+        }
+    });
+    
+    backToTopBtn.on('click', function() {
+        $('html, body').animate({scrollTop: 0}, 600);
+    });
+    
+    // Initialize tooltips
+    $('[data-tooltip]').each(function() {
+        $(this).addClass('lift-docs-tooltip');
+    });
+});
+
+// Document ready end

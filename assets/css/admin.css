@@ -1,0 +1,474 @@
+/**
+ * Admin Styles for LIFT Docs System
+ */
+
+/* Dashboard Styles */
+.lift-docs-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.lift-docs-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.lift-docs-stat-box {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    flex: 1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.lift-docs-stat-box h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 1em;
+}
+
+.lift-docs-stat-box .stat-number {
+    font-size: 2em;
+    font-weight: 600;
+    color: #0073aa;
+    margin: 0;
+}
+
+/* Quick Actions */
+.lift-docs-quick-actions {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.lift-docs-quick-actions h2 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.lift-docs-quick-actions .button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+/* Recent Documents */
+.lift-docs-recent {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.lift-docs-recent h2 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.lift-docs-recent ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lift-docs-recent li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.lift-docs-recent li:last-child {
+    border-bottom: none;
+}
+
+.lift-docs-recent a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.lift-docs-recent a:hover {
+    text-decoration: underline;
+}
+
+/* Analytics Styles */
+.lift-docs-analytics {
+    margin-top: 20px;
+}
+
+.analytics-summary {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.analytics-summary h2 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.analytics-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.analytics-stats .stat-item {
+    background: #f9f9f9;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+    flex: 1;
+}
+
+.analytics-stats .stat-item h3 {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.analytics-stats .stat-item .stat-number {
+    font-size: 1.8em;
+    font-weight: 600;
+    color: #0073aa;
+    margin: 0;
+}
+
+/* Analytics Charts */
+.analytics-charts {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.analytics-charts h2 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.analytics-charts ol {
+    padding-left: 20px;
+}
+
+.analytics-charts li {
+    padding: 5px 0;
+}
+
+.analytics-charts a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.analytics-charts a:hover {
+    text-decoration: underline;
+}
+
+/* Meta Box Styles */
+.lift-docs-meta-box {
+    padding: 10px;
+}
+
+.lift-docs-meta-box .form-table th {
+    width: 150px;
+    vertical-align: top;
+    padding-top: 8px;
+}
+
+.lift-docs-meta-box .form-table td {
+    padding: 8px 10px;
+}
+
+.lift-docs-meta-box .regular-text {
+    width: 100%;
+    max-width: 400px;
+}
+
+.lift-docs-meta-box .description {
+    margin-top: 5px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Document Settings Meta Box */
+.lift-docs-settings-meta p {
+    margin: 10px 0;
+}
+
+.lift-docs-settings-meta label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.lift-docs-settings-meta input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.lift-docs-settings-meta input[type="password"],
+.lift-docs-settings-meta input[type="text"] {
+    width: 100%;
+    margin-top: 5px;
+}
+
+/* Settings Page Styles */
+.lift-docs-settings-page {
+    max-width: 800px;
+}
+
+.lift-docs-settings-page .form-table th {
+    width: 200px;
+    vertical-align: top;
+    padding-top: 15px;
+}
+
+.lift-docs-settings-page .form-table td {
+    padding: 10px;
+    vertical-align: top;
+}
+
+.lift-docs-settings-page .description {
+    margin-top: 5px;
+    color: #666;
+    font-style: italic;
+}
+
+.lift-docs-settings-page .small-text {
+    width: 60px;
+}
+
+.lift-docs-settings-page .regular-text {
+    width: 300px;
+}
+
+/* Custom Columns */
+.column-category,
+.column-views,
+.column-file_size {
+    width: 120px;
+}
+
+.column-views {
+    text-align: center;
+}
+
+/* Bulk Actions */
+.lift-docs-bulk-actions {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f9f9f9;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+}
+
+.lift-docs-bulk-actions select {
+    margin-right: 10px;
+}
+
+/* Upload Area */
+.lift-docs-upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    background: #fafafa;
+    margin: 20px 0;
+    transition: border-color 0.3s ease;
+}
+
+.lift-docs-upload-area:hover {
+    border-color: #0073aa;
+    background: #f0f8ff;
+}
+
+.lift-docs-upload-area.dragover {
+    border-color: #0073aa;
+    background: #f0f8ff;
+}
+
+.lift-docs-upload-area p {
+    margin: 10px 0;
+    color: #666;
+}
+
+.lift-docs-upload-area .upload-button {
+    background: #0073aa;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.lift-docs-upload-area .upload-button:hover {
+    background: #005a87;
+}
+
+/* Progress Bar */
+.lift-docs-progress {
+    width: 100%;
+    height: 20px;
+    background: #f1f1f1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.lift-docs-progress-bar {
+    height: 100%;
+    background: #0073aa;
+    transition: width 0.3s ease;
+}
+
+/* Notifications */
+.lift-docs-notice {
+    padding: 10px 15px;
+    margin: 10px 0;
+    border-radius: 4px;
+    border-left: 4px solid;
+}
+
+.lift-docs-notice.success {
+    background: #dff0d8;
+    border-color: #5cb85c;
+    color: #3c763d;
+}
+
+.lift-docs-notice.error {
+    background: #f2dede;
+    border-color: #d9534f;
+    color: #a94442;
+}
+
+.lift-docs-notice.warning {
+    background: #fcf8e3;
+    border-color: #f0ad4e;
+    color: #8a6d3b;
+}
+
+.lift-docs-notice.info {
+    background: #d9edf7;
+    border-color: #5bc0de;
+    color: #31708f;
+}
+
+/* Responsive Admin */
+@media (max-width: 768px) {
+    .lift-docs-dashboard {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .lift-docs-stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .analytics-stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .lift-docs-settings-page .form-table th,
+    .lift-docs-settings-page .form-table td {
+        display: block;
+        width: 100%;
+        padding: 5px 0;
+    }
+    
+    .lift-docs-settings-page .regular-text,
+    .lift-docs-settings-page .small-text {
+        width: 100%;
+    }
+}
+
+/* Loading States */
+.lift-docs-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.lift-docs-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 5px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Tooltips */
+.lift-docs-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.lift-docs-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+}
+
+.lift-docs-tooltip:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .lift-docs-stat-box,
+    .lift-docs-quick-actions,
+    .lift-docs-recent,
+    .analytics-summary,
+    .analytics-charts {
+        background: #2c3338;
+        border-color: #3c434a;
+        color: #f0f0f1;
+    }
+    
+    .lift-docs-stat-box h3,
+    .lift-docs-quick-actions h2,
+    .lift-docs-recent h2,
+    .analytics-summary h2,
+    .analytics-charts h2 {
+        color: #f0f0f1;
+    }
+    
+    .analytics-stats .stat-item {
+        background: #1d2327;
+        border-color: #3c434a;
+        color: #f0f0f1;
+    }
+}
