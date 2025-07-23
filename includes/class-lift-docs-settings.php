@@ -427,6 +427,16 @@ class LIFT_Docs_Settings {
             $validated['encryption_key'] = sanitize_text_field($input['encryption_key']);
         }
         
+        // Check if secure links setting changed - flush rewrite rules if so
+        $current_settings = get_option('lift_docs_settings', array());
+        $current_secure_links = isset($current_settings['enable_secure_links']) ? $current_settings['enable_secure_links'] : false;
+        $new_secure_links = isset($validated['enable_secure_links']) ? $validated['enable_secure_links'] : false;
+        
+        if ($current_secure_links !== $new_secure_links) {
+            // Schedule rewrite rules flush
+            add_action('shutdown', 'flush_rewrite_rules');
+        }
+        
         return $validated;
     }
     
