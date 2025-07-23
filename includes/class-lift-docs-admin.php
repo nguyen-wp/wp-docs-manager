@@ -393,24 +393,24 @@ class LIFT_Docs_Admin {
                     <div id="lift_doc_files_container">
                         <?php if (empty($file_urls)): ?>
                             <div class="file-input-row" data-index="0">
-                                <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
-                                <button type="button" class="button upload-file-button"><?php _e('📁 Upload', 'lift-docs-system'); ?></button>
-                                <button type="button" class="button remove-file-button" style="display: none;"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
-                                <span class="file-size-display"></span>
+                                <input type="url" name="lift_doc_file_urls[]" value="" class="file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
+                                <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Upload', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button button-danger remove-file-button button-large" style="display: none;"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                                <!-- <span class="file-size-display"></span> -->
                             </div>
                         <?php else: ?>
                             <?php foreach ($file_urls as $index => $url): ?>
                             <div class="file-input-row" data-index="<?php echo $index; ?>">
                                 <input type="url" name="lift_doc_file_urls[]" value="<?php echo esc_attr($url); ?>" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
-                                <button type="button" class="button upload-file-button"><?php _e('📁 Upload', 'lift-docs-system'); ?></button>
-                                <button type="button" class="button remove-file-button" <?php echo count($file_urls) <= 1 ? 'style="display: none;"' : ''; ?>><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
-                                <span class="file-size-display">
+                                <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Upload', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button button-danger remove-file-button button-large" <?php echo count($file_urls) <= 1 ? 'style="display: none;"' : ''; ?>><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                                <!-- <span class="file-size-display">
                                     <?php if ($url): ?>
                                         <span style="color: #0073aa; font-weight: 500;">
                                             📄 <?php echo basename(parse_url($url, PHP_URL_PATH)); ?>
                                         </span>
                                     <?php endif; ?>
-                                </span>
+                                </span> -->
                             </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -418,10 +418,10 @@ class LIFT_Docs_Admin {
                     
                     <div style="margin-top: 15px;">
                         <button type="button" class="button button-secondary" id="add_file_button">
-                            <span style="font-size: 14px;">➕</span> <?php _e('Add Another File', 'lift-docs-system'); ?>
+                            <?php _e('Add Another File', 'lift-docs-system'); ?>
                         </button>
                         <button type="button" class="button" id="clear_all_files" style="margin-left: 10px;">
-                            <span style="font-size: 12px;">🗑️</span> <?php _e('Clear All', 'lift-docs-system'); ?>
+                            <?php _e('Clear All', 'lift-docs-system'); ?>
                         </button>
                     </div>
                     
@@ -535,8 +535,8 @@ class LIFT_Docs_Admin {
                     const newRow = $(`
                         <div class="file-input-row" data-index="${fileIndex}">
                             <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
-                            <button type="button" class="button upload-file-button"><?php _e('📁 Upload', 'lift-docs-system'); ?></button>
-                            <button type="button" class="button remove-file-button"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                            <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Upload', 'lift-docs-system'); ?></button>
+                            <button type="button" class="button button-danger remove-file-button button-large"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
                             <span class="file-size-display"></span>
                         </div>
                     `);
@@ -658,8 +658,8 @@ class LIFT_Docs_Admin {
                         const newRow = $(`
                             <div class="file-input-row" data-index="0">
                                 <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
-                                <button type="button" class="button upload-file-button"><?php _e('📁 Upload', 'lift-docs-system'); ?></button>
-                                <button type="button" class="button remove-file-button" style="display: none;"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Upload', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button button-danger remove-file-button button-large" style="display: none;"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
                                 <span class="file-size-display"></span>
                             </div>
                         `);
@@ -679,8 +679,8 @@ class LIFT_Docs_Admin {
                     const newRow = $(`
                         <div class="file-input-row" data-index="${fileIndex}">
                             <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL', 'lift-docs-system'); ?>" />
-                            <button type="button" class="button upload-file-button"><?php _e('📁 Browse', 'lift-docs-system'); ?></button>
-                            <button type="button" class="button remove-file-button"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                            <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Browse', 'lift-docs-system'); ?></button>
+                            <button type="button" class="button button-danger remove-file-button button-large"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
                             <span class="file-size-display"></span>
                         </div>
                     `);
@@ -791,111 +791,7 @@ class LIFT_Docs_Admin {
         </script>
         
         <style type="text/css">
-        /* Document Files Container */
-        #lift_doc_files_container {
-            background: #fafafa;
-            border: 1px solid #e1e1e1;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-        }
-        
-        /* File Input Row */
-        .file-input-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            padding: 16px;
-            background: white;
-            border: 1px solid #e1e1e1;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            position: relative;
-        }
-        
-        .file-input-row:hover {
-            border-color: #0073aa;
-            box-shadow: 0 2px 8px rgba(0,115,170,0.1);
-        }
-        
-        .file-input-row:last-child {
-            margin-bottom: 0;
-        }
-        
-        /* File URL Input */
-        .file-input-row .file-url-input {
-            flex: 1;
-            min-width: 250px;
-            padding: 10px 14px;
-            border: 2px solid #e1e1e1;
-            border-radius: 6px;
-            font-size: 14px;
-            background: #fbfbfb;
-        }
-        
-        .file-input-row .file-url-input:focus {
-            outline: none;
-            border-color: #0073aa;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(0,115,170,0.1);
-        }
-        
-        .file-input-row .file-url-input:not(:placeholder-shown) {
-            background: white;
-            border-color: #46b450;
-        }
-        
-        /* Upload Button */
-        .file-input-row .upload-file-button {
-            background: #0073aa;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            min-width: 100px;
-            justify-content: center;
-        }
-        
-        .file-input-row .upload-file-button:hover {
-            background: #005a87;
-        }
-        
-        .file-input-row .upload-file-button:active {
-            background: #004567;
-        }
-        
-        /* Remove Button */
-        .file-input-row .remove-file-button {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            min-width: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-        }
-        
-        .file-input-row .remove-file-button:hover {
-            background: #c82333;
-        }
-        
-        .file-input-row .remove-file-button:active {
-            background: #a71d2a;
-        }
-        
+       
         /* File Size Display */
         .file-size-display {
             min-width: 150px;
@@ -963,51 +859,6 @@ class LIFT_Docs_Admin {
             align-items: center;
         }
         
-        /* Add File Button */
-        #add_file_button {
-            background: #0073aa;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        #add_file_button:hover {
-            background: #005a87;
-        }
-        
-        #add_file_button:active {
-            background: #004567;
-        }
-        
-        /* Clear All Button */
-        #clear_all_files {
-            background: #0073aa;
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        #clear_all_files:hover {
-            background: #005a87;
-        }
-        
-        #clear_all_files:active {
-            background: #004567;
-        }
         
         /* Upload Success Animation */
         .file-input-row.uploaded {
@@ -1017,7 +868,7 @@ class LIFT_Docs_Admin {
         
         /* Empty State */
         #lift_doc_files_container:empty::before {
-            content: "📁 <?php _e('No files added yet. Click "Add Another File" below to get started.', 'lift-docs-system'); ?>";
+            content: "<?php _e('No files added yet. Click "Add Another File" below to get started.', 'lift-docs-system'); ?>";
             display: block;
             text-align: center;
             color: #6c757d;
@@ -1072,11 +923,11 @@ class LIFT_Docs_Admin {
                 align-items: stretch;
             }
             
-            #add_file_button,
+            /* #add_file_button,
             #clear_all_files {
                 width: 100%;
                 justify-content: center;
-            }
+            } */
             
             .file-size-display {
                 min-width: auto;
@@ -1088,27 +939,6 @@ class LIFT_Docs_Admin {
         .file-input-row:focus-within {
             border-color: #0073aa;
             box-shadow: 0 0 0 3px rgba(0,115,170,0.1);
-        }
-        
-        /* Button Icon Styling */
-        .upload-file-button::before {
-            content: '📁';
-            margin-right: 4px;
-        }
-        
-        .remove-file-button::before {
-            content: '🗑️';
-            margin-right: 2px;
-        }
-        
-        #add_file_button::before {
-            content: '➕';
-            margin-right: 4px;
-        }
-        
-        #clear_all_files::before {
-            content: '🧹';
-            margin-right: 4px;
         }
         
         /* Responsive Design Media Queries */
