@@ -248,38 +248,51 @@ class LIFT_Docs_Settings {
     }
     
     /**
-     * Settings page callback with tabbed interface
+     * Settings page callback with JavaScript-based tabs
      */
     public function settings_page() {
-        $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
+        $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
+        
+        // Ensure valid tab
+        $valid_tabs = array('general', 'security', 'display');
+        if (!in_array($active_tab, $valid_tabs)) {
+            $active_tab = 'general';
+        }
         ?>
         <div class="wrap">
             <h1><?php _e('LIFT Docs System Settings', 'lift-docs-system'); ?></h1>
             
             <h2 class="nav-tab-wrapper">
-                <a href="?page=lift-docs-settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>"><?php _e('General', 'lift-docs-system'); ?></a>
-                <a href="?page=lift-docs-settings&tab=security" class="nav-tab <?php echo $active_tab == 'security' ? 'nav-tab-active' : ''; ?>"><?php _e('Security', 'lift-docs-system'); ?></a>
-                <a href="?page=lift-docs-settings&tab=display" class="nav-tab <?php echo $active_tab == 'display' ? 'nav-tab-active' : ''; ?>"><?php _e('Display', 'lift-docs-system'); ?></a>
+                <a href="#general" class="nav-tab nav-tab-js <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>" data-tab="general">
+                   <?php _e('General', 'lift-docs-system'); ?>
+                </a>
+                <a href="#security" class="nav-tab nav-tab-js <?php echo $active_tab == 'security' ? 'nav-tab-active' : ''; ?>" data-tab="security">
+                   <?php _e('Security', 'lift-docs-system'); ?>
+                </a>
+                <a href="#display" class="nav-tab nav-tab-js <?php echo $active_tab == 'display' ? 'nav-tab-active' : ''; ?>" data-tab="display">
+                   <?php _e('Display', 'lift-docs-system'); ?>
+                </a>
             </h2>
             
             <form method="post" action="options.php">
-                <?php
-                settings_fields('lift_docs_settings_group');
+                <?php settings_fields('lift_docs_settings_group'); ?>
                 
-                switch($active_tab) {
-                    case 'security':
-                        do_settings_sections('lift-docs-security');
-                        break;
-                    case 'display':
-                        do_settings_sections('lift-docs-display');
-                        break;
-                    default:
-                        do_settings_sections('lift-docs-general');
-                        break;
-                }
+                <!-- General Tab Content -->
+                <div id="general-tab" class="tab-content <?php echo $active_tab == 'general' ? 'active' : ''; ?>">
+                    <?php do_settings_sections('lift-docs-general'); ?>
+                </div>
                 
-                submit_button();
-                ?>
+                <!-- Security Tab Content -->
+                <div id="security-tab" class="tab-content <?php echo $active_tab == 'security' ? 'active' : ''; ?>">
+                    <?php do_settings_sections('lift-docs-security'); ?>
+                </div>
+                
+                <!-- Display Tab Content -->
+                <div id="display-tab" class="tab-content <?php echo $active_tab == 'display' ? 'active' : ''; ?>">
+                    <?php do_settings_sections('lift-docs-display'); ?>
+                </div>
+                
+                <?php submit_button(); ?>
             </form>
         </div>
         
@@ -298,10 +311,17 @@ class LIFT_Docs_Settings {
                 margin-right: 5px;
                 border-radius: 3px 3px 0 0;
                 transition: all 0.3s ease;
+                display: inline-block;
+                cursor: pointer;
             }
             .nav-tab:hover {
                 background: #e8e8e8;
                 color: #333;
+                text-decoration: none;
+            }
+            .nav-tab:focus {
+                outline: none;
+                box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, 0.8);
             }
             .nav-tab-active {
                 background: #fff;
@@ -309,32 +329,169 @@ class LIFT_Docs_Settings {
                 color: #000;
                 position: relative;
                 top: 1px;
-            }
-            .form-table {
-                margin-top: 20px;
-            }
-            .form-table th {
-                width: 200px;
                 font-weight: 600;
             }
+            .nav-tab-active:hover {
+                background: #fff;
+                color: #000;
+            }
+            
+            /* Tab Content Styling */
+            .tab-content {
+                display: none;
+                opacity: 0;
+                transform: translateY(10px);
+                transition: opacity 0.3s ease, transform 0.3s ease;
+            }
+            .tab-content.active {
+                display: block !important;
+                opacity: 1;
+                transform: translateY(0);
+            }
+            
+            .form-table {
+                margin-top: 20px;
+                background: #fff;
+                border: 1px solid #ccd0d4;
+                border-radius: 3px;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            .form-table th {
+                width: 220px;
+                font-weight: 600;
+                background: #f9f9f9;
+                border-right: 1px solid #ccd0d4;
+                vertical-align: top;
+                padding: 20px;
+            }
             .form-table td {
-                padding: 15px 10px;
+                padding: 20px;
+                vertical-align: top;
+            }
+            .form-table tr {
+                border-bottom: 1px solid #eee;
+            }
+            .form-table tr:last-child {
+                border-bottom: none;
             }
             .description {
                 color: #666;
                 font-style: italic;
                 margin-top: 5px;
+                font-size: 13px;
+                line-height: 1.4;
             }
-            .settings-section {
-                background: #fff;
-                padding: 20px;
-                border: 1px solid #ccd0d4;
-                border-radius: 5px;
-                margin-top: 20px;
+            
+            /* Better styling for form fields */
+            .regular-text, .small-text {
+                border: 1px solid #ddd;
+                border-radius: 3px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            
+            .regular-text:focus, .small-text:focus {
+                border-color: #5b9dd9;
+                box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
+                outline: none;
+            }
+            
+            /* Section headers */
+            h2 {
+                color: #333;
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+            
+            /* Button styling */
+            .button {
+                border-radius: 3px;
+                font-weight: 500;
+            }
+            
+            /* Loading state */
+            .nav-tab.loading {
+                opacity: 0.6;
+                pointer-events: none;
+            }
+            
+            /* Smooth fade transition for active content */
+            .tab-content.active {
+                animation: fadeInSmooth 0.3s ease-out;
+            }
+            
+            @keyframes fadeInSmooth {
+                from { 
+                    opacity: 0; 
+                    transform: translateY(10px); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0); 
+                }
             }
         </style>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            console.log('LIFT Docs Settings: JavaScript tab functionality loaded');
+            
+            // Handle tab switching
+            $('.nav-tab-js').on('click', function(e) {
+                e.preventDefault();
+                
+                var $clickedTab = $(this);
+                var targetTab = $clickedTab.data('tab');
+                
+                console.log('Switching to tab:', targetTab);
+                
+                // Remove active class from all tabs and content
+                $('.nav-tab').removeClass('nav-tab-active');
+                $('.tab-content').removeClass('active').hide();
+                
+                // Add active class to clicked tab
+                $clickedTab.addClass('nav-tab-active');
+                
+                // Show target content with smooth transition
+                var $targetContent = $('#' + targetTab + '-tab');
+                $targetContent.show().addClass('active');
+                
+                // Update URL without page reload
+                var newUrl = window.location.origin + window.location.pathname + '?page=lift-docs-settings&tab=' + targetTab;
+                window.history.pushState({tab: targetTab}, '', newUrl);
+            });
+            
+            // Function to switch to a specific tab
+            function switchToTab(tabName) {
+                $('.nav-tab').removeClass('nav-tab-active');
+                $('.tab-content').removeClass('active').hide();
+                
+                $('.nav-tab-js[data-tab="' + tabName + '"]').addClass('nav-tab-active');
+                $('#' + tabName + '-tab').show().addClass('active');
             }
-        </style>
+            
+            // Handle browser back/forward
+            $(window).on('popstate', function(event) {
+                if (event.originalEvent.state && event.originalEvent.state.tab) {
+                    switchToTab(event.originalEvent.state.tab);
+                }
+            });
+            
+            // Initialize - ensure only active tab is visible
+            $('.tab-content').hide();
+            var $activeTab = $('.tab-content.active');
+            if ($activeTab.length > 0) {
+                $activeTab.show();
+            } else {
+                // No active tab, show first one
+                $('.nav-tab-js').first().addClass('nav-tab-active');
+                $('.tab-content').first().show().addClass('active');
+            }
+            
+            console.log('LIFT Docs Settings: Tab initialization complete');
+        });
+        </script>
         <?php
     }
     
