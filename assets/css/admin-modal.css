@@ -136,6 +136,28 @@
     border-color: #46b450 !important;
 }
 
+/* View Online Button */
+#lift-online-view {
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+    height: auto !important;
+    line-height: 1.2 !important;
+    background: #0073aa !important;
+    color: #fff !important;
+    border-color: #0073aa !important;
+    text-decoration: none;
+}
+
+#lift-online-view:hover {
+    background: #005a87 !important;
+    border-color: #005a87 !important;
+    color: #fff !important;
+}
+
+#lift-online-view:focus {
+    box-shadow: 0 0 0 1px #0073aa !important;
+}
+
 .lift-stats-display {
     display: flex;
     gap: 20px;

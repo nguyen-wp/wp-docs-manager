@@ -29,8 +29,8 @@ class LIFT_Docs_Frontend {
         add_shortcode('lift_document_search', array($this, 'document_search_shortcode'));
         add_shortcode('lift_document_categories', array($this, 'document_categories_shortcode'));
         add_shortcode('lift_document_download', array($this, 'document_download_shortcode'));
-        // Disabled old download handler in favor of secure links
-        // add_action('init', array($this, 'handle_document_download'));
+        add_action('init', array($this, 'handle_document_download'));
+        add_action('init', array($this, 'handle_document_view_online'));
         add_filter('document_class', array($this, 'add_document_classes'));
         add_action('wp_footer', array($this, 'add_document_tracking'));
     }
@@ -433,6 +433,65 @@ class LIFT_Docs_Frontend {
         // Redirect to file
         wp_redirect($file_url);
         exit;
+    }
+    
+    /**
+     * Handle document view online
+     */
+    public function handle_document_view_online() {
+        if (!isset($_GET['lift_view_online']) || !isset($_GET['nonce'])) {
+            return;
+        }
+        
+        $document_id = intval($_GET['lift_view_online']);
+        $nonce = $_GET['nonce'];
+        
+        if (!wp_verify_nonce($nonce, 'lift_view_online_' . $document_id)) {
+            wp_die(__('Security check failed.', 'lift-docs-system'));
+        }
+        
+        // Check if user can view online
+        if (LIFT_Docs_Settings::get_setting('require_login_to_download', false) && !is_user_logged_in()) {
+            wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
+            exit;
+        }
+        
+        $file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+        
+        if (!$file_url) {
+            wp_die(__('File not found.', 'lift-docs-system'));
+        }
+        
+        // Track view (as separate from page views)
+        $this->track_online_view($document_id);
+        
+        // For PDFs and other viewable documents, open directly
+        // For other file types, still redirect to download
+        $file_extension = strtolower(pathinfo($file_url, PATHINFO_EXTENSION));
+        $viewable_extensions = array('pdf', 'txt', 'html', 'htm', 'jpg', 'jpeg', 'png', 'gif', 'svg');
+        
+        if (in_array($file_extension, $viewable_extensions)) {
+            // Open file directly in browser for viewing
+            wp_redirect($file_url);
+            exit;
+        } else {
+            // For non-viewable files, redirect to download
+            wp_redirect(add_query_arg(array(
+                'lift_download' => $document_id,
+                'nonce' => wp_create_nonce('lift_download_' . $document_id)
+            ), home_url()));
+            exit;
+        }
+    }
+    
+    /**
+     * Track document online view
+     */
+    private function track_online_view($document_id) {
+        // Record analytics event if enabled
+        if (LIFT_Docs_Settings::get_setting('enable_analytics', true)) {
+            $this->record_analytics_event($document_id, 'view_online');
+        }
     }
     
     /**

@@ -218,11 +218,18 @@ class LIFT_Docs_Admin {
         
         $download_url = '';
         $secure_download_url = '';
+        $online_view_url = '';
         $file_url = get_post_meta($post_id, '_lift_doc_file_url', true);
         if ($file_url) {
             $download_url = add_query_arg(array(
                 'lift_download' => $post_id,
                 'nonce' => wp_create_nonce('lift_download_' . $post_id)
+            ), home_url());
+            
+            // Create online view URL (direct file access)
+            $online_view_url = add_query_arg(array(
+                'lift_view_online' => $post_id,
+                'nonce' => wp_create_nonce('lift_view_online_' . $post_id)
             ), home_url());
             
             if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
@@ -243,6 +250,7 @@ class LIFT_Docs_Admin {
                 data-view-url="<?php echo esc_attr($view_url); ?>"
                 data-view-label="<?php echo esc_attr($view_label); ?>"
                 data-download-url="<?php echo esc_attr($download_url); ?>"
+                data-online-view-url="<?php echo esc_attr($online_view_url); ?>"
                 data-secure-download-url="<?php echo esc_attr($secure_download_url); ?>"
                 data-shortcode="<?php echo esc_attr($shortcode); ?>"
                 data-views="<?php echo esc_attr($views ? number_format($views) : '0'); ?>"
@@ -539,6 +547,7 @@ class LIFT_Docs_Admin {
                 'copyToClipboard' => __('Copy to clipboard', 'lift-docs-system'),
                 'copied' => __('Copied!', 'lift-docs-system'),
                 'preview' => __('Preview', 'lift-docs-system'),
+                'viewOnline' => __('View Online', 'lift-docs-system'),
                 'close' => __('Close', 'lift-docs-system')
             )
         ));
@@ -585,6 +594,9 @@ class LIFT_Docs_Admin {
                             <button type="button" class="button lift-copy-btn" data-target="#lift-download-url">
                                 <?php _e('Copy', 'lift-docs-system'); ?>
                             </button>
+                            <a href="#" id="lift-online-view" class="button" target="_blank">
+                                <?php _e('View Online', 'lift-docs-system'); ?>
+                            </a>
                         </div>
                     </div>
                     
@@ -628,7 +640,7 @@ class LIFT_Docs_Admin {
                 </div>
                 
                 <div class="lift-modal-footer">
-                    <button type="button" class="button button-primary lift-modal-close">
+                    <button type="button" class="button button-primary" onclick="jQuery('#lift-document-details-modal').hide(); jQuery('#lift-modal-backdrop').hide();">
                         <?php _e('Close', 'lift-docs-system'); ?>
                     </button>
                 </div>

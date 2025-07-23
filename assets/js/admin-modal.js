@@ -78,6 +78,14 @@
             // Set download URL
             $('#lift-download-url').val(data.downloadUrl || '');
             
+            // Set online view link
+            $('#lift-online-view').attr('href', data.onlineViewUrl || '#');
+            if (!data.onlineViewUrl) {
+                $('#lift-online-view').hide();
+            } else {
+                $('#lift-online-view').show();
+            }
+            
             // Set secure download URL (show/hide based on availability)
             if (data.secureDownloadUrl) {
                 $('#lift-secure-download-url').val(data.secureDownloadUrl);
