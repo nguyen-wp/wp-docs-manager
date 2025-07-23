@@ -309,21 +309,7 @@ class LIFT_Docs_Secure_Links {
                     <div class="document-body">
                         <?php if ($settings['show_download_button'] && !empty($file_urls)): ?>
                         <div class="document-download">
-                            <?php if (count($file_urls) === 1): ?>
-                                <?php 
-                                // Single file download
-                                $download_token = $_GET['lift_secure'] ?? '';
-                                $secure_download_url = add_query_arg(array(
-                                    'lift_secure' => $download_token
-                                ), home_url('/lift-docs/download/'));
-                                ?>
-                                <a href="<?php echo esc_url($secure_download_url); ?>" class="download-button">
-                                    <?php _e('📄 Download Document', 'lift-docs-system'); ?>
-                                </a>
-                                <p class="download-info">
-                                    <?php _e('Secure encrypted download', 'lift-docs-system'); ?>
-                                </p>
-                            <?php else: ?>
+                            
                                 <h3><?php _e('📄 Download Files', 'lift-docs-system'); ?></h3>
                                 <div class="multiple-downloads">
                                     <?php foreach ($file_urls as $index => $url): ?>
@@ -344,7 +330,6 @@ class LIFT_Docs_Secure_Links {
                                 <p class="download-info">
                                     <?php _e('All downloads are secure and encrypted', 'lift-docs-system'); ?>
                                 </p>
-                            <?php endif; ?>
                         </div>
                         <?php endif; ?>
                         

@@ -385,9 +385,6 @@ class LIFT_Docs_Admin {
             }
         }
         
-        $file_size = get_post_meta($post->ID, '_lift_doc_file_size', true);
-        $download_count = get_post_meta($post->ID, '_lift_doc_downloads', true);
-        
         ?>
         <table class="form-table">
             <tr>
@@ -431,21 +428,6 @@ class LIFT_Docs_Admin {
                     <p class="description">
                         <?php _e('You can add multiple files of any type. Each file will have its own secure download link. Supported: Documents (PDF, DOC, XLS), Images (JPG, PNG), Videos (MP4, AVI), Audio (MP3, WAV), Archives (ZIP, RAR) and more.', 'lift-docs-system'); ?>
                     </p>
-                </td>
-            </tr>
-            
-            <tr>
-                <th><label for="lift_doc_file_size"><?php _e('Total File Size (bytes)', 'lift-docs-system'); ?></label></th>
-                <td>
-                    <input type="number" id="lift_doc_file_size" name="lift_doc_file_size" value="<?php echo esc_attr($file_size); ?>" class="small-text" readonly />
-                    <p class="description"><?php _e('Total size of all files (auto-calculated for uploaded files).', 'lift-docs-system'); ?></p>
-                </td>
-            </tr>
-            
-            <tr>
-                <th><?php _e('Download Count', 'lift-docs-system'); ?></th>
-                <td>
-                    <p><?php echo $download_count ? $download_count : '0'; ?> <?php _e('downloads', 'lift-docs-system'); ?></p>
                 </td>
             </tr>
             
@@ -644,9 +626,6 @@ class LIFT_Docs_Admin {
                             button.closest('.file-input-row').removeClass('uploaded');
                         }, 2000);
                         
-                        // Update total file size if needed
-                        updateTotalFileSize();
-                        
                         // Show success feedback
                         const originalText = button.text();
                         button.text('✅ <?php _e('Uploaded', 'lift-docs-system'); ?>');
@@ -666,12 +645,6 @@ class LIFT_Docs_Admin {
                     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
                     const i = Math.floor(Math.log(bytes) / Math.log(k));
                     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-                }
-                
-                // Update total file size calculation
-                function updateTotalFileSize() {
-                    // This would need to be implemented with AJAX to get actual file sizes
-                    // For now, we'll leave the manual input
                 }
                 
                 // Initialize remove buttons
@@ -1073,13 +1046,6 @@ class LIFT_Docs_Admin {
         } else {
             delete_post_meta($post_id, '_lift_doc_file_urls');
             delete_post_meta($post_id, '_lift_doc_file_url');
-        }
-        
-        // Save file size
-        if (isset($_POST['lift_doc_file_size'])) {
-            update_post_meta($post_id, '_lift_doc_file_size', intval($_POST['lift_doc_file_size']));
-        } else {
-            delete_post_meta($post_id, '_lift_doc_file_size');
         }
     }
     
