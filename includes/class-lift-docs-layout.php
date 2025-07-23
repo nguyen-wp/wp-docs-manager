@@ -226,6 +226,9 @@ class LIFT_Docs_Layout {
      * Get layout settings for document
      */
     private function get_layout_settings($doc_id) {
+        // Get global settings from options
+        $global_settings = get_option('lift_docs_settings', array());
+        
         $default_settings = array(
             'show_secure_access_notice' => true,
             'show_document_header' => true,
@@ -236,13 +239,13 @@ class LIFT_Docs_Layout {
             'layout_style' => 'default'
         );
         
-        // Get custom settings from post meta
-        $custom_settings = get_post_meta($doc_id, '_lift_doc_layout_settings', true);
-        if (!is_array($custom_settings)) {
-            $custom_settings = array();
+        // Use global settings instead of post meta
+        $layout_settings = array();
+        foreach ($default_settings as $key => $default_value) {
+            $layout_settings[$key] = isset($global_settings[$key]) ? $global_settings[$key] : $default_value;
         }
         
-        return wp_parse_args($custom_settings, $default_settings);
+        return $layout_settings;
     }
     
     /**

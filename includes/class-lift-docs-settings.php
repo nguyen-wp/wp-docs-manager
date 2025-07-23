@@ -505,7 +505,12 @@ class LIFT_Docs_Settings {
             'require_login_to_view',
             'require_login_to_download',
             'enable_secure_links',
-            'hide_from_sitemap'
+            'hide_from_sitemap',
+            // Layout settings
+            'show_secure_access_notice',
+            'show_document_header',
+            'show_document_description',
+            'show_related_docs'
         );
         
         foreach ($boolean_fields as $field) {
@@ -532,6 +537,13 @@ class LIFT_Docs_Settings {
         
         if (isset($input['encryption_key'])) {
             $validated['encryption_key'] = sanitize_text_field($input['encryption_key']);
+        }
+        
+        // Layout style select field
+        if (isset($input['layout_style'])) {
+            $allowed_styles = array('default', 'minimal', 'detailed');
+            $layout_style = sanitize_text_field($input['layout_style']);
+            $validated['layout_style'] = in_array($layout_style, $allowed_styles) ? $layout_style : 'default';
         }
         
         // Check if secure links setting changed - flush rewrite rules if so

@@ -593,7 +593,6 @@ class LIFT_Docs_Secure_Links {
         }
         
         $secure_link = LIFT_Docs_Settings::generate_secure_link($post->ID);
-        $expiry_hours = LIFT_Docs_Settings::get_setting('secure_link_expiry', 24);
         
         ?>
         <div class="lift-docs-secure-link-meta">
@@ -601,25 +600,19 @@ class LIFT_Docs_Secure_Links {
             <textarea readonly class="widefat" rows="3" onclick="this.select()"><?php echo esc_textarea($secure_link); ?></textarea>
             
             <p class="description">
-                <?php 
-                if ($expiry_hours > 0) {
-                    printf(__('This link expires in %d hours.', 'lift-docs-system'), $expiry_hours);
-                } else {
-                    _e('This link never expires.', 'lift-docs-system');
-                }
-                ?>
+                <?php _e('This link never expires.', 'lift-docs-system'); ?>
             </p>
             
             <?php 
             // Generate secure download link
             $file_url = get_post_meta($post->ID, '_lift_doc_file_url', true);
             if ($file_url):
-                $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 24);
+                $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0); // 0 = never expire
             ?>
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
                 <p><strong><?php _e('Secure Download Link:', 'lift-docs-system'); ?></strong></p>
                 <textarea readonly class="widefat" rows="2" onclick="this.select()"><?php echo esc_textarea($download_link); ?></textarea>
-                <p class="description"><?php _e('Direct secure download link (expires in 24 hours)', 'lift-docs-system'); ?></p>
+                <p class="description"><?php _e('Direct secure download link (never expires)', 'lift-docs-system'); ?></p>
             </div>
             <?php endif; ?>
             
@@ -632,33 +625,12 @@ class LIFT_Docs_Secure_Links {
                     <?php _e('Copy Link', 'lift-docs-system'); ?>
                 </button>
             </p>
-            
-            <div class="custom-expiry" style="margin-top: 15px;">
-                <label for="custom-expiry"><?php _e('Generate link with custom expiry:', 'lift-docs-system'); ?></label>
-                <select id="custom-expiry">
-                    <option value="1">1 <?php _e('hour', 'lift-docs-system'); ?></option>
-                    <option value="6">6 <?php _e('hours', 'lift-docs-system'); ?></option>
-                    <option value="24" selected>24 <?php _e('hours', 'lift-docs-system'); ?></option>
-                    <option value="72">3 <?php _e('days', 'lift-docs-system'); ?></option>
-                    <option value="168">1 <?php _e('week', 'lift-docs-system'); ?></option>
-                    <option value="0"><?php _e('Never expire', 'lift-docs-system'); ?></option>
-                </select>
-                <button type="button" class="button" onclick="generateCustomLink(<?php echo $post->ID; ?>)">
-                    <?php _e('Generate', 'lift-docs-system'); ?>
-                </button>
-            </div>
         </div>
         
         <script>
         function generateNewSecureLink(postId) {
             // This would need AJAX implementation
             location.reload();
-        }
-        
-        function generateCustomLink(postId) {
-            var expiry = document.getElementById('custom-expiry').value;
-            // This would need AJAX implementation
-            alert('Custom link generation requires AJAX implementation');
         }
         
         function copyToClipboard(button) {

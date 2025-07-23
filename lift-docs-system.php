@@ -242,6 +242,16 @@ class LIFT_Docs_System {
             'enable_search' => true,
             'enable_categories' => true,
             'enable_tags' => true,
+            // Security settings
+            'secure_link_expiry' => 0, // Never expire
+            // Global layout settings
+            'show_secure_access_notice' => true,
+            'show_document_header' => true,
+            'show_document_meta' => true,
+            'show_document_description' => true,
+            'show_download_button' => true,
+            'show_related_docs' => true,
+            'layout_style' => 'default'
         );
         
         add_option('lift_docs_settings', $default_options);
