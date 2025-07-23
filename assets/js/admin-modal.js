@@ -73,30 +73,21 @@
         function populateModal(data) {
             // Set view URL and preview link
             $('#lift-view-url').val(data.viewUrl || '');
-            if (data.canView === 'true') {
-                $('#lift-view-preview').attr('href', data.viewUrl || '#').show();
-            } else {
-                $('#lift-view-preview').hide();
-            }
+            $('#lift-view-preview').attr('href', data.viewUrl || '#');
             
-            // Set download URL with permission check
-            if (data.canDownload === 'true') {
-                $('#lift-download-url').val(data.downloadUrl || '');
-                
-                // Set online view link
-                $('#lift-online-view').attr('href', data.onlineViewUrl || '#');
-                if (!data.onlineViewUrl) {
-                    $('#lift-online-view').hide();
-                } else {
-                    $('#lift-online-view').show();
-                }
-            } else {
-                $('#lift-download-url').val('Login required to download');
+            // Set download URL
+            $('#lift-download-url').val(data.downloadUrl || '');
+            
+            // Set online view link
+            $('#lift-online-view').attr('href', data.onlineViewUrl || '#');
+            if (!data.onlineViewUrl) {
                 $('#lift-online-view').hide();
+            } else {
+                $('#lift-online-view').show();
             }
             
-            // Set secure download URL (show/hide based on availability and permissions)
-            if (data.secureDownloadUrl && data.canDownload === 'true') {
+            // Set secure download URL (show/hide based on availability)
+            if (data.secureDownloadUrl) {
                 $('#lift-secure-download-url').val(data.secureDownloadUrl);
                 $('#lift-secure-download-group').show();
             } else {
