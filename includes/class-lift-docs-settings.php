@@ -679,6 +679,21 @@ class LIFT_Docs_Settings {
     }
     
     /**
+     * Get encryption key
+     */
+    private static function get_encryption_key() {
+        $key = self::get_setting('encryption_key', '');
+        if (empty($key)) {
+            // Auto-generate and save key if missing
+            $key = wp_generate_password(32, false);
+            $settings = get_option('lift_docs_settings', array());
+            $settings['encryption_key'] = $key;
+            update_option('lift_docs_settings', $settings);
+        }
+        return $key;
+    }
+    
+    /**
      * Generate secure token for actions
      */
     public static function generate_secure_token($doc_id, $action = 'view') {
@@ -691,7 +706,7 @@ class LIFT_Docs_Settings {
             'nonce' => wp_create_nonce('lift_secure_' . $action . '_' . $doc_id)
         );
         
-        return self::encrypt_data(json_encode($data), $key);
+        return self::encrypt_data($data, $key);
     }
     
     /**
