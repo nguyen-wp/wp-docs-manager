@@ -485,6 +485,35 @@ class LIFT_Docs_Settings {
     }
     
     /**
+     * Generate secure download link for document
+     */
+    public static function generate_secure_download_link($document_id, $expiry_hours = 1) {
+        if (!self::get_setting('enable_secure_links', false)) {
+            return get_post_meta($document_id, '_lift_doc_file_url', true);
+        }
+        
+        $encryption_key = self::get_setting('encryption_key', '');
+        if (empty($encryption_key)) {
+            return get_post_meta($document_id, '_lift_doc_file_url', true);
+        }
+        
+        $expires = $expiry_hours > 0 ? time() + ($expiry_hours * 3600) : 0;
+        
+        $data = array(
+            'document_id' => $document_id,
+            'expires' => $expires,
+            'timestamp' => time(),
+            'type' => 'download'
+        );
+        
+        $token = self::encrypt_data($data, $encryption_key);
+        
+        return add_query_arg(array(
+            'lift_secure' => urlencode($token)
+        ), home_url('/lift-docs/download/'));
+    }
+    
+    /**
      * Verify secure link
      */
     public static function verify_secure_link($token) {

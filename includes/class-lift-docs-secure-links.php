@@ -28,6 +28,7 @@ class LIFT_Docs_Secure_Links {
         add_action('init', array($this, 'add_rewrite_rules'));
         add_filter('query_vars', array($this, 'add_query_vars'));
         add_action('template_redirect', array($this, 'handle_secure_access'));
+        add_action('template_redirect', array($this, 'handle_secure_download'));
         
         // Block direct access to documents
         add_action('template_redirect', array($this, 'block_direct_access'));
@@ -53,6 +54,7 @@ class LIFT_Docs_Secure_Links {
     public function add_query_vars($vars) {
         $vars[] = 'lift_secure_page';
         $vars[] = 'lift_secure';
+        $vars[] = 'lift_download';
         return $vars;
     }
     
@@ -61,7 +63,9 @@ class LIFT_Docs_Secure_Links {
      */
     public function add_rewrite_rules() {
         add_rewrite_rule('^lift-docs/secure/?$', 'index.php?lift_secure_page=1', 'top');
+        add_rewrite_rule('^lift-docs/download/?$', 'index.php?lift_download=1', 'top');
         add_rewrite_tag('%lift_secure_page%', '([0-9]+)');
+        add_rewrite_tag('%lift_download%', '([0-9]+)');
     }
     
     /**
@@ -100,6 +104,52 @@ class LIFT_Docs_Secure_Links {
         
         // Display document content directly instead of redirecting
         $this->display_secure_document($document);
+        exit;
+    }
+    
+    /**
+     * Handle secure download requests
+     */
+    public function handle_secure_download() {
+        if (!get_query_var('lift_download')) {
+            return;
+        }
+        
+        $token = $_GET['lift_secure'] ?? '';
+        
+        if (empty($token)) {
+            status_header(403);
+            die('Missing security token');
+        }
+        
+        $document_id = LIFT_Docs_Settings::verify_secure_link($token);
+        
+        if (!$document_id) {
+            status_header(403);
+            die('Invalid or expired security token');
+        }
+        
+        // Check if document exists and is published
+        $document = get_post($document_id);
+        
+        if (!$document || $document->post_type !== 'lift_document' || $document->post_status !== 'publish') {
+            status_header(404);
+            die('Document not found');
+        }
+        
+        // Get file URL
+        $file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+        
+        if (empty($file_url)) {
+            status_header(404);
+            die('File not found');
+        }
+        
+        // Track download
+        $this->track_document_download($document_id);
+        
+        // Serve file securely
+        $this->serve_secure_file($file_url, $document->post_title);
         exit;
     }
     
@@ -155,9 +205,19 @@ class LIFT_Docs_Secure_Links {
                     <div class="document-body">
                         <?php if ($file_url): ?>
                         <div class="document-download">
-                            <a href="<?php echo esc_url($file_url); ?>" class="download-button" target="_blank">
+                            <?php 
+                            // Generate secure download link with shorter expiry
+                            $download_token = $_GET['lift_secure'] ?? '';
+                            $secure_download_url = add_query_arg(array(
+                                'lift_secure' => $download_token
+                            ), home_url('/lift-docs/download/'));
+                            ?>
+                            <a href="<?php echo esc_url($secure_download_url); ?>" class="download-button">
                                 <?php _e('📄 Download Document', 'lift-docs-system'); ?>
                             </a>
+                            <p class="download-info">
+                                <?php _e('Secure encrypted download', 'lift-docs-system'); ?>
+                            </p>
                         </div>
                         <?php endif; ?>
                         
@@ -262,6 +322,13 @@ class LIFT_Docs_Secure_Links {
         .download-button:hover {
             background: #005a87;
             color: white;
+        }
+        
+        .download-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            text-align: center;
         }
         
         .document-description {
@@ -450,6 +517,8 @@ class LIFT_Docs_Secure_Links {
             $output .= "Disallow: /document-category/\n";
             $output .= "Disallow: /document-tag/\n";
             $output .= "Disallow: /lift-docs/\n";
+            $output .= "Disallow: /lift-docs/secure/\n";
+            $output .= "Disallow: /lift-docs/download/\n";
         }
         
         return $output;
@@ -529,6 +598,19 @@ class LIFT_Docs_Secure_Links {
                 }
                 ?>
             </p>
+            
+            <?php 
+            // Generate secure download link
+            $file_url = get_post_meta($post->ID, '_lift_doc_file_url', true);
+            if ($file_url):
+                $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 24);
+            ?>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                <p><strong><?php _e('Secure Download Link:', 'lift-docs-system'); ?></strong></p>
+                <textarea readonly class="widefat" rows="2" onclick="this.select()"><?php echo esc_textarea($download_link); ?></textarea>
+                <p class="description"><?php _e('Direct secure download link (expires in 24 hours)', 'lift-docs-system'); ?></p>
+            </div>
+            <?php endif; ?>
             
             <p>
                 <button type="button" class="button" onclick="generateNewSecureLink(<?php echo $post->ID; ?>)">
@@ -623,5 +705,149 @@ class LIFT_Docs_Secure_Links {
         $view_count = get_post_meta($document_id, '_lift_doc_view_count', true);
         $view_count = $view_count ? intval($view_count) : 0;
         update_post_meta($document_id, '_lift_doc_view_count', $view_count + 1);
+    }
+    
+    /**
+     * Track document download
+     */
+    private function track_document_download($document_id) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'lift_docs_analytics';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
+            return;
+        }
+        
+        $user_id = get_current_user_id();
+        $user_id = $user_id ? $user_id : null;
+        
+        $wpdb->insert(
+            $table_name,
+            array(
+                'document_id' => $document_id,
+                'user_id' => $user_id,
+                'action' => 'secure_download',
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+                'timestamp' => current_time('mysql')
+            ),
+            array('%d', '%d', '%s', '%s', '%s', '%s')
+        );
+        
+        // Update download count
+        $download_count = get_post_meta($document_id, '_lift_doc_download_count', true);
+        $download_count = $download_count ? intval($download_count) : 0;
+        update_post_meta($document_id, '_lift_doc_download_count', $download_count + 1);
+    }
+    
+    /**
+     * Serve file securely
+     */
+    private function serve_secure_file($file_url, $filename) {
+        // Clean filename for download
+        $clean_filename = sanitize_file_name($filename);
+        $file_extension = pathinfo($file_url, PATHINFO_EXTENSION);
+        
+        if ($file_extension) {
+            $clean_filename .= '.' . $file_extension;
+        }
+        
+        // Get file path
+        $upload_dir = wp_upload_dir();
+        $file_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $file_url);
+        
+        // Check if file exists locally
+        if (file_exists($file_path)) {
+            $this->serve_local_file($file_path, $clean_filename);
+        } else {
+            // File is external or not found locally - redirect with headers
+            $this->serve_remote_file($file_url, $clean_filename);
+        }
+    }
+    
+    /**
+     * Serve local file
+     */
+    private function serve_local_file($file_path, $filename) {
+        $mime_type = wp_check_filetype($file_path)['type'] ?: 'application/octet-stream';
+        $file_size = filesize($file_path);
+        
+        // Clear any previous output
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Set headers
+        header('Content-Type: ' . $mime_type);
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Length: ' . $file_size);
+        header('Cache-Control: private');
+        header('Pragma: private');
+        header('Expires: 0');
+        
+        // Prevent direct file access disclosure
+        header('X-Robots-Tag: noindex, nofollow');
+        
+        // Read and output file
+        $handle = fopen($file_path, 'rb');
+        
+        if ($handle) {
+            while (!feof($handle)) {
+                echo fread($handle, 8192);
+                flush();
+            }
+            fclose($handle);
+        }
+    }
+    
+    /**
+     * Serve remote file
+     */
+    private function serve_remote_file($file_url, $filename) {
+        // Get file info
+        $response = wp_remote_head($file_url);
+        
+        if (is_wp_error($response)) {
+            status_header(404);
+            die('File not accessible');
+        }
+        
+        $headers = wp_remote_retrieve_headers($response);
+        $mime_type = $headers['content-type'] ?? 'application/octet-stream';
+        $file_size = $headers['content-length'] ?? '';
+        
+        // Clear any previous output
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Set headers
+        header('Content-Type: ' . $mime_type);
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        
+        if ($file_size) {
+            header('Content-Length: ' . $file_size);
+        }
+        
+        header('Cache-Control: private');
+        header('Pragma: private');
+        header('Expires: 0');
+        header('X-Robots-Tag: noindex, nofollow');
+        
+        // Stream file content
+        $file_response = wp_remote_get($file_url, array(
+            'timeout' => 300, // 5 minutes timeout
+            'stream' => true
+        ));
+        
+        if (is_wp_error($file_response)) {
+            status_header(404);
+            die('File not accessible');
+        }
+        
+        // Output file content
+        echo wp_remote_retrieve_body($file_response);
     }
 }
