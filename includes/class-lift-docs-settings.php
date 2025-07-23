@@ -293,7 +293,7 @@ class LIFT_Docs_Settings {
             
             /* Tab Content Styling */
             .tab-content {
-                display: none;
+                display: none !important;
                 opacity: 0;
                 transform: translateY(10px);
                 transition: opacity 0.3s ease, transform 0.3s ease;
@@ -392,6 +392,28 @@ class LIFT_Docs_Settings {
         jQuery(document).ready(function($) {
             console.log('LIFT Docs Settings: JavaScript tab functionality loaded');
             
+            // Get current tab from URL or default to general
+            var urlParams = new URLSearchParams(window.location.search);
+            var currentTab = urlParams.get('tab') || 'general';
+            
+            console.log('Current tab from URL:', currentTab);
+            
+            // Function to switch to a specific tab
+            function switchToTab(tabName) {
+                console.log('Switching to tab:', tabName);
+                
+                // Remove active class from all tabs and content
+                $('.nav-tab').removeClass('nav-tab-active');
+                $('.tab-content').removeClass('active').hide();
+                
+                // Add active class to target tab
+                $('.nav-tab-js[data-tab="' + tabName + '"]').addClass('nav-tab-active');
+                
+                // Show target content
+                var $targetContent = $('#' + tabName + '-tab');
+                $targetContent.show().addClass('active');
+            }
+            
             // Handle tab switching
             $('.nav-tab-js').on('click', function(e) {
                 e.preventDefault();
@@ -399,52 +421,33 @@ class LIFT_Docs_Settings {
                 var $clickedTab = $(this);
                 var targetTab = $clickedTab.data('tab');
                 
-                console.log('Switching to tab:', targetTab);
-                
-                // Remove active class from all tabs and content
-                $('.nav-tab').removeClass('nav-tab-active');
-                $('.tab-content').removeClass('active').hide();
-                
-                // Add active class to clicked tab
-                $clickedTab.addClass('nav-tab-active');
-                
-                // Show target content with smooth transition
-                var $targetContent = $('#' + targetTab + '-tab');
-                $targetContent.show().addClass('active');
+                switchToTab(targetTab);
                 
                 // Update URL without page reload
                 var newUrl = window.location.origin + window.location.pathname + '?page=lift-docs-settings&tab=' + targetTab;
                 window.history.pushState({tab: targetTab}, '', newUrl);
             });
             
-            // Function to switch to a specific tab
-            function switchToTab(tabName) {
-                $('.nav-tab').removeClass('nav-tab-active');
-                $('.tab-content').removeClass('active').hide();
-                
-                $('.nav-tab-js[data-tab="' + tabName + '"]').addClass('nav-tab-active');
-                $('#' + tabName + '-tab').show().addClass('active');
-            }
-            
             // Handle browser back/forward
             $(window).on('popstate', function(event) {
                 if (event.originalEvent.state && event.originalEvent.state.tab) {
                     switchToTab(event.originalEvent.state.tab);
+                } else {
+                    // Fallback to URL parameter
+                    var urlParams = new URLSearchParams(window.location.search);
+                    var tab = urlParams.get('tab') || 'general';
+                    switchToTab(tab);
                 }
             });
             
-            // Initialize - ensure only active tab is visible
-            $('.tab-content').hide();
-            var $activeTab = $('.tab-content.active');
-            if ($activeTab.length > 0) {
-                $activeTab.show();
-            } else {
-                // No active tab, show first one
-                $('.nav-tab-js').first().addClass('nav-tab-active');
-                $('.tab-content').first().show().addClass('active');
-            }
+            // Initialize - hide all tabs first, then show the correct one
+            $('.tab-content').hide().removeClass('active');
+            $('.nav-tab').removeClass('nav-tab-active');
             
-            console.log('LIFT Docs Settings: Tab initialization complete');
+            // Switch to the current tab (from URL or default)
+            switchToTab(currentTab);
+            
+            console.log('LIFT Docs Settings: Tab initialization complete for tab:', currentTab);
         });
         </script>
         <?php
