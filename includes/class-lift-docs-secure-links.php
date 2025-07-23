@@ -173,6 +173,9 @@ class LIFT_Docs_Secure_Links {
         $post = $document;
         setup_postdata($post);
         
+        // Get global layout settings
+        $settings = $this->get_global_layout_settings();
+        
         // Get document meta
         $file_url = get_post_meta($document->ID, '_lift_doc_file_url', true);
         $file_size = get_post_meta($document->ID, '_lift_doc_file_size', true);
@@ -180,17 +183,22 @@ class LIFT_Docs_Secure_Links {
         
         get_header();
         ?>
-        <div class="lift-docs-secure-document">
+        <div class="lift-docs-secure-document <?php echo esc_attr($settings['layout_style']); ?>">
             <div class="container">
+                
+                <?php if ($settings['show_secure_access_notice']): ?>
                 <div class="secure-access-notice">
                     <span class="security-badge"><?php _e('🔒 Secure Access', 'lift-docs-system'); ?></span>
                     <p><?php _e('You are viewing this document via a secure encrypted link.', 'lift-docs-system'); ?></p>
                 </div>
+                <?php endif; ?>
                 
                 <article class="document-content">
+                    <?php if ($settings['show_document_header']): ?>
                     <header class="document-header">
                         <h1><?php echo esc_html($document->post_title); ?></h1>
                         
+                        <?php if ($settings['show_document_meta']): ?>
                         <div class="document-meta">
                             <span class="publish-date">
                                 <?php _e('Published:', 'lift-docs-system'); ?> 
@@ -210,14 +218,27 @@ class LIFT_Docs_Secure_Links {
                                 <?php echo number_format($download_count); ?>
                             </span>
                             <?php endif; ?>
+                            
+                            <?php
+                            // Show categories in meta if enabled
+                            $categories = get_the_terms($document->ID, 'lift_doc_category');
+                            if ($categories && !is_wp_error($categories)):
+                            ?>
+                            <span class="document-categories-meta">
+                                <?php _e('Category:', 'lift-docs-system'); ?> 
+                                <?php echo esc_html($categories[0]->name); ?>
+                            </span>
+                            <?php endif; ?>
                         </div>
+                        <?php endif; ?>
                     </header>
+                    <?php endif; ?>
                     
                     <div class="document-body">
-                        <?php if ($file_url): ?>
+                        <?php if ($settings['show_download_button'] && $file_url): ?>
                         <div class="document-download">
                             <?php 
-                            // Generate secure download link with shorter expiry
+                            // Generate secure download link
                             $download_token = $_GET['lift_secure'] ?? '';
                             $secure_download_url = add_query_arg(array(
                                 'lift_secure' => $download_token
@@ -232,12 +253,13 @@ class LIFT_Docs_Secure_Links {
                         </div>
                         <?php endif; ?>
                         
-                        <?php if ($document->post_content): ?>
+                        <?php if ($settings['show_document_description'] && $document->post_content): ?>
                         <div class="document-description">
                             <?php echo apply_filters('the_content', $document->post_content); ?>
                         </div>
                         <?php endif; ?>
                         
+                        <?php if ($settings['show_document_meta']): ?>
                         <?php
                         // Get document categories
                         $categories = get_the_terms($document->ID, 'lift_doc_category');
@@ -263,127 +285,20 @@ class LIFT_Docs_Secure_Links {
                             <?php endforeach; ?>
                         </div>
                         <?php endif; ?>
+                        <?php endif; ?>
+                        
+                        <?php if ($settings['show_related_docs']): ?>
+                        <div class="related-documents">
+                            <?php echo $this->get_related_documents($document->ID); ?>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </article>
             </div>
         </div>
         
-        <style>
-        .lift-docs-secure-document {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
+        <?php echo $this->get_dynamic_styles($settings); ?>
         
-        .secure-access-notice {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .security-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-        
-        .document-header h1 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 2.2em;
-        }
-        
-        .document-meta {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 25px;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .document-meta span {
-            display: flex;
-            align-items: center;
-        }
-        
-        .document-download {
-            margin: 25px 0;
-            text-align: center;
-        }
-        
-        .download-button {
-            background: #0073aa;
-            color: white;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-            display: inline-block;
-            transition: background 0.3s;
-        }
-        
-        .download-button:hover {
-            background: #005a87;
-            color: white;
-        }
-        
-        .download-info {
-            font-size: 12px;
-            color: #666;
-            margin-top: 8px;
-            text-align: center;
-        }
-        
-        .document-description {
-            line-height: 1.6;
-            margin: 25px 0;
-        }
-        
-        .document-categories,
-        .document-tags {
-            margin: 20px 0;
-        }
-        
-        .category-tag,
-        .tag-label {
-            background: #f1f1f1;
-            padding: 4px 12px;
-            border-radius: 15px;
-            margin: 0 5px 5px 0;
-            display: inline-block;
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .category-tag {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-        
-        .tag-label {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-        
-        @media (max-width: 768px) {
-            .document-meta {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .document-header h1 {
-                font-size: 1.8em;
-            }
-        }
-        </style>
         <?php
         get_footer();
         
@@ -832,5 +747,278 @@ class LIFT_Docs_Secure_Links {
         
         // Output file content
         echo wp_remote_retrieve_body($file_response);
+    }
+    
+    /**
+     * Get global layout settings
+     */
+    private function get_global_layout_settings() {
+        $global_settings = get_option('lift_docs_settings', array());
+        
+        $default_settings = array(
+            'show_secure_access_notice' => true,
+            'show_document_header' => true,
+            'show_document_meta' => true,
+            'show_document_description' => true,
+            'show_download_button' => true,
+            'show_related_docs' => true,
+            'layout_style' => 'default'
+        );
+        
+        // Use global settings instead of post meta
+        $layout_settings = array();
+        foreach ($default_settings as $key => $default_value) {
+            $layout_settings[$key] = isset($global_settings[$key]) ? $global_settings[$key] : $default_value;
+        }
+        
+        return $layout_settings;
+    }
+    
+    /**
+     * Get related documents
+     */
+    private function get_related_documents($doc_id) {
+        $output = '';
+        
+        // Get documents in same category
+        $categories = get_the_terms($doc_id, 'lift_doc_category');
+        if ($categories && !is_wp_error($categories)) {
+            $category_ids = wp_list_pluck($categories, 'term_id');
+            
+            $related_docs = get_posts(array(
+                'post_type' => 'lift_document',
+                'posts_per_page' => 5,
+                'post__not_in' => array($doc_id),
+                'post_status' => 'publish',
+                'tax_query' => array(
+                    array(
+                        'taxonomy' => 'lift_doc_category',
+                        'field' => 'term_id',
+                        'terms' => $category_ids
+                    )
+                )
+            ));
+            
+            if ($related_docs) {
+                $output .= '<div class="related-documents-section">';
+                $output .= '<h3>' . __('Related Documents', 'lift-docs-system') . '</h3>';
+                $output .= '<div class="related-docs-list">';
+                
+                foreach ($related_docs as $doc) {
+                    $output .= '<div class="related-doc-item">';
+                    $output .= '<h4><a href="' . get_permalink($doc->ID) . '">' . esc_html($doc->post_title) . '</a></h4>';
+                    if ($doc->post_excerpt) {
+                        $output .= '<p>' . esc_html($doc->post_excerpt) . '</p>';
+                    }
+                    $output .= '</div>';
+                }
+                
+                $output .= '</div>';
+                $output .= '</div>';
+            }
+        }
+        
+        return $output;
+    }
+    
+    /**
+     * Get dynamic styles based on layout settings
+     */
+    private function get_dynamic_styles($settings) {
+        ob_start();
+        ?>
+        <style>
+        .lift-docs-secure-document {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        <?php if ($settings['layout_style'] === 'minimal'): ?>
+        .lift-docs-secure-document {
+            max-width: 600px;
+        }
+        
+        .document-header h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+        
+        .document-meta {
+            font-size: 12px;
+            gap: 15px;
+        }
+        <?php elseif ($settings['layout_style'] === 'detailed'): ?>
+        .lift-docs-secure-document {
+            max-width: 1000px;
+        }
+        
+        .document-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        .document-meta {
+            font-size: 16px;
+            gap: 25px;
+            padding: 15px 0;
+        }
+        <?php endif; ?>
+        
+        .secure-access-notice {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .security-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .document-header h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 2.2em;
+        }
+        
+        .document-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+        
+        .document-meta span {
+            display: flex;
+            align-items: center;
+        }
+        
+        .document-download {
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .download-button {
+            background: #0073aa;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        
+        .download-button:hover {
+            background: #005a87;
+            color: white;
+        }
+        
+        .download-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            text-align: center;
+        }
+        
+        .document-description {
+            line-height: 1.6;
+            margin: 25px 0;
+        }
+        
+        .document-categories,
+        .document-tags {
+            margin: 20px 0;
+        }
+        
+        .category-tag,
+        .tag-label {
+            background: #f1f1f1;
+            padding: 4px 12px;
+            border-radius: 15px;
+            margin: 0 5px 5px 0;
+            display: inline-block;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .category-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .tag-label {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .related-documents-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #f1f1f1;
+        }
+        
+        .related-documents-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .related-doc-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .related-doc-item h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.1em;
+        }
+        
+        .related-doc-item h4 a {
+            color: #0073aa;
+            text-decoration: none;
+        }
+        
+        .related-doc-item h4 a:hover {
+            text-decoration: underline;
+        }
+        
+        .related-doc-item p {
+            margin: 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .document-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .document-header h1 {
+                font-size: 1.8em;
+            }
+            
+            .lift-docs-secure-document {
+                margin: 20px auto;
+                padding: 0 15px;
+            }
+        }
+        </style>
+        <?php
+        return ob_get_clean();
     }
 }
