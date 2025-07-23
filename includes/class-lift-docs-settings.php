@@ -711,4 +711,66 @@ class LIFT_Docs_Settings {
         );
     }
     
+    /**
+     * Check if current user can view documents
+     */
+    public static function current_user_can_view_documents() {
+        if (!is_user_logged_in()) {
+            return !self::get_setting('require_login_to_view', false);
+        }
+        
+        return current_user_can('view_lift_documents') || 
+               current_user_can('read_lift_document') || 
+               current_user_can('edit_lift_documents') ||
+               current_user_can('manage_options');
+    }
+    
+    /**
+     * Check if current user can download documents
+     */
+    public static function current_user_can_download_documents() {
+        if (!is_user_logged_in()) {
+            return !self::get_setting('require_login_to_download', false);
+        }
+        
+        return current_user_can('download_lift_documents') || 
+               current_user_can('edit_lift_documents') ||
+               current_user_can('manage_options');
+    }
+    
+    /**
+     * Check if user can view specific document
+     */
+    public static function user_can_view_document($document_id, $user_id = null) {
+        if (!$user_id) {
+            $user_id = get_current_user_id();
+        }
+        
+        if (!$user_id) {
+            return !self::get_setting('require_login_to_view', false);
+        }
+        
+        return user_can($user_id, 'view_lift_documents') || 
+               user_can($user_id, 'read_lift_document') ||
+               user_can($user_id, 'edit_lift_documents') ||
+               user_can($user_id, 'manage_options');
+    }
+    
+    /**
+     * Check if user can download specific document
+     */
+    public static function user_can_download_document($document_id, $user_id = null) {
+        if (!$user_id) {
+            $user_id = get_current_user_id();
+        }
+        
+        if (!$user_id) {
+            return !self::get_setting('require_login_to_download', false);
+        }
+        
+        return user_can($user_id, 'download_lift_documents') || 
+               user_can($user_id, 'edit_lift_documents') ||
+               user_can($user_id, 'manage_options');
+    }
+    
 }

@@ -35,6 +35,9 @@ class LIFT_Docs_Admin {
         
         // Clean up old layout settings on first load
         add_action('admin_init', array($this, 'cleanup_old_layout_settings'), 5);
+        
+        // Create custom roles and capabilities
+        add_action('init', array($this, 'create_document_roles'));
     }
     
     /**
@@ -82,6 +85,15 @@ class LIFT_Docs_Admin {
             'manage_options',
             'lift-docs-analytics',
             array($this, 'analytics_page')
+        );
+        
+        add_submenu_page(
+            'lift-docs-system',
+            __('Document Users', 'lift-docs-system'),
+            __('Document Users', 'lift-docs-system'),
+            'manage_options',
+            'lift-docs-users',
+            array($this, 'users_page')
         );
     }
     
@@ -163,6 +175,39 @@ class LIFT_Docs_Admin {
         <?php
     }
     
+    /**
+     * Document Users management page
+     */
+    public function users_page() {
+        // Handle user role changes
+        if (isset($_POST['action']) && $_POST['action'] === 'update_user_role') {
+            $this->handle_user_role_update();
+        }
+        
+        ?>
+        <div class="wrap">
+            <h1><?php _e('Document Users Management', 'lift-docs-system'); ?></h1>
+            
+            <div class="lift-docs-users-management">
+                <div class="users-summary">
+                    <h2><?php _e('User Roles Summary', 'lift-docs-system'); ?></h2>
+                    <?php $this->display_users_summary(); ?>
+                </div>
+                
+                <div class="users-with-documents-role">
+                    <h2><?php _e('Users with Documents Access', 'lift-docs-system'); ?></h2>
+                    <?php $this->display_documents_users(); ?>
+                </div>
+                
+                <div class="add-documents-user">
+                    <h2><?php _e('Grant Document Access to User', 'lift-docs-system'); ?></h2>
+                    <?php $this->display_user_role_form(); ?>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
     /**
      * Set custom columns for documents list
      */
@@ -1068,6 +1113,82 @@ class LIFT_Docs_Admin {
     }
 
     /**
+     * Create custom document roles and capabilities
+     */
+    public function create_document_roles() {
+        // Only run once
+        if (get_option('lift_docs_roles_created', false)) {
+            return;
+        }
+        
+        // Create Documents role with specific capabilities
+        $documents_capabilities = array(
+            'read' => true,
+            'view_lift_documents' => true,
+            'download_lift_documents' => true,
+            'read_lift_document' => true,
+            'read_private_lift_documents' => true,
+        );
+        
+        add_role(
+            'documents_user',
+            __('Documents User', 'lift-docs-system'),
+            $documents_capabilities
+        );
+        
+        // Add document capabilities to existing roles
+        
+        // Editor role - can manage documents
+        $editor = get_role('editor');
+        if ($editor) {
+            $editor->add_cap('view_lift_documents');
+            $editor->add_cap('download_lift_documents');
+            $editor->add_cap('read_lift_document');
+            $editor->add_cap('read_private_lift_documents');
+            $editor->add_cap('edit_lift_documents');
+            $editor->add_cap('edit_lift_document');
+            $editor->add_cap('edit_others_lift_documents');
+            $editor->add_cap('edit_published_lift_documents');
+            $editor->add_cap('publish_lift_documents');
+            $editor->add_cap('delete_lift_documents');
+            $editor->add_cap('delete_lift_document');
+            $editor->add_cap('delete_others_lift_documents');
+            $editor->add_cap('delete_published_lift_documents');
+            $editor->add_cap('manage_lift_doc_categories');
+            $editor->add_cap('edit_lift_doc_categories');
+            $editor->add_cap('delete_lift_doc_categories');
+            $editor->add_cap('assign_lift_doc_categories');
+        }
+        
+        // Administrator role - full access
+        $admin = get_role('administrator');
+        if ($admin) {
+            $admin->add_cap('view_lift_documents');
+            $admin->add_cap('download_lift_documents');
+            $admin->add_cap('read_lift_document');
+            $admin->add_cap('read_private_lift_documents');
+            $admin->add_cap('edit_lift_documents');
+            $admin->add_cap('edit_lift_document');
+            $admin->add_cap('edit_others_lift_documents');
+            $admin->add_cap('edit_published_lift_documents');
+            $admin->add_cap('edit_private_lift_documents');
+            $admin->add_cap('publish_lift_documents');
+            $admin->add_cap('delete_lift_documents');
+            $admin->add_cap('delete_lift_document');
+            $admin->add_cap('delete_others_lift_documents');
+            $admin->add_cap('delete_published_lift_documents');
+            $admin->add_cap('delete_private_lift_documents');
+            $admin->add_cap('manage_lift_doc_categories');
+            $admin->add_cap('edit_lift_doc_categories');
+            $admin->add_cap('delete_lift_doc_categories');
+            $admin->add_cap('assign_lift_doc_categories');
+        }
+        
+        // Mark roles as created
+        update_option('lift_docs_roles_created', true);
+    }
+
+    /**
      * Get total views
      */
     private function get_total_views() {
@@ -1327,6 +1448,210 @@ class LIFT_Docs_Admin {
         
         <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
         
+        <?php
+    }
+    
+    /**
+     * Handle user role update
+     */
+    private function handle_user_role_update() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have permission to manage users.', 'lift-docs-system'));
+        }
+        
+        if (!isset($_POST['user_id']) || !isset($_POST['new_role'])) {
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-error"><p>' . __('Invalid request.', 'lift-docs-system') . '</p></div>';
+            });
+            return;
+        }
+        
+        $user_id = intval($_POST['user_id']);
+        $new_role = sanitize_text_field($_POST['new_role']);
+        
+        $user = get_user_by('id', $user_id);
+        if (!$user) {
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-error"><p>' . __('User not found.', 'lift-docs-system') . '</p></div>';
+            });
+            return;
+        }
+        
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['_wpnonce'], 'update_user_role_' . $user_id)) {
+            wp_die(__('Security check failed.', 'lift-docs-system'));
+        }
+        
+        $user->set_role($new_role);
+        
+        add_action('admin_notices', function() use ($user) {
+            echo '<div class="notice notice-success"><p>' . 
+                 sprintf(__('User %s role updated successfully.', 'lift-docs-system'), $user->display_name) . 
+                 '</p></div>';
+        });
+    }
+    
+    /**
+     * Display users summary
+     */
+    private function display_users_summary() {
+        $users_by_role = array();
+        
+        // Get all users with document-related capabilities
+        $document_users = get_users(array(
+            'meta_query' => array(
+                array(
+                    'key' => 'wp_capabilities',
+                    'value' => 'documents_user',
+                    'compare' => 'LIKE'
+                )
+            )
+        ));
+        
+        $admin_users = get_users(array('role' => 'administrator'));
+        $editor_users = get_users(array('role' => 'editor'));
+        
+        ?>
+        <div class="users-stats">
+            <div class="stat-item">
+                <h3><?php _e('Documents Users', 'lift-docs-system'); ?></h3>
+                <p class="stat-number"><?php echo count($document_users); ?></p>
+            </div>
+            <div class="stat-item">
+                <h3><?php _e('Administrators', 'lift-docs-system'); ?></h3>
+                <p class="stat-number"><?php echo count($admin_users); ?></p>
+            </div>
+            <div class="stat-item">
+                <h3><?php _e('Editors', 'lift-docs-system'); ?></h3>
+                <p class="stat-number"><?php echo count($editor_users); ?></p>
+            </div>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Display users with documents role
+     */
+    private function display_documents_users() {
+        $document_users = get_users(array(
+            'meta_query' => array(
+                array(
+                    'key' => 'wp_capabilities',
+                    'value' => 'documents_user',
+                    'compare' => 'LIKE'
+                )
+            )
+        ));
+        
+        if (empty($document_users)) {
+            echo '<p>' . __('No users with Documents role found.', 'lift-docs-system') . '</p>';
+            return;
+        }
+        
+        ?>
+        <table class="wp-list-table widefat fixed striped">
+            <thead>
+                <tr>
+                    <th><?php _e('User', 'lift-docs-system'); ?></th>
+                    <th><?php _e('Email', 'lift-docs-system'); ?></th>
+                    <th><?php _e('Registration Date', 'lift-docs-system'); ?></th>
+                    <th><?php _e('Actions', 'lift-docs-system'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($document_users as $user): ?>
+                <tr>
+                    <td>
+                        <strong><?php echo esc_html($user->display_name); ?></strong><br>
+                        <span class="description"><?php echo esc_html($user->user_login); ?></span>
+                    </td>
+                    <td><?php echo esc_html($user->user_email); ?></td>
+                    <td><?php echo date_i18n(get_option('date_format'), strtotime($user->user_registered)); ?></td>
+                    <td>
+                        <form method="post" style="display: inline;">
+                            <?php wp_nonce_field('update_user_role_' . $user->ID); ?>
+                            <input type="hidden" name="action" value="update_user_role">
+                            <input type="hidden" name="user_id" value="<?php echo $user->ID; ?>">
+                            <select name="new_role">
+                                <option value="documents_user" selected><?php _e('Documents User', 'lift-docs-system'); ?></option>
+                                <option value="subscriber"><?php _e('Subscriber', 'lift-docs-system'); ?></option>
+                                <option value="contributor"><?php _e('Contributor', 'lift-docs-system'); ?></option>
+                                <option value="author"><?php _e('Author', 'lift-docs-system'); ?></option>
+                                <option value="editor"><?php _e('Editor', 'lift-docs-system'); ?></option>
+                            </select>
+                            <button type="submit" class="button button-small">
+                                <?php _e('Update Role', 'lift-docs-system'); ?>
+                            </button>
+                        </form>
+                        <a href="<?php echo get_edit_user_link($user->ID); ?>" class="button button-small">
+                            <?php _e('Edit User', 'lift-docs-system'); ?>
+                        </a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php
+    }
+    
+    /**
+     * Display user role form
+     */
+    private function display_user_role_form() {
+        // Get all users except those who already have documents access
+        $all_users = get_users();
+        $available_users = array();
+        
+        foreach ($all_users as $user) {
+            if (!user_can($user->ID, 'view_lift_documents') && !in_array('documents_user', $user->roles)) {
+                $available_users[] = $user;
+            }
+        }
+        
+        if (empty($available_users)) {
+            echo '<p>' . __('All users already have document access or higher roles.', 'lift-docs-system') . '</p>';
+            return;
+        }
+        
+        ?>
+        <form method="post">
+            <?php wp_nonce_field('update_user_role_bulk'); ?>
+            <input type="hidden" name="action" value="update_user_role">
+            <input type="hidden" name="new_role" value="documents_user">
+            
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="user_id"><?php _e('Select User', 'lift-docs-system'); ?></label>
+                    </th>
+                    <td>
+                        <select name="user_id" id="user_id" required>
+                            <option value=""><?php _e('-- Select User --', 'lift-docs-system'); ?></option>
+                            <?php foreach ($available_users as $user): ?>
+                            <option value="<?php echo $user->ID; ?>">
+                                <?php echo esc_html($user->display_name . ' (' . $user->user_login . ')'); ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="description">
+                            <?php _e('Grant document access to the selected user.', 'lift-docs-system'); ?>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+            
+            <?php submit_button(__('Grant Document Access', 'lift-docs-system')); ?>
+        </form>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #f0f8ff; border-left: 4px solid #0073aa;">
+            <h4><?php _e('Documents User Role Capabilities:', 'lift-docs-system'); ?></h4>
+            <ul>
+                <li><?php _e('View all published documents', 'lift-docs-system'); ?></li>
+                <li><?php _e('Download document files', 'lift-docs-system'); ?></li>
+                <li><?php _e('Access secure document links', 'lift-docs-system'); ?></li>
+                <li><?php _e('View document analytics (own activity)', 'lift-docs-system'); ?></li>
+            </ul>
+        </div>
         <?php
     }
 }

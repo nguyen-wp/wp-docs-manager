@@ -76,6 +76,9 @@ class LIFT_Docs_System {
      * Load required files
      */
     private function load_dependencies() {
+        // Core files
+        require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-activator.php';
+        
         // Admin files
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-admin.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-post-types.php';
@@ -284,5 +287,14 @@ function lift_docs_system_init() {
     return LIFT_Docs_System::get_instance();
 }
 
-// Start the plugin
-lift_docs_system_init();
+// Hook to run when WordPress is loaded
+add_action('plugins_loaded', 'lift_docs_system_init');
+
+// Plugin activation hook
+register_activation_hook(__FILE__, array('LIFT_Docs_Activator', 'activate'));
+
+// Plugin deactivation hook  
+register_deactivation_hook(__FILE__, array('LIFT_Docs_Activator', 'deactivate'));
+
+// Plugin uninstall hook
+register_uninstall_hook(__FILE__, array('LIFT_Docs_Activator', 'uninstall'));

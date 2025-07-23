@@ -78,7 +78,23 @@ class LIFT_Docs_Post_Types {
             'show_in_admin_bar'  => true,
             'query_var'          => true,
             'rewrite'            => $rewrite_setting,
-            'capability_type'    => 'post',
+            'capability_type'    => array('lift_document', 'lift_documents'),
+            'map_meta_cap'       => true,
+            'capabilities'       => array(
+                'edit_post'          => 'edit_lift_document',
+                'read_post'          => 'read_lift_document',
+                'delete_post'        => 'delete_lift_document',
+                'edit_posts'         => 'edit_lift_documents',
+                'edit_others_posts'  => 'edit_others_lift_documents',
+                'publish_posts'      => 'publish_lift_documents',
+                'read_private_posts' => 'read_private_lift_documents',
+                'delete_posts'       => 'delete_lift_documents',
+                'delete_private_posts' => 'delete_private_lift_documents',
+                'delete_published_posts' => 'delete_published_lift_documents',
+                'delete_others_posts' => 'delete_others_lift_documents',
+                'edit_private_posts' => 'edit_private_lift_documents',
+                'edit_published_posts' => 'edit_published_lift_documents',
+            ),
             'has_archive'        => !$secure_links_enabled, // Hide archive if secure
             'hierarchical'       => false,
             'menu_position'      => null,
@@ -122,6 +138,12 @@ class LIFT_Docs_Post_Types {
             'show_in_rest'      => true,
             'rest_base'         => 'document-categories',
             'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'      => array(
+                'manage_terms' => 'manage_lift_doc_categories',
+                'edit_terms'   => 'edit_lift_doc_categories',
+                'delete_terms' => 'delete_lift_doc_categories',
+                'assign_terms' => 'assign_lift_doc_categories',
+            ),
         );
         
         register_taxonomy('lift_doc_category', array('lift_document'), $category_args);
