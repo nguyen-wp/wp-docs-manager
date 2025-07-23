@@ -205,6 +205,21 @@ class LIFT_Docs_Admin {
      * Render document details button with modal data
      */
     private function render_document_details_button($post_id) {
+        // Get multiple files
+        $file_urls = get_post_meta($post_id, '_lift_doc_file_urls', true);
+        if (empty($file_urls)) {
+            // Check for legacy single file URL
+            $legacy_url = get_post_meta($post_id, '_lift_doc_file_url', true);
+            if ($legacy_url) {
+                $file_urls = array($legacy_url);
+            } else {
+                $file_urls = array();
+            }
+        }
+        
+        // Filter out empty URLs
+        $file_urls = array_filter($file_urls);
+        
         // Collect all data
         $view_url = '';
         $view_label = '';
@@ -237,11 +252,6 @@ class LIFT_Docs_Admin {
             $view_label = __('Login Required for View', 'lift-docs-system');
         }
         
-        $download_url = '';
-        $secure_download_url = '';
-        $online_view_url = '';
-        $file_url = get_post_meta($post_id, '_lift_doc_file_url', true);
-        
         // Check if user can download before generating download URLs
         $can_download = false;
         if ($frontend && method_exists($frontend, 'can_user_download_document')) {
@@ -254,26 +264,66 @@ class LIFT_Docs_Admin {
             $can_download = !LIFT_Docs_Settings::get_setting('require_login_to_download', false) || is_user_logged_in();
         }
         
-        if ($file_url && $can_download) {
-            $download_url = add_query_arg(array(
-                'lift_download' => $post_id,
-                'nonce' => wp_create_nonce('lift_download_' . $post_id)
-            ), home_url());
+        // Generate multiple download URLs and secure URLs
+        $download_urls = array();
+        $online_view_urls = array();
+        $secure_download_urls = array();
+        
+        foreach ($file_urls as $index => $file_url) {
+            if (!$file_url) continue;
             
-            // Create online view URL (direct file access)
-            $online_view_url = add_query_arg(array(
-                'lift_view_online' => $post_id,
-                'nonce' => wp_create_nonce('lift_view_online_' . $post_id)
-            ), home_url());
+            $file_name = basename(parse_url($file_url, PHP_URL_PATH));
             
-            if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
-                $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($post_id);
+            if ($can_download) {
+                // Regular download URL with file index
+                $download_urls[] = array(
+                    'url' => add_query_arg(array(
+                        'lift_download' => $post_id,
+                        'file_index' => $index,
+                        'nonce' => wp_create_nonce('lift_download_' . $post_id)
+                    ), home_url()),
+                    'name' => $file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1),
+                    'index' => $index
+                );
+                
+                // Online view URL with file index
+                $online_view_urls[] = array(
+                    'url' => add_query_arg(array(
+                        'lift_view_online' => $post_id,
+                        'file_index' => $index,
+                        'nonce' => wp_create_nonce('lift_view_online_' . $post_id)
+                    ), home_url()),
+                    'name' => $file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1),
+                    'index' => $index
+                );
+                
+                // Secure download URL if enabled
+                if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+                    $secure_download_urls[] = array(
+                        'url' => LIFT_Docs_Settings::generate_secure_download_link($post_id, 0, $index),
+                        'name' => $file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1),
+                        'index' => $index
+                    );
+                }
+            } else {
+                // Login required URLs
+                $login_url = wp_login_url(get_permalink($post_id));
+                $download_urls[] = array(
+                    'url' => $login_url,
+                    'name' => $file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1),
+                    'index' => $index
+                );
+                $online_view_urls[] = array(
+                    'url' => $login_url,
+                    'name' => $file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1),
+                    'index' => $index
+                );
+                $secure_download_urls[] = array(
+                    'url' => $login_url,
+                    'name' => $file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1),
+                    'index' => $index
+                );
             }
-        } elseif ($file_url && !$can_download) {
-            // Set login URLs instead of download URLs
-            $download_url = wp_login_url(get_permalink($post_id));
-            $online_view_url = wp_login_url(get_permalink($post_id));
-            $secure_download_url = wp_login_url(get_permalink($post_id));
         }
         
         $shortcode = '[lift_document_download id="' . $post_id . '"]';
@@ -288,15 +338,16 @@ class LIFT_Docs_Admin {
                 data-post-id="<?php echo esc_attr($post_id); ?>"
                 data-view-url="<?php echo esc_attr($view_url); ?>"
                 data-view-label="<?php echo esc_attr($view_label); ?>"
-                data-download-url="<?php echo esc_attr($download_url); ?>"
-                data-online-view-url="<?php echo esc_attr($online_view_url); ?>"
-                data-secure-download-url="<?php echo esc_attr($secure_download_url); ?>"
+                data-download-urls="<?php echo esc_attr(json_encode($download_urls)); ?>"
+                data-online-view-urls="<?php echo esc_attr(json_encode($online_view_urls)); ?>"
+                data-secure-download-urls="<?php echo esc_attr(json_encode($secure_download_urls)); ?>"
                 data-shortcode="<?php echo esc_attr($shortcode); ?>"
                 data-views="<?php echo esc_attr($views ? number_format($views) : '0'); ?>"
                 data-downloads="<?php echo esc_attr($downloads ? number_format($downloads) : '0'); ?>"
                 data-file-size="<?php echo esc_attr($file_size ? size_format($file_size) : '—'); ?>"
                 data-can-view="<?php echo esc_attr($can_view ? 'true' : 'false'); ?>"
-                data-can-download="<?php echo esc_attr($can_download ? 'true' : 'false'); ?>">
+                data-can-download="<?php echo esc_attr($can_download ? 'true' : 'false'); ?>"
+                data-files-count="<?php echo esc_attr(count($file_urls)); ?>">
             <?php _e('View Details', 'lift-docs-system'); ?>
         </button>
         <?php
@@ -322,27 +373,75 @@ class LIFT_Docs_Admin {
     public function document_details_meta_box($post) {
         wp_nonce_field('lift_docs_meta_box', 'lift_docs_meta_box_nonce');
         
-        $file_url = get_post_meta($post->ID, '_lift_doc_file_url', true);
+        // Handle multiple files
+        $file_urls = get_post_meta($post->ID, '_lift_doc_file_urls', true);
+        if (empty($file_urls)) {
+            // Check for legacy single file URL
+            $legacy_url = get_post_meta($post->ID, '_lift_doc_file_url', true);
+            if ($legacy_url) {
+                $file_urls = array($legacy_url);
+            } else {
+                $file_urls = array();
+            }
+        }
+        
         $file_size = get_post_meta($post->ID, '_lift_doc_file_size', true);
         $download_count = get_post_meta($post->ID, '_lift_doc_downloads', true);
         
         ?>
         <table class="form-table">
             <tr>
-                <th><label for="lift_doc_file_url"><?php _e('File URL', 'lift-docs-system'); ?></label></th>
+                <th><label><?php _e('Document Files', 'lift-docs-system'); ?></label></th>
                 <td>
-                    <input type="url" id="lift_doc_file_url" name="lift_doc_file_url" value="<?php echo esc_attr($file_url); ?>" class="regular-text" />
-                    <button type="button" class="button" id="upload_file_button"><?php _e('Upload File', 'lift-docs-system'); ?></button>
-                    <p class="description"><?php _e('Enter the URL of the document file or upload a new file.', 'lift-docs-system'); ?></p>
+                    <div id="lift_doc_files_container">
+                        <?php if (empty($file_urls)): ?>
+                            <div class="file-input-row" data-index="0">
+                                <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
+                                <button type="button" class="button upload-file-button"><?php _e('📁 Upload', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button remove-file-button" style="display: none;"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                                <span class="file-size-display"></span>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($file_urls as $index => $url): ?>
+                            <div class="file-input-row" data-index="<?php echo $index; ?>">
+                                <input type="url" name="lift_doc_file_urls[]" value="<?php echo esc_attr($url); ?>" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
+                                <button type="button" class="button upload-file-button"><?php _e('📁 Upload', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button remove-file-button" <?php echo count($file_urls) <= 1 ? 'style="display: none;"' : ''; ?>><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                                <span class="file-size-display">
+                                    <?php if ($url): ?>
+                                        <span style="color: #0073aa; font-weight: 500;">
+                                            📄 <?php echo basename(parse_url($url, PHP_URL_PATH)); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </span>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <button type="button" class="button button-secondary" id="add_file_button">
+                            <span style="font-size: 14px;">➕</span> <?php _e('Add Another File', 'lift-docs-system'); ?>
+                        </button>
+                        <button type="button" class="button" id="clear_all_files" style="margin-left: 10px;">
+                            <span style="font-size: 12px;">🗑️</span> <?php _e('Clear All', 'lift-docs-system'); ?>
+                        </button>
+                    </div>
+                    
+                    <p class="description">
+                        <?php _e('You can add multiple files of any type. Each file will have its own secure download link. Supported: Documents (PDF, DOC, XLS), Images (JPG, PNG), Videos (MP4, AVI), Audio (MP3, WAV), Archives (ZIP, RAR) and more.', 'lift-docs-system'); ?>
+                    </p>
                 </td>
             </tr>
+            
             <tr>
-                <th><label for="lift_doc_file_size"><?php _e('File Size (bytes)', 'lift-docs-system'); ?></label></th>
+                <th><label for="lift_doc_file_size"><?php _e('Total File Size (bytes)', 'lift-docs-system'); ?></label></th>
                 <td>
-                    <input type="number" id="lift_doc_file_size" name="lift_doc_file_size" value="<?php echo esc_attr($file_size); ?>" class="small-text" />
-                    <p class="description"><?php _e('File size in bytes (will be auto-detected for uploaded files).', 'lift-docs-system'); ?></p>
+                    <input type="number" id="lift_doc_file_size" name="lift_doc_file_size" value="<?php echo esc_attr($file_size); ?>" class="small-text" readonly />
+                    <p class="description"><?php _e('Total size of all files (auto-calculated for uploaded files).', 'lift-docs-system'); ?></p>
                 </td>
             </tr>
+            
             <tr>
                 <th><?php _e('Download Count', 'lift-docs-system'); ?></th>
                 <td>
@@ -367,7 +466,7 @@ class LIFT_Docs_Admin {
                 <td>
                     <textarea readonly class="large-text code" rows="3" onclick="this.select()"><?php echo esc_textarea($secure_link); ?></textarea>
                     <p class="description">
-                        <?php _e('This link never expires and provides secure access to the document.', 'lift-docs-system'); ?>
+                        <?php _e('This link provides secure access to view the document and all its files.', 'lift-docs-system'); ?>
                     </p>
                     <button type="button" class="button" onclick="copySecureLink(this)">
                         <?php _e('Copy Secure Link', 'lift-docs-system'); ?>
@@ -375,29 +474,49 @@ class LIFT_Docs_Admin {
                 </td>
             </tr>
             
-            <?php if ($file_url): 
-                $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0); // 0 = never expire
-            ?>
+            <?php if (!empty($file_urls) && !empty(array_filter($file_urls))): ?>
             <tr>
                 <th scope="row">
-                    <label><?php _e('Secure Download Link:', 'lift-docs-system'); ?></label>
+                    <label><?php _e('Secure Download Links:', 'lift-docs-system'); ?></label>
                 </th>
                 <td>
-                    <textarea readonly class="large-text code" rows="2" onclick="this.select()"><?php echo esc_textarea($download_link); ?></textarea>
-                    <p class="description"><?php _e('Direct secure download link (never expires)', 'lift-docs-system'); ?></p>
-                    <button type="button" class="button" onclick="copyDownloadLink(this)">
-                        <?php _e('Copy Download Link', 'lift-docs-system'); ?>
-                    </button>
+                    <?php if (count(array_filter($file_urls)) === 1): ?>
+                        <?php 
+                        $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0); 
+                        ?>
+                        <textarea readonly class="large-text code" rows="2" onclick="this.select()"><?php echo esc_textarea($download_link); ?></textarea>
+                        <p class="description"><?php _e('Direct secure download link (never expires)', 'lift-docs-system'); ?></p>
+                        <button type="button" class="button" onclick="copyDownloadLink(this)">
+                            <?php _e('Copy Download Link', 'lift-docs-system'); ?>
+                        </button>
+                    <?php else: ?>
+                        <div class="multiple-download-links">
+                            <?php foreach (array_filter($file_urls) as $index => $url): ?>
+                                <?php 
+                                $file_name = basename(parse_url($url, PHP_URL_PATH));
+                                $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0, $index);
+                                ?>
+                                <div class="download-link-item" style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px;">
+                                    <strong><?php echo esc_html($file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1)); ?></strong>
+                                    <textarea readonly class="large-text code" rows="2" onclick="this.select()"><?php echo esc_textarea($download_link); ?></textarea>
+                                    <button type="button" class="button" onclick="copyDownloadLink(this)" style="margin-top: 5px;">
+                                        <?php printf(__('Copy Link %d', 'lift-docs-system'), $index + 1); ?>
+                                    </button>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="description"><?php _e('Each file has its own secure download link (never expires)', 'lift-docs-system'); ?></p>
+                    <?php endif; ?>
                 </td>
             </tr>
             <?php else: ?>
             <tr>
                 <th scope="row">
-                    <label><?php _e('Secure Download Link:', 'lift-docs-system'); ?></label>
+                    <label><?php _e('Secure Download Links:', 'lift-docs-system'); ?></label>
                 </th>
                 <td>
                     <p class="description" style="color: #999; font-style: italic;">
-                        <?php _e('Add a file URL above to generate a secure download link.', 'lift-docs-system'); ?>
+                        <?php _e('Add file URLs above to generate secure download links.', 'lift-docs-system'); ?>
                     </p>
                 </td>
             </tr>
@@ -421,6 +540,254 @@ class LIFT_Docs_Admin {
         </table>
         
         <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            let fileIndex = <?php echo count($file_urls); ?>;
+            
+            // Ensure wp.media is available
+            if (typeof wp !== 'undefined' && wp.media && wp.media.editor) {
+                // WordPress Media Library is available
+                
+                // Add new file input
+                $('#add_file_button').click(function() {
+                    const container = $('#lift_doc_files_container');
+                    const newRow = $(`
+                        <div class="file-input-row" data-index="${fileIndex}">
+                            <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
+                            <button type="button" class="button upload-file-button"><?php _e('📁 Upload', 'lift-docs-system'); ?></button>
+                            <button type="button" class="button remove-file-button"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                            <span class="file-size-display"></span>
+                        </div>
+                    `);
+                    container.append(newRow);
+                    fileIndex++;
+                    updateRemoveButtons();
+                });
+                
+                // Remove file input
+                $(document).on('click', '.remove-file-button', function() {
+                    $(this).closest('.file-input-row').remove();
+                    updateRemoveButtons();
+                });
+                
+                // Update remove buttons visibility
+                function updateRemoveButtons() {
+                    const rows = $('.file-input-row');
+                    if (rows.length <= 1) {
+                        $('.remove-file-button').hide();
+                    } else {
+                        $('.remove-file-button').show();
+                    }
+                }
+                
+                // WordPress Media Library Upload Handler
+                $(document).on('click', '.upload-file-button', function(e) {
+                    e.preventDefault();
+                    
+                    const button = $(this);
+                    const input = button.siblings('.file-url-input');
+                    const sizeDisplay = button.siblings('.file-size-display');
+                    
+                    // Create new media uploader for each button click
+                    const mediaUploader = wp.media({
+                        title: '<?php _e('Select Document File', 'lift-docs-system'); ?>',
+                        button: {
+                            text: '<?php _e('Use This File', 'lift-docs-system'); ?>'
+                        },
+                        multiple: false,
+                        library: {
+                            // Accept all file types that WordPress allows
+                            type: [] // Empty array means all file types
+                        }
+                    });
+                    
+                    // When file is selected
+                    mediaUploader.on('select', function() {
+                        const attachment = mediaUploader.state().get('selection').first().toJSON();
+                        
+                        // Set file URL
+                        input.val(attachment.url);
+                        
+                        // Display file info
+                        const fileName = attachment.filename || attachment.title;
+                        const fileSize = attachment.filesizeHumanReadable || formatFileSize(attachment.filesize || 0);
+                        const fileType = attachment.subtype || attachment.type || 'file';
+                        
+                        // Choose appropriate icon based on file type
+                        let fileIcon = '📄'; // Default document icon
+                        if (attachment.type === 'image') {
+                            fileIcon = '🖼️';
+                        } else if (attachment.type === 'video') {
+                            fileIcon = '🎥';
+                        } else if (attachment.type === 'audio') {
+                            fileIcon = '🎵';
+                        } else if (fileType.includes('pdf')) {
+                            fileIcon = '📕';
+                        } else if (fileType.includes('word') || fileType.includes('doc')) {
+                            fileIcon = '📘';
+                        } else if (fileType.includes('excel') || fileType.includes('sheet')) {
+                            fileIcon = '📗';
+                        } else if (fileType.includes('powerpoint') || fileType.includes('presentation')) {
+                            fileIcon = '📙';
+                        } else if (fileType.includes('zip') || fileType.includes('rar')) {
+                            fileIcon = '📦';
+                        }
+                        
+                        sizeDisplay.html(`
+                            <span style="color: #0073aa; font-weight: 500;">
+                                ${fileIcon} ${fileName} (${fileSize})
+                            </span>
+                        `);
+                        
+                        // Add uploaded class for visual feedback
+                        button.closest('.file-input-row').addClass('uploaded');
+                        setTimeout(function() {
+                            button.closest('.file-input-row').removeClass('uploaded');
+                        }, 2000);
+                        
+                        // Update total file size if needed
+                        updateTotalFileSize();
+                        
+                        // Show success feedback
+                        const originalText = button.text();
+                        button.text('✅ <?php _e('Uploaded', 'lift-docs-system'); ?>');
+                        setTimeout(function() {
+                            button.text(originalText);
+                        }, 2000);
+                    });
+                    
+                    // Open media uploader
+                    mediaUploader.open();
+                });
+                
+                // Format file size
+                function formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                }
+                
+                // Update total file size calculation
+                function updateTotalFileSize() {
+                    // This would need to be implemented with AJAX to get actual file sizes
+                    // For now, we'll leave the manual input
+                }
+                
+                // Initialize remove buttons
+                updateRemoveButtons();
+                
+                // Clear all files button
+                $('#clear_all_files').click(function() {
+                    if (confirm('<?php _e('Are you sure you want to remove all files?', 'lift-docs-system'); ?>')) {
+                        $('#lift_doc_files_container').empty();
+                        // Add one empty row
+                        const newRow = $(`
+                            <div class="file-input-row" data-index="0">
+                                <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
+                                <button type="button" class="button upload-file-button"><?php _e('📁 Upload', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button remove-file-button" style="display: none;"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                                <span class="file-size-display"></span>
+                            </div>
+                        `);
+                        $('#lift_doc_files_container').append(newRow);
+                        fileIndex = 1;
+                        updateRemoveButtons();
+                    }
+                });
+                
+            } else {
+                // Fallback if Media Library is not available
+                console.warn('WordPress Media Library not available. Using fallback file input.');
+                
+                // Add new file input
+                $('#add_file_button').click(function() {
+                    const container = $('#lift_doc_files_container');
+                    const newRow = $(`
+                        <div class="file-input-row" data-index="${fileIndex}">
+                            <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL', 'lift-docs-system'); ?>" />
+                            <button type="button" class="button upload-file-button"><?php _e('📁 Browse', 'lift-docs-system'); ?></button>
+                            <button type="button" class="button remove-file-button"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                            <span class="file-size-display"></span>
+                        </div>
+                    `);
+                    container.append(newRow);
+                    fileIndex++;
+                    updateRemoveButtons();
+                });
+                
+                // Remove file input
+                $(document).on('click', '.remove-file-button', function() {
+                    $(this).closest('.file-input-row').remove();
+                    updateRemoveButtons();
+                });
+                
+                // Update remove buttons visibility
+                function updateRemoveButtons() {
+                    const rows = $('.file-input-row');
+                    if (rows.length <= 1) {
+                        $('.remove-file-button').hide();
+                    } else {
+                        $('.remove-file-button').show();
+                    }
+                }
+                
+                // Fallback file selection
+                $(document).on('click', '.upload-file-button', function() {
+                    const button = $(this);
+                    const input = button.siblings('.file-url-input');
+                    const sizeDisplay = button.siblings('.file-size-display');
+                    
+                    const fileInput = $('<input type="file" style="display: none;" />');
+                    $('body').append(fileInput);
+                    fileInput.click();
+                    
+                    fileInput.change(function() {
+                        const file = this.files[0];
+                        if (file) {
+                            // Show file info even in fallback mode
+                            const fileName = file.name;
+                            const fileSize = formatFileSize(file.size);
+                            
+                            // Choose appropriate icon based on file type
+                            let fileIcon = '📄'; // Default document icon
+                            const fileType = file.type.toLowerCase();
+                            if (fileType.startsWith('image/')) {
+                                fileIcon = '🖼️';
+                            } else if (fileType.startsWith('video/')) {
+                                fileIcon = '🎥';
+                            } else if (fileType.startsWith('audio/')) {
+                                fileIcon = '🎵';
+                            } else if (fileType.includes('pdf')) {
+                                fileIcon = '📕';
+                            } else if (fileType.includes('word') || fileType.includes('document')) {
+                                fileIcon = '📘';
+                            } else if (fileType.includes('excel') || fileType.includes('sheet')) {
+                                fileIcon = '📗';
+                            } else if (fileType.includes('powerpoint') || fileType.includes('presentation')) {
+                                fileIcon = '📙';
+                            } else if (fileType.includes('zip') || fileType.includes('rar')) {
+                                fileIcon = '📦';
+                            }
+                            
+                            sizeDisplay.html(`
+                                <span style="color: #ff9800; font-weight: 500;">
+                                    ${fileIcon} ${fileName} (${fileSize}) - <?php _e('Not uploaded to media library', 'lift-docs-system'); ?>
+                                </span>
+                            `);
+                            
+                            alert('<?php _e('Please upload this file to your media library first, then paste the URL here. Or drag and drop the file into the WordPress media uploader.', 'lift-docs-system'); ?>');
+                            console.log('File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
+                        }
+                        fileInput.remove();
+                    });
+                });
+                
+                // Initialize remove buttons
+                updateRemoveButtons();
+            }
+        });
+        
         function copySecureLink(button) {
             var row = button.closest('tr');
             var textarea = row.querySelector('textarea');
@@ -435,7 +802,7 @@ class LIFT_Docs_Admin {
         }
         
         function copyDownloadLink(button) {
-            var row = button.closest('tr');
+            var row = button.closest('tr, .download-link-item');
             var textarea = row.querySelector('textarea');
             if (textarea) {
                 textarea.select();
@@ -449,6 +816,228 @@ class LIFT_Docs_Admin {
             }
         }
         </script>
+        
+        <style type="text/css">
+        .file-input-row {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .file-input-row:hover {
+            border-color: #007cba;
+            box-shadow: 0 0 0 1px rgba(0, 124, 186, 0.1);
+        }
+        
+        .file-input-row .file-url-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .file-input-row .file-url-input:focus {
+            border-color: #007cba;
+            box-shadow: 0 0 0 1px rgba(0, 124, 186, 0.25);
+            outline: none;
+        }
+        
+        .file-input-row .upload-file-button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        
+        .file-input-row .upload-file-button:hover {
+            background: #005a87;
+        }
+        
+        .file-input-row .remove-file-button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        
+        .file-input-row .remove-file-button:hover {
+            background: #c82333;
+        }
+        
+        .file-size-display {
+            color: #666;
+            font-size: 12px;
+            font-style: italic;
+            min-width: 120px;
+        }
+        
+        #add_file_button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        
+        #add_file_button:hover {
+            background: #218838;
+        }
+        
+        #clear_all_files {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color 0.2s ease;
+        }
+        
+        #clear_all_files:hover {
+            background: #545b62;
+        }
+        
+        .download-link-item {
+            border-left: 4px solid #0073aa;
+        }
+        
+        .download-link-item strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #23282d;
+        }
+        
+        .multiple-download-links .download-link-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* File upload animations */
+        .file-input-row.uploading {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .file-input-row.uploaded {
+            background: #e8f5e8;
+            border-color: #28a745;
+            animation: uploadSuccess 0.5s ease-in-out;
+        }
+        
+        @keyframes uploadSuccess {
+            0% { background: #e8f5e8; }
+            50% { background: #d4edda; }
+            100% { background: #e8f5e8; }
+        }
+        
+        /* File type specific styling */
+        .file-size-display span[style*="color: #ff9800"] {
+            background: #fff3e0;
+            padding: 4px 8px;
+            border-radius: 3px;
+            border: 1px solid #ffb74d;
+        }
+        
+        .file-size-display span[style*="color: #0073aa"] {
+            background: #e3f2fd;
+            padding: 4px 8px;
+            border-radius: 3px;
+            border: 1px solid #90caf9;
+        }
+        
+        /* Enhanced file type icons */
+        .file-input-row .file-size-display {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Improved button states */
+        .file-input-row .upload-file-button:active {
+            transform: translateY(1px);
+        }
+        
+        .file-input-row .remove-file-button:active {
+            transform: translateY(1px);
+        }
+        
+        /* File counter for multiple files */
+        .file-input-row:before {
+            content: attr(data-index);
+            position: absolute;
+            top: -8px;
+            left: 8px;
+            background: #007cba;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .file-input-row:nth-child(n+2):before {
+            display: block;
+        }
+        
+        /* Empty state styling */
+        #lift_doc_files_container:empty:before {
+            content: "<?php _e('No files added yet. Click Upload or Add Another File to get started.', 'lift-docs-system'); ?>";
+            display: block;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 30px;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 6px;
+        }
+        
+        @media (max-width: 768px) {
+            .file-input-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .file-input-row .file-url-input {
+                min-width: auto;
+            }
+            
+            .file-input-row button {
+                width: 100%;
+            }
+            
+            #add_file_button,
+            #clear_all_files {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+        </style>
         <?php
     }
     
@@ -468,18 +1057,29 @@ class LIFT_Docs_Admin {
             return;
         }
         
-        // Save meta fields
-        $fields = array(
-            'lift_doc_file_url',
-            'lift_doc_file_size'
-        );
-        
-        foreach ($fields as $field) {
-            if (isset($_POST[$field])) {
-                update_post_meta($post_id, '_' . $field, sanitize_text_field($_POST[$field]));
+        // Handle multiple file URLs
+        if (isset($_POST['lift_doc_file_urls']) && is_array($_POST['lift_doc_file_urls'])) {
+            $file_urls = array_filter(array_map('sanitize_url', $_POST['lift_doc_file_urls']));
+            
+            // Save multiple URLs
+            update_post_meta($post_id, '_lift_doc_file_urls', $file_urls);
+            
+            // For backward compatibility, also save first URL as single file URL
+            if (!empty($file_urls)) {
+                update_post_meta($post_id, '_lift_doc_file_url', $file_urls[0]);
             } else {
-                delete_post_meta($post_id, '_' . $field);
+                delete_post_meta($post_id, '_lift_doc_file_url');
             }
+        } else {
+            delete_post_meta($post_id, '_lift_doc_file_urls');
+            delete_post_meta($post_id, '_lift_doc_file_url');
+        }
+        
+        // Save file size
+        if (isset($_POST['lift_doc_file_size'])) {
+            update_post_meta($post_id, '_lift_doc_file_size', intval($_POST['lift_doc_file_size']));
+        } else {
+            delete_post_meta($post_id, '_lift_doc_file_size');
         }
     }
     
@@ -615,7 +1215,18 @@ class LIFT_Docs_Admin {
      * Enqueue admin scripts and styles
      */
     public function enqueue_admin_scripts($hook) {
-        // Only load on document list page
+        global $pagenow, $post_type;
+        
+        // Load on document edit/add pages for media uploader
+        if (($pagenow == 'post.php' || $pagenow == 'post-new.php') && $post_type == 'lift_document') {
+            // Enqueue WordPress Media Library
+            wp_enqueue_media();
+            wp_enqueue_script('media-upload');
+            wp_enqueue_script('thickbox');
+            wp_enqueue_style('thickbox');
+        }
+        
+        // Only load modal scripts on document list page
         if ('edit.php' !== $hook || !isset($_GET['post_type']) || $_GET['post_type'] !== 'lift_document') {
             return;
         }
@@ -674,28 +1285,43 @@ class LIFT_Docs_Admin {
                                 <?php _e('Preview', 'lift-docs-system'); ?>
                             </a>
                         </div>
+                        <p class="description" id="lift-view-description" style="margin-top: 5px; color: #666; font-size: 12px;"></p>
                     </div>
                     
                     <div class="lift-detail-group">
-                        <label><?php _e('Download URL', 'lift-docs-system'); ?>:</label>
-                        <div class="lift-input-group">
-                            <input type="text" id="lift-download-url" readonly onclick="this.select()" />
-                            <button type="button" class="button lift-copy-btn" data-target="#lift-download-url">
-                                <?php _e('Copy', 'lift-docs-system'); ?>
-                            </button>
-                            <a href="#" id="lift-online-view" class="button" target="_blank">
-                                <?php _e('View Online', 'lift-docs-system'); ?>
-                            </a>
+                        <label><?php _e('Download URLs', 'lift-docs-system'); ?>:</label>
+                        <div id="lift-download-urls-container">
+                            <!-- Single file fallback -->
+                            <div class="lift-input-group" id="lift-single-download">
+                                <input type="text" id="lift-download-url" readonly onclick="this.select()" />
+                                <button type="button" class="button lift-copy-btn" data-target="#lift-download-url">
+                                    <?php _e('Copy', 'lift-docs-system'); ?>
+                                </button>
+                                <a href="#" id="lift-online-view" class="button" target="_blank">
+                                    <?php _e('View Online', 'lift-docs-system'); ?>
+                                </a>
+                            </div>
+                            <!-- Multiple files list -->
+                            <div id="lift-multiple-downloads" style="display: none;">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
                         </div>
                     </div>
                     
                     <div class="lift-detail-group" id="lift-secure-download-group" style="display: none;">
-                        <label><?php _e('Secure Download URL', 'lift-docs-system'); ?>:</label>
-                        <div class="lift-input-group">
-                            <input type="text" id="lift-secure-download-url" readonly onclick="this.select()" />
-                            <button type="button" class="button lift-copy-btn" data-target="#lift-secure-download-url">
-                                <?php _e('Copy', 'lift-docs-system'); ?>
-                            </button>
+                        <label><?php _e('Secure Download URLs', 'lift-docs-system'); ?>:</label>
+                        <div id="lift-secure-download-urls-container">
+                            <!-- Single file fallback -->
+                            <div class="lift-input-group" id="lift-single-secure-download">
+                                <input type="text" id="lift-secure-download-url" readonly onclick="this.select()" />
+                                <button type="button" class="button lift-copy-btn" data-target="#lift-secure-download-url">
+                                    <?php _e('Copy', 'lift-docs-system'); ?>
+                                </button>
+                            </div>
+                            <!-- Multiple files list -->
+                            <div id="lift-multiple-secure-downloads" style="display: none;">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
                         </div>
                     </div>
                     
@@ -723,6 +1349,10 @@ class LIFT_Docs_Admin {
                             <div class="lift-stat-item">
                                 <strong id="lift-file-size">—</strong>
                                 <span><?php _e('File Size', 'lift-docs-system'); ?></span>
+                            </div>
+                            <div class="lift-stat-item">
+                                <strong id="lift-files-count">0</strong>
+                                <span><?php _e('Files', 'lift-docs-system'); ?></span>
                             </div>
                         </div>
                     </div>

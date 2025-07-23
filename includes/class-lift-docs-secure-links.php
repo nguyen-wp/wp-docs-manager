@@ -195,8 +195,25 @@ class LIFT_Docs_Secure_Links {
             }
         }
         
-        // Get file URL
-        $file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+        // Get file URL(s) based on file index
+        $file_index = isset($verification['file_index']) ? intval($verification['file_index']) : 0;
+        
+        // Try to get multiple file URLs first
+        $file_urls = get_post_meta($document_id, '_lift_doc_file_urls', true);
+        if (empty($file_urls)) {
+            // Fallback to single file URL for backward compatibility
+            $single_file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+            if ($single_file_url) {
+                $file_urls = array($single_file_url);
+            }
+        }
+        
+        if (empty($file_urls) || !isset($file_urls[$file_index])) {
+            status_header(404);
+            die('File not found');
+        }
+        
+        $file_url = $file_urls[$file_index];
         
         if (empty($file_url)) {
             status_header(404);
@@ -223,8 +240,16 @@ class LIFT_Docs_Secure_Links {
         // Get global layout settings
         $settings = $this->get_global_layout_settings();
         
-        // Get document meta
-        $file_url = get_post_meta($document->ID, '_lift_doc_file_url', true);
+        // Get document meta - support multiple files
+        $file_urls = get_post_meta($document->ID, '_lift_doc_file_urls', true);
+        if (empty($file_urls)) {
+            // Fallback to single file for backward compatibility
+            $single_file_url = get_post_meta($document->ID, '_lift_doc_file_url', true);
+            if ($single_file_url) {
+                $file_urls = array($single_file_url);
+            }
+        }
+        
         $file_size = get_post_meta($document->ID, '_lift_doc_file_size', true);
         $download_count = get_post_meta($document->ID, '_lift_doc_download_count', true);
         
@@ -282,21 +307,44 @@ class LIFT_Docs_Secure_Links {
                     <?php endif; ?>
                     
                     <div class="document-body">
-                        <?php if ($settings['show_download_button'] && $file_url): ?>
+                        <?php if ($settings['show_download_button'] && !empty($file_urls)): ?>
                         <div class="document-download">
-                            <?php 
-                            // Generate secure download link
-                            $download_token = $_GET['lift_secure'] ?? '';
-                            $secure_download_url = add_query_arg(array(
-                                'lift_secure' => $download_token
-                            ), home_url('/lift-docs/download/'));
-                            ?>
-                            <a href="<?php echo esc_url($secure_download_url); ?>" class="download-button">
-                                <?php _e('📄 Download Document', 'lift-docs-system'); ?>
-                            </a>
-                            <p class="download-info">
-                                <?php _e('Secure encrypted download', 'lift-docs-system'); ?>
-                            </p>
+                            <?php if (count($file_urls) === 1): ?>
+                                <?php 
+                                // Single file download
+                                $download_token = $_GET['lift_secure'] ?? '';
+                                $secure_download_url = add_query_arg(array(
+                                    'lift_secure' => $download_token
+                                ), home_url('/lift-docs/download/'));
+                                ?>
+                                <a href="<?php echo esc_url($secure_download_url); ?>" class="download-button">
+                                    <?php _e('📄 Download Document', 'lift-docs-system'); ?>
+                                </a>
+                                <p class="download-info">
+                                    <?php _e('Secure encrypted download', 'lift-docs-system'); ?>
+                                </p>
+                            <?php else: ?>
+                                <h3><?php _e('📄 Download Files', 'lift-docs-system'); ?></h3>
+                                <div class="multiple-downloads">
+                                    <?php foreach ($file_urls as $index => $url): ?>
+                                        <?php 
+                                        $file_name = basename(parse_url($url, PHP_URL_PATH));
+                                        $download_token = $_GET['lift_secure'] ?? '';
+                                        
+                                        // Create secure download URL with file index
+                                        $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($document->ID, 0, $index);
+                                        ?>
+                                        <div class="download-item">
+                                            <a href="<?php echo esc_url($secure_download_url); ?>" class="download-button">
+                                                <?php echo esc_html($file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1)); ?>
+                                            </a>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <p class="download-info">
+                                    <?php _e('All downloads are secure and encrypted', 'lift-docs-system'); ?>
+                                </p>
+                            <?php endif; ?>
                         </div>
                         <?php endif; ?>
                         
@@ -934,6 +982,50 @@ class LIFT_Docs_Secure_Links {
             color: #666;
             margin-top: 8px;
             text-align: center;
+        }
+        
+        .multiple-downloads {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .download-item {
+            background: #f8f9fa;
+            border: 1px solid #e3e4e6;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .download-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .download-item .download-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            text-align: center;
+            text-decoration: none;
+            color: #0073aa;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            transition: background 0.3s ease;
+        }
+        
+        .download-item .download-button:hover {
+            background: #0073aa;
+            color: white;
+        }
+        
+        .document-download h3 {
+            margin: 0 0 15px 0;
+            color: #23282d;
+            font-size: 1.3em;
         }
         
         .document-description {

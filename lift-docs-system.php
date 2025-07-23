@@ -62,6 +62,9 @@ class LIFT_Docs_System {
         // Load required files
         $this->load_dependencies();
         
+        // Initialize classes
+        $this->init_classes();
+        
         // Initialize hooks
         $this->init_hooks();
         
@@ -82,6 +85,24 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-secure-links.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-layout.php';
         
+        // Load test files if in debug mode
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'test-multiple-files.php')) {
+                require_once LIFT_DOCS_PLUGIN_DIR . 'test-multiple-files.php';
+            }
+            if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'test-multiple-upload.php')) {
+                require_once LIFT_DOCS_PLUGIN_DIR . 'test-multiple-upload.php';
+            }
+            if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'test-multiple-files-modal.php')) {
+                require_once LIFT_DOCS_PLUGIN_DIR . 'test-multiple-files-modal.php';
+            }
+        }
+    }
+    
+    /**
+     * Initialize classes
+     */
+    private function init_classes() {
         // Initialize classes
         if (is_admin()) {
             LIFT_Docs_Admin::get_instance();

@@ -698,9 +698,9 @@ class LIFT_Docs_Settings {
     /**
      * Generate secure download link for document
      */
-    public static function generate_secure_download_link($document_id, $expiry_hours = 1) {
+    public static function generate_secure_download_link($document_id, $expiry_hours = 1, $file_index = 0) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Generating secure download link for document: ' . $document_id);
+            error_log('LIFT Docs Debug - Generating secure download link for document: ' . $document_id . ', file index: ' . $file_index);
         }
         
         $encryption_key = self::get_encryption_key_internal();
@@ -711,7 +711,8 @@ class LIFT_Docs_Settings {
             'document_id' => $document_id,
             'expires' => $expires,
             'timestamp' => time(),
-            'type' => 'download'
+            'type' => 'download',
+            'file_index' => $file_index
         );
         
         if (defined('WP_DEBUG') && WP_DEBUG) {

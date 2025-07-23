@@ -467,6 +467,7 @@ class LIFT_Docs_Frontend {
         
         $document_id = intval($_GET['lift_download']);
         $nonce = $_GET['nonce'];
+        $file_index = isset($_GET['file_index']) ? intval($_GET['file_index']) : 0;
         
         if (!wp_verify_nonce($nonce, 'lift_download_' . $document_id)) {
             wp_die(__('Security check failed.', 'lift-docs-system'));
@@ -478,7 +479,8 @@ class LIFT_Docs_Frontend {
             exit;
         }
         
-        $file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+        // Get file URL based on file index
+        $file_url = $this->get_file_url_by_index($document_id, $file_index);
         
         if (!$file_url) {
             wp_die(__('File not found.', 'lift-docs-system'));
@@ -502,6 +504,7 @@ class LIFT_Docs_Frontend {
         
         $document_id = intval($_GET['lift_view_online']);
         $nonce = $_GET['nonce'];
+        $file_index = isset($_GET['file_index']) ? intval($_GET['file_index']) : 0;
         
         if (!wp_verify_nonce($nonce, 'lift_view_online_' . $document_id)) {
             wp_die(__('Security check failed.', 'lift-docs-system'));
@@ -513,7 +516,8 @@ class LIFT_Docs_Frontend {
             exit;
         }
         
-        $file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+        // Get file URL based on file index
+        $file_url = $this->get_file_url_by_index($document_id, $file_index);
         
         if (!$file_url) {
             wp_die(__('File not found.', 'lift-docs-system'));
@@ -669,5 +673,36 @@ class LIFT_Docs_Frontend {
         });
         </script>
         <?php
+    }
+    
+    /**
+     * Get file URL by index - supports multiple files
+     */
+    private function get_file_url_by_index($document_id, $file_index = 0) {
+        // Try to get multiple files first
+        $file_urls = get_post_meta($document_id, '_lift_doc_file_urls', true);
+        
+        if (!empty($file_urls) && is_array($file_urls)) {
+            // Filter out empty URLs
+            $file_urls = array_filter($file_urls);
+            
+            if (isset($file_urls[$file_index])) {
+                return $file_urls[$file_index];
+            }
+            
+            // If requested index doesn't exist, return first file
+            if (!empty($file_urls)) {
+                return reset($file_urls);
+            }
+        }
+        
+        // Fallback to legacy single file URL
+        $legacy_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+        
+        if ($legacy_url && $file_index === 0) {
+            return $legacy_url;
+        }
+        
+        return false;
     }
 }
