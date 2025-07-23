@@ -577,10 +577,7 @@ class LIFT_Docs_Settings {
             $validated['documents_per_page'] = max(1, min(100, intval($input['documents_per_page'])));
         }
         
-        // Text fields
-        if (isset($input['encryption_key'])) {
-            $validated['encryption_key'] = sanitize_text_field($input['encryption_key']);
-        }
+        // Note: encryption_key field removed - now using permanent hash-based tokens
         
         // Layout style select field
         if (isset($input['layout_style'])) {
@@ -617,11 +614,8 @@ class LIFT_Docs_Settings {
     }
     
     /**
-     * Generate encryption key
+     * Note: Encryption methods removed - now using permanent hash-based tokens
      */
-    private function generate_encryption_key() {
-        return wp_generate_password(32, false);
-    }
     
     /**
      * Generate permanent secure view URL for document
@@ -717,165 +711,4 @@ class LIFT_Docs_Settings {
         );
     }
     
-    /**
-     * Encrypt data
-     */
-    private static function encrypt_data($data, $key) {
-        $json = json_encode($data);
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Encrypting data: ' . $json);
-        }
-        
-        // Ensure key is exactly 32 bytes for AES-256-CBC
-        $key = substr(hash('sha256', $key, true), 0, 32);
-        
-        // Use openssl_random_pseudo_bytes with fallback to random_bytes
-        if (function_exists('random_bytes')) {
-            $iv = random_bytes(16);
-        } else {
-            $iv = openssl_random_pseudo_bytes(16);
-        }
-        
-        $encrypted = openssl_encrypt($json, 'AES-256-CBC', $key, 0, $iv);
-        
-        if ($encrypted === false) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Encryption failed');
-            }
-            return false;
-        }
-        
-        $result = base64_encode($iv . $encrypted);
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Encrypted token: ' . $result);
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * Decrypt data
-     */
-    private static function decrypt_data($token, $key) {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Decrypting token: ' . $token);
-        }
-        
-        $data = base64_decode($token);
-        if ($data === false) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Base64 decode failed');
-            }
-            return false;
-        }
-        
-        if (strlen($data) < 16) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Data too short, length: ' . strlen($data));
-            }
-            return false;
-        }
-        
-        // Ensure key is exactly 32 bytes for AES-256-CBC
-        $key = substr(hash('sha256', $key, true), 0, 32);
-        
-        $iv = substr($data, 0, 16);
-        $encrypted = substr($data, 16);
-        
-        $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $key, 0, $iv);
-        
-        if ($decrypted === false) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - OpenSSL decrypt failed');
-            }
-            return false;
-        }
-        
-        $result = json_decode($decrypted, true);
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Decrypted data: ' . print_r($result, true));
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * Get encryption key (public access)
-     */
-    public static function get_encryption_key() {
-        return self::get_setting('encryption_key', '');
-    }
-    
-    /**
-     * Get encryption key (internal)
-     */
-    private static function get_encryption_key_internal() {
-        $key = self::get_setting('encryption_key', '');
-        if (empty($key)) {
-            // Auto-generate and save key if missing - ensure 32 bytes for AES-256
-            if (function_exists('random_bytes')) {
-                $key = base64_encode(random_bytes(32));
-            } else {
-                $key = wp_generate_password(32, false);
-            }
-            
-            $settings = get_option('lift_docs_settings', array());
-            $settings['encryption_key'] = $key;
-            update_option('lift_docs_settings', $settings);
-            
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Generated new encryption key in get_encryption_key: ' . $key);
-            }
-        }
-        return $key;
-    }
-    
-    /**
-     * Generate secure token for actions
-     */
-    public static function generate_secure_token($doc_id, $action = 'view') {
-        $key = self::get_encryption_key_internal();
-        
-        $data = array(
-            'doc_id' => $doc_id,
-            'action' => $action,
-            'timestamp' => time(),
-            'nonce' => wp_create_nonce('lift_secure_' . $action . '_' . $doc_id)
-        );
-        
-        return self::encrypt_data($data, $key);
-    }
-    
-    /**
-     * Verify secure token
-     */
-    public static function verify_secure_token($token, $expected_action = null) {
-        $key = self::get_encryption_key_internal();
-        $data = self::decrypt_data($token, $key);
-        
-        if (!$data || !isset($data['doc_id'], $data['action'], $data['timestamp'], $data['nonce'])) {
-            return false;
-        }
-        
-        // Check if action matches
-        if ($expected_action && $data['action'] !== $expected_action) {
-            return false;
-        }
-        
-        // Verify nonce
-        if (!wp_verify_nonce($data['nonce'], 'lift_secure_' . $data['action'] . '_' . $data['doc_id'])) {
-            return false;
-        }
-        
-        // Check if document exists
-        $document = get_post($data['doc_id']);
-        if (!$document || $document->post_type !== 'lift_document') {
-            return false;
-        }
-        
-        return $data['doc_id'];
-    }
 }
