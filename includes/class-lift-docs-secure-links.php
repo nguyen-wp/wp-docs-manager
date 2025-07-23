@@ -44,8 +44,8 @@ class LIFT_Docs_Secure_Links {
         // Modify document permalinks in admin
         add_filter('get_sample_permalink_html', array($this, 'modify_permalink_display'), 10, 5);
         
-        // Add meta box for secure links
-        add_action('add_meta_boxes', array($this, 'add_secure_link_meta_box'));
+        // Note: Secure Links metabox is now integrated into Document Details metabox
+        // No separate metabox needed
     }
     
     /**
@@ -533,21 +533,26 @@ class LIFT_Docs_Secure_Links {
     
     /**
      * Add secure link meta box
+     * NOTE: This metabox is no longer used - secure links are now integrated into Document Details metabox
      */
+    /*
     public function add_secure_link_meta_box() {
         add_meta_box(
             'lift-docs-secure-links',
             __('Secure Links', 'lift-docs-system'),
             array($this, 'secure_link_meta_box_callback'),
             'lift_document',
-            'side',
+            'normal',
             'default'
         );
     }
+    */
     
     /**
      * Secure link meta box callback
+     * NOTE: This method is no longer used - secure links are now integrated into Document Details metabox
      */
+    /*
     public function secure_link_meta_box_callback($post) {
         if (!LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
             echo '<p>' . __('Secure links are disabled. Enable them in settings.', 'lift-docs-system') . '</p>';
@@ -556,79 +561,10 @@ class LIFT_Docs_Secure_Links {
         
         $secure_link = LIFT_Docs_Settings::generate_secure_link($post->ID);
         
-        ?>
-        <div class="lift-docs-secure-link-meta">
-            <p><strong><?php _e('Current Secure Link:', 'lift-docs-system'); ?></strong></p>
-            <textarea readonly class="widefat" rows="3" onclick="this.select()"><?php echo esc_textarea($secure_link); ?></textarea>
-            
-            <p class="description">
-                <?php _e('This link never expires.', 'lift-docs-system'); ?>
-            </p>
-            
-            <?php 
-            // Always show secure download link if file exists
-            $file_url = get_post_meta($post->ID, '_lift_doc_file_url', true);
-            if ($file_url):
-                $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0); // 0 = never expire
-            ?>
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
-                <p><strong><?php _e('Secure Download Link:', 'lift-docs-system'); ?></strong></p>
-                <textarea readonly class="widefat" rows="2" onclick="this.select()"><?php echo esc_textarea($download_link); ?></textarea>
-                <p class="description"><?php _e('Direct secure download link (never expires)', 'lift-docs-system'); ?></p>
-            </div>
-            <?php else: ?>
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
-                <p><strong><?php _e('Secure Download Link:', 'lift-docs-system'); ?></strong></p>
-                <p class="description" style="color: #999; font-style: italic;">
-                    <?php _e('No file URL specified. Add a file URL in the Document Details section to generate a secure download link.', 'lift-docs-system'); ?>
-                </p>
-            </div>
-            <?php endif; ?>
-            
-            <p style="margin-top: 15px;">
-                <button type="button" class="button" onclick="copyToClipboard(this)">
-                    <?php _e('Copy Secure Link', 'lift-docs-system'); ?>
-                </button>
-                
-                <?php if ($file_url): ?>
-                <button type="button" class="button" onclick="copyDownloadLink(this)">
-                    <?php _e('Copy Download Link', 'lift-docs-system'); ?>
-                </button>
-                <?php endif; ?>
-            </p>
-        </div>
-        
-        <script>
-        function copyToClipboard(button) {
-            var metaBox = button.closest('.lift-docs-secure-link-meta');
-            var textarea = metaBox.querySelector('textarea:first-of-type');
-            textarea.select();
-            document.execCommand('copy');
-            
-            var originalText = button.textContent;
-            button.textContent = '<?php _e("Copied!", "lift-docs-system"); ?>';
-            setTimeout(function() {
-                button.textContent = originalText;
-            }, 2000);
-        }
-        
-        function copyDownloadLink(button) {
-            var metaBox = button.closest('.lift-docs-secure-link-meta');
-            var textareas = metaBox.querySelectorAll('textarea');
-            if (textareas.length > 1) {
-                textareas[1].select(); // Select the download link textarea
-                document.execCommand('copy');
-                
-                var originalText = button.textContent;
-                button.textContent = '<?php _e("Copied!", "lift-docs-system"); ?>';
-                setTimeout(function() {
-                    button.textContent = originalText;
-                }, 2000);
-            }
-        }
-        </script>
-        <?php
+        // Content moved to Document Details metabox
+        echo '<p>' . __('Secure links are now integrated into the Document Details metabox above.', 'lift-docs-system') . '</p>';
     }
+    */
     
     /**
      * Get secure link with custom expiry

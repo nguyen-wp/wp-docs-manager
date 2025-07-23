@@ -27,6 +27,9 @@ class LIFT_Docs_Post_Types {
         add_action('init', array($this, 'register_post_types'));
         add_action('init', array($this, 'register_taxonomies'));
         add_action('template_redirect', array($this, 'track_document_view'));
+        
+        // Disable Gutenberg for lift_document post type
+        add_filter('use_block_editor_for_post_type', array($this, 'disable_gutenberg_for_documents'), 10, 2);
     }
     
     /**
@@ -81,7 +84,7 @@ class LIFT_Docs_Post_Types {
             'menu_position'      => null,
             'menu_icon'          => 'dashicons-media-document',
             'supports'           => array('title', 'editor', 'excerpt', 'thumbnail', 'comments', 'author'),
-            'show_in_rest'       => true,
+            'show_in_rest'       => false, // Disable REST API and Gutenberg
             'rest_base'          => 'documents',
             'rest_controller_class' => 'WP_REST_Posts_Controller',
         );
@@ -158,6 +161,17 @@ class LIFT_Docs_Post_Types {
         );
         
         register_taxonomy('lift_doc_tag', array('lift_document'), $tag_args);
+    }
+    
+    /**
+     * Disable Gutenberg block editor for lift_document post type
+     */
+    public function disable_gutenberg_for_documents($current_status, $post_type) {
+        // Disable Gutenberg for our custom post type
+        if ($post_type === 'lift_document') {
+            return false;
+        }
+        return $current_status;
     }
     
     /**

@@ -308,20 +308,11 @@ class LIFT_Docs_Admin {
     public function add_meta_boxes() {
         add_meta_box(
             'lift-docs-details',
-            __('Document Details', 'lift-docs-system'),
+            __('Document Details & Secure Links', 'lift-docs-system'),
             array($this, 'document_details_meta_box'),
             'lift_document',
             'normal',
             'high'
-        );
-        
-        add_meta_box(
-            'lift-docs-settings',
-            __('Document Settings', 'lift-docs-system'),
-            array($this, 'document_settings_meta_box'),
-            'lift_document',
-            'side',
-            'default'
         );
     }
     
@@ -358,45 +349,106 @@ class LIFT_Docs_Admin {
                     <p><?php echo $download_count ? $download_count : '0'; ?> <?php _e('downloads', 'lift-docs-system'); ?></p>
                 </td>
             </tr>
+            
+            <?php 
+            // Include Secure Links section if enabled
+            if (class_exists('LIFT_Docs_Settings') && LIFT_Docs_Settings::get_setting('enable_secure_links', false)): 
+                $secure_link = LIFT_Docs_Settings::generate_secure_link($post->ID);
+            ?>
+            <tr>
+                <th colspan="2" style="padding-top: 25px; border-top: 1px solid #ddd;">
+                    <h3 style="margin: 0; color: #23282d;"><?php _e('🔒 Secure Links', 'lift-docs-system'); ?></h3>
+                </th>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label><?php _e('Current Secure Link:', 'lift-docs-system'); ?></label>
+                </th>
+                <td>
+                    <textarea readonly class="large-text code" rows="3" onclick="this.select()"><?php echo esc_textarea($secure_link); ?></textarea>
+                    <p class="description">
+                        <?php _e('This link never expires and provides secure access to the document.', 'lift-docs-system'); ?>
+                    </p>
+                    <button type="button" class="button" onclick="copySecureLink(this)">
+                        <?php _e('Copy Secure Link', 'lift-docs-system'); ?>
+                    </button>
+                </td>
+            </tr>
+            
+            <?php if ($file_url): 
+                $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0); // 0 = never expire
+            ?>
+            <tr>
+                <th scope="row">
+                    <label><?php _e('Secure Download Link:', 'lift-docs-system'); ?></label>
+                </th>
+                <td>
+                    <textarea readonly class="large-text code" rows="2" onclick="this.select()"><?php echo esc_textarea($download_link); ?></textarea>
+                    <p class="description"><?php _e('Direct secure download link (never expires)', 'lift-docs-system'); ?></p>
+                    <button type="button" class="button" onclick="copyDownloadLink(this)">
+                        <?php _e('Copy Download Link', 'lift-docs-system'); ?>
+                    </button>
+                </td>
+            </tr>
+            <?php else: ?>
+            <tr>
+                <th scope="row">
+                    <label><?php _e('Secure Download Link:', 'lift-docs-system'); ?></label>
+                </th>
+                <td>
+                    <p class="description" style="color: #999; font-style: italic;">
+                        <?php _e('Add a file URL above to generate a secure download link.', 'lift-docs-system'); ?>
+                    </p>
+                </td>
+            </tr>
+            <?php endif; ?>
+            
+            <?php elseif (class_exists('LIFT_Docs_Settings')): ?>
+            <tr>
+                <th colspan="2" style="padding-top: 25px; border-top: 1px solid #ddd;">
+                    <h3 style="margin: 0; color: #666;"><?php _e('🔒 Secure Links', 'lift-docs-system'); ?></h3>
+                </th>
+            </tr>
+            <tr>
+                <th scope="row"><?php _e('Secure Links Status:', 'lift-docs-system'); ?></th>
+                <td>
+                    <p class="description" style="color: #d63638; font-style: italic;">
+                        <?php _e('Secure links are disabled. Enable them in LIFT Docs settings to generate secure links.', 'lift-docs-system'); ?>
+                    </p>
+                </td>
+            </tr>
+            <?php endif; ?>
         </table>
-        <?php
-    }
-    
-    /**
-     * Document settings meta box
-     */
-    public function document_settings_meta_box($post) {
-        $featured = get_post_meta($post->ID, '_lift_doc_featured', true);
-        $private_doc = get_post_meta($post->ID, '_lift_doc_private', true);
-        $password_protected = get_post_meta($post->ID, '_lift_doc_password_protected', true);
-        $doc_password = get_post_meta($post->ID, '_lift_doc_password', true);
         
-        ?>
-        <p>
-            <label>
-                <input type="checkbox" name="lift_doc_featured" value="1" <?php checked($featured, '1'); ?> />
-                <?php _e('Featured Document', 'lift-docs-system'); ?>
-            </label>
-        </p>
+        <script type="text/javascript">
+        function copySecureLink(button) {
+            var row = button.closest('tr');
+            var textarea = row.querySelector('textarea');
+            textarea.select();
+            document.execCommand('copy');
+            
+            var originalText = button.textContent;
+            button.textContent = '<?php _e("Copied!", "lift-docs-system"); ?>';
+            setTimeout(function() {
+                button.textContent = originalText;
+            }, 2000);
+        }
         
-        <p>
-            <label>
-                <input type="checkbox" name="lift_doc_private" value="1" <?php checked($private_doc, '1'); ?> />
-                <?php _e('Private Document', 'lift-docs-system'); ?>
-            </label>
-        </p>
-        
-        <p>
-            <label>
-                <input type="checkbox" name="lift_doc_password_protected" value="1" <?php checked($password_protected, '1'); ?> />
-                <?php _e('Password Protected', 'lift-docs-system'); ?>
-            </label>
-        </p>
-        
-        <p>
-            <label for="lift_doc_password"><?php _e('Document Password', 'lift-docs-system'); ?></label>
-            <input type="password" id="lift_doc_password" name="lift_doc_password" value="<?php echo esc_attr($doc_password); ?>" class="widefat" />
-        </p>
+        function copyDownloadLink(button) {
+            var row = button.closest('tr');
+            var textarea = row.querySelector('textarea');
+            if (textarea) {
+                textarea.select();
+                document.execCommand('copy');
+                
+                var originalText = button.textContent;
+                button.textContent = '<?php _e("Copied!", "lift-docs-system"); ?>';
+                setTimeout(function() {
+                    button.textContent = originalText;
+                }, 2000);
+            }
+        }
+        </script>
         <?php
     }
     
@@ -419,11 +471,7 @@ class LIFT_Docs_Admin {
         // Save meta fields
         $fields = array(
             'lift_doc_file_url',
-            'lift_doc_file_size',
-            'lift_doc_featured',
-            'lift_doc_private',
-            'lift_doc_password_protected',
-            'lift_doc_password'
+            'lift_doc_file_size'
         );
         
         foreach ($fields as $field) {
