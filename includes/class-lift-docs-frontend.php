@@ -298,11 +298,8 @@ class LIFT_Docs_Frontend {
             return '<p class="error">No file attached to this document.</p>';
         }
         
-        // Simple download URL - always use fallback method
-        $download_url = add_query_arg(array(
-            'lift_download' => $doc_id,
-            'nonce' => wp_create_nonce('lift_download_' . $doc_id)
-        ), home_url());
+        // Generate secure download URL using the format /lift-docs/download/?lift_secure=*
+        $download_url = LIFT_Docs_Settings::generate_secure_download_link($doc_id);
         
         // Build output
         $output = '<div class="lift-doc-download-widget">';
