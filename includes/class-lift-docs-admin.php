@@ -1288,10 +1288,9 @@ class LIFT_Docs_Admin {
                         <p class="description" id="lift-view-description" style="margin-top: 5px; color: #666; font-size: 12px;"></p>
                     </div>
                     
-                    <div class="lift-detail-group">
+                    <!-- <div class="lift-detail-group">
                         <label><?php _e('Download URLs', 'lift-docs-system'); ?>:</label>
                         <div id="lift-download-urls-container">
-                            <!-- Single file fallback -->
                             <div class="lift-input-group" id="lift-single-download">
                                 <input type="text" id="lift-download-url" readonly onclick="this.select()" />
                                 <button type="button" class="button lift-copy-btn" data-target="#lift-download-url">
@@ -1301,12 +1300,10 @@ class LIFT_Docs_Admin {
                                     <?php _e('View Online', 'lift-docs-system'); ?>
                                 </a>
                             </div>
-                            <!-- Multiple files list -->
                             <div id="lift-multiple-downloads" style="display: none;">
-                                <!-- Will be populated by JavaScript -->
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     
                     <div class="lift-detail-group" id="lift-secure-download-group" style="display: none;">
                         <label><?php _e('Secure Download URLs', 'lift-docs-system'); ?>:</label>
