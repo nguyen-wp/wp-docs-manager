@@ -32,33 +32,42 @@
 - Ẩn elements trong admin interface
 - Override filter hooks để disable functionality
 
-### 3. Giữ lại và tối ưu hóa 2 Metaboxes chính
+### 3. Tích hợp Secure Links vào Document Details
 
-**Metaboxes còn lại:**
+**Thay đổi lớn:**
+- **Loại bỏ** Secure Links metabox riêng biệt
+- **Tích hợp** toàn bộ Secure Links functionality vào Document Details metabox
+- **Metabox duy nhất:** "Document Details & Secure Links"
 
-#### Document Details Metabox:
+**Cấu trúc mới:**
+
+#### Document Details & Secure Links Metabox:
 - **Vị trí:** Normal area, high priority
-- **Chức năng:** 
-  - File URL input với upload button
-  - File size field (auto-detect)
-  - Download count display (read-only)
+- **Sections:**
+  1. **File Information:**
+     - File URL với upload button
+     - File size field (auto-detect)
+     - Download count display
+  
+  2. **🔒 Secure Links:** (tự động hiển thị nếu enabled)
+     - Current secure link với copy button
+     - Secure download link (nếu có file URL)
+     - Visual indicators và feedback
 
-#### Secure Links Metabox:
-- **Vị trí:** Normal area, default priority  
-- **Chức năng:**
-  - Secure view link generation
-  - Secure download link generation
-  - Copy buttons với visual feedback
-  - Table layout tối ưu cho normal area
+**Layout tối ưu:**
+- Header riêng biệt cho Secure Links section
+- Border và background để phân biệt sections
+- Copy buttons với visual feedback
+- Responsive design
 
 ### 4. Cải thiện UX
 
 **Tính năng:**
-- Layout table rộng rãi cho normal area
-- Copy buttons có feedback visual (hiển thị "Copied!" trong 2 giây)
-- Auto-detection file size khi upload
-- Responsive design
-- Clean interface không còn clutter
+- Single metabox thay vì nhiều metabox rời rạc
+- Visual separation giữa Document Details và Secure Links
+- Auto-detection secure links status
+- Copy buttons có feedback visual
+- Clean interface tập trung
 
 ### 5. Database Cleanup
 
@@ -72,45 +81,47 @@
 
 ## Cấu trúc Metabox mới
 
-### Thứ tự hiển thị trong Normal Area:
+### Metabox duy nhất trong Normal Area:
 
-1. **Document Details** (High Priority)
-   - File URL với upload button
-   - File size (bytes)
-   - Download count
+**Document Details & Secure Links** (High Priority)
 
-2. **Secure Links** (Default Priority)
-   - Current secure link
-   - Secure download link (nếu có file)
-   - Copy buttons
+**Section 1: File Information**
+- File URL với upload button
+- File size (bytes) - auto-detect
+- Download count display
 
-3. **WordPress Editor** (Classic Editor)
-   - Mô tả/nội dung document
+**Section 2: 🔒 Secure Links** (conditional)
+- Current secure link với copy button
+- Secure download link (nếu có file)
+- Status messages nếu disabled
+
+**Section 3: WordPress Editor** (Classic Editor)
+- Mô tả/nội dung document
 
 ## Cách sử dụng
 
 1. **Tạo/Chỉnh sửa Document:**
    - Vào Admin → LIFT Docs → Add New hoặc All Documents  
    - Giao diện Classic Editor đơn giản
-   - Chỉ 2 metaboxes: Document Details và Secure Links
+   - **Chỉ 1 metabox duy nhất:** Document Details & Secure Links
 
-2. **Document Details:**
+2. **File Information:**
    - Upload file hoặc nhập URL
    - File size tự động detect
    - Xem download statistics
 
-3. **Secure Links:**
-   - Auto-generate secure links
-   - Copy để share dễ dàng
-   - Secure download nếu có file
+3. **Secure Links (trong cùng metabox):**
+   - Auto-generate secure links khi file có sẵn
+   - Copy buttons để share dễ dàng
+   - Visual feedback khi copy thành công
 
 ## Files đã thay đổi
 
 - ✅ `includes/class-lift-docs-post-types.php` - Disable Gutenberg
-- ✅ `includes/class-lift-docs-admin.php` - Remove Document Settings
-- ✅ `includes/class-lift-docs-secure-links.php` - Tối ưu layout
-- ✅ `cleanup-document-settings.php` - Database cleanup
-- ✅ `test-classic-editor.php` - Testing functionality
+- ✅ `includes/class-lift-docs-admin.php` - Tích hợp Secure Links vào Document Details
+- ✅ `includes/class-lift-docs-secure-links.php` - Comment out separate metabox
+- ✅ `cleanup-document-settings.php` - Database cleanup  
+- ✅ `test-integration.php` - Testing integrated functionality
 
 ## Lưu ý kỹ thuật
 
