@@ -38,6 +38,7 @@ class LIFT_Docs_Ajax {
         add_action('wp_ajax_lift_admin_analytics', array($this, 'admin_analytics'));
         add_action('wp_ajax_lift_bulk_action', array($this, 'bulk_action'));
         add_action('wp_ajax_lift_upload_document', array($this, 'upload_document'));
+        add_action('wp_ajax_lift_generate_secure_link', array($this, 'generate_secure_link'));
     }
     
     /**
@@ -484,6 +485,39 @@ class LIFT_Docs_Ajax {
             ));
         } else {
             wp_send_json_error($movefile['error']);
+        }
+    }
+    
+    /**
+     * Generate secure link for document
+     */
+    public function generate_secure_link() {
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(__('Permission denied', 'lift-docs-system'));
+        }
+        
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_secure_link_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        $document_id = intval($_POST['document_id']);
+        $expiry_days = intval($_POST['expiry_days']) ?: 7;
+        
+        if (!$document_id || get_post_type($document_id) !== 'lift_document') {
+            wp_send_json_error(__('Invalid document', 'lift-docs-system'));
+        }
+        
+        $secure_links = LIFT_Docs_Secure_Links::get_instance();
+        $secure_url = $secure_links->generate_secure_link($document_id, $expiry_days);
+        
+        if ($secure_url) {
+            wp_send_json_success(array(
+                'secure_url' => $secure_url,
+                'expiry_days' => $expiry_days,
+                'expires_at' => date('Y-m-d H:i:s', time() + ($expiry_days * 24 * 60 * 60))
+            ));
+        } else {
+            wp_send_json_error(__('Failed to generate secure link', 'lift-docs-system'));
         }
     }
 }

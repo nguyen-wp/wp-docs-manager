@@ -1,30 +1,62 @@
 # LIFT Docs System
 
-A comprehensive document management system for WordPress with advanced features.
+A comprehensive document management system for WordPress with advanced security features.
 
 ## Description
 
-LIFT Docs System is a powerful WordPress plugin that allows you to manage, organize, and display documents on your website. It includes features like document categories, tags, analytics, search functionality, and much more.
+LIFT Docs System is a powerful WordPress plugin that allows you to manage, organize, and securely share documents on your website. It includes advanced security features like encrypted document access, along with categories, tags, analytics, search functionality, and much more.
 
 ## Features
 
 - **Custom Post Type**: Dedicated document post type with full WordPress support
 - **Categories & Tags**: Organize documents with hierarchical categories and tags
+- **Secure Links**: Generate encrypted links for secure document access
 - **Analytics**: Track document views, downloads, and user engagement
 - **Search Functionality**: Built-in search with AJAX support
-- **Security**: Password protection and access control for documents
+- **Security**: Encrypted access control and hidden from sitemaps
 - **File Management**: Easy file uploads with size and type restrictions
 - **Responsive Design**: Mobile-friendly templates and layouts
 - **Admin Dashboard**: Comprehensive admin interface with statistics
 - **Shortcodes**: Multiple shortcodes for displaying documents
 - **Custom Templates**: Override templates in your theme
 
+## Security Features
+
+### Secure Document Access
+- Documents are only accessible via encrypted secure links
+- Direct access to documents is blocked
+- Links can be set to expire after a specified time (1-365 days)
+- Documents are hidden from search engines and sitemaps
+
+### Encryption
+- Uses AES-256-CBC encryption for secure link generation
+- Automatic encryption key generation and management
+- Session-based access verification
+- Secure token validation
+
 ## Installation
 
 1. Upload the plugin files to the `/wp-content/plugins/lift-docs-system/` directory
 2. Activate the plugin through the 'Plugins' screen in WordPress
 3. Go to LIFT Docs > Settings to configure the plugin
-4. Start adding documents through LIFT Docs > Add New
+4. Enable secure links in the Security tab
+5. Start adding documents through LIFT Docs > Add New
+
+## Configuration
+
+### Security Settings
+- **Enable Secure Links**: Turn on encrypted document access
+- **Hide from Sitemap**: Prevent documents from appearing in XML sitemaps
+- **Link Expiry**: Set default expiration time for secure links (1-365 days)
+- **Encryption Key**: Automatically generated for secure link encryption
+
+### Generating Secure Links
+1. Edit any document
+2. In the **Secure Links** meta box:
+   - Select expiry period (1-365 days)
+   - Click **Generate Secure Link**
+   - Copy the encrypted URL
+3. Share the secure link with authorized users
 
 ## Shortcodes
 

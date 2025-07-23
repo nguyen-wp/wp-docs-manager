@@ -74,6 +74,7 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-settings.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-frontend.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-ajax.php';
+        require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-secure-links.php';
         
         // Initialize classes
         if (is_admin()) {
@@ -84,6 +85,7 @@ class LIFT_Docs_System {
         LIFT_Docs_Post_Types::get_instance();
         LIFT_Docs_Frontend::get_instance();
         LIFT_Docs_Ajax::get_instance();
+        LIFT_Docs_Secure_Links::get_instance();
     }
     
     /**
@@ -152,9 +154,10 @@ class LIFT_Docs_System {
         );
         
         // Localize script for admin
-        wp_localize_script('lift-docs-admin', 'lift_docs_admin_ajax', array(
+        wp_localize_script('lift-docs-admin', 'lift_admin_vars', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('lift_docs_admin_nonce')
+            'nonce' => wp_create_nonce('lift_docs_admin_nonce'),
+            'secure_link_nonce' => wp_create_nonce('lift_secure_link_nonce')
         ));
     }
     
@@ -162,8 +165,14 @@ class LIFT_Docs_System {
      * Plugin activation
      */
     public function activate() {
+        // Load dependencies first
+        $this->load_dependencies();
+        
         // Create custom tables if needed
         $this->create_tables();
+        
+        // Initialize secure links to add rewrite rules
+        LIFT_Docs_Secure_Links::get_instance();
         
         // Flush rewrite rules
         flush_rewrite_rules();

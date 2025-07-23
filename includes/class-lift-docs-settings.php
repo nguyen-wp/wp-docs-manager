@@ -203,6 +203,42 @@ class LIFT_Docs_Settings {
             'lift_docs_security_section',
             array('field' => 'max_file_size', 'description' => __('Maximum file size allowed for uploads', 'lift-docs-system'), 'min' => 1, 'max' => 1024)
         );
+        
+        add_settings_field(
+            'enable_secure_links',
+            __('Enable Secure Links', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_security_section',
+            array('field' => 'enable_secure_links', 'description' => __('Documents can only be accessed via encrypted secure links', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'hide_from_sitemap',
+            __('Hide from Sitemap', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_security_section',
+            array('field' => 'hide_from_sitemap', 'description' => __('Exclude documents from XML sitemaps and search engines', 'lift-docs-system'))
+        );
+        
+        add_settings_field(
+            'secure_link_expiry',
+            __('Secure Link Expiry (hours)', 'lift-docs-system'),
+            array($this, 'number_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_security_section',
+            array('field' => 'secure_link_expiry', 'description' => __('How long secure links remain valid (0 = never expire)', 'lift-docs-system'), 'min' => 0, 'max' => 8760)
+        );
+        
+        add_settings_field(
+            'encryption_key',
+            __('Encryption Key', 'lift-docs-system'),
+            array($this, 'encryption_key_field_callback'),
+            'lift-docs-settings',
+            'lift_docs_security_section',
+            array('field' => 'encryption_key', 'description' => __('Key used for encrypting secure links (auto-generated)', 'lift-docs-system'))
+        );
     }
     
     /**
@@ -298,6 +334,52 @@ class LIFT_Docs_Settings {
     }
     
     /**
+     * Encryption key field callback
+     */
+    public function encryption_key_field_callback($args) {
+        $settings = get_option('lift_docs_settings', array());
+        $field = $args['field'];
+        $description = $args['description'] ?? '';
+        $value = isset($settings[$field]) ? $settings[$field] : '';
+        
+        // Auto-generate key if empty
+        if (empty($value)) {
+            $value = $this->generate_encryption_key();
+            $settings[$field] = $value;
+            update_option('lift_docs_settings', $settings);
+        }
+        
+        echo '<input type="text" name="lift_docs_settings[' . $field . ']" value="' . esc_attr($value) . '" class="regular-text" readonly />';
+        echo '<button type="button" class="button" onclick="generateNewKey()">' . __('Generate New Key', 'lift-docs-system') . '</button>';
+        
+        if ($description) {
+            echo '<p class="description">' . $description . '</p>';
+        }
+        
+        echo '<p class="description" style="color: red;"><strong>' . __('Warning: Changing this key will invalidate all existing secure links!', 'lift-docs-system') . '</strong></p>';
+        
+        ?>
+        <script>
+        function generateNewKey() {
+            if (confirm('<?php _e("This will invalidate all existing secure links. Continue?", "lift-docs-system"); ?>')) {
+                var newKey = generateRandomKey(32);
+                document.querySelector('input[name="lift_docs_settings[encryption_key]"]').value = newKey;
+            }
+        }
+        
+        function generateRandomKey(length) {
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            var result = '';
+            for (var i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        </script>
+        <?php
+    }
+    
+    /**
      * Validate settings
      */
     public function validate_settings($input) {
@@ -314,7 +396,9 @@ class LIFT_Docs_Settings {
             'show_download_button',
             'show_view_count',
             'require_login_to_view',
-            'require_login_to_download'
+            'require_login_to_download',
+            'enable_secure_links',
+            'hide_from_sitemap'
         );
         
         foreach ($boolean_fields as $field) {
@@ -330,9 +414,17 @@ class LIFT_Docs_Settings {
             $validated['max_file_size'] = max(1, min(1024, intval($input['max_file_size'])));
         }
         
+        if (isset($input['secure_link_expiry'])) {
+            $validated['secure_link_expiry'] = max(0, min(8760, intval($input['secure_link_expiry'])));
+        }
+        
         // Text fields
         if (isset($input['allowed_file_types'])) {
             $validated['allowed_file_types'] = sanitize_text_field($input['allowed_file_types']);
+        }
+        
+        if (isset($input['encryption_key'])) {
+            $validated['encryption_key'] = sanitize_text_field($input['encryption_key']);
         }
         
         return $validated;
@@ -344,5 +436,99 @@ class LIFT_Docs_Settings {
     public static function get_setting($key, $default = null) {
         $settings = get_option('lift_docs_settings', array());
         return isset($settings[$key]) ? $settings[$key] : $default;
+    }
+    
+    /**
+     * Generate encryption key
+     */
+    private function generate_encryption_key() {
+        return wp_generate_password(32, false);
+    }
+    
+    /**
+     * Generate secure link for document
+     */
+    public static function generate_secure_link($document_id, $expiry_hours = null) {
+        if (!self::get_setting('enable_secure_links', false)) {
+            return get_permalink($document_id);
+        }
+        
+        $encryption_key = self::get_setting('encryption_key', '');
+        if (empty($encryption_key)) {
+            return get_permalink($document_id);
+        }
+        
+        $expiry_hours = $expiry_hours ?? self::get_setting('secure_link_expiry', 24);
+        $expires = $expiry_hours > 0 ? time() + ($expiry_hours * 3600) : 0;
+        
+        $data = array(
+            'document_id' => $document_id,
+            'expires' => $expires,
+            'timestamp' => time()
+        );
+        
+        $token = self::encrypt_data($data, $encryption_key);
+        
+        return add_query_arg(array(
+            'lift_secure' => urlencode($token)
+        ), home_url('/lift-docs/secure/'));
+    }
+    
+    /**
+     * Verify secure link
+     */
+    public static function verify_secure_link($token) {
+        if (!self::get_setting('enable_secure_links', false)) {
+            return false;
+        }
+        
+        $encryption_key = self::get_setting('encryption_key', '');
+        if (empty($encryption_key)) {
+            return false;
+        }
+        
+        $data = self::decrypt_data($token, $encryption_key);
+        
+        if (!$data || !isset($data['document_id'])) {
+            return false;
+        }
+        
+        // Check expiry
+        if ($data['expires'] > 0 && time() > $data['expires']) {
+            return false;
+        }
+        
+        return $data['document_id'];
+    }
+    
+    /**
+     * Encrypt data
+     */
+    private static function encrypt_data($data, $key) {
+        $json = json_encode($data);
+        $iv = openssl_random_pseudo_bytes(16);
+        $encrypted = openssl_encrypt($json, 'AES-256-CBC', $key, 0, $iv);
+        return base64_encode($iv . $encrypted);
+    }
+    
+    /**
+     * Decrypt data
+     */
+    private static function decrypt_data($token, $key) {
+        $data = base64_decode($token);
+        if ($data === false) {
+            return false;
+        }
+        
+        $iv = substr($data, 0, 16);
+        $encrypted = substr($data, 16);
+        
+        $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $key, 0, $iv);
+        
+        if ($decrypted === false) {
+            return false;
+        }
+        
+        return json_decode($decrypted, true);
     }
 }

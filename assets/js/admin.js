@@ -539,6 +539,82 @@ jQuery(document).ready(function($) {
     // Initialize first tab
     $('.nav-tab:first').addClass('nav-tab-active');
     $('.tab-content:first').show();
+    
+    // Secure link generation
+    $('#generate-secure-link').on('click', function(e) {
+        e.preventDefault();
+        
+        var button = $(this);
+        var documentId = $('#post_ID').val() || button.data('document-id');
+        var expiryDays = $('#secure-link-expiry').val() || 7;
+        
+        if (!documentId) {
+            alert('No document selected');
+            return;
+        }
+        
+        button.prop('disabled', true).text('Generating...');
+        
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'lift_generate_secure_link',
+                document_id: documentId,
+                expiry_days: expiryDays,
+                nonce: lift_admin_vars.secure_link_nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    var output = $('#secure-link-output');
+                    output.html(
+                        '<div class="secure-link-url">' + response.data.secure_url + '</div>' +
+                        '<button type="button" class="copy-secure-link" data-url="' + response.data.secure_url + '">Copy</button>' +
+                        '<div class="secure-link-info">' +
+                        'Expires: ' + response.data.expires_at + '<br>' +
+                        'Valid for: ' + response.data.expiry_days + ' days' +
+                        '</div>'
+                    ).show();
+                    
+                    LiftDocsAdmin.showNotification('Secure link generated successfully', 'success');
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function() {
+                alert('An error occurred while generating the secure link');
+            },
+            complete: function() {
+                button.prop('disabled', false).text('Generate Secure Link');
+            }
+        });
+    });
+    
+    // Copy secure link to clipboard
+    $(document).on('click', '.copy-secure-link', function() {
+        var url = $(this).data('url');
+        var button = $(this);
+        
+        navigator.clipboard.writeText(url).then(function() {
+            button.text('Copied!');
+            setTimeout(function() {
+                button.text('Copy');
+            }, 2000);
+        }).catch(function() {
+            // Fallback for older browsers
+            var textArea = document.createElement('textarea');
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            button.text('Copied!');
+            setTimeout(function() {
+                button.text('Copy');
+            }, 2000);
+        });
+    });
 });
 
 // Helper functions

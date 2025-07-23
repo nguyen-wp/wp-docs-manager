@@ -48,6 +48,104 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Secure Links Styles */
+.lift-docs-secure-links {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.lift-secure-link-generator {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 15px 0;
+    background: #f9f9f9;
+}
+
+.lift-secure-link-generator h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.secure-link-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.secure-link-form select,
+.secure-link-form input[type="number"] {
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.secure-link-output {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 10px;
+    margin-top: 10px;
+    position: relative;
+}
+
+.secure-link-url {
+    font-family: monospace;
+    word-break: break-all;
+    margin: 0 0 10px 0;
+    padding: 8px;
+    background: #f5f5f5;
+    border-radius: 3px;
+}
+
+.copy-secure-link {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #0073aa;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.copy-secure-link:hover {
+    background: #005a87;
+}
+
+.secure-link-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+}
+
+.security-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.security-status.enabled {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.security-status.disabled {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
 .lift-docs-quick-actions h2 {
     margin: 0 0 15px 0;
     color: #333;

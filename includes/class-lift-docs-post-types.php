@@ -61,18 +61,22 @@ class LIFT_Docs_Post_Types {
             'items_list'            => _x('Documents list', 'Screen reader text for the items list', 'lift-docs-system'),
         );
         
+        // Check if secure links are enabled to modify rewrite
+        $secure_links_enabled = LIFT_Docs_Settings::get_setting('enable_secure_links', false);
+        $rewrite_setting = $secure_links_enabled ? false : array('slug' => 'documents');
+        
         $document_args = array(
             'labels'             => $document_labels,
             'public'             => true,
-            'publicly_queryable' => true,
+            'publicly_queryable' => !$secure_links_enabled, // Hide from public queries if secure
             'show_ui'            => true,
             'show_in_menu'       => false, // We'll add it to our custom menu
             'show_in_nav_menus'  => true,
             'show_in_admin_bar'  => true,
             'query_var'          => true,
-            'rewrite'            => array('slug' => 'documents'),
+            'rewrite'            => $rewrite_setting,
             'capability_type'    => 'post',
-            'has_archive'        => true,
+            'has_archive'        => !$secure_links_enabled, // Hide archive if secure
             'hierarchical'       => false,
             'menu_position'      => null,
             'menu_icon'          => 'dashicons-media-document',
