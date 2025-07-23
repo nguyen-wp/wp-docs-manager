@@ -118,22 +118,66 @@ class LIFT_Docs_Layout {
     /**
      * Handle secure download
      */
-    private function handle_secure_download() {
-        $secure_token = get_query_var('lift_secure');
-        
-        if (!$secure_token) {
-            wp_die(__('Invalid download link.', 'lift-docs-system'));
+    public function handle_secure_download() {
+        if (!isset($_GET['lift_secure'])) {
+            wp_die('Access denied: No secure token provided');
         }
         
-        // Verify and decode secure token
-        $doc_id = LIFT_Docs_Settings::verify_secure_token($secure_token, 'download');
+        $token = sanitize_text_field(urldecode($_GET['lift_secure']));
         
-        if (!$doc_id) {
-            wp_die(__('Invalid or expired download link.', 'lift-docs-system'));
+        // Debug logging
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Processing download token: ' . $token);
         }
         
-        // Process download
-        $this->process_file_download($doc_id);
+        // Use primary verification method (same as generate_secure_download_link)
+        $verification = LIFT_Docs_Settings::verify_secure_link($token);
+        
+        if (!$verification || !isset($verification['document_id'])) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('LIFT Docs Debug - Token verification failed');
+                error_log('LIFT Docs Debug - Verification result: ' . print_r($verification, true));
+            }
+            wp_die('Access denied: Invalid or expired token');
+        }
+        
+        $document_id = $verification['document_id'];
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Debug - Verified document ID: ' . $document_id);
+        }
+        
+        $post = get_post($document_id);
+        
+        if (!$post || $post->post_type !== 'lift_document') {
+            wp_die('Access denied: Document not found');
+        }
+        
+        $file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+        
+        if (!$file_url) {
+            wp_die('Access denied: No file attached to this document');
+        }
+        
+        // For external URLs, redirect to the file
+        if (filter_var($file_url, FILTER_VALIDATE_URL)) {
+            // Check if it's a local file URL
+            $upload_dir = wp_upload_dir();
+            if (strpos($file_url, $upload_dir['baseurl']) === 0) {
+                // Local file - serve securely
+                $file_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $file_url);
+                if (file_exists($file_path)) {
+                    $this->serve_local_file($file_path, $post->post_title);
+                    exit;
+                }
+            }
+            
+            // External file or local file not found - redirect
+            wp_redirect($file_url);
+            exit;
+        }
+        
+        wp_die('Access denied: Invalid file URL');
     }
     
     /**
@@ -545,5 +589,46 @@ class LIFT_Docs_Layout {
     public static function generate_secure_download_url($doc_id) {
         $secure_token = LIFT_Docs_Settings::generate_secure_token($doc_id, 'download');
         return home_url('/lift-docs/download/?lift_secure=' . $secure_token);
+    }
+    
+    /**
+     * Serve local file securely
+     */
+    private function serve_local_file($file_path, $document_title) {
+        // Clean filename for download
+        $clean_filename = sanitize_file_name($document_title);
+        $file_extension = pathinfo($file_path, PATHINFO_EXTENSION);
+        
+        if ($file_extension) {
+            $clean_filename .= '.' . $file_extension;
+        }
+        
+        $mime_type = wp_check_filetype($file_path)['type'] ?: 'application/octet-stream';
+        $file_size = filesize($file_path);
+        
+        // Clear any previous output
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Set headers
+        header('Content-Type: ' . $mime_type);
+        header('Content-Disposition: attachment; filename="' . $clean_filename . '"');
+        header('Content-Length: ' . $file_size);
+        header('Cache-Control: private');
+        header('Pragma: private');
+        header('Expires: 0');
+        header('X-Robots-Tag: noindex, nofollow');
+        
+        // Read and output file
+        $handle = fopen($file_path, 'rb');
+        
+        if ($handle) {
+            while (!feof($handle)) {
+                echo fread($handle, 8192);
+                flush();
+            }
+            fclose($handle);
+        }
     }
 }

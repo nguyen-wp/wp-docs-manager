@@ -83,12 +83,15 @@ class LIFT_Docs_Secure_Links {
             return;
         }
         
-        $document_id = LIFT_Docs_Settings::verify_secure_link($token);
+        // Decode token before verification
+        $verification = LIFT_Docs_Settings::verify_secure_link(urldecode($token));
         
-        if (!$document_id) {
+        if (!$verification || !isset($verification['document_id'])) {
             $this->show_access_denied('Invalid or expired security token');
             return;
         }
+        
+        $document_id = $verification['document_id'];
         
         // Check if document exists and is published
         $document = get_post($document_id);
@@ -130,15 +133,18 @@ class LIFT_Docs_Secure_Links {
             die('Missing security token');
         }
         
-        $document_id = LIFT_Docs_Settings::verify_secure_link($token);
+        // Use primary verification method (decode token first)
+        $verification = LIFT_Docs_Settings::verify_secure_link(urldecode($token));
         
-        if (!$document_id) {
+        if (!$verification || !isset($verification['document_id'])) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('LIFT Docs Debug - Token verification failed for token: ' . $token);
             }
             status_header(403);
             die('Invalid or expired download link. Please request a new download link.');
         }
+        
+        $document_id = $verification['document_id'];
         
         // Check if document exists and is published
         $document = get_post($document_id);
