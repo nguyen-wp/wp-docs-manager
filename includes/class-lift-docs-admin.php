@@ -30,6 +30,8 @@ class LIFT_Docs_Admin {
         add_action('manage_lift_document_posts_custom_column', array($this, 'custom_column_content'), 10, 2);
         add_action('add_meta_boxes', array($this, 'add_meta_boxes'));
         add_action('save_post', array($this, 'save_meta_boxes'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+        add_action('admin_footer', array($this, 'add_document_details_modal'));
         
         // Clean up old layout settings on first load
         add_action('admin_init', array($this, 'cleanup_old_layout_settings'), 5);
@@ -169,11 +171,7 @@ class LIFT_Docs_Admin {
         $new_columns['cb'] = $columns['cb'];
         $new_columns['title'] = $columns['title'];
         $new_columns['category'] = __('Category', 'lift-docs-system');
-        $new_columns['view_url'] = __('Secure View', 'lift-docs-system');
-        $new_columns['download_url'] = __('Download URL', 'lift-docs-system');
-        $new_columns['shortcode'] = __('Shortcode', 'lift-docs-system');
-        $new_columns['views'] = __('Views', 'lift-docs-system');
-        $new_columns['file_size'] = __('File Size', 'lift-docs-system');
+        $new_columns['document_details'] = __('Document Details', 'lift-docs-system');
         $new_columns['date'] = $columns['date'];
         
         return $new_columns;
@@ -197,69 +195,62 @@ class LIFT_Docs_Admin {
                 }
                 break;
                 
-            case 'view_url':
-                // Use secure link for view URL if enabled, otherwise use permalink
-                if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
-                    $view_url = LIFT_Docs_Settings::generate_secure_link($post_id);
-                    $label = __('Secure View URL', 'lift-docs-system');
-                } else {
-                    $view_url = get_permalink($post_id);
-                    $label = __('View URL', 'lift-docs-system');
-                }
-                
-                echo '<div class="lift-url-field">';
-                echo '<input type="text" value="' . esc_attr($view_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" />';
-                echo '<br><small><a href="' . esc_url($view_url) . '" target="_blank">' . __('Preview', 'lift-docs-system') . '</a> | ' . $label . '</small>';
-                echo '</div>';
-                break;
-                
-            case 'download_url':
-                $file_url = get_post_meta($post_id, '_lift_doc_file_url', true);
-                if ($file_url) {
-                    $download_url = add_query_arg(array(
-                        'lift_download' => $post_id,
-                        'nonce' => wp_create_nonce('lift_download_' . $post_id)
-                    ), home_url());
-                    
-                    echo '<div class="lift-url-field">';
-                    echo '<input type="text" value="' . esc_attr($download_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" />';
-                    
-                    // Show secure download URL if enabled
-                    if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
-                        $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($post_id);
-                        echo '<input type="text" value="' . esc_attr($secure_download_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" placeholder="' . __('Secure Download URL', 'lift-docs-system') . '" />';
-                        // echo '<br><small>' . __('Secure URL (permanent)', 'lift-docs-system') . '</small>';
-                    }
-                    
-                    echo '</div>';
-                } else {
-                    echo '—';
-                }
-                break;
-                
-            case 'shortcode':
-                echo '<div class="lift-shortcode-field">';
-                echo '<input type="text" value="[lift_document_download id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" placeholder="Download Shortcode" />';
-                echo '<br><small>' . __('Document download shortcode', 'lift-docs-system') . '</small>';
-                echo '</div>';
-                break;
-                
-            case 'views':
-                $views = get_post_meta($post_id, '_lift_doc_views', true);
-                $downloads = get_post_meta($post_id, '_lift_doc_downloads', true);
-                echo '<div class="lift-stats">';
-                echo '<strong>' . ($views ? number_format($views) : '0') . '</strong> ' . __('views', 'lift-docs-system');
-                if ($downloads) {
-                    echo '<br><strong>' . number_format($downloads) . '</strong> ' . __('downloads', 'lift-docs-system');
-                }
-                echo '</div>';
-                break;
-                
-            case 'file_size':
-                $file_size = get_post_meta($post_id, '_lift_doc_file_size', true);
-                echo $file_size ? size_format($file_size) : '—';
+            case 'document_details':
+                $this->render_document_details_button($post_id);
                 break;
         }
+    }
+    
+    /**
+     * Render document details button with modal data
+     */
+    private function render_document_details_button($post_id) {
+        // Collect all data
+        $view_url = '';
+        $view_label = '';
+        if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+            $view_url = LIFT_Docs_Settings::generate_secure_link($post_id);
+            $view_label = __('Secure View URL', 'lift-docs-system');
+        } else {
+            $view_url = get_permalink($post_id);
+            $view_label = __('View URL', 'lift-docs-system');
+        }
+        
+        $download_url = '';
+        $secure_download_url = '';
+        $file_url = get_post_meta($post_id, '_lift_doc_file_url', true);
+        if ($file_url) {
+            $download_url = add_query_arg(array(
+                'lift_download' => $post_id,
+                'nonce' => wp_create_nonce('lift_download_' . $post_id)
+            ), home_url());
+            
+            if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+                $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($post_id);
+            }
+        }
+        
+        $shortcode = '[lift_document_download id="' . $post_id . '"]';
+        
+        $views = get_post_meta($post_id, '_lift_doc_views', true);
+        $downloads = get_post_meta($post_id, '_lift_doc_downloads', true);
+        
+        $file_size = get_post_meta($post_id, '_lift_doc_file_size', true);
+        
+        ?>
+        <button type="button" class="button button-small lift-details-btn" 
+                data-post-id="<?php echo esc_attr($post_id); ?>"
+                data-view-url="<?php echo esc_attr($view_url); ?>"
+                data-view-label="<?php echo esc_attr($view_label); ?>"
+                data-download-url="<?php echo esc_attr($download_url); ?>"
+                data-secure-download-url="<?php echo esc_attr($secure_download_url); ?>"
+                data-shortcode="<?php echo esc_attr($shortcode); ?>"
+                data-views="<?php echo esc_attr($views ? number_format($views) : '0'); ?>"
+                data-downloads="<?php echo esc_attr($downloads ? number_format($downloads) : '0'); ?>"
+                data-file-size="<?php echo esc_attr($file_size ? size_format($file_size) : '—'); ?>">
+            <?php _e('View Details', 'lift-docs-system'); ?>
+        </button>
+        <?php
     }
     
     /**
@@ -521,5 +512,131 @@ class LIFT_Docs_Admin {
         } else {
             echo '<p>' . __('No analytics data available.', 'lift-docs-system') . '</p>';
         }
+    }
+    
+    /**
+     * Enqueue admin scripts and styles
+     */
+    public function enqueue_admin_scripts($hook) {
+        // Only load on document list page
+        if ('edit.php' !== $hook || !isset($_GET['post_type']) || $_GET['post_type'] !== 'lift_document') {
+            return;
+        }
+        
+        wp_enqueue_script('lift-docs-admin-modal', plugin_dir_url(__FILE__) . '../assets/js/admin-modal.js', array('jquery'), '1.0.0', true);
+        wp_enqueue_style('lift-docs-admin-modal', plugin_dir_url(__FILE__) . '../assets/css/admin-modal.css', array(), '1.0.0');
+        
+        wp_localize_script('lift-docs-admin-modal', 'liftDocsAdmin', array(
+            'strings' => array(
+                'viewDetails' => __('Document Details', 'lift-docs-system'),
+                'secureView' => __('Secure View', 'lift-docs-system'),
+                'downloadUrl' => __('Download URL', 'lift-docs-system'),
+                'secureDownloadUrl' => __('Secure Download URL', 'lift-docs-system'),
+                'shortcode' => __('Shortcode', 'lift-docs-system'),
+                'views' => __('Views', 'lift-docs-system'),
+                'downloads' => __('Downloads', 'lift-docs-system'),
+                'fileSize' => __('File Size', 'lift-docs-system'),
+                'copyToClipboard' => __('Copy to clipboard', 'lift-docs-system'),
+                'copied' => __('Copied!', 'lift-docs-system'),
+                'preview' => __('Preview', 'lift-docs-system'),
+                'close' => __('Close', 'lift-docs-system')
+            )
+        ));
+    }
+    
+    /**
+     * Add document details modal to admin footer
+     */
+    public function add_document_details_modal() {
+        $current_screen = get_current_screen();
+        
+        // Only add modal on document list page
+        if (!$current_screen || $current_screen->id !== 'edit-lift_document') {
+            return;
+        }
+        ?>
+        
+        <!-- Document Details Modal -->
+        <div id="lift-document-details-modal" class="lift-modal" style="display: none;">
+            <div class="lift-modal-content">
+                <div class="lift-modal-header">
+                    <h2 id="lift-modal-title"><?php _e('Document Details', 'lift-docs-system'); ?></h2>
+                    <button type="button" class="lift-modal-close">&times;</button>
+                </div>
+                
+                <div class="lift-modal-body">
+                    <div class="lift-detail-group">
+                        <label><?php _e('View URL', 'lift-docs-system'); ?>:</label>
+                        <div class="lift-input-group">
+                            <input type="text" id="lift-view-url" readonly onclick="this.select()" />
+                            <button type="button" class="button lift-copy-btn" data-target="#lift-view-url">
+                                <?php _e('Copy', 'lift-docs-system'); ?>
+                            </button>
+                            <a href="#" id="lift-view-preview" class="button" target="_blank">
+                                <?php _e('Preview', 'lift-docs-system'); ?>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="lift-detail-group">
+                        <label><?php _e('Download URL', 'lift-docs-system'); ?>:</label>
+                        <div class="lift-input-group">
+                            <input type="text" id="lift-download-url" readonly onclick="this.select()" />
+                            <button type="button" class="button lift-copy-btn" data-target="#lift-download-url">
+                                <?php _e('Copy', 'lift-docs-system'); ?>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="lift-detail-group" id="lift-secure-download-group" style="display: none;">
+                        <label><?php _e('Secure Download URL', 'lift-docs-system'); ?>:</label>
+                        <div class="lift-input-group">
+                            <input type="text" id="lift-secure-download-url" readonly onclick="this.select()" />
+                            <button type="button" class="button lift-copy-btn" data-target="#lift-secure-download-url">
+                                <?php _e('Copy', 'lift-docs-system'); ?>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="lift-detail-group">
+                        <label><?php _e('Shortcode', 'lift-docs-system'); ?>:</label>
+                        <div class="lift-input-group">
+                            <input type="text" id="lift-shortcode" readonly onclick="this.select()" />
+                            <button type="button" class="button lift-copy-btn" data-target="#lift-shortcode">
+                                <?php _e('Copy', 'lift-docs-system'); ?>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="lift-detail-group">
+                        <label><?php _e('Statistics', 'lift-docs-system'); ?>:</label>
+                        <div class="lift-stats-display">
+                            <div class="lift-stat-item">
+                                <strong id="lift-views">0</strong>
+                                <span><?php _e('Views', 'lift-docs-system'); ?></span>
+                            </div>
+                            <div class="lift-stat-item">
+                                <strong id="lift-downloads">0</strong>
+                                <span><?php _e('Downloads', 'lift-docs-system'); ?></span>
+                            </div>
+                            <div class="lift-stat-item">
+                                <strong id="lift-file-size">—</strong>
+                                <span><?php _e('File Size', 'lift-docs-system'); ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lift-modal-footer">
+                    <button type="button" class="button button-primary lift-modal-close">
+                        <?php _e('Close', 'lift-docs-system'); ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
+        
+        <?php
     }
 }
