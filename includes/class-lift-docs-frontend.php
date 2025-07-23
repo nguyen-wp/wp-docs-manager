@@ -26,7 +26,7 @@ class LIFT_Docs_Frontend {
     private function init_hooks() {
         add_filter('the_content', array($this, 'enhance_document_content'));
         add_action('wp_head', array($this, 'add_document_meta'));
-        add_shortcode('lift_documents', array($this, 'documents_shortcode'));
+        // add_shortcode('lift_documents', array($this, 'documents_shortcode'));
         add_shortcode('lift_document_search', array($this, 'document_search_shortcode'));
         add_shortcode('lift_document_categories', array($this, 'document_categories_shortcode'));
         add_shortcode('lift_document_download', array($this, 'document_download_shortcode'));
@@ -388,10 +388,8 @@ class LIFT_Docs_Frontend {
             return '<p class="error">' . __('No file attached to this document.', 'lift-docs-system') . '</p>';
         }
         
-        $download_url = add_query_arg(array(
-            'lift_download' => $doc_id,
-            'nonce' => wp_create_nonce('lift_download_' . $doc_id)
-        ), home_url());
+        // Generate secure download URL
+        $download_url = LIFT_Docs_Layout::generate_secure_download_url($doc_id);
         
         $output = '<div class="lift-doc-download-widget">';
         

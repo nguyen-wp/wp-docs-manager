@@ -17,8 +17,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Check if WordPress functions are available
+if (!function_exists('plugin_dir_path')) {
+    return;
+}
+
 // Define plugin constants
-define('LIFT_DOCS_VERSION', '1.0.0');
+define('LIFT_DOCS_VERSION', '1.9.0');
 define('LIFT_DOCS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('LIFT_DOCS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('LIFT_DOCS_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -75,6 +80,7 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-frontend.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-ajax.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-secure-links.php';
+        require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-layout.php';
         
         // Initialize classes
         if (is_admin()) {
@@ -86,19 +92,21 @@ class LIFT_Docs_System {
         LIFT_Docs_Frontend::get_instance();
         LIFT_Docs_Ajax::get_instance();
         LIFT_Docs_Secure_Links::get_instance();
+        LIFT_Docs_Layout::get_instance();
     }
     
     /**
      * Initialize hooks
      */
     private function init_hooks() {
-        // Activation and deactivation hooks
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
         
-        // Enqueue scripts and styles
-        add_action('wp_enqueue_scripts', array($this, 'frontend_scripts'));
-        add_action('admin_enqueue_scripts', array($this, 'admin_scripts'));
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+        
+        // Flush rewrite rules on plugin activation
+        add_action('init', array($this, 'maybe_flush_rewrite_rules'));
     }
     
     /**
@@ -109,9 +117,9 @@ class LIFT_Docs_System {
     }
     
     /**
-     * Frontend scripts and styles
+     * Enqueue frontend scripts and styles
      */
-    public function frontend_scripts() {
+    public function enqueue_frontend_scripts() {
         wp_enqueue_style(
             'lift-docs-frontend',
             LIFT_DOCS_PLUGIN_URL . 'assets/css/frontend.css',
@@ -135,9 +143,9 @@ class LIFT_Docs_System {
     }
     
     /**
-     * Admin scripts and styles
+     * Enqueue admin scripts and styles
      */
-    public function admin_scripts($hook) {
+    public function enqueue_admin_scripts($hook) {
         wp_enqueue_style(
             'lift-docs-admin',
             LIFT_DOCS_PLUGIN_URL . 'assets/css/admin.css',
@@ -165,20 +173,25 @@ class LIFT_Docs_System {
      * Plugin activation
      */
     public function activate() {
-        // Load dependencies first
-        $this->load_dependencies();
-        
-        // Create custom tables if needed
-        $this->create_tables();
-        
-        // Initialize secure links to add rewrite rules
-        LIFT_Docs_Secure_Links::get_instance();
-        
-        // Flush rewrite rules
-        flush_rewrite_rules();
+        // Create tables if needed
+        $this->create_analytics_table();
         
         // Set default options
         $this->set_default_options();
+        
+        // Flush rewrite rules
+        flush_rewrite_rules();
+    }
+    
+    /**
+     * Maybe flush rewrite rules
+     */
+    public function maybe_flush_rewrite_rules() {
+        $version = get_option('lift_docs_rewrite_version');
+        if ($version !== LIFT_DOCS_VERSION) {
+            flush_rewrite_rules();
+            update_option('lift_docs_rewrite_version', LIFT_DOCS_VERSION);
+        }
     }
     
     /**
@@ -190,9 +203,9 @@ class LIFT_Docs_System {
     }
     
     /**
-     * Create custom tables
+     * Create analytics table
      */
-    private function create_tables() {
+    private function create_analytics_table() {
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'lift_docs_analytics';

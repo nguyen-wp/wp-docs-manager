@@ -570,4 +570,50 @@ class LIFT_Docs_Settings {
         
         return json_decode($decrypted, true);
     }
+    
+    /**
+     * Generate secure token for actions
+     */
+    public static function generate_secure_token($doc_id, $action = 'view') {
+        $key = self::get_encryption_key();
+        
+        $data = array(
+            'doc_id' => $doc_id,
+            'action' => $action,
+            'timestamp' => time(),
+            'nonce' => wp_create_nonce('lift_secure_' . $action . '_' . $doc_id)
+        );
+        
+        return self::encrypt_data(json_encode($data), $key);
+    }
+    
+    /**
+     * Verify secure token
+     */
+    public static function verify_secure_token($token, $expected_action = null) {
+        $key = self::get_encryption_key();
+        $data = self::decrypt_data($token, $key);
+        
+        if (!$data || !isset($data['doc_id'], $data['action'], $data['timestamp'], $data['nonce'])) {
+            return false;
+        }
+        
+        // Check if action matches
+        if ($expected_action && $data['action'] !== $expected_action) {
+            return false;
+        }
+        
+        // Verify nonce
+        if (!wp_verify_nonce($data['nonce'], 'lift_secure_' . $data['action'] . '_' . $data['doc_id'])) {
+            return false;
+        }
+        
+        // Check if document exists
+        $document = get_post($data['doc_id']);
+        if (!$document || $document->post_type !== 'lift_document') {
+            return false;
+        }
+        
+        return $data['doc_id'];
+    }
 }

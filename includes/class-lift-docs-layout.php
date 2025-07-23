@@ -33,6 +33,11 @@ class LIFT_Docs_Layout {
      * Add rewrite rules for custom layout page
      */
     public function add_rewrite_rules() {
+        // Check if function exists
+        if (!function_exists('add_rewrite_rule')) {
+            return;
+        }
+        
         add_rewrite_rule(
             '^lift-docs/view/([^/]+)/?$',
             'index.php?lift_custom_view=1&lift_doc_id=$matches[1]',
@@ -50,6 +55,10 @@ class LIFT_Docs_Layout {
      * Add query vars
      */
     public function add_query_vars($vars) {
+        if (!is_array($vars)) {
+            $vars = array();
+        }
+        
         $vars[] = 'lift_custom_view';
         $vars[] = 'lift_doc_id';
         $vars[] = 'lift_custom_download';
@@ -441,8 +450,22 @@ class LIFT_Docs_Layout {
         $views = $views ? intval($views) + 1 : 1;
         update_post_meta($doc_id, '_lift_doc_views', $views);
         
-        // Log analytics
-        LIFT_Docs_Analytics::log_view($doc_id);
+        // Log analytics to database
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'lift_docs_analytics';
+        
+        $wpdb->insert(
+            $table_name,
+            array(
+                'document_id' => $doc_id,
+                'user_id' => get_current_user_id(),
+                'action' => 'view',
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+                'timestamp' => current_time('mysql')
+            ),
+            array('%d', '%d', '%s', '%s', '%s', '%s')
+        );
     }
     
     /**

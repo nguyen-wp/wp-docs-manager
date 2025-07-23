@@ -224,7 +224,7 @@ class LIFT_Docs_Admin {
                     // Show secure download URL if enabled
                     if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
                         $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($post_id);
-                        echo '<br><input type="text" value="' . esc_attr($secure_download_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" placeholder="' . __('Secure Download URL', 'lift-docs-system') . '" />';
+                        echo '<input type="text" value="' . esc_attr($secure_download_url) . '" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" placeholder="' . __('Secure Download URL', 'lift-docs-system') . '" />';
                         // echo '<br><small>' . __('Secure URL (permanent)', 'lift-docs-system') . '</small>';
                     }
                     
@@ -277,6 +277,15 @@ class LIFT_Docs_Admin {
             'lift-docs-settings',
             __('Document Settings', 'lift-docs-system'),
             array($this, 'document_settings_meta_box'),
+            'lift_document',
+            'side',
+            'default'
+        );
+        
+        add_meta_box(
+            'lift-docs-layout',
+            __('Layout Settings', 'lift-docs-system'),
+            array($this, 'layout_settings_meta_box'),
             'lift_document',
             'side',
             'default'
@@ -359,6 +368,88 @@ class LIFT_Docs_Admin {
     }
     
     /**
+     * Layout settings meta box
+     */
+    public function layout_settings_meta_box($post) {
+        $layout_settings = get_post_meta($post->ID, '_lift_doc_layout_settings', true);
+        if (!is_array($layout_settings)) {
+            $layout_settings = array();
+        }
+        
+        $default_settings = array(
+            'show_secure_access_notice' => true,
+            'show_document_header' => true,
+            'show_document_meta' => true,
+            'show_document_description' => true,
+            'show_download_button' => true,
+            'show_related_docs' => true,
+            'layout_style' => 'default'
+        );
+        
+        $settings = wp_parse_args($layout_settings, $default_settings);
+        ?>
+        
+        <p><strong><?php _e('Custom Layout Display Options:', 'lift-docs-system'); ?></strong></p>
+        
+        <p>
+            <label>
+                <input type="checkbox" name="layout_settings[show_secure_access_notice]" value="1" <?php checked($settings['show_secure_access_notice'], true); ?> />
+                <?php _e('Show Secure Access Notice', 'lift-docs-system'); ?>
+            </label>
+        </p>
+        
+        <p>
+            <label>
+                <input type="checkbox" name="layout_settings[show_document_header]" value="1" <?php checked($settings['show_document_header'], true); ?> />
+                <?php _e('Show Document Header', 'lift-docs-system'); ?>
+            </label>
+        </p>
+        
+        <p>
+            <label>
+                <input type="checkbox" name="layout_settings[show_document_meta]" value="1" <?php checked($settings['show_document_meta'], true); ?> />
+                <?php _e('Show Document Meta', 'lift-docs-system'); ?>
+            </label>
+        </p>
+        
+        <p>
+            <label>
+                <input type="checkbox" name="layout_settings[show_document_description]" value="1" <?php checked($settings['show_document_description'], true); ?> />
+                <?php _e('Show Document Description', 'lift-docs-system'); ?>
+            </label>
+        </p>
+        
+        <p>
+            <label>
+                <input type="checkbox" name="layout_settings[show_download_button]" value="1" <?php checked($settings['show_download_button'], true); ?> />
+                <?php _e('Show Download Button', 'lift-docs-system'); ?>
+            </label>
+        </p>
+        
+        <p>
+            <label>
+                <input type="checkbox" name="layout_settings[show_related_docs]" value="1" <?php checked($settings['show_related_docs'], true); ?> />
+                <?php _e('Show Related Documents', 'lift-docs-system'); ?>
+            </label>
+        </p>
+        
+        <p>
+            <label for="layout_style"><?php _e('Layout Style', 'lift-docs-system'); ?></label>
+            <select id="layout_style" name="layout_settings[layout_style]" class="widefat">
+                <option value="default" <?php selected($settings['layout_style'], 'default'); ?>><?php _e('Default', 'lift-docs-system'); ?></option>
+                <option value="minimal" <?php selected($settings['layout_style'], 'minimal'); ?>><?php _e('Minimal', 'lift-docs-system'); ?></option>
+                <option value="detailed" <?php selected($settings['layout_style'], 'detailed'); ?>><?php _e('Detailed', 'lift-docs-system'); ?></option>
+            </select>
+        </p>
+        
+        <hr>
+        <p><strong><?php _e('Custom Layout URL:', 'lift-docs-system'); ?></strong></p>
+        <p><input type="text" value="<?php echo esc_attr(LIFT_Docs_Layout::generate_custom_view_url($post->ID)); ?>" readonly onclick="this.select()" class="widefat" style="font-family: monospace; font-size: 11px;" /></p>
+        <p class="description"><?php _e('Use this URL to display the document with custom layout settings.', 'lift-docs-system'); ?></p>
+        <?php
+    }
+    
+    /**
      * Save meta boxes
      */
     public function save_meta_boxes($post_id) {
@@ -390,6 +481,32 @@ class LIFT_Docs_Admin {
             } else {
                 delete_post_meta($post_id, '_' . $field);
             }
+        }
+        
+        // Save layout settings
+        if (isset($_POST['layout_settings']) && is_array($_POST['layout_settings'])) {
+            $layout_settings = array();
+            
+            // Boolean fields
+            $boolean_fields = array(
+                'show_secure_access_notice',
+                'show_document_header', 
+                'show_document_meta',
+                'show_document_description',
+                'show_download_button',
+                'show_related_docs'
+            );
+            
+            foreach ($boolean_fields as $field) {
+                $layout_settings[$field] = isset($_POST['layout_settings'][$field]);
+            }
+            
+            // Layout style
+            if (isset($_POST['layout_settings']['layout_style'])) {
+                $layout_settings['layout_style'] = sanitize_text_field($_POST['layout_settings']['layout_style']);
+            }
+            
+            update_post_meta($post_id, '_lift_doc_layout_settings', $layout_settings);
         }
     }
     
