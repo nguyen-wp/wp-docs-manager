@@ -171,8 +171,8 @@ class LIFT_Docs_Admin {
         $new_columns['cb'] = $columns['cb'];
         $new_columns['title'] = $columns['title'];
         $new_columns['category'] = __('Category', 'lift-docs-system');
-        $new_columns['document_details'] = __('Document Details', 'lift-docs-system');
         $new_columns['date'] = $columns['date'];
+        $new_columns['document_details'] = __('Document Details', 'lift-docs-system');
         
         return $new_columns;
     }
