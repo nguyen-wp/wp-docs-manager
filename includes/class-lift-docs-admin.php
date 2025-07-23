@@ -1110,9 +1110,9 @@ class LIFT_Docs_Admin {
             content: '🧹';
             margin-right: 4px;
         }
-        </style>
-            }
-            
+        
+        /* Responsive Design Media Queries */
+        @media (max-width: 768px) {
             .file-input-row button {
                 width: 100%;
             }
