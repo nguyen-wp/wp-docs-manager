@@ -216,6 +216,7 @@ class LIFT_Docs_Admin {
         $new_columns['cb'] = $columns['cb'];
         $new_columns['title'] = $columns['title'];
         $new_columns['category'] = __('Category', 'lift-docs-system');
+        $new_columns['assignments'] = __('Assigned Users', 'lift-docs-system');
         $new_columns['date'] = $columns['date'];
         $new_columns['view_url'] = __('View URL', 'lift-docs-system');
         $new_columns['document_details'] = __('Document Details', 'lift-docs-system');
@@ -239,6 +240,10 @@ class LIFT_Docs_Admin {
                 } else {
                     echo '—';
                 }
+                break;
+                
+            case 'assignments':
+                $this->render_assignments_column($post_id);
                 break;
                 
             case 'view_url':
@@ -452,6 +457,49 @@ class LIFT_Docs_Admin {
     }
     
     /**
+     * Render assignments column content
+     */
+    private function render_assignments_column($post_id) {
+        $assigned_users = get_post_meta($post_id, '_lift_doc_assigned_users', true);
+        
+        if (empty($assigned_users) || !is_array($assigned_users)) {
+            echo '<span style="color: #007cba; font-weight: 500;">' . __('All Document Users', 'lift-docs-system') . '</span>';
+            return;
+        }
+        
+        $user_count = count($assigned_users);
+        $total_document_users = count(get_users(array('role' => 'documents_user')));
+        
+        if ($user_count === 0) {
+            echo '<span style="color: #d63638;">' . __('No Access', 'lift-docs-system') . '</span>';
+        } elseif ($user_count === $total_document_users) {
+            echo '<span style="color: #007cba; font-weight: 500;">' . __('All Document Users', 'lift-docs-system') . '</span>';
+        } else {
+            $user_names = array();
+            $max_display = 3;
+            
+            for ($i = 0; $i < min($user_count, $max_display); $i++) {
+                $user = get_user_by('id', $assigned_users[$i]);
+                if ($user) {
+                    $user_names[] = $user->display_name;
+                }
+            }
+            
+            if ($user_count > $max_display) {
+                $remaining = $user_count - $max_display;
+                echo '<span style="color: #135e96; font-weight: 500;">';
+                echo esc_html(implode(', ', $user_names));
+                echo ' <small style="color: #666;">+' . $remaining . ' ' . __('more', 'lift-docs-system') . '</small>';
+                echo '</span>';
+            } else {
+                echo '<span style="color: #135e96; font-weight: 500;">' . esc_html(implode(', ', $user_names)) . '</span>';
+            }
+            
+            echo '<br><small style="color: #666;">' . sprintf(__('%d of %d users', 'lift-docs-system'), $user_count, $total_document_users) . '</small>';
+        }
+    }
+    
+    /**
      * Add meta boxes
      */
     public function add_meta_boxes() {
@@ -461,6 +509,15 @@ class LIFT_Docs_Admin {
             array($this, 'document_details_meta_box'),
             'lift_document',
             'normal',
+            'high'
+        );
+        
+        add_meta_box(
+            'lift-docs-assignments',
+            __('Document Access Assignment', 'lift-docs-system'),
+            array($this, 'document_assignments_meta_box'),
+            'lift_document',
+            'side',
             'high'
         );
     }
@@ -1056,37 +1113,169 @@ class LIFT_Docs_Admin {
     }
     
     /**
+     * Document assignments meta box
+     */
+    public function document_assignments_meta_box($post) {
+        wp_nonce_field('lift_docs_assignments_meta_box', 'lift_docs_assignments_meta_box_nonce');
+        
+        // Get assigned users
+        $assigned_users = get_post_meta($post->ID, '_lift_doc_assigned_users', true);
+        if (!is_array($assigned_users)) {
+            $assigned_users = array();
+        }
+        
+        // Get all users with Documents User role
+        $document_users = get_users(array(
+            'role' => 'documents_user',
+            'orderby' => 'display_name',
+            'order' => 'ASC'
+        ));
+        
+        ?>
+        <div class="document-assignments">
+            <p><strong><?php _e('Assign Document Access', 'lift-docs-system'); ?></strong></p>
+            <p class="description">
+                <?php _e('Only assigned users can view and download this document. Leave empty to allow all Document Users access.', 'lift-docs-system'); ?>
+            </p>
+            
+            <?php if (empty($document_users)): ?>
+                <p class="notice notice-warning inline">
+                    <?php printf(
+                        __('No Document Users found. %sCreate Document Users%s first.', 'lift-docs-system'),
+                        '<a href="' . admin_url('admin.php?page=lift-docs-users') . '">',
+                        '</a>'
+                    ); ?>
+                </p>
+            <?php else: ?>
+                <div class="users-assignment-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 3px; padding: 10px; background: #fafafa;">
+                    <label style="margin-bottom: 10px; display: block;">
+                        <input type="checkbox" id="select_all_users" style="margin-right: 5px;">
+                        <strong><?php _e('Select All', 'lift-docs-system'); ?></strong>
+                    </label>
+                    <hr style="margin: 10px 0;">
+                    
+                    <?php foreach ($document_users as $user): ?>
+                        <label style="display: block; margin-bottom: 8px; padding: 5px; border-radius: 3px; background: #fff;">
+                            <input type="checkbox" 
+                                   name="lift_doc_assigned_users[]" 
+                                   value="<?php echo esc_attr($user->ID); ?>"
+                                   <?php checked(in_array($user->ID, $assigned_users)); ?>
+                                   style="margin-right: 8px;">
+                            <?php echo esc_html($user->display_name); ?>
+                            <small style="color: #666; display: block; margin-left: 20px;">
+                                <?php echo esc_html($user->user_email); ?>
+                            </small>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                
+                <p class="description" style="margin-top: 10px;">
+                    <?php printf(
+                        __('Total Document Users: %d | Selected: %d', 'lift-docs-system'),
+                        count($document_users),
+                        count($assigned_users)
+                    ); ?>
+                </p>
+            <?php endif; ?>
+        </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Select all functionality
+            $('#select_all_users').on('change', function() {
+                const isChecked = $(this).is(':checked');
+                $('input[name="lift_doc_assigned_users[]"]').prop('checked', isChecked);
+                updateSelectedCount();
+            });
+            
+            // Update select all when individual checkboxes change
+            $('input[name="lift_doc_assigned_users[]"]').on('change', function() {
+                const totalCheckboxes = $('input[name="lift_doc_assigned_users[]"]').length;
+                const checkedCheckboxes = $('input[name="lift_doc_assigned_users[]"]:checked').length;
+                
+                $('#select_all_users').prop('checked', totalCheckboxes === checkedCheckboxes);
+                updateSelectedCount();
+            });
+            
+            function updateSelectedCount() {
+                const checkedCount = $('input[name="lift_doc_assigned_users[]"]:checked').length;
+                const totalCount = $('input[name="lift_doc_assigned_users[]"]').length;
+                
+                $('.description').last().html(
+                    '<?php _e('Total Document Users:', 'lift-docs-system'); ?> ' + totalCount + 
+                    ' | <?php _e('Selected:', 'lift-docs-system'); ?> ' + checkedCount
+                );
+            }
+            
+            // Initialize
+            updateSelectedCount();
+        });
+        </script>
+        
+        <style>
+        .document-assignments .users-assignment-list label:hover {
+            background-color: #f0f8ff !important;
+        }
+        
+        .document-assignments .users-assignment-list input[type="checkbox"] {
+            transform: scale(1.1);
+        }
+        </style>
+        <?php
+    }
+    
+    /**
      * Save meta boxes
      */
     public function save_meta_boxes($post_id) {
-        if (!isset($_POST['lift_docs_meta_box_nonce']) || !wp_verify_nonce($_POST['lift_docs_meta_box_nonce'], 'lift_docs_meta_box')) {
-            return;
-        }
-        
-        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-            return;
-        }
-        
-        if (!current_user_can('edit_post', $post_id)) {
-            return;
-        }
-        
-        // Handle multiple file URLs
-        if (isset($_POST['lift_doc_file_urls']) && is_array($_POST['lift_doc_file_urls'])) {
-            $file_urls = array_filter(array_map('sanitize_url', $_POST['lift_doc_file_urls']));
-            
-            // Save multiple URLs
-            update_post_meta($post_id, '_lift_doc_file_urls', $file_urls);
-            
-            // For backward compatibility, also save first URL as single file URL
-            if (!empty($file_urls)) {
-                update_post_meta($post_id, '_lift_doc_file_url', $file_urls[0]);
-            } else {
-                delete_post_meta($post_id, '_lift_doc_file_url');
+        // Check document details nonce
+        if (isset($_POST['lift_docs_meta_box_nonce']) && wp_verify_nonce($_POST['lift_docs_meta_box_nonce'], 'lift_docs_meta_box')) {
+            if (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) {
+                if (current_user_can('edit_post', $post_id)) {
+                    // Handle multiple file URLs
+                    if (isset($_POST['lift_doc_file_urls']) && is_array($_POST['lift_doc_file_urls'])) {
+                        $file_urls = array_filter(array_map('sanitize_url', $_POST['lift_doc_file_urls']));
+                        
+                        // Save multiple URLs
+                        update_post_meta($post_id, '_lift_doc_file_urls', $file_urls);
+                        
+                        // For backward compatibility, also save first URL as single file URL
+                        if (!empty($file_urls)) {
+                            update_post_meta($post_id, '_lift_doc_file_url', $file_urls[0]);
+                        } else {
+                            delete_post_meta($post_id, '_lift_doc_file_url');
+                        }
+                    } else {
+                        delete_post_meta($post_id, '_lift_doc_file_urls');
+                        delete_post_meta($post_id, '_lift_doc_file_url');
+                    }
+                }
             }
-        } else {
-            delete_post_meta($post_id, '_lift_doc_file_urls');
-            delete_post_meta($post_id, '_lift_doc_file_url');
+        }
+        
+        // Check document assignments nonce
+        if (isset($_POST['lift_docs_assignments_meta_box_nonce']) && wp_verify_nonce($_POST['lift_docs_assignments_meta_box_nonce'], 'lift_docs_assignments_meta_box')) {
+            if (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) {
+                if (current_user_can('edit_post', $post_id)) {
+                    // Handle assigned users
+                    if (isset($_POST['lift_doc_assigned_users']) && is_array($_POST['lift_doc_assigned_users'])) {
+                        $assigned_users = array_map('intval', $_POST['lift_doc_assigned_users']);
+                        
+                        // Validate that all assigned users have the documents_user role
+                        $valid_users = array();
+                        foreach ($assigned_users as $user_id) {
+                            $user = get_user_by('id', $user_id);
+                            if ($user && in_array('documents_user', $user->roles)) {
+                                $valid_users[] = $user_id;
+                            }
+                        }
+                        
+                        update_post_meta($post_id, '_lift_doc_assigned_users', $valid_users);
+                    } else {
+                        delete_post_meta($post_id, '_lift_doc_assigned_users');
+                    }
+                }
+            }
         }
     }
     

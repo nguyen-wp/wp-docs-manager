@@ -76,64 +76,16 @@ class LIFT_Docs_Frontend {
      * Check if user can view document
      */
     private function can_user_view_document($post_id) {
-        // Check if login is required
-        if (LIFT_Docs_Settings::get_setting('require_login_to_view', false) && !is_user_logged_in()) {
-            return false;
-        }
-        
-        // Check if document is private
-        $is_private = get_post_meta($post_id, '_lift_doc_private', true);
-        if ($is_private && !current_user_can('edit_posts')) {
-            return false;
-        }
-        
-        // Check password protection
-        $is_password_protected = get_post_meta($post_id, '_lift_doc_password_protected', true);
-        if ($is_password_protected) {
-            $doc_password = get_post_meta($post_id, '_lift_doc_password', true);
-            $entered_password = $_POST['lift_doc_password'] ?? $_SESSION['lift_doc_' . $post_id] ?? '';
-            
-            if ($doc_password && $doc_password !== $entered_password) {
-                return false;
-            }
-            
-            // Store password in session if correct
-            if ($doc_password === $entered_password) {
-                session_start();
-                $_SESSION['lift_doc_' . $post_id] = $entered_password;
-            }
-        }
-        
-        return true;
+        // Use the centralized permission checking from settings
+        return LIFT_Docs_Settings::user_can_view_document($post_id);
     }
     
     /**
      * Check if user can download document
      */
     private function can_user_download_document($post_id) {
-        // Check if login is required for download
-        if (LIFT_Docs_Settings::get_setting('require_login_to_download', false) && !is_user_logged_in()) {
-            return false;
-        }
-        
-        // Check if document is private
-        $is_private = get_post_meta($post_id, '_lift_doc_private', true);
-        if ($is_private && !current_user_can('edit_posts')) {
-            return false;
-        }
-        
-        // Check password protection
-        $is_password_protected = get_post_meta($post_id, '_lift_doc_password_protected', true);
-        if ($is_password_protected) {
-            $doc_password = get_post_meta($post_id, '_lift_doc_password', true);
-            $entered_password = $_POST['lift_doc_password'] ?? $_SESSION['lift_doc_' . $post_id] ?? '';
-            
-            if ($doc_password && $doc_password !== $entered_password) {
-                return false;
-            }
-        }
-        
-        return true;
+        // Use the centralized permission checking from settings
+        return LIFT_Docs_Settings::user_can_download_document($post_id);
     }
     
     /**

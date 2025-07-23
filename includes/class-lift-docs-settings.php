@@ -746,14 +746,23 @@ class LIFT_Docs_Settings {
             $user_id = get_current_user_id();
         }
         
+        // Administrators and editors always have access
+        if ($user_id && (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents'))) {
+            return true;
+        }
+        
+        // Check if login is required for viewing
         if (!$user_id) {
             return !self::get_setting('require_login_to_view', false);
         }
         
-        return user_can($user_id, 'view_lift_documents') || 
-               user_can($user_id, 'read_lift_document') ||
-               user_can($user_id, 'edit_lift_documents') ||
-               user_can($user_id, 'manage_options');
+        // Check if user has basic document viewing capability
+        if (!user_can($user_id, 'view_lift_documents') && !user_can($user_id, 'read_lift_document')) {
+            return false;
+        }
+        
+        // Check document assignment
+        return self::user_is_assigned_to_document($document_id, $user_id);
     }
     
     /**
@@ -764,13 +773,49 @@ class LIFT_Docs_Settings {
             $user_id = get_current_user_id();
         }
         
+        // Administrators and editors always have access
+        if ($user_id && (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents'))) {
+            return true;
+        }
+        
+        // Check if login is required for downloading
         if (!$user_id) {
             return !self::get_setting('require_login_to_download', false);
         }
         
-        return user_can($user_id, 'download_lift_documents') || 
-               user_can($user_id, 'edit_lift_documents') ||
-               user_can($user_id, 'manage_options');
+        // Check if user has basic document download capability
+        if (!user_can($user_id, 'download_lift_documents')) {
+            return false;
+        }
+        
+        // Check document assignment
+        return self::user_is_assigned_to_document($document_id, $user_id);
     }
+    
+    /**
+     * Check if user is assigned to specific document
+     */
+    public static function user_is_assigned_to_document($document_id, $user_id = null) {
+        if (!$user_id) {
+            $user_id = get_current_user_id();
+        }
+        
+        // Get assigned users for this document
+        $assigned_users = get_post_meta($document_id, '_lift_doc_assigned_users', true);
+        
+        // If no specific users are assigned, allow all users with document access role
+        if (empty($assigned_users) || !is_array($assigned_users)) {
+            return $user_id && (
+                user_can($user_id, 'view_lift_documents') || 
+                user_can($user_id, 'read_lift_document') ||
+                user_can($user_id, 'edit_lift_documents') ||
+                user_can($user_id, 'manage_options')
+            );
+        }
+        
+        // Check if user is specifically assigned to this document
+        return in_array($user_id, $assigned_users);
+    }
+    
     
 }
