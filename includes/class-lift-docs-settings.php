@@ -582,7 +582,7 @@ class LIFT_Docs_Settings {
             return get_permalink($document_id);
         }
         
-        $encryption_key = self::get_setting('encryption_key', '');
+        $encryption_key = self::get_encryption_key_internal();
         if (empty($encryption_key)) {
             return get_permalink($document_id);
         }
@@ -611,7 +611,7 @@ class LIFT_Docs_Settings {
             error_log('LIFT Docs Debug - Generating secure download link for document: ' . $document_id);
         }
         
-        $encryption_key = self::get_encryption_key();
+        $encryption_key = self::get_encryption_key_internal();
         
         $expires = $expiry_hours > 0 ? time() + ($expiry_hours * 3600) : 0;
         
@@ -650,7 +650,7 @@ class LIFT_Docs_Settings {
      * Verify secure link
      */
     public static function verify_secure_link($token) {
-        $encryption_key = self::get_encryption_key();
+        $encryption_key = self::get_encryption_key_internal();
         
         $data = self::decrypt_data($token, $encryption_key);
         
@@ -680,7 +680,8 @@ class LIFT_Docs_Settings {
             error_log('LIFT Docs Debug - Successfully verified token for document: ' . $data['document_id']);
         }
         
-        return $data['document_id'];
+        // Return the full data array instead of just document_id
+        return $data;
     }
     
     /**
@@ -769,9 +770,16 @@ class LIFT_Docs_Settings {
     }
     
     /**
-     * Get encryption key
+     * Get encryption key (public access)
      */
-    private static function get_encryption_key() {
+    public static function get_encryption_key() {
+        return self::get_setting('encryption_key', '');
+    }
+    
+    /**
+     * Get encryption key (internal)
+     */
+    private static function get_encryption_key_internal() {
         $key = self::get_setting('encryption_key', '');
         if (empty($key)) {
             // Auto-generate and save key if missing - ensure 32 bytes for AES-256
@@ -796,7 +804,7 @@ class LIFT_Docs_Settings {
      * Generate secure token for actions
      */
     public static function generate_secure_token($doc_id, $action = 'view') {
-        $key = self::get_encryption_key();
+        $key = self::get_encryption_key_internal();
         
         $data = array(
             'doc_id' => $doc_id,
@@ -812,7 +820,7 @@ class LIFT_Docs_Settings {
      * Verify secure token
      */
     public static function verify_secure_token($token, $expected_action = null) {
-        $key = self::get_encryption_key();
+        $key = self::get_encryption_key_internal();
         $data = self::decrypt_data($token, $key);
         
         if (!$data || !isset($data['doc_id'], $data['action'], $data['timestamp'], $data['nonce'])) {

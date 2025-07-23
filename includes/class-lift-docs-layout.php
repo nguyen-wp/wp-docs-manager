@@ -131,7 +131,7 @@ class LIFT_Docs_Layout {
         }
         
         // Use primary verification method (same as generate_secure_download_link)
-        $verification = LIFT_Docs_Settings::verify_secure_link($token);
+        $verification = LIFT_Docs_Settings::verify_secure_link(urldecode($token));
         
         if (!$verification || !isset($verification['document_id'])) {
             if (defined('WP_DEBUG') && WP_DEBUG) {

@@ -139,6 +139,7 @@ class LIFT_Docs_Secure_Links {
         if (!$verification || !isset($verification['document_id'])) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('LIFT Docs Debug - Token verification failed for token: ' . $token);
+                error_log('LIFT Docs Debug - Verification result: ' . print_r($verification, true));
             }
             status_header(403);
             die('Invalid or expired download link. Please request a new download link.');
