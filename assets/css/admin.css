@@ -580,6 +580,7 @@
     padding: 4px 6px;
     border-radius: 3px;
     cursor: text;
+    font-size: 11px;
 }
 
 .lift-url-field input:hover,
@@ -594,6 +595,38 @@
     background: #fff;
     border-color: #0073aa;
     box-shadow: 0 0 3px rgba(0, 115, 170, 0.3);
+}
+
+.lift-url-field small,
+.lift-shortcode-field small {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+}
+
+.lift-url-field small a,
+.lift-shortcode-field small a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.lift-url-field small a:hover,
+.lift-shortcode-field small a:hover {
+    text-decoration: underline;
+}
+
+/* Security status indicators */
+.lift-url-field.secure-url input {
+    border-left: 3px solid #28a745;
+}
+
+.lift-url-field.public-url input {
+    border-left: 3px solid #0073aa;
+}
+
+.lift-url-field.login-required input {
+    border-left: 3px solid #ffc107;
+    background: #fff8e1;
 }
 
 .lift-shortcode-field {
@@ -657,7 +690,10 @@
 }
 
 /* Column width adjustments */
-.wp-list-table .column-view_url,
+.wp-list-table .column-view_url {
+    width: 220px;
+}
+
 .wp-list-table .column-download_url {
     width: 200px;
 }
@@ -673,6 +709,15 @@
 
 .wp-list-table .column-file_size {
     width: 80px;
+    text-align: center;
+}
+
+.wp-list-table .column-category {
+    width: 120px;
+}
+
+.wp-list-table .column-document_details {
+    width: 100px;
     text-align: center;
 }
 
@@ -693,7 +738,8 @@
 @media screen and (max-width: 960px) {
     .wp-list-table .column-view_url,
     .wp-list-table .column-download_url,
-    .wp-list-table .column-shortcode {
+    .wp-list-table .column-shortcode,
+    .wp-list-table .column-document_details {
         display: none;
     }
 }

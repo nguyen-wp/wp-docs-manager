@@ -172,6 +172,7 @@ class LIFT_Docs_Admin {
         $new_columns['title'] = $columns['title'];
         $new_columns['category'] = __('Category', 'lift-docs-system');
         $new_columns['date'] = $columns['date'];
+        $new_columns['view_url'] = __('View URL', 'lift-docs-system');
         $new_columns['document_details'] = __('Document Details', 'lift-docs-system');
         
         return $new_columns;
@@ -195,12 +196,64 @@ class LIFT_Docs_Admin {
                 }
                 break;
                 
+            case 'view_url':
+                $this->render_view_url_column($post_id);
+                break;
+                
             case 'document_details':
                 $this->render_document_details_button($post_id);
                 break;
         }
     }
     
+    /**
+     * Render view URL column content
+     */
+    private function render_view_url_column($post_id) {
+        // Get frontend instance to check permissions
+        $frontend = LIFT_Docs_Frontend::get_instance();
+        
+        // Check if user can view document before generating view URL
+        $can_view = false;
+        if ($frontend && method_exists($frontend, 'can_user_view_document')) {
+            $reflection = new ReflectionClass($frontend);
+            $method = $reflection->getMethod('can_user_view_document');
+            $method->setAccessible(true);
+            $can_view = $method->invoke($frontend, $post_id);
+        } else {
+            // Fallback check
+            $can_view = !LIFT_Docs_Settings::get_setting('require_login_to_view', false) || is_user_logged_in();
+        }
+        
+        $view_url = '';
+        $view_label = '';
+        $view_class = 'lift-url-field';
+        
+        if ($can_view) {
+            if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+                $view_url = LIFT_Docs_Settings::generate_secure_link($post_id);
+                $view_label = __('Secure View URL', 'lift-docs-system');
+                $view_class .= ' secure-url';
+            } else {
+                $view_url = get_permalink($post_id);
+                $view_label = __('View URL', 'lift-docs-system');
+                $view_class .= ' public-url';
+            }
+        } else {
+            $view_url = wp_login_url(get_permalink($post_id));
+            $view_label = __('Login Required', 'lift-docs-system');
+            $view_class .= ' login-required';
+        }
+        
+        ?>
+        <div class="<?php echo esc_attr($view_class); ?>">
+            <a href="<?php echo esc_url($view_url); ?>" class="button" target="_blank" title="<?php _e('Open in new tab', 'lift-docs-system'); ?>">
+                <?php echo $can_view ? __('Preview', 'lift-docs-system') : '🔒 ' . __('Login Required', 'lift-docs-system'); ?>
+            </a>
+        </div>
+        <?php
+    }
+
     /**
      * Render document details button with modal data
      */
@@ -1194,7 +1247,7 @@ class LIFT_Docs_Admin {
                                 <?php _e('Preview', 'lift-docs-system'); ?>
                             </a>
                         </div>
-                        <p class="description" id="lift-view-description" style="margin-top: 5px; color: #666; font-size: 12px;"></p>
+                        <!-- <p class="description" id="lift-view-description" style="margin-top: 5px; color: #666; font-size: 12px;"></p> -->
                     </div>
                     
                     <!-- <div class="lift-detail-group">
