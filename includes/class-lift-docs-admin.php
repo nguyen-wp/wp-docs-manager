@@ -236,9 +236,8 @@ class LIFT_Docs_Admin {
                 
             case 'shortcode':
                 echo '<div class="lift-shortcode-field">';
-                // echo '<input type="text" value="[lift_documents id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" placeholder="Display Shortcode" />';
-                echo '<input type="text" value="[lift_document_download id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px; margin-top: 2px;" placeholder="Download Shortcode" />';
-                // echo '<br><small>' . __('Document display & download shortcodes', 'lift-docs-system') . '</small>';
+                echo '<input type="text" value="[lift_document_download id=&quot;' . $post_id . '&quot;]" readonly onclick="this.select()" style="width: 100%; font-size: 11px;" placeholder="Download Shortcode" />';
+                echo '<br><small>' . __('Document download shortcode', 'lift-docs-system') . '</small>';
                 echo '</div>';
                 break;
                 
