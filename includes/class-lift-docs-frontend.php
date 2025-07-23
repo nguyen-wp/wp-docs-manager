@@ -108,6 +108,35 @@ class LIFT_Docs_Frontend {
     }
     
     /**
+     * Check if user can download document
+     */
+    private function can_user_download_document($post_id) {
+        // Check if login is required for download
+        if (LIFT_Docs_Settings::get_setting('require_login_to_download', false) && !is_user_logged_in()) {
+            return false;
+        }
+        
+        // Check if document is private
+        $is_private = get_post_meta($post_id, '_lift_doc_private', true);
+        if ($is_private && !current_user_can('edit_posts')) {
+            return false;
+        }
+        
+        // Check password protection
+        $is_password_protected = get_post_meta($post_id, '_lift_doc_password_protected', true);
+        if ($is_password_protected) {
+            $doc_password = get_post_meta($post_id, '_lift_doc_password', true);
+            $entered_password = $_POST['lift_doc_password'] ?? $_SESSION['lift_doc_' . $post_id] ?? '';
+            
+            if ($doc_password && $doc_password !== $entered_password) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
      * Get document meta information
      */
     private function get_document_meta($post_id) {
@@ -193,15 +222,26 @@ class LIFT_Docs_Frontend {
         
         // Download button
         if (LIFT_Docs_Settings::get_setting('show_download_button', true)) {
-            $download_url = add_query_arg(array(
-                'lift_download' => $post_id,
-                'nonce' => wp_create_nonce('lift_download_' . $post_id)
-            ), home_url());
-            
-            $actions_html .= '<a href="' . esc_url($download_url) . '" class="lift-docs-download-btn button">';
-            $actions_html .= '<span class="dashicons dashicons-download"></span> ';
-            $actions_html .= __('Download Document', 'lift-docs-system');
-            $actions_html .= '</a>';
+            // Check if user can download
+            if ($this->can_user_download_document($post_id)) {
+                $download_url = add_query_arg(array(
+                    'lift_download' => $post_id,
+                    'nonce' => wp_create_nonce('lift_download_' . $post_id)
+                ), home_url());
+                
+                $actions_html .= '<a href="' . esc_url($download_url) . '" class="lift-docs-download-btn button">';
+                $actions_html .= '<span class="dashicons dashicons-download"></span> ';
+                $actions_html .= __('Download Document', 'lift-docs-system');
+                $actions_html .= '</a>';
+            } else {
+                // Show login required message
+                $actions_html .= '<div class="lift-docs-login-required">';
+                $actions_html .= '<p>' . __('You need to log in to download this document.', 'lift-docs-system') . '</p>';
+                $actions_html .= '<a href="' . wp_login_url(get_permalink($post_id)) . '" class="button button-primary">';
+                $actions_html .= __('Log in to Download', 'lift-docs-system');
+                $actions_html .= '</a>';
+                $actions_html .= '</div>';
+            }
         }
         
         // Share button
@@ -297,6 +337,23 @@ class LIFT_Docs_Frontend {
         $file_url = get_post_meta($doc_id, '_lift_doc_file_url', true);
         if (!$file_url) {
             return '<p class="error">No file attached to this document.</p>';
+        }
+        
+        // Check if user has permission to download
+        if (!$this->can_user_download_document($doc_id)) {
+            $output = '<div class="lift-doc-download-widget lift-docs-restricted">';
+            
+            if ($atts['show_title'] === 'true') {
+                $output .= '<h4 class="doc-title">' . esc_html($document->post_title) . '</h4>';
+            }
+            
+            $output .= '<div class="login-required">';
+            $output .= '<p>' . __('You need to log in to download this document.', 'lift-docs-system') . '</p>';
+            $output .= '<p><a href="' . wp_login_url(get_permalink($doc_id)) . '" class="button button-primary">' . __('Log in', 'lift-docs-system') . '</a></p>';
+            $output .= '</div>';
+            $output .= '</div>';
+            
+            return $output;
         }
         
         // Generate secure download URL using the format /lift-docs/download/?lift_secure=*
@@ -416,7 +473,7 @@ class LIFT_Docs_Frontend {
         }
         
         // Check if user can download
-        if (LIFT_Docs_Settings::get_setting('require_login_to_download', false) && !is_user_logged_in()) {
+        if (!$this->can_user_download_document($document_id)) {
             wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
             exit;
         }
@@ -450,8 +507,8 @@ class LIFT_Docs_Frontend {
             wp_die(__('Security check failed.', 'lift-docs-system'));
         }
         
-        // Check if user can view online
-        if (LIFT_Docs_Settings::get_setting('require_login_to_download', false) && !is_user_logged_in()) {
+        // Check if user can view online (same permission as download)
+        if (!$this->can_user_download_document($document_id)) {
             wp_redirect(wp_login_url($_SERVER['REQUEST_URI']));
             exit;
         }

@@ -95,6 +95,58 @@
     color: #fff;
 }
 
+/* Login Required Message */
+.lift-docs-login-required,
+.lift-docs-restricted {
+    background: #fefbf3;
+    border: 1px solid #f0ad4e;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.lift-docs-login-required p,
+.lift-docs-restricted p {
+    margin: 0 0 1rem 0;
+    color: #8a6d3b;
+    font-weight: 500;
+}
+
+.lift-docs-login-required p:last-child,
+.lift-docs-restricted p:last-child {
+    margin-bottom: 0;
+}
+
+.lift-docs-login-required .button,
+.lift-docs-restricted .button {
+    background: #0073aa;
+    color: #fff;
+    border: 1px solid #0073aa;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.lift-docs-login-required .button:hover,
+.lift-docs-restricted .button:hover {
+    background: #005a87;
+    border-color: #005a87;
+    color: #fff;
+}
+
+.lift-doc-download-widget.lift-docs-restricted {
+    border-color: #f0ad4e;
+}
+
+.lift-doc-download-widget.lift-docs-restricted .doc-title {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
 /* Related documents */
 .lift-related-documents {
     margin: 3rem 0;
