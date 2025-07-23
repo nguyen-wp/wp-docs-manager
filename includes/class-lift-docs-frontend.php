@@ -263,44 +263,48 @@ class LIFT_Docs_Frontend {
     }
     
     /**
-     * Single document download shortcode
+     * Single document download shortcode - Simplified version
      */
     public function document_download_shortcode($atts) {
+        // Validate input early
+        if (!is_array($atts)) {
+            $atts = array();
+        }
+        
         $atts = shortcode_atts(array(
             'id' => '',
-            'text' => __('Download', 'lift-docs-system'),
+            'text' => 'Download',
             'show_title' => 'true',
             'show_info' => 'false',
             'class' => 'button'
         ), $atts);
         
-        if (empty($atts['id'])) {
-            return '<p class="error">' . __('Document ID is required.', 'lift-docs-system') . '</p>';
+        // Basic validation
+        if (empty($atts['id']) || !is_numeric($atts['id'])) {
+            return '<p class="error">Document ID is required.</p>';
         }
         
         $doc_id = intval($atts['id']);
-        $document = get_post($doc_id);
         
+        // Check if document exists
+        $document = get_post($doc_id);
         if (!$document || $document->post_type !== 'lift_document') {
-            return '<p class="error">' . __('Document not found.', 'lift-docs-system') . '</p>';
+            return '<p class="error">Document not found.</p>';
         }
         
+        // Check if file exists
         $file_url = get_post_meta($doc_id, '_lift_doc_file_url', true);
         if (!$file_url) {
-            return '<p class="error">' . __('No file attached to this document.', 'lift-docs-system') . '</p>';
+            return '<p class="error">No file attached to this document.</p>';
         }
         
-        // Generate secure download URL - check if Layout class exists
-        if (class_exists('LIFT_Docs_Layout') && method_exists('LIFT_Docs_Layout', 'generate_secure_download_url')) {
-            $download_url = LIFT_Docs_Layout::generate_secure_download_url($doc_id);
-        } else {
-            // Fallback to regular download URL
-            $download_url = add_query_arg(array(
-                'lift_download' => $doc_id,
-                'nonce' => wp_create_nonce('lift_download_' . $doc_id)
-            ), home_url());
-        }
+        // Simple download URL - always use fallback method
+        $download_url = add_query_arg(array(
+            'lift_download' => $doc_id,
+            'nonce' => wp_create_nonce('lift_download_' . $doc_id)
+        ), home_url());
         
+        // Build output
         $output = '<div class="lift-doc-download-widget">';
         
         if ($atts['show_title'] === 'true') {
@@ -309,16 +313,9 @@ class LIFT_Docs_Frontend {
         
         if ($atts['show_info'] === 'true') {
             $file_size = get_post_meta($doc_id, '_lift_doc_file_size', true);
-            $file_type = get_post_meta($doc_id, '_lift_doc_file_type', true);
-            
-            if ($file_size || $file_type) {
+            if ($file_size) {
                 $output .= '<div class="doc-info">';
-                if ($file_type) {
-                    $output .= '<span class="file-type">' . esc_html(strtoupper($file_type)) . '</span>';
-                }
-                if ($file_size) {
-                    $output .= '<span class="file-size">' . esc_html($this->format_file_size($file_size)) . '</span>';
-                }
+                $output .= '<span class="file-size">' . esc_html(size_format($file_size)) . '</span>';
                 $output .= '</div>';
             }
         }
