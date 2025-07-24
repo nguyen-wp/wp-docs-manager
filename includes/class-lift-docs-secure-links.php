@@ -866,50 +866,231 @@ class LIFT_Docs_Secure_Links {
     private function show_access_denied($message = '') {
         status_header(403);
         
-        get_header();
-        ?>
-        <div class="lift-docs-access-denied">
-            <div class="container">
-                <h1><?php _e('Access Denied', 'lift-docs-system'); ?></h1>
-                <p><?php echo esc_html($message ?: __('You do not have permission to access this document.', 'lift-docs-system')); ?></p>
-                <p>
-                    <a href="<?php echo home_url(); ?>" class="button">
-                        <?php _e('Return to Homepage', 'lift-docs-system'); ?>
-                    </a>
-                </p>
-            </div>
-        </div>
-        
-        <style>
-        .lift-docs-access-denied {
-            padding: 60px 0;
-            text-align: center;
-        }
-        
-        .lift-docs-access-denied h1 {
-            color: #dc3232;
-            font-size: 2.5em;
-            margin-bottom: 20px;
-        }
-        
-        .lift-docs-access-denied p {
-            font-size: 1.2em;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        
-        .lift-docs-access-denied .button {
-            background: #0073aa;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 4px;
-            display: inline-block;
-        }
-        </style>
-        <?php
-        get_footer();
+        // Use clean layout như login page
+        $this->display_clean_access_denied($message);
         exit;
+    }
+    
+    /**
+     * Display clean access denied page (consistent với login page)
+     */
+    private function display_clean_access_denied($message = '') {
+        // Get custom colors để consistent với login page
+        $bg_color = get_option('lift_docs_login_bg_color', '#f0f4f8');
+        $container_bg = get_option('lift_docs_login_form_bg', '#ffffff');
+        $text_color = get_option('lift_docs_login_text_color', '#333333');
+        $btn_color = get_option('lift_docs_login_btn_color', '#1976d2');
+        $error_color = '#dc3545';
+        
+        $logo_id = get_option('lift_docs_login_logo', '');
+        $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
+        
+        ?>
+        <!DOCTYPE html>
+        <html <?php language_attributes(); ?>>
+        <head>
+            <meta charset="<?php bloginfo('charset'); ?>">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title><?php _e('Access Denied', 'lift-docs-system'); ?> - <?php bloginfo('name'); ?></title>
+            <?php wp_head(); ?>
+            <style>
+                body {
+                    margin: 0;
+                    padding: 0;
+                    background-color: <?php echo esc_attr($bg_color); ?>;
+                    color: <?php echo esc_attr($text_color); ?>;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                /* Hide unwanted elements */
+                .back-to-top,
+                #back-to-top,
+                .scroll-to-top,
+                [class*="back-to-top"],
+                [id*="back-to-top"],
+                [class*="scroll-top"],
+                [id*="scroll-top"] {
+                    display: none !important;
+                    visibility: hidden !important;
+                }
+                
+                .lift-access-denied-container {
+                    width: 100%;
+                    max-width: 500px;
+                    margin: 20px;
+                }
+                
+                .lift-access-denied-logo {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+                
+                .lift-access-denied-logo img {
+                    max-width: 200px;
+                    max-height: 80px;
+                    height: auto;
+                }
+                
+                .lift-access-denied-wrapper {
+                    background: <?php echo esc_attr($container_bg); ?>;
+                    padding: 50px 40px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    text-align: center;
+                }
+                
+                .error-icon {
+                    font-size: 64px;
+                    color: <?php echo esc_attr($error_color); ?>;
+                    margin-bottom: 20px;
+                }
+                
+                .error-title {
+                    font-size: 28px;
+                    font-weight: 600;
+                    color: <?php echo esc_attr($error_color); ?>;
+                    margin: 0 0 20px 0;
+                }
+                
+                .error-message {
+                    font-size: 16px;
+                    color: #666;
+                    margin-bottom: 30px;
+                    line-height: 1.5;
+                }
+                
+                .error-actions {
+                    display: flex;
+                    gap: 15px;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+                
+                .btn {
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 16px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: opacity 0.2s ease;
+                }
+                
+                .btn-primary {
+                    background: <?php echo esc_attr($btn_color); ?>;
+                    color: white;
+                }
+                
+                .btn-secondary {
+                    background: #6c757d;
+                    color: white;
+                }
+                
+                .btn:hover {
+                    opacity: 0.9;
+                }
+                
+                .error-details {
+                    margin-top: 30px;
+                    padding: 20px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    border-left: 4px solid <?php echo esc_attr($error_color); ?>;
+                }
+                
+                .error-details h4 {
+                    margin: 0 0 10px 0;
+                    color: <?php echo esc_attr($text_color); ?>;
+                    font-size: 16px;
+                }
+                
+                .error-details ul {
+                    margin: 0;
+                    padding-left: 20px;
+                    text-align: left;
+                }
+                
+                .error-details li {
+                    margin-bottom: 5px;
+                    color: #666;
+                    font-size: 14px;
+                }
+                
+                @media (max-width: 768px) {
+                    .lift-access-denied-container {
+                        margin: 10px;
+                    }
+                    
+                    .lift-access-denied-wrapper {
+                        padding: 30px 20px;
+                    }
+                    
+                    .error-title {
+                        font-size: 24px;
+                    }
+                    
+                    .error-actions {
+                        flex-direction: column;
+                    }
+                    
+                    .btn {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="lift-access-denied-container">
+                
+                <?php if ($logo_url): ?>
+                <div class="lift-access-denied-logo">
+                    <img src="<?php echo esc_url($logo_url); ?>" alt="<?php bloginfo('name'); ?>">
+                </div>
+                <?php endif; ?>
+                
+                <div class="lift-access-denied-wrapper">
+                    <div class="error-icon">🔒</div>
+                    
+                    <h1 class="error-title"><?php _e('Access Denied', 'lift-docs-system'); ?></h1>
+                    
+                    <p class="error-message">
+                        <?php echo esc_html($message ?: __('You do not have permission to access this document.', 'lift-docs-system')); ?>
+                    </p>
+                    
+                    <div class="error-actions">
+                        <a href="<?php echo home_url('/document-login/'); ?>" class="btn btn-primary">
+                            🔐 <?php _e('Document Login', 'lift-docs-system'); ?>
+                        </a>
+                        <a href="<?php echo home_url(); ?>" class="btn btn-secondary">
+                            🏠 <?php _e('Return Home', 'lift-docs-system'); ?>
+                        </a>
+                    </div>
+                    
+                    <div class="error-details">
+                        <h4><?php _e('Possible reasons:', 'lift-docs-system'); ?></h4>
+                        <ul>
+                            <li><?php _e('The secure link has expired', 'lift-docs-system'); ?></li>
+                            <li><?php _e('Invalid or corrupted security token', 'lift-docs-system'); ?></li>
+                            <li><?php _e('Document has been moved or deleted', 'lift-docs-system'); ?></li>
+                            <li><?php _e('You need to login with proper credentials', 'lift-docs-system'); ?></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <?php wp_footer(); ?>
+        </body>
+        </html>
+        <?php
     }
     
     /**
