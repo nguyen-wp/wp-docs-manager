@@ -180,14 +180,26 @@
                     console.log('updateFormData overridden with enhanced version');
                 }
                 
-                // Auto-backup form data when fields change
+                // Auto-backup form data when fields change using modern MutationObserver
                 let backupTimer;
-                $(document).on('DOMNodeInserted DOMNodeRemoved', '#form-canvas', function() {
-                    clearTimeout(backupTimer);
-                    backupTimer = setTimeout(function() {
-                        window.liftFormBuilderFix.backupFormData();
-                    }, 1000);
-                });
+                const canvasElement = document.getElementById('form-canvas');
+                if (canvasElement) {
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.type === 'childList') {
+                                clearTimeout(backupTimer);
+                                backupTimer = setTimeout(function() {
+                                    window.liftFormBuilderFix.backupFormData();
+                                }, 1000);
+                            }
+                        });
+                    });
+                    
+                    observer.observe(canvasElement, {
+                        childList: true,
+                        subtree: true
+                    });
+                }
                 
             }, 2000);
         }

@@ -255,25 +255,27 @@
     
 })(jQuery);
 
-// Debug helper - log all AJAX requests
-if (typeof ajaxurl !== 'undefined') {
-    $(document).ajaxSend(function(event, xhr, settings) {
-        if (settings.data && typeof settings.data === 'string' && settings.data.includes('lift_forms')) {
-            console.log('LIFT Forms AJAX Request:', {
-                url: settings.url,
-                data: settings.data,
-                type: settings.type
-            });
-        }
-    });
-    
-    $(document).ajaxComplete(function(event, xhr, settings) {
-        if (settings.data && typeof settings.data === 'string' && settings.data.includes('lift_forms')) {
-            console.log('LIFT Forms AJAX Response:', {
-                status: xhr.status,
-                response: xhr.responseText,
-                settings: settings
-            });
-        }
-    });
-}
+// Debug helper - log all AJAX requests (wrapped in jQuery ready)
+jQuery(document).ready(function($) {
+    if (typeof ajaxurl !== 'undefined') {
+        $(document).ajaxSend(function(event, xhr, settings) {
+            if (settings.data && typeof settings.data === 'string' && settings.data.includes('lift_forms')) {
+                console.log('LIFT Forms AJAX Request:', {
+                    url: settings.url,
+                    data: settings.data,
+                    type: settings.type
+                });
+            }
+        });
+        
+        $(document).ajaxComplete(function(event, xhr, settings) {
+            if (settings.data && typeof settings.data === 'string' && settings.data.includes('lift_forms')) {
+                console.log('LIFT Forms AJAX Response:', {
+                    status: xhr.status,
+                    response: xhr.responseText,
+                    settings: settings
+                });
+            }
+        });
+    }
+});
