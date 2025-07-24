@@ -174,6 +174,44 @@ class LIFT_Forms {
             true
         );
         
+        // Enqueue enhanced forms builder for better error handling
+        wp_enqueue_script(
+            'lift-forms-builder-enhanced',
+            plugin_dir_url(__FILE__) . '../assets/js/forms-builder-enhanced.js',
+            array('lift-forms-builder'),
+            '1.0.0',
+            true
+        );
+        
+        // Enqueue form builder fix for field sync issues
+        wp_enqueue_script(
+            'lift-forms-builder-fix',
+            plugin_dir_url(__FILE__) . '../assets/js/forms-builder-fix.js',
+            array('lift-forms-builder-enhanced'),
+            '1.0.0',
+            true
+        );
+        
+        // Enqueue test tools in debug mode (disabled - working correctly)
+        // if (defined('WP_DEBUG') && WP_DEBUG) {
+        //     wp_enqueue_script(
+        //         'lift-forms-builder-test',
+        //         plugin_dir_url(__FILE__) . '../assets/js/forms-builder-test.js',
+        //         array('lift-forms-builder-fix'),
+        //         '1.0.0',
+        //         true
+        //     );
+        // }
+        
+        // Enqueue ultimate debugger (disabled - working correctly)
+        // wp_enqueue_script(
+        //     'lift-forms-builder-ultimate-debug',
+        //     plugin_dir_url(__FILE__) . '../assets/js/forms-builder-ultimate-debug.js',
+        //     array('lift-forms-builder-fix'),
+        //     '1.0.0',
+        //     true
+        // );
+        
         wp_enqueue_style(
             'lift-forms-admin',
             plugin_dir_url(__FILE__) . '../assets/css/forms-admin.css',

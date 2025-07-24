@@ -93,6 +93,12 @@ class LIFT_Docs_System {
         // Include JSON fixer tool for LIFT Forms
         // require_once LIFT_DOCS_PLUGIN_DIR . 'fix-lift-forms-json.php';
         
+        // Include emergency AJAX debug tool (disabled - working correctly)
+        // require_once LIFT_DOCS_PLUGIN_DIR . 'emergency-ajax-debug.php';
+        
+        // Include final verification tool (disabled - working correctly)
+        // require_once LIFT_DOCS_PLUGIN_DIR . 'final-verification.php';
+        
         // Load test files if in debug mode
         if (defined('WP_DEBUG') && WP_DEBUG) {
             if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'test-multiple-files.php')) {
@@ -107,9 +113,19 @@ class LIFT_Docs_System {
             if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'test-lift-forms.php')) {
                 require_once LIFT_DOCS_PLUGIN_DIR . 'test-lift-forms.php';
             }
-            if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'debug-lift-forms-menu.php')) {
-                require_once LIFT_DOCS_PLUGIN_DIR . 'debug-lift-forms-menu.php';
-            }
+            // Debug tools for LIFT Forms (disabled - working correctly)
+            // if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'debug-lift-forms-menu.php')) {
+            //     require_once LIFT_DOCS_PLUGIN_DIR . 'debug-lift-forms-menu.php';
+            // }
+            // if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'debug-form-submit.php')) {
+            //     require_once LIFT_DOCS_PLUGIN_DIR . 'debug-form-submit.php';
+            // }
+            // if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'fix-form-submit-error.php')) {
+            //     require_once LIFT_DOCS_PLUGIN_DIR . 'fix-form-submit-error.php';
+            // }
+            // if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'fix-empty-fields-error.php')) {
+            //     require_once LIFT_DOCS_PLUGIN_DIR . 'fix-empty-fields-error.php';
+            // }
             // Disable force menu to avoid duplication - using main menu only
             // if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'force-lift-forms-menu.php')) {
             //     require_once LIFT_DOCS_PLUGIN_DIR . 'force-lift-forms-menu.php';
