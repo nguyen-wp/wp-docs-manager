@@ -90,7 +90,6 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-frontend-login.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-forms.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'lib/emergency-json-fixer.php';
-        require_once LIFT_DOCS_PLUGIN_DIR . 'lib/php8-compatibility-fix.php';
     }
     
     /**
