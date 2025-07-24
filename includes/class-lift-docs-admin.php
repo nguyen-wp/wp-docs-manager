@@ -197,152 +197,17 @@ class LIFT_Docs_Admin {
      * Document Users management page
      */
     public function users_page() {
-        // Handle user role changes
-        if (isset($_POST['action']) && $_POST['action'] === 'update_user_role') {
-            $this->handle_user_role_update();
-        }
-        
         ?>
         <div class="wrap">
             <h1><?php _e('Document Users Management', 'lift-docs-system'); ?></h1>
             
             <div class="lift-docs-users-management">
-                <div class="users-summary">
-                    <h2><?php _e('User Roles Summary', 'lift-docs-system'); ?></h2>
-                    <?php $this->display_users_summary(); ?>
-                </div>
-                
                 <div class="users-with-documents-role">
                     <h2><?php _e('Users with Documents Access', 'lift-docs-system'); ?></h2>
                     <?php $this->display_documents_users(); ?>
                 </div>
-                
-                <div class="add-documents-user">
-                    <h2><?php _e('Grant Document Access to User', 'lift-docs-system'); ?></h2>
-                    <?php $this->display_user_role_form(); ?>
-                </div>
             </div>
         </div>
-        
-        <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            // Handle Generate User Code button click
-            $('.generate-user-code-btn').on('click', function(e) {
-                e.preventDefault();
-                
-                var $button = $(this);
-                var userId = $button.data('user-id');
-                var userName = $button.data('user-name');
-                var $codeDisplay = $('#user-code-display-' + userId);
-                
-                // Disable button and show loading
-                $button.prop('disabled', true).text('<?php _e('Generating...', 'lift-docs-system'); ?>');
-                
-                // AJAX request to generate code
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'generate_user_code',
-                        user_id: userId,
-                        nonce: <?php echo json_encode(wp_create_nonce('generate_user_code')); ?>
-                    },
-                    success: function(response) {
-                        if (response.success && response.data.code) {
-                            // Update the display with new code
-                            $codeDisplay.html(
-                                '<code style="background: #f0f8ff; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-weight: bold; color: #0073aa;">' +
-                                response.data.code +
-                                '</code>'
-                            );
-                            
-                            // Remove the generate button
-                            $button.remove();
-                            
-                            // Show success message
-                            var successMsg = $('<div class="notice notice-success is-dismissible" style="margin: 10px 0;"><p><?php _e('User Code generated successfully!', 'lift-docs-system'); ?></p></div>');
-                            $('#user-row-' + userId).after(successMsg);
-                            
-                            // Auto-dismiss success message after 5 seconds
-                            setTimeout(function() {
-                                successMsg.fadeOut(function() {
-                                    $(this).remove();
-                                });
-                            }, 5000);
-                            
-                        } else {
-                            // Show error message
-                            alert('<?php _e('Error generating User Code. Please try again.', 'lift-docs-system'); ?>');
-                            $button.prop('disabled', false).text('<?php _e('Generate Code', 'lift-docs-system'); ?>');
-                        }
-                    },
-                    error: function() {
-                        // Show error message
-                        alert('<?php _e('Error generating User Code. Please try again.', 'lift-docs-system'); ?>');
-                        $button.prop('disabled', false).text('<?php _e('Generate Code', 'lift-docs-system'); ?>');
-                    }
-                });
-            });
-        });
-        </script>
-        
-        <style type="text/css">
-        .generate-user-code-btn {
-            background: #00a32a !important;
-            border-color: #00a32a !important;
-            color: #fff !important;
-            transition: all 0.3s ease;
-        }
-        
-        .generate-user-code-btn:hover {
-            background: #008a20 !important;
-            border-color: #008a20 !important;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .generate-user-code-btn:disabled {
-            background: #ddd !important;
-            border-color: #ddd !important;
-            color: #999 !important;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        [id^="user-code-display-"] code {
-            animation: codeAppear 0.5s ease-in-out;
-        }
-        
-        @keyframes codeAppear {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-                background: #ffffaa;
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-                background: #f0f8ff;
-            }
-        }
-        
-        .notice.notice-success {
-            animation: slideDown 0.3s ease-out;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        </style>
-        
         <?php
     }
 
@@ -2072,42 +1937,26 @@ class LIFT_Docs_Admin {
                     </td>
                     <td><?php echo esc_html($user->user_email); ?></td>
                     <td>
-                        <span id="user-code-display-<?php echo $user->ID; ?>">
+                        <div id="user-code-cell-<?php echo $user->ID; ?>">
                             <?php if ($user_code): ?>
-                                <code style="background: #f0f8ff; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-weight: bold; color: #0073aa;">
-                                    <?php echo esc_html($user_code); ?>
-                                </code>
+                                <strong style="color: #0073aa; font-family: monospace;"><?php echo esc_html($user_code); ?></strong><br>
+                                <button type="button" class="button button-small button-secondary generate-user-code-btn-mgmt" 
+                                        data-user-id="<?php echo $user->ID; ?>" 
+                                        style="margin-top: 5px; font-size: 11px;">
+                                    <?php _e('Generate New Code', 'lift-docs-system'); ?>
+                                </button>
                             <?php else: ?>
-                                <span style="color: #d63638; font-style: italic;"><?php _e('No code', 'lift-docs-system'); ?></span>
+                                <span style="color: #d63638; font-style: italic;"><?php _e('No Code', 'lift-docs-system'); ?></span><br>
+                                <button type="button" class="button button-small button-primary generate-user-code-btn-mgmt" 
+                                        data-user-id="<?php echo $user->ID; ?>" 
+                                        style="margin-top: 5px; font-size: 11px;">
+                                    <?php _e('Generate Code', 'lift-docs-system'); ?>
+                                </button>
                             <?php endif; ?>
-                        </span>
-                        
-                        <?php if (!$user_code): ?>
-                            <button type="button" class="button button-small button-primary generate-user-code-btn" 
-                                    data-user-id="<?php echo $user->ID; ?>" 
-                                    data-user-name="<?php echo esc_attr($user->display_name); ?>"
-                                    style="margin-left: 10px;">
-                                <?php _e('Generate Code', 'lift-docs-system'); ?>
-                            </button>
-                        <?php endif; ?>
+                        </div>
                     </td>
                     <td><?php echo date_i18n(get_option('date_format'), strtotime($user->user_registered)); ?></td>
                     <td>
-                        <form method="post" style="display: inline;">
-                            <?php wp_nonce_field('update_user_role_' . $user->ID); ?>
-                            <input type="hidden" name="action" value="update_user_role">
-                            <input type="hidden" name="user_id" value="<?php echo $user->ID; ?>">
-                            <select name="new_role">
-                                <option value="documents_user" selected><?php _e('Documents User', 'lift-docs-system'); ?></option>
-                                <option value="subscriber"><?php _e('Subscriber', 'lift-docs-system'); ?></option>
-                                <option value="contributor"><?php _e('Contributor', 'lift-docs-system'); ?></option>
-                                <option value="author"><?php _e('Author', 'lift-docs-system'); ?></option>
-                                <option value="editor"><?php _e('Editor', 'lift-docs-system'); ?></option>
-                            </select>
-                            <button type="submit" class="button button-small">
-                                <?php _e('Update Role', 'lift-docs-system'); ?>
-                            </button>
-                        </form>
                         <a href="<?php echo get_edit_user_link($user->ID); ?>" class="button button-small">
                             <?php _e('Edit User', 'lift-docs-system'); ?>
                         </a>
@@ -2116,6 +1965,121 @@ class LIFT_Docs_Admin {
                 <?php endforeach; ?>
             </tbody>
         </table>
+        
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            // Handle Generate User Code button click in Document Users Management
+            $(document).on('click', '.generate-user-code-btn-mgmt', function(e) {
+                e.preventDefault();
+                
+                var $button = $(this);
+                var userId = $button.data('user-id');
+                var $cell = $('#user-code-cell-' + userId);
+                var isRegenerate = $button.hasClass('button-secondary');
+                var originalText = $button.text();
+                
+                // Confirm if regenerating existing code
+                if (isRegenerate) {
+                    var confirmMessage = '<?php _e("Are you sure you want to generate a new User Code? This will replace the existing code and may affect document access.", "lift-docs-system"); ?>';
+                    if (!confirm(confirmMessage)) {
+                        return;
+                    }
+                }
+                
+                // Disable button and show loading
+                $button.prop('disabled', true).text('<?php _e("Generating...", "lift-docs-system"); ?>');
+                
+                // AJAX request to generate code
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'generate_user_code',
+                        user_id: userId,
+                        nonce: '<?php echo wp_create_nonce('generate_user_code'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success && response.data.code) {
+                            // Update the cell with new code and regenerate button
+                            var newHtml = '<strong style="color: #0073aa; font-family: monospace;">' + response.data.code + '</strong><br>' +
+                                         '<button type="button" class="button button-small button-secondary generate-user-code-btn-mgmt" ' +
+                                         'data-user-id="' + userId + '" ' +
+                                         'style="margin-top: 5px; font-size: 11px;"><?php _e("Generate New Code", "lift-docs-system"); ?></button>';
+                            
+                            $cell.html(newHtml);
+                            
+                            // Show success message
+                            var message = isRegenerate ? 
+                                '<?php _e("User Code regenerated successfully!", "lift-docs-system"); ?>' : 
+                                '<?php _e("User Code generated successfully!", "lift-docs-system"); ?>';
+                            var successMsg = $('<div class="notice notice-success is-dismissible" style="position: fixed; top: 32px; right: 20px; z-index: 9999; max-width: 300px;"><p>' + message + '</p></div>');
+                            $('body').append(successMsg);
+                            
+                            // Auto-dismiss success message after 3 seconds
+                            setTimeout(function() {
+                                successMsg.fadeOut(function() {
+                                    $(this).remove();
+                                });
+                            }, 3000);
+                            
+                        } else {
+                            // Show error message
+                            var errorMsg = response.data || '<?php _e("Error generating User Code. Please try again.", "lift-docs-system"); ?>';
+                            alert(errorMsg);
+                            $button.prop('disabled', false).text(originalText);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // Show detailed error message
+                        console.error('AJAX Error:', status, error, xhr.responseText);
+                        var errorMessage = '<?php _e("Error generating User Code. Please try again.", "lift-docs-system"); ?> Status: ' + status;
+                        alert(errorMessage);
+                        $button.prop('disabled', false).text(originalText);
+                    }
+                });
+            });
+        });
+        </script>
+        
+        <style type="text/css">
+        .generate-user-code-btn-mgmt {
+            font-size: 11px !important;
+            padding: 2px 8px !important;
+            height: auto !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* Primary button for users without code */
+        .generate-user-code-btn-mgmt.button-primary {
+            background: #00a32a !important;
+            border-color: #00a32a !important;
+            color: #fff !important;
+        }
+        
+        .generate-user-code-btn-mgmt.button-primary:hover {
+            background: #008a20 !important;
+            border-color: #008a20 !important;
+        }
+        
+        /* Secondary button for users with existing code */
+        .generate-user-code-btn-mgmt.button-secondary {
+            background: #f39c12 !important;
+            border-color: #f39c12 !important;
+            color: #fff !important;
+        }
+        
+        .generate-user-code-btn-mgmt.button-secondary:hover {
+            background: #e67e22 !important;
+            border-color: #e67e22 !important;
+        }
+        
+        .generate-user-code-btn-mgmt:disabled {
+            background: #ddd !important;
+            border-color: #ddd !important;
+            color: #999 !important;
+            cursor: not-allowed !important;
+        }
+        </style>
         <?php
     }
     
