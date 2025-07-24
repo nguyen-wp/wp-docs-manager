@@ -87,6 +87,7 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-ajax.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-secure-links.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-layout.php';
+        require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-frontend-login.php';
         
         // Load test files if in debug mode
         if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -117,6 +118,9 @@ class LIFT_Docs_System {
         LIFT_Docs_Ajax::get_instance();
         LIFT_Docs_Secure_Links::get_instance();
         LIFT_Docs_Layout::get_instance();
+        
+        // Initialize frontend login system
+        new LIFT_Docs_Frontend_Login();
     }
     
     /**

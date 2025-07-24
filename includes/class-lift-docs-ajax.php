@@ -52,6 +52,11 @@ class LIFT_Docs_Ajax {
         add_action('wp_ajax_lift_bulk_action', array($this, 'bulk_action'));
         add_action('wp_ajax_lift_upload_document', array($this, 'upload_document'));
         add_action('wp_ajax_lift_generate_secure_link', array($this, 'generate_secure_link'));
+        
+        // Frontend dashboard AJAX actions
+        add_action('wp_ajax_get_document_details', array($this, 'get_document_details'));
+        add_action('wp_ajax_track_document_action', array($this, 'track_document_action'));
+        add_action('wp_ajax_refresh_dashboard_stats', array($this, 'refresh_dashboard_stats'));
     }
     
     /**
@@ -691,5 +696,204 @@ class LIFT_Docs_Ajax {
         } else {
             return $_SERVER['REMOTE_ADDR'] ?? '';
         }
+    }
+    
+    /**
+     * Get document details for modal (Frontend Dashboard)
+     */
+    public function get_document_details() {
+        if (!wp_verify_nonce($_POST['nonce'], 'docs_login_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Authentication required');
+        }
+        
+        $document_id = intval($_POST['document_id']);
+        $document = get_post($document_id);
+        
+        if (!$document || $document->post_type !== 'lift_document') {
+            wp_send_json_error('Document not found');
+        }
+        
+        // Check if user has access to this document
+        $user_id = get_current_user_id();
+        $assigned_users = get_post_meta($document_id, '_lift_doc_assigned_users', true);
+        
+        if (!empty($assigned_users) && is_array($assigned_users) && !in_array($user_id, $assigned_users)) {
+            wp_send_json_error('Access denied');
+        }
+        
+        // Get file URLs
+        $file_urls = get_post_meta($document_id, '_lift_doc_file_urls', true);
+        if (empty($file_urls)) {
+            $file_urls = array(get_post_meta($document_id, '_lift_doc_file_url', true));
+        }
+        $file_urls = array_filter($file_urls);
+        
+        // Build modal content
+        $content = '<div class="document-details-modal">';
+        
+        if ($document->post_content) {
+            $content .= '<div class="document-description">';
+            $content .= '<h4>' . __('Description', 'lift-docs-system') . '</h4>';
+            $content .= wpautop($document->post_content);
+            $content .= '</div>';
+        }
+        
+        $content .= '<div class="document-files">';
+        $content .= '<h4>' . __('Files', 'lift-docs-system') . ' (' . count($file_urls) . ')</h4>';
+        
+        foreach ($file_urls as $index => $file_url) {
+            $file_number = $index + 1;
+            $filename = basename(parse_url($file_url, PHP_URL_PATH));
+            
+            $content .= '<div class="file-item">';
+            $content .= '<div class="file-info">';
+            $content .= '<strong>File ' . $file_number . ':</strong> ' . esc_html($filename);
+            $content .= '</div>';
+            $content .= '<div class="file-actions">';
+            $content .= '<button type="button" class="btn btn-primary view-file-btn" data-file-url="' . esc_url($file_url) . '" data-document-id="' . $document_id . '">';
+            $content .= '<span class="dashicons dashicons-visibility"></span> ' . __('View', 'lift-docs-system');
+            $content .= '</button>';
+            $content .= '<button type="button" class="btn btn-secondary download-file-btn" data-file-url="' . esc_url($file_url) . '" data-document-id="' . $document_id . '">';
+            $content .= '<span class="dashicons dashicons-download"></span> ' . __('Download', 'lift-docs-system');
+            $content .= '</button>';
+            $content .= '</div>';
+            $content .= '</div>';
+        }
+        
+        $content .= '</div>';
+        $content .= '</div>';
+        
+        wp_send_json_success(array(
+            'title' => $document->post_title,
+            'content' => $content
+        ));
+    }
+    
+    /**
+     * Track document action (view/download) from frontend dashboard
+     */
+    public function track_document_action() {
+        if (!wp_verify_nonce($_POST['nonce'], 'docs_login_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Authentication required');
+        }
+        
+        $document_id = intval($_POST['document_id']);
+        $action = sanitize_text_field($_POST['doc_action']);
+        
+        if (!$document_id || !in_array($action, array('view', 'download'))) {
+            wp_send_json_error('Invalid parameters');
+        }
+        
+        // Check document exists
+        $document = get_post($document_id);
+        if (!$document || $document->post_type !== 'lift_document') {
+            wp_send_json_error('Document not found');
+        }
+        
+        // Log the action
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'lift_docs_analytics';
+        
+        $result = $wpdb->insert(
+            $table_name,
+            array(
+                'document_id' => $document_id,
+                'user_id' => get_current_user_id(),
+                'action' => $action,
+                'ip_address' => $this->get_user_ip(),
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+                'timestamp' => current_time('mysql')
+            ),
+            array('%d', '%d', '%s', '%s', '%s', '%s')
+        );
+        
+        if ($result === false) {
+            wp_send_json_error('Failed to track action');
+        }
+        
+        // Update document meta counts
+        if ($action === 'view') {
+            $views = get_post_meta($document_id, '_lift_doc_views', true);
+            $views = $views ? intval($views) : 0;
+            update_post_meta($document_id, '_lift_doc_views', $views + 1);
+        } elseif ($action === 'download') {
+            $downloads = get_post_meta($document_id, '_lift_doc_downloads', true);
+            $downloads = $downloads ? intval($downloads) : 0;
+            update_post_meta($document_id, '_lift_doc_downloads', $downloads + 1);
+        }
+        
+        wp_send_json_success(array('message' => 'Action tracked successfully'));
+    }
+    
+    /**
+     * Refresh dashboard stats for current user
+     */
+    public function refresh_dashboard_stats() {
+        if (!wp_verify_nonce($_POST['nonce'], 'docs_login_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Authentication required');
+        }
+        
+        $user_id = get_current_user_id();
+        
+        // Get user's assigned documents count
+        $all_documents = get_posts(array(
+            'post_type' => 'lift_document',
+            'post_status' => 'publish',
+            'posts_per_page' => -1
+        ));
+        
+        $user_documents_count = 0;
+        foreach ($all_documents as $document) {
+            $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
+            
+            // If no specific assignments, document is available to all document users
+            if (empty($assigned_users) || !is_array($assigned_users)) {
+                $user_documents_count++;
+            } 
+            // Check if user is specifically assigned
+            else if (in_array($user_id, $assigned_users)) {
+                $user_documents_count++;
+            }
+        }
+        
+        // Get user download count
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'lift_docs_analytics';
+        
+        $download_count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'download'",
+            $user_id
+        ));
+        
+        // Get user view count
+        $view_count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'view'",
+            $user_id
+        ));
+        
+        // Get member since date
+        $user = get_user_by('id', $user_id);
+        $member_since = date_i18n('M d', strtotime($user->user_registered));
+        
+        wp_send_json_success(array(
+            'stats' => array(
+                $user_documents_count,
+                $download_count ? $download_count : 0,
+                $view_count ? $view_count : 0,
+                $member_since
+            )
+        ));
     }
 }
