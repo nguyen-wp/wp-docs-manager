@@ -2390,13 +2390,14 @@ class LIFT_Docs_Admin {
                 
                 // Confirm if regenerating existing code
                 if (isRegenerate) {
-                    if (!confirm('Are you sure you want to generate a new code? This will replace the existing code.')) {
+                    var confirmMessage = '<?php _e("Are you sure you want to generate a new User Code? This will replace the existing code and may affect document access.", "lift-docs-system"); ?>';
+                    if (!confirm(confirmMessage)) {
                         return;
                     }
                 }
                 
                 // Disable button and show loading
-                $button.prop('disabled', true).text('Generating...');
+                $button.prop('disabled', true).text('<?php _e("Generating...", "lift-docs-system"); ?>');
                 
                 // AJAX request to generate code
                 $.ajax({
@@ -2413,12 +2414,14 @@ class LIFT_Docs_Admin {
                             var newHtml = '<strong style="color: #0073aa; font-family: monospace;">' + response.data.code + '</strong><br>' +
                                          '<button type="button" class="button button-small button-secondary generate-user-code-btn-list" ' +
                                          'data-user-id="' + userId + '" data-nonce="' + nonce + '" ' +
-                                         'style="margin-top: 5px; font-size: 11px;">Generate New Code</button>';
+                                         'style="margin-top: 5px; font-size: 11px;"><?php _e("Generate New Code", "lift-docs-system"); ?></button>';
                             
                             $cell.html(newHtml);
                             
                             // Show success message
-                            var message = isRegenerate ? 'User Code regenerated successfully!' : 'User Code generated successfully!';
+                            var message = isRegenerate ? 
+                                '<?php _e("User Code regenerated successfully!", "lift-docs-system"); ?>' : 
+                                '<?php _e("User Code generated successfully!", "lift-docs-system"); ?>';
                             var successMsg = $('<div class="notice notice-success is-dismissible" style="margin: 10px 0; position: fixed; top: 32px; right: 20px; z-index: 9999; max-width: 300px;"><p>' + message + '</p></div>');
                             $('body').append(successMsg);
                             
@@ -2431,7 +2434,7 @@ class LIFT_Docs_Admin {
                             
                         } else {
                             // Show error message
-                            var errorMsg = response.data || 'Error generating User Code. Please try again.';
+                            var errorMsg = response.data || '<?php _e("Error generating User Code. Please try again.", "lift-docs-system"); ?>';
                             alert(errorMsg);
                             $button.prop('disabled', false).text(originalText);
                         }
@@ -2439,7 +2442,8 @@ class LIFT_Docs_Admin {
                     error: function(xhr, status, error) {
                         // Show detailed error message
                         console.error('AJAX Error:', status, error, xhr.responseText);
-                        alert('Error generating User Code. Please try again. Status: ' + status);
+                        var errorMessage = '<?php _e("Error generating User Code. Please try again.", "lift-docs-system"); ?> Status: ' + status;
+                        alert(errorMessage);
                         $button.prop('disabled', false).text(originalText);
                     }
                 });
