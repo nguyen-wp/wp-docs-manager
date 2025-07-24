@@ -26,6 +26,7 @@ class LIFT_Forms {
         
         // AJAX handlers
         add_action('wp_ajax_lift_forms_save', array($this, 'ajax_save_form'));
+        add_action('wp_ajax_lift_forms_get', array($this, 'ajax_get_form'));
         add_action('wp_ajax_lift_forms_delete', array($this, 'ajax_delete_form'));
         add_action('wp_ajax_lift_forms_submit', array($this, 'ajax_submit_form'));
         add_action('wp_ajax_nopriv_lift_forms_submit', array($this, 'ajax_submit_form'));
@@ -129,19 +130,47 @@ class LIFT_Forms {
      * Enqueue admin scripts
      */
     public function enqueue_admin_scripts($hook) {
-        if (strpos($hook, 'lift-forms') === false) {
+        // Check if we're on any LIFT Forms admin page
+        $is_lift_forms_page = false;
+        
+        if (strpos($hook, 'lift-forms') !== false) {
+            $is_lift_forms_page = true;
+        }
+        
+        if (isset($_GET['page']) && strpos($_GET['page'], 'lift-forms') !== false) {
+            $is_lift_forms_page = true;
+        }
+        
+        if (!$is_lift_forms_page) {
             return;
         }
         
-        wp_enqueue_script('jquery-ui-sortable');
-        wp_enqueue_script('jquery-ui-draggable');
-        wp_enqueue_script('jquery-ui-droppable');
+        // Enqueue jQuery first - ensure it's loaded
+        wp_enqueue_script('jquery');
+        wp_enqueue_script('jquery-ui-core');
+        
+        // Enqueue jQuery UI scripts with proper dependencies
+        wp_enqueue_script('jquery-ui-sortable', false, array('jquery', 'jquery-ui-core'));
+        wp_enqueue_script('jquery-ui-draggable', false, array('jquery', 'jquery-ui-core'));
+        wp_enqueue_script('jquery-ui-droppable', false, array('jquery', 'jquery-ui-core'));
+        
+        // Enqueue jQuery UI CSS
+        wp_enqueue_style('jquery-ui-core');
+        wp_enqueue_style('jquery-ui-theme');
+        
+        // Add jQuery UI theme from CDN as fallback
+        wp_enqueue_style(
+            'jquery-ui-theme-ui-lightness',
+            'https://code.jquery.com/ui/1.13.2/themes/ui-lightness/jquery-ui.css',
+            array(),
+            '1.13.2'
+        );
         
         wp_enqueue_script(
             'lift-forms-builder',
             plugin_dir_url(__FILE__) . '../assets/js/forms-builder.js',
-            array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable'),
-            '1.0.0',
+            array('jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable'),
+            '1.0.5', // Clean version without debug
             true
         );
         
@@ -149,7 +178,7 @@ class LIFT_Forms {
             'lift-forms-admin',
             plugin_dir_url(__FILE__) . '../assets/css/forms-admin.css',
             array(),
-            '1.0.0'
+            '1.0.2' // Clean version without debug
         );
         
         wp_localize_script('lift-forms-builder', 'liftForms', array(
@@ -583,6 +612,35 @@ class LIFT_Forms {
         </div>
         <div id="submission-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
         <?php
+    }
+    
+    /**
+     * AJAX get form
+     */
+    public function ajax_get_form() {
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        if (!current_user_can('manage_options') && !current_user_can('edit_posts')) {
+            wp_send_json_error(__('Insufficient permissions', 'lift-docs-system'));
+        }
+        
+        $form_id = intval($_POST['form_id']);
+        
+        if (!$form_id) {
+            wp_send_json_error(__('Invalid form ID', 'lift-docs-system'));
+        }
+        
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        $form = $wpdb->get_row($wpdb->prepare("SELECT * FROM $forms_table WHERE id = %d", $form_id));
+        
+        if (!$form) {
+            wp_send_json_error(__('Form not found', 'lift-docs-system'));
+        }
+        
+        wp_send_json_success($form);
     }
     
     /**

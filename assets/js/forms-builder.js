@@ -65,7 +65,7 @@
             });
             
             // Make canvas droppable
-            $('#form-canvas .canvas-content').droppable({
+            $('#form-canvas').droppable({
                 accept: '.field-item',
                 tolerance: 'pointer',
                 drop: function(event, ui) {
@@ -82,7 +82,7 @@
             });
             
             // Make canvas sortable
-            $('#form-canvas .canvas-content').sortable({
+            $('#form-canvas').sortable({
                 items: '.canvas-field',
                 placeholder: 'ui-sortable-placeholder',
                 handle: '.canvas-field',
@@ -106,7 +106,7 @@
             this.formData.fields.push(fieldConfig);
             
             const fieldHtml = this.renderCanvasField(fieldConfig);
-            $('#form-canvas .canvas-content').append(fieldHtml);
+            $('#form-canvas').append(fieldHtml);
             
             // Hide placeholder
             $('.canvas-placeholder').hide();
@@ -116,7 +116,7 @@
             this.selectFieldById(fieldId);
             
             // Update canvas sortable
-            $('#form-canvas .canvas-content').sortable('refresh');
+            $('#form-canvas').sortable('refresh');
         },
         
         getFieldDefaults: function(type) {
@@ -854,7 +854,8 @@
             }
             
             this.formData.fields = [];
-            $('#form-canvas .canvas-content').empty();
+            $('#form-canvas').empty();
+            $('#form-canvas').html('<div class="canvas-placeholder"><span class="dashicons dashicons-forms"></span><p>Drag fields from the left panel to build your form</p></div>');
             $('.canvas-placeholder').show();
             $('#form-canvas').removeClass('has-fields');
             this.closeSettingsPanel();
@@ -865,8 +866,101 @@
             const formId = $('#form-id').val();
             if (!formId) return;
             
-            // This would typically load via AJAX
-            // For now, we'll assume the form data is already loaded into the page
+            // Get form data via AJAX
+            $.ajax({
+                url: liftForms.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'lift_forms_get',
+                    nonce: liftForms.nonce,
+                    form_id: formId
+                },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        formBuilder.loadFormData(response.data);
+                    }
+                },
+                error: function() {
+                    console.warn('Could not load existing form data');
+                }
+            });
+        },
+        
+        loadFormData: function(formData) {
+            // Clear existing canvas
+            $('#form-canvas').empty();
+            this.formData.fields = [];
+            this.fieldCounter = 0;
+            
+            // Parse form fields if they exist
+            if (formData.form_fields) {
+                try {
+                    const fields = JSON.parse(formData.form_fields);
+                    if (Array.isArray(fields) && fields.length > 0) {
+                        // Load each field
+                        fields.forEach(field => {
+                            this.loadField(field);
+                        });
+                        
+                        // Hide placeholder and show fields
+                        $('.canvas-placeholder').hide();
+                        $('#form-canvas').addClass('has-fields');
+                    } else {
+                        this.showEmptyCanvas();
+                    }
+                } catch (e) {
+                    console.error('Error parsing form fields:', e);
+                    this.showEmptyCanvas();
+                }
+            } else {
+                this.showEmptyCanvas();
+            }
+            
+            // Load form settings if they exist
+            if (formData.settings) {
+                try {
+                    this.formData.settings = JSON.parse(formData.settings);
+                } catch (e) {
+                    console.error('Error parsing form settings:', e);
+                    this.formData.settings = {};
+                }
+            }
+        },
+        
+        loadField: function(fieldData) {
+            // Ensure field has required properties
+            if (!fieldData.id) {
+                this.fieldCounter++;
+                fieldData.id = 'field_' + this.fieldCounter;
+            }
+            
+            if (!fieldData.name) {
+                fieldData.name = fieldData.type + '_' + this.fieldCounter;
+            }
+            
+            // Update field counter
+            const fieldNum = parseInt(fieldData.id.replace('field_', ''));
+            if (fieldNum > this.fieldCounter) {
+                this.fieldCounter = fieldNum;
+            }
+            
+            // Add to form data
+            this.formData.fields.push(fieldData);
+            
+            // Render field
+            const fieldHtml = this.renderCanvasField(fieldData);
+            $('#form-canvas').append(fieldHtml);
+        },
+        
+        showEmptyCanvas: function() {
+            $('#form-canvas').html(`
+                <div class="canvas-placeholder">
+                    <span class="dashicons dashicons-forms"></span>
+                    <p>Drag fields from the left panel to build your form</p>
+                </div>
+            `);
+            $('.canvas-placeholder').show();
+            $('#form-canvas').removeClass('has-fields');
         },
         
         showModal: function(modalSelector) {

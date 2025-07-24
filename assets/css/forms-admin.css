@@ -757,25 +757,428 @@
     border-color: #0073aa;
 }
 
-/* Responsive */
+/* Form Preview Modal */
+.lift-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.lift-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 99999;
+}
+
+.lift-modal-content {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    max-height: 90vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 100001;
+}
+
+.lift-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid #eee;
+    background: #f9f9f9;
+    border-radius: 8px 8px 0 0;
+}
+
+.lift-modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.lift-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.lift-modal-close:hover {
+    background: #ddd;
+    color: #333;
+}
+
+.lift-modal-body {
+    padding: 25px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Preview Form Styles */
+.lift-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.lift-form-header h2 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.lift-form-header p {
+    color: #666;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.lift-form .lift-form-field {
+    margin-bottom: 20px;
+}
+
+.lift-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.lift-form input,
+.lift-form textarea,
+.lift-form select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.lift-form input:focus,
+.lift-form textarea:focus,
+.lift-form select:focus {
+    outline: none;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+.lift-form .radio-label,
+.lift-form .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: normal;
+}
+
+.lift-form .radio-label input,
+.lift-form .checkbox-label input {
+    width: auto;
+    margin: 0;
+}
+
+.lift-form fieldset {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 0;
+}
+
+.lift-form legend {
+    font-weight: 600;
+    padding: 0 10px;
+    color: #333;
+}
+
+.lift-form .required {
+    color: #dc3232;
+}
+
+.lift-form .field-description {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.lift-form-submit {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.lift-form-submit-btn {
+    background: #0073aa;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.lift-form-submit-btn:hover {
+    background: #005177;
+}
+
+/* Checkbox Settings */
+.checkbox-setting {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-setting input {
+    width: auto !important;
+    margin: 0;
+}
+
+.checkbox-setting label {
+    margin: 0;
+    font-weight: normal;
+}
+
+/* Option Management */
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 10px;
+    background: #f9f9f9;
+}
+
+.option-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.option-item input {
+    flex: 1;
+    margin: 0 !important;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.option-remove {
+    background: #dc3232;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.option-remove:hover {
+    background: #a00;
+}
+
+.add-option {
+    background: #0073aa;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.add-option:hover {
+    background: #005177;
+}
+
+/* Loading States */
+.button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.button.saving {
+    position: relative;
+}
+
+.button.saving::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Success/Error Messages */
+.notice {
+    padding: 10px 15px;
+    margin: 15px 0;
+    border-radius: 4px;
+    border-left: 4px solid;
+}
+
+.notice-success {
+    background: #f0fff4;
+    border-left-color: #00a32a;
+    color: #155724;
+}
+
+.notice-error {
+    background: #ffeaea;
+    border-left-color: #dc3232;
+    color: #721c24;
+}
+
+/* Drag and Drop States */
+.ui-sortable-helper {
+    background: #fff;
+    border: 1px solid #0073aa;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: rotate(3deg);
+    opacity: 0.9;
+    z-index: 1000;
+}
+
+.ui-sortable-placeholder {
+    background: #f0f8ff;
+    border: 2px dashed #0073aa;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    height: 60px;
+    position: relative;
+}
+
+.ui-sortable-placeholder:before {
+    content: '+ Drop field here';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #0073aa;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ui-draggable-helper {
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: 1px solid #0073aa;
+}
+
+/* Responsive Design */
 @media (max-width: 1200px) {
     .form-builder-content {
         flex-direction: column;
+        gap: 20px;
     }
     
     .field-palette {
         width: 100%;
-        max-height: 300px;
+        max-height: 250px;
         order: -1;
+        overflow-y: auto;
     }
     
     .field-settings-panel {
         width: 100%;
-        max-height: 400px;
+        max-height: 300px;
+        position: relative;
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .field-settings-panel.active {
+        display: block;
     }
     
     .form-canvas {
         min-height: 400px;
+    }
+    
+    .columns-container {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-builder-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .form-basic-settings {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .form-actions {
+        justify-content: stretch;
+    }
+    
+    .form-actions .button {
+        flex: 1;
+    }
+    
+    .field-categories {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .lift-modal-content {
+        margin: 10px;
+        max-height: calc(100vh - 20px);
+    }
+    
+    .lift-modal-body {
+        padding: 15px;
     }
 }
 
