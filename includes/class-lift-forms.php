@@ -30,6 +30,7 @@ class LIFT_Forms {
         add_action('wp_ajax_lift_forms_delete', array($this, 'ajax_delete_form'));
         add_action('wp_ajax_lift_forms_submit', array($this, 'ajax_submit_form'));
         add_action('wp_ajax_nopriv_lift_forms_submit', array($this, 'ajax_submit_form'));
+        add_action('wp_ajax_lift_forms_get_submission', array($this, 'ajax_get_submission'));
         
         // Register shortcode
         add_shortcode('lift_form', array($this, 'render_form_shortcode'));
@@ -97,17 +98,43 @@ class LIFT_Forms {
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             form_id mediumint(9) NOT NULL,
             form_data longtext,
+            user_id bigint(20) UNSIGNED DEFAULT NULL,
             user_ip varchar(45),
             user_agent text,
             submitted_at datetime DEFAULT CURRENT_TIMESTAMP,
             status varchar(20) DEFAULT 'unread',
             PRIMARY KEY (id),
-            KEY form_id (form_id)
+            KEY form_id (form_id),
+            KEY user_id (user_id),
+            KEY submitted_at (submitted_at)
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql_forms);
         dbDelta($sql_submissions);
+        
+        // Add user_id column if it doesn't exist (for existing installations)
+        $this->maybe_add_user_id_column();
+    }
+    
+    /**
+     * Add user_id column if it doesn't exist
+     */
+    private function maybe_add_user_id_column() {
+        global $wpdb;
+        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+        
+        // Check if user_id column exists
+        $column_exists = $wpdb->get_results($wpdb->prepare(
+            "SHOW COLUMNS FROM {$submissions_table} LIKE %s",
+            'user_id'
+        ));
+        
+        if (empty($column_exists)) {
+            // Add user_id column
+            $wpdb->query("ALTER TABLE {$submissions_table} ADD COLUMN user_id bigint(20) UNSIGNED DEFAULT NULL AFTER form_data");
+            $wpdb->query("ALTER TABLE {$submissions_table} ADD INDEX user_id (user_id)");
+        }
     }
     
     /**
@@ -542,6 +569,7 @@ class LIFT_Forms {
         $forms_table = $wpdb->prefix . 'lift_forms';
         
         $form_id = isset($_GET['form_id']) ? intval($_GET['form_id']) : 0;
+        $user_filter = isset($_GET['user_filter']) ? sanitize_text_field($_GET['user_filter']) : '';
         
         // Get forms for filter
         $forms = $wpdb->get_results("SELECT id, name FROM $forms_table ORDER BY name");
@@ -555,21 +583,29 @@ class LIFT_Forms {
             $params[] = $form_id;
         }
         
+        if ($user_filter === 'logged_in') {
+            $where .= ' AND s.user_id IS NOT NULL';
+        } elseif ($user_filter === 'guest') {
+            $where .= ' AND s.user_id IS NULL';
+        }
+        
         // Execute query with or without prepare based on params
         if (!empty($params)) {
             $submissions = $wpdb->get_results($wpdb->prepare(
-                "SELECT s.*, f.name as form_name 
+                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
                  FROM $submissions_table s 
                  LEFT JOIN $forms_table f ON s.form_id = f.id 
+                 LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
                  WHERE $where 
                  ORDER BY s.submitted_at DESC",
                 $params
             ));
         } else {
             $submissions = $wpdb->get_results(
-                "SELECT s.*, f.name as form_name 
+                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
                  FROM $submissions_table s 
                  LEFT JOIN $forms_table f ON s.form_id = f.id 
+                 LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
                  WHERE $where 
                  ORDER BY s.submitted_at DESC"
             );
@@ -591,6 +627,18 @@ class LIFT_Forms {
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    
+                    <select name="user_filter" onchange="this.form.submit()">
+                        <option value=""><?php _e('All Users', 'lift-docs-system'); ?></option>
+                        <option value="logged_in" <?php selected($user_filter, 'logged_in'); ?>><?php _e('Logged In Users', 'lift-docs-system'); ?></option>
+                        <option value="guest" <?php selected($user_filter, 'guest'); ?>><?php _e('Guest Users', 'lift-docs-system'); ?></option>
+                    </select>
+                    
+                    <?php if ($form_id || $user_filter): ?>
+                        <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions'); ?>" class="button">
+                            <?php _e('Clear Filters', 'lift-docs-system'); ?>
+                        </a>
+                    <?php endif; ?>
                 </form>
             </div>
             
@@ -605,6 +653,7 @@ class LIFT_Forms {
                     <thead>
                         <tr>
                             <th><?php _e('Form', 'lift-docs-system'); ?></th>
+                            <th><?php _e('Submitted By', 'lift-docs-system'); ?></th>
                             <th><?php _e('Submitted', 'lift-docs-system'); ?></th>
                             <th><?php _e('Status', 'lift-docs-system'); ?></th>
                             <th><?php _e('IP Address', 'lift-docs-system'); ?></th>
@@ -617,6 +666,20 @@ class LIFT_Forms {
                                 <td>
                                     <strong><?php echo esc_html($submission->form_name); ?></strong>
                                 </td>
+                                <td>
+                                    <?php if ($submission->user_id && $submission->user_name): ?>
+                                        <div class="user-info">
+                                            <strong><?php echo esc_html($submission->user_name); ?></strong>
+                                            <br><small class="user-email"><?php echo esc_html($submission->user_email); ?></small>
+                                            <br><small class="user-id">ID: <?php echo $submission->user_id; ?></small>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="guest-user">
+                                            <span class="dashicons dashicons-admin-users"></span>
+                                            <?php _e('Guest User', 'lift-docs-system'); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($submission->submitted_at)); ?></td>
                                 <td>
                                     <span class="status status-<?php echo esc_attr($submission->status); ?>">
@@ -628,6 +691,11 @@ class LIFT_Forms {
                                     <button type="button" class="button view-submission" data-id="<?php echo $submission->id; ?>">
                                         <?php _e('View', 'lift-docs-system'); ?>
                                     </button>
+                                    <?php if ($submission->user_id): ?>
+                                        <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" class="button button-small" target="_blank">
+                                            <?php _e('View User', 'lift-docs-system'); ?>
+                                        </a>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -649,6 +717,199 @@ class LIFT_Forms {
             </div>
         </div>
         <div id="submission-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
+        
+        <style>
+        .user-info {
+            line-height: 1.4;
+        }
+        .user-info strong {
+            color: #0073aa;
+            font-weight: 600;
+        }
+        .user-email {
+            color: #666;
+            font-style: italic;
+        }
+        .user-id {
+            color: #999;
+            font-family: 'Courier New', monospace;
+        }
+        .guest-user {
+            color: #999;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .guest-user .dashicons {
+            width: 16px;
+            height: 16px;
+            font-size: 16px;
+        }
+        .wp-list-table .column-actions {
+            width: 120px;
+        }
+        .wp-list-table .button-small {
+            font-size: 11px;
+            padding: 3px 8px;
+            height: auto;
+            line-height: 1.2;
+            margin-left: 5px;
+        }
+        .status {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-unread {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status-read {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .submissions-filters {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .submissions-filters form {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 0;
+        }
+        .submissions-filters select {
+            min-width: 200px;
+            padding: 6px 10px;
+        }
+        .submissions-filters .button {
+            white-space: nowrap;
+        }
+        @media (max-width: 768px) {
+            .submissions-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .submissions-filters form {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .submissions-filters select {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+        
+        /* Modal styles */
+        #submission-modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999999;
+        }
+        
+        #submission-detail-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 4px;
+            z-index: 1000000;
+            padding: 20px;
+            width: 90%;
+        }
+        
+        .lift-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+            line-height: 1;
+        }
+        
+        .lift-modal-close:hover {
+            color: #333;
+        }
+        
+        @media (max-width: 768px) {
+            #submission-detail-modal {
+                width: 95%;
+                max-height: 90vh;
+                padding: 15px;
+                top: 5%;
+                transform: translateX(-50%);
+            }
+        }
+        </style>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // View submission handler
+            $('.view-submission').on('click', function() {
+                var submissionId = $(this).data('id');
+                
+                // Show loading
+                $('#submission-detail-content').html('<p><?php _e('Loading...', 'lift-docs-system'); ?></p>');
+                $('#submission-detail-modal').show();
+                $('#submission-modal-backdrop').show();
+                
+                // Make AJAX request
+                $.post(ajaxurl, {
+                    action: 'lift_forms_get_submission',
+                    submission_id: submissionId,
+                    nonce: '<?php echo wp_create_nonce('lift_forms_get_submission'); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        $('#submission-detail-content').html(response.data);
+                    } else {
+                        $('#submission-detail-content').html('<p class="error">' + (response.data || '<?php _e('Error loading submission', 'lift-docs-system'); ?>') + '</p>');
+                    }
+                }).fail(function() {
+                    $('#submission-detail-content').html('<p class="error"><?php _e('Network error', 'lift-docs-system'); ?></p>');
+                });
+            });
+            
+            // Close modal handlers
+            $('.lift-modal-close, #submission-modal-backdrop').on('click', function() {
+                $('#submission-detail-modal').hide();
+                $('#submission-modal-backdrop').hide();
+            });
+            
+            // ESC key to close modal
+            $(document).on('keyup', function(e) {
+                if (e.keyCode === 27) {
+                    $('#submission-detail-modal').hide();
+                    $('#submission-modal-backdrop').hide();
+                }
+            });
+        });
+        </script>
         <?php
     }
     
@@ -940,6 +1201,12 @@ class LIFT_Forms {
             $processed_data['_user_id'] = get_current_user_id();
         }
         
+        // Get current user ID (for both logged in and guest users)
+        $current_user_id = get_current_user_id();
+        if ($current_user_id === 0) {
+            $current_user_id = null; // Store as NULL for guest users
+        }
+        
         // Save submission
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
         $result = $wpdb->insert(
@@ -947,6 +1214,7 @@ class LIFT_Forms {
             array(
                 'form_id' => $form_id,
                 'form_data' => json_encode($processed_data),
+                'user_id' => $current_user_id,
                 'user_ip' => $this->get_client_ip(),
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
                 'submitted_at' => current_time('mysql')
@@ -961,6 +1229,197 @@ class LIFT_Forms {
         } else {
             wp_send_json_error(__('Failed to submit form', 'lift-docs-system'));
         }
+    }
+    
+    /**
+     * AJAX get submission details
+     */
+    public function ajax_get_submission() {
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_get_submission')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Insufficient permissions', 'lift-docs-system'));
+        }
+        
+        $submission_id = intval($_POST['submission_id']);
+        
+        if (!$submission_id) {
+            wp_send_json_error(__('Invalid submission ID', 'lift-docs-system'));
+        }
+        
+        global $wpdb;
+        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        
+        // Get submission with user data
+        $submission = $wpdb->get_row($wpdb->prepare(
+            "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email, u.user_login as user_login
+             FROM $submissions_table s 
+             LEFT JOIN $forms_table f ON s.form_id = f.id 
+             LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
+             WHERE s.id = %d",
+            $submission_id
+        ));
+        
+        if (!$submission) {
+            wp_send_json_error(__('Submission not found', 'lift-docs-system'));
+        }
+        
+        // Parse form data
+        $form_data = json_decode($submission->form_data, true);
+        if (!$form_data) {
+            $form_data = array();
+        }
+        
+        // Build HTML output
+        ob_start();
+        ?>
+        <div class="submission-details">
+            <div class="submission-meta">
+                <h3><?php _e('Submission Information', 'lift-docs-system'); ?></h3>
+                <table class="form-table">
+                    <tr>
+                        <th><?php _e('Form:', 'lift-docs-system'); ?></th>
+                        <td><strong><?php echo esc_html($submission->form_name); ?></strong></td>
+                    </tr>
+                    <tr>
+                        <th><?php _e('Submitted:', 'lift-docs-system'); ?></th>
+                        <td><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($submission->submitted_at)); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php _e('Status:', 'lift-docs-system'); ?></th>
+                        <td>
+                            <span class="status status-<?php echo esc_attr($submission->status); ?>">
+                                <?php echo ucfirst($submission->status); ?>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php _e('Submitted By:', 'lift-docs-system'); ?></th>
+                        <td>
+                            <?php if ($submission->user_id && $submission->user_name): ?>
+                                <div class="user-info-detail">
+                                    <strong><?php echo esc_html($submission->user_name); ?></strong><br>
+                                    <small><?php _e('Email:', 'lift-docs-system'); ?> <?php echo esc_html($submission->user_email); ?></small><br>
+                                    <small><?php _e('Username:', 'lift-docs-system'); ?> <?php echo esc_html($submission->user_login); ?></small><br>
+                                    <small><?php _e('User ID:', 'lift-docs-system'); ?> <?php echo $submission->user_id; ?></small><br>
+                                    <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" target="_blank" class="button button-small">
+                                        <?php _e('View User Profile', 'lift-docs-system'); ?>
+                                    </a>
+                                </div>
+                            <?php else: ?>
+                                <span class="guest-user-detail">
+                                    <span class="dashicons dashicons-admin-users"></span>
+                                    <?php _e('Guest User (Not logged in)', 'lift-docs-system'); ?>
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php _e('IP Address:', 'lift-docs-system'); ?></th>
+                        <td><?php echo esc_html($submission->user_ip); ?></td>
+                    </tr>
+                    <tr>
+                        <th><?php _e('User Agent:', 'lift-docs-system'); ?></th>
+                        <td><small><?php echo esc_html($submission->user_agent); ?></small></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="submission-data">
+                <h3><?php _e('Form Data', 'lift-docs-system'); ?></h3>
+                <?php if (!empty($form_data)): ?>
+                    <table class="form-table">
+                        <?php foreach ($form_data as $key => $value): ?>
+                            <?php if (strpos($key, '_') === 0) continue; // Skip meta fields ?>
+                            <tr>
+                                <th><?php echo esc_html(ucfirst(str_replace('_', ' ', $key))); ?>:</th>
+                                <td>
+                                    <?php if (is_array($value)): ?>
+                                        <?php echo esc_html(implode(', ', $value)); ?>
+                                    <?php else: ?>
+                                        <?php echo nl2br(esc_html($value)); ?>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </table>
+                <?php else: ?>
+                    <p><?php _e('No form data available.', 'lift-docs-system'); ?></p>
+                <?php endif; ?>
+            </div>
+            
+            <?php if (isset($form_data['_document_id'])): ?>
+            <div class="submission-context">
+                <h3><?php _e('Document Context', 'lift-docs-system'); ?></h3>
+                <table class="form-table">
+                    <tr>
+                        <th><?php _e('Related Document:', 'lift-docs-system'); ?></th>
+                        <td>
+                            <strong><?php echo esc_html($form_data['_document_title'] ?? 'Unknown'); ?></strong><br>
+                            <small><?php _e('Document ID:', 'lift-docs-system'); ?> <?php echo intval($form_data['_document_id']); ?></small><br>
+                            <a href="<?php echo admin_url('post.php?post=' . intval($form_data['_document_id']) . '&action=edit'); ?>" target="_blank" class="button button-small">
+                                <?php _e('Edit Document', 'lift-docs-system'); ?>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <?php endif; ?>
+        </div>
+        
+        <style>
+        .submission-details {
+            max-width: 100%;
+        }
+        .submission-details h3 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        .submission-details h3:first-child {
+            margin-top: 0;
+        }
+        .user-info-detail strong {
+            color: #0073aa;
+        }
+        .guest-user-detail {
+            color: #666;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .guest-user-detail .dashicons {
+            width: 16px;
+            height: 16px;
+            font-size: 16px;
+        }
+        .form-table th {
+            width: 150px;
+            vertical-align: top;
+        }
+        .form-table td {
+            word-break: break-word;
+        }
+        </style>
+        <?php
+        
+        $html = ob_get_clean();
+        
+        // Mark as read
+        $wpdb->update(
+            $submissions_table,
+            array('status' => 'read'),
+            array('id' => $submission_id),
+            array('%s'),
+            array('%d')
+        );
+        
+        wp_send_json_success($html);
     }
     
     /**
