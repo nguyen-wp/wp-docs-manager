@@ -81,14 +81,27 @@
                 }
             });
             
-            // Make canvas sortable
+            // Make canvas sortable with enhanced features
             $('#form-canvas').sortable({
                 items: '.canvas-field',
                 placeholder: 'ui-sortable-placeholder',
-                handle: '.canvas-field',
+                handle: '.drag-handle',
                 tolerance: 'pointer',
+                cursor: 'move',
+                opacity: 0.8,
+                distance: 5,
+                start: function(event, ui) {
+                    ui.placeholder.html('<div class="placeholder-content"><span class="dashicons dashicons-move"></span> Drop field here</div>');
+                    $('#form-canvas').addClass('sorting-active');
+                    ui.item.addClass('being-sorted');
+                },
+                stop: function(event, ui) {
+                    $('#form-canvas').removeClass('sorting-active');
+                    ui.item.removeClass('being-sorted');
+                },
                 update: function() {
                     formBuilder.updateFieldOrder();
+                    formBuilder.showSortNotification();
                 }
             });
         },
@@ -210,16 +223,25 @@
         renderCanvasField: function(field) {
             const fieldHtml = `
                 <div class="canvas-field" data-field-id="${field.id}" data-field-type="${field.type}">
-                    <div class="field-controls">
-                        <button type="button" class="field-control-btn field-edit" title="Edit Field">
-                            <span class="dashicons dashicons-edit"></span>
-                        </button>
-                        <button type="button" class="field-control-btn field-duplicate" title="Duplicate Field">
-                            <span class="dashicons dashicons-admin-page"></span>
-                        </button>
-                        <button type="button" class="field-control-btn field-delete delete" title="Delete Field">
-                            <span class="dashicons dashicons-trash"></span>
-                        </button>
+                    <div class="field-header">
+                        <div class="drag-handle" title="Drag to reorder">
+                            <span class="dashicons dashicons-menu"></span>
+                        </div>
+                        <div class="field-info">
+                            <span class="field-type-badge">${field.type}</span>
+                            <span class="field-name">${field.label || field.name}</span>
+                        </div>
+                        <div class="field-controls">
+                            <button type="button" class="field-control-btn field-edit" title="Edit Field">
+                                <span class="dashicons dashicons-edit"></span>
+                            </button>
+                            <button type="button" class="field-control-btn field-duplicate" title="Duplicate Field">
+                                <span class="dashicons dashicons-admin-page"></span>
+                            </button>
+                            <button type="button" class="field-control-btn field-delete delete" title="Delete Field">
+                                <span class="dashicons dashicons-trash"></span>
+                            </button>
+                        </div>
                     </div>
                     <div class="field-preview">
                         ${this.renderFieldPreview(field)}
@@ -644,15 +666,34 @@
         
         updateFieldOrder: function() {
             const newOrder = [];
-            $('#form-canvas .canvas-field').each(function() {
+            $('#form-canvas .canvas-field').each(function(index) {
                 const fieldId = $(this).data('field-id');
                 const field = formBuilder.getFieldById(fieldId);
                 if (field) {
+                    field.order = index + 1; // Set the new order
                     newOrder.push(field);
                 }
             });
             
             this.formData.fields = newOrder;
+            console.log('Field order updated:', newOrder.map(f => `${f.name} (${f.order})`));
+        },
+        
+        showSortNotification: function() {
+            // Show a subtle notification that fields were reordered
+            const notification = $('<div class="sort-notification">Fields reordered</div>');
+            $('body').append(notification);
+            
+            setTimeout(function() {
+                notification.addClass('show');
+            }, 10);
+            
+            setTimeout(function() {
+                notification.removeClass('show');
+                setTimeout(function() {
+                    notification.remove();
+                }, 300);
+            }, 2000);
         },
         
         getFieldById: function(fieldId) {
