@@ -17,9 +17,8 @@ class LIFT_Forms {
     public function __construct() {
         add_action('init', array($this, 'init'));
         
-        // Only add admin menu when in admin
+        // Only add admin scripts when in admin
         if (is_admin()) {
-            add_action('admin_menu', array($this, 'add_admin_menu'));
             add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         }
         
@@ -127,41 +126,6 @@ class LIFT_Forms {
     }
     
     /**
-     * Add admin menu
-     */
-    public function add_admin_menu() {
-        // Use manage_options for admin access, fallback to edit_posts for other roles
-        $capability = current_user_can('manage_options') ? 'manage_options' : 'edit_posts';
-        
-        add_submenu_page(
-            'edit.php?post_type=lift_document',
-            __('LIFT Forms', 'lift-docs-system'),
-            __('Forms', 'lift-docs-system'),
-            $capability,
-            'lift-forms',
-            array($this, 'admin_page')
-        );
-        
-        add_submenu_page(
-            'edit.php?post_type=lift_document',
-            __('Form Builder', 'lift-docs-system'),
-            __('Form Builder', 'lift-docs-system'),
-            $capability,
-            'lift-forms-builder',
-            array($this, 'form_builder_page')
-        );
-        
-        add_submenu_page(
-            'edit.php?post_type=lift_document',
-            __('Form Submissions', 'lift-docs-system'),
-            __('Submissions', 'lift-docs-system'),
-            $capability,
-            'lift-forms-submissions',
-            array($this, 'submissions_page')
-        );
-    }
-    
-    /**
      * Enqueue admin scripts
      */
     public function enqueue_admin_scripts($hook) {
@@ -253,7 +217,7 @@ class LIFT_Forms {
         ?>
         <div class="wrap">
             <h1 class="wp-heading-inline"><?php _e('LIFT Forms', 'lift-docs-system'); ?></h1>
-            <a href="<?php echo admin_url('edit.php?post_type=lift_document&page=lift-forms-builder'); ?>" class="page-title-action">
+            <a href="<?php echo admin_url('admin.php?page=lift-forms-builder'); ?>" class="page-title-action">
                 <?php _e('Add New Form', 'lift-docs-system'); ?>
             </a>
             
@@ -280,7 +244,7 @@ class LIFT_Forms {
                         </div>
                         <h2><?php _e('No Forms Yet', 'lift-docs-system'); ?></h2>
                         <p><?php _e('Create your first form to start collecting information from customers.', 'lift-docs-system'); ?></p>
-                        <a href="<?php echo admin_url('edit.php?post_type=lift_document&page=lift-forms-builder'); ?>" class="button button-primary button-large">
+                        <a href="<?php echo admin_url('admin.php?page=lift-forms-builder'); ?>" class="button button-primary button-large">
                             <?php _e('Create Your First Form', 'lift-docs-system'); ?>
                         </a>
                     </div>
@@ -303,7 +267,7 @@ class LIFT_Forms {
                                         <strong><?php echo esc_html($form->name); ?></strong>
                                         <div class="row-actions">
                                             <span class="edit">
-                                                <a href="<?php echo admin_url('edit.php?post_type=lift_document&page=lift-forms-builder&id=' . $form->id); ?>">
+                                                <a href="<?php echo admin_url('admin.php?page=lift-forms-builder&id=' . $form->id); ?>">
                                                     <?php _e('Edit', 'lift-docs-system'); ?>
                                                 </a>
                                             </span>
@@ -311,7 +275,7 @@ class LIFT_Forms {
                                     </td>
                                     <td><?php echo esc_html($form->description); ?></td>
                                     <td>
-                                        <a href="<?php echo admin_url('edit.php?post_type=lift_document&page=lift-forms-submissions&form_id=' . $form->id); ?>">
+                                        <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions&form_id=' . $form->id); ?>">
                                             <?php echo $this->get_form_submissions_count($form->id); ?>
                                         </a>
                                     </td>
@@ -322,10 +286,10 @@ class LIFT_Forms {
                                     </td>
                                     <td><?php echo date_i18n(get_option('date_format'), strtotime($form->created_at)); ?></td>
                                     <td>
-                                        <a href="<?php echo admin_url('edit.php?post_type=lift_document&page=lift-forms-builder&id=' . $form->id); ?>" class="button button-small">
+                                        <a href="<?php echo admin_url('admin.php?page=lift-forms-builder&id=' . $form->id); ?>" class="button button-small">
                                             <?php _e('Edit', 'lift-docs-system'); ?>
                                         </a>
-                                        <a href="<?php echo wp_nonce_url(admin_url('edit.php?post_type=lift_document&page=lift-forms&action=delete&id=' . $form->id), 'delete_form_' . $form->id); ?>" 
+                                        <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=lift-forms&action=delete&id=' . $form->id), 'delete_form_' . $form->id); ?>" 
                                            class="button button-small button-link-delete" 
                                            onclick="return confirm('<?php _e('Are you sure you want to delete this form?', 'lift-docs-system'); ?>')">
                                             <?php _e('Delete', 'lift-docs-system'); ?>
@@ -537,9 +501,8 @@ class LIFT_Forms {
         <div class="wrap">
             <h1><?php _e('Form Submissions', 'lift-docs-system'); ?></h1>
             
-            <div class="submissions-filters">
+                        <div class="submissions-filters">
                 <form method="get">
-                    <input type="hidden" name="post_type" value="lift_document">
                     <input type="hidden" name="page" value="lift-forms-submissions">
                     
                     <select name="form_id" onchange="this.form.submit()">

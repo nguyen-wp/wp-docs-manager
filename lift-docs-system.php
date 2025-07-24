@@ -107,9 +107,10 @@ class LIFT_Docs_System {
             if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'debug-lift-forms-menu.php')) {
                 require_once LIFT_DOCS_PLUGIN_DIR . 'debug-lift-forms-menu.php';
             }
-            if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'force-lift-forms-menu.php')) {
-                require_once LIFT_DOCS_PLUGIN_DIR . 'force-lift-forms-menu.php';
-            }
+            // Disable force menu to avoid duplication - using main menu only
+            // if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'force-lift-forms-menu.php')) {
+            //     require_once LIFT_DOCS_PLUGIN_DIR . 'force-lift-forms-menu.php';
+            // }
         }
     }
     

@@ -113,6 +113,34 @@ class LIFT_Docs_Admin {
             'lift-docs-users',
             array($this, 'users_page')
         );
+        
+        // LIFT Forms submenu
+        add_submenu_page(
+            'lift-docs-system',
+            __('LIFT Forms', 'lift-docs-system'),
+            __('Forms', 'lift-docs-system'),
+            'manage_options',
+            'lift-forms',
+            array($this, 'forms_admin_page')
+        );
+        
+        add_submenu_page(
+            'lift-docs-system',
+            __('Form Builder', 'lift-docs-system'),
+            __('Form Builder', 'lift-docs-system'),
+            'manage_options',
+            'lift-forms-builder',
+            array($this, 'forms_builder_page')
+        );
+        
+        add_submenu_page(
+            'lift-docs-system',
+            __('Form Submissions', 'lift-docs-system'),
+            __('Submissions', 'lift-docs-system'),
+            'manage_options',
+            'lift-forms-submissions',
+            array($this, 'forms_submissions_page')
+        );
     }
     
     /**
@@ -1669,6 +1697,12 @@ class LIFT_Docs_Admin {
     public function enqueue_admin_scripts($hook) {
         global $pagenow, $post_type;
         
+        // Enqueue LIFT Forms scripts on forms pages
+        if (strpos($hook, 'lift-forms') !== false && class_exists('LIFT_Forms')) {
+            $lift_forms = new LIFT_Forms();
+            $lift_forms->enqueue_admin_scripts($hook);
+        }
+        
         // Load on document edit/add pages for media uploader
         if (($pagenow == 'post.php' || $pagenow == 'post-new.php') && $post_type == 'lift_document') {
             // Enqueue WordPress Media Library
@@ -2453,5 +2487,44 @@ class LIFT_Docs_Admin {
         </style>
         
         <?php
+    }
+    
+    /**
+     * LIFT Forms admin page
+     */
+    public function forms_admin_page() {
+        // Check if LIFT Forms class exists
+        if (class_exists('LIFT_Forms')) {
+            $lift_forms = new LIFT_Forms();
+            $lift_forms->admin_page();
+        } else {
+            echo '<div class="wrap"><h1>LIFT Forms</h1><p>LIFT Forms class not found. Please check if the forms module is properly loaded.</p></div>';
+        }
+    }
+    
+    /**
+     * LIFT Forms builder page
+     */
+    public function forms_builder_page() {
+        // Check if LIFT Forms class exists
+        if (class_exists('LIFT_Forms')) {
+            $lift_forms = new LIFT_Forms();
+            $lift_forms->form_builder_page();
+        } else {
+            echo '<div class="wrap"><h1>Form Builder</h1><p>LIFT Forms class not found. Please check if the forms module is properly loaded.</p></div>';
+        }
+    }
+    
+    /**
+     * LIFT Forms submissions page
+     */
+    public function forms_submissions_page() {
+        // Check if LIFT Forms class exists
+        if (class_exists('LIFT_Forms')) {
+            $lift_forms = new LIFT_Forms();
+            $lift_forms->submissions_page();
+        } else {
+            echo '<div class="wrap"><h1>Form Submissions</h1><p>LIFT Forms class not found. Please check if the forms module is properly loaded.</p></div>';
+        }
     }
 }
