@@ -53,6 +53,7 @@ class LIFT_Docs_Admin {
         
         // AJAX handlers
         add_action('wp_ajax_generate_user_code', array($this, 'ajax_generate_user_code'));
+        add_action('wp_ajax_get_admin_document_details', array($this, 'ajax_get_admin_document_details'));
         
         // Add script for users list
         add_action('admin_footer', array($this, 'add_users_list_script'));
@@ -154,47 +155,488 @@ class LIFT_Docs_Admin {
      * Main admin page
      */
     public function admin_page() {
+        // Get all published documents
+        $all_documents = get_posts(array(
+            'post_type' => 'lift_document',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'orderby' => 'date',
+            'order' => 'DESC'
+        ));
+        
         ?>
         <div class="wrap">
             <h1><?php _e('LIFT Docs System Dashboard', 'lift-docs-system'); ?></h1>
             
-            <div class="lift-docs-dashboard">
-                <div class="lift-docs-stats">
-                    <div class="lift-docs-stat-box">
-                        <h3><?php _e('Total Documents', 'lift-docs-system'); ?></h3>
-                        <p class="stat-number"><?php echo wp_count_posts('lift_document')->publish; ?></p>
-                    </div>
-                    
-                    <div class="lift-docs-stat-box">
-                        <h3><?php _e('Categories', 'lift-docs-system'); ?></h3>
-                        <p class="stat-number"><?php echo wp_count_terms('lift_doc_category'); ?></p>
-                    </div>
-                    
-                    <div class="lift-docs-stat-box">
-                        <h3><?php _e('Total Views', 'lift-docs-system'); ?></h3>
-                        <p class="stat-number"><?php echo $this->get_total_views(); ?></p>
-                    </div>
+            <div class="lift-docs-admin-dashboard">
+                <div class="dashboard-header">
+                    <p class="subtitle"><?php printf(__('Managing %d documents in the system', 'lift-docs-system'), count($all_documents)); ?></p>
                 </div>
                 
-                <div class="lift-docs-quick-actions">
-                    <h2><?php _e('Quick Actions', 'lift-docs-system'); ?></h2>
+                <?php if (!empty($all_documents)): ?>
+                <div class="documents-table-container">
+                    <table class="wp-list-table widefat fixed striped documents-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="manage-column column-title"><?php _e('Title', 'lift-docs-system'); ?></th>
+                                <th scope="col" class="manage-column column-assigned-users"><?php _e('Assigned Users', 'lift-docs-system'); ?></th>
+                                <th scope="col" class="manage-column column-date"><?php _e('Date', 'lift-docs-system'); ?></th>
+                                <th scope="col" class="manage-column column-actions"><?php _e('Actions', 'lift-docs-system'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($all_documents as $document): ?>
+                                <?php $this->render_admin_table_row($document); ?>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php else: ?>
+                <div class="no-documents">
+                    <div class="dashicons dashicons-portfolio" style="font-size: 64px; opacity: 0.3; margin-bottom: 20px;"></div>
+                    <h3><?php _e('No Documents Found', 'lift-docs-system'); ?></h3>
+                    <p><?php _e('No documents have been created yet.', 'lift-docs-system'); ?></p>
                     <a href="<?php echo admin_url('post-new.php?post_type=lift_document'); ?>" class="button button-primary">
-                        <?php _e('Add New Document', 'lift-docs-system'); ?>
-                    </a>
-                    <a href="<?php echo admin_url('edit.php?post_type=lift_document'); ?>" class="button">
-                        <?php _e('Manage Documents', 'lift-docs-system'); ?>
-                    </a>
-                    <a href="<?php echo admin_url('admin.php?page=lift-docs-settings'); ?>" class="button">
-                        <?php _e('Settings', 'lift-docs-system'); ?>
+                        <?php _e('Create Your First Document', 'lift-docs-system'); ?>
                     </a>
                 </div>
-                
-                <div class="lift-docs-recent">
-                    <h2><?php _e('Recent Documents', 'lift-docs-system'); ?></h2>
-                    <?php $this->display_recent_documents(); ?>
+                <?php endif; ?>
+            </div>
+        </div>
+        
+        <!-- Document Details Modal -->
+        <div id="admin-document-modal" class="admin-modal" style="display: none;">
+            <div class="admin-modal-content">
+                <div class="admin-modal-header">
+                    <h2 id="admin-modal-document-title"><?php _e('Document Details', 'lift-docs-system'); ?></h2>
+                    <button type="button" class="admin-modal-close">&times;</button>
+                </div>
+                <div class="admin-modal-body">
+                    <div id="admin-modal-document-content"></div>
                 </div>
             </div>
         </div>
+        <div id="admin-modal-backdrop" class="admin-modal-backdrop" style="display: none;"></div>
+        
+        <style>
+        .lift-docs-admin-dashboard {
+            margin-top: 20px;
+        }
+        
+        .dashboard-header {
+            background: #fff;
+            padding: 15px 20px;
+            border: 1px solid #c3c4c7;
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .dashboard-header .subtitle {
+            margin: 0;
+            color: #646970;
+            font-size: 14px;
+        }
+        
+        .documents-table-container {
+            background: #fff;
+            border: 1px solid #c3c4c7;
+        }
+        
+        .documents-table {
+            margin: 0;
+        }
+        
+        .documents-table th {
+            background: #f6f7f7;
+            font-weight: 600;
+            padding: 12px 15px;
+        }
+        
+        .documents-table td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+        
+        .document-title {
+            font-weight: 600;
+            color: #1d2327;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .document-excerpt {
+            font-size: 13px;
+            color: #646970;
+            margin-top: 3px;
+            line-height: 1.4;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .assigned-users-cell {
+            max-width: 200px;
+        }
+        
+        .user-count-badge {
+            background: #2271b1;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        
+        .user-names-list {
+            font-size: 12px;
+            color: #646970;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .no-users-assigned {
+            color: #646970;
+            font-style: italic;
+            font-size: 13px;
+        }
+        
+        .document-date {
+            color: #646970;
+            font-size: 13px;
+        }
+        
+        .document-time {
+            font-size: 12px;
+            color: #8c8f94;
+            margin-top: 2px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .btn-view-details {
+            background: #2271b1;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-view-details:hover {
+            background: #135e96;
+            color: white;
+        }
+        
+        .btn-edit {
+            background: #646970;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .btn-edit:hover {
+            background: #50575e;
+            color: white;
+        }
+        
+        .no-documents {
+            text-align: center;
+            padding: 80px 20px;
+            background: #fff;
+            border: 1px solid #c3c4c7;
+        }
+        
+        .no-documents h3 {
+            margin: 0 0 10px 0;
+            color: #1d2327;
+        }
+        
+        .no-documents p {
+            margin: 0 0 20px 0;
+            color: #646970;
+        }
+        
+        /* Modal Styles */
+        .admin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999999;
+            display: none;
+        }
+        
+        .admin-modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+        }
+        
+        .admin-modal-content {
+            position: relative;
+            background: white;
+            margin: 50px auto;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000000;
+        }
+        
+        .admin-modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #c3c4c7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f6f7f7;
+        }
+        
+        .admin-modal-header h2 {
+            margin: 0;
+            color: #1d2327;
+            font-size: 18px;
+        }
+        
+        .admin-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #646970;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+        }
+        
+        .admin-modal-close:hover {
+            background: #dcdcde;
+            color: #1d2327;
+        }
+        
+        .admin-modal-body {
+            padding: 30px;
+        }
+        
+        .modal-section {
+            margin-bottom: 25px;
+        }
+        
+        .modal-section h3 {
+            margin: 0 0 15px 0;
+            color: #1d2327;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-stat {
+            text-align: center;
+            background: #f6f7f7;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dcdcde;
+        }
+        
+        .modal-stat .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2271b1;
+            margin-bottom: 5px;
+        }
+        
+        .modal-stat .label {
+            font-size: 12px;
+            color: #646970;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .view-url-box {
+            background: #f6f7f7;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dcdcde;
+            word-break: break-all;
+        }
+        
+        .view-url-box a {
+            color: #2271b1;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .view-url-box a:hover {
+            text-decoration: underline;
+        }
+        
+        .assigned-users-grid {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .user-item {
+            background: #f6f7f7;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #dcdcde;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info strong {
+            color: #1d2327;
+            display: block;
+        }
+        
+        .user-email {
+            color: #646970;
+            font-size: 13px;
+        }
+        
+        .user-code-badge {
+            background: #2271b1;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .assigned-forms-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .form-badge {
+            background: #50575e;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .files-grid {
+            display: grid;
+            gap: 8px;
+        }
+        
+        .file-item {
+            background: #f6f7f7;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #dcdcde;
+        }
+        
+        .file-item a {
+            color: #2271b1;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        
+        .file-item a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 782px) {
+            .admin-modal-content {
+                margin: 20px;
+                width: calc(100% - 40px);
+            }
+            
+            .admin-modal-header,
+            .admin-modal-body {
+                padding: 20px;
+            }
+            
+            .modal-info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        </style>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Open modal for document details
+            $('.btn-view-details').on('click', function(e) {
+                e.preventDefault();
+                var documentId = $(this).data('document-id');
+                var documentTitle = $(this).data('document-title');
+                
+                $('#admin-modal-document-title').text(documentTitle);
+                $('#admin-modal-document-content').html('<p><?php _e('Loading...', 'lift-docs-system'); ?></p>');
+                $('#admin-document-modal, #admin-modal-backdrop').show();
+                
+                // Load document details via AJAX
+                $.post(ajaxurl, {
+                    action: 'get_admin_document_details',
+                    document_id: documentId,
+                    nonce: '<?php echo wp_create_nonce('get_admin_document_details'); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        $('#admin-modal-document-content').html(response.data.content);
+                    } else {
+                        $('#admin-modal-document-content').html('<p><?php _e('Error loading document details.', 'lift-docs-system'); ?></p>');
+                    }
+                });
+            });
+            
+            // Close modal
+            $('.admin-modal-close, #admin-modal-backdrop').on('click', function(e) {
+                if (e.target === this) {
+                    $('#admin-document-modal, #admin-modal-backdrop').hide();
+                }
+            });
+            
+            // Close modal with Escape key
+            $(document).on('keydown', function(e) {
+                if (e.keyCode === 27) {
+                    $('#admin-document-modal, #admin-modal-backdrop').hide();
+                }
+            });
+        });
+        </script>
         <?php
     }
     
@@ -2666,5 +3108,263 @@ class LIFT_Docs_Admin {
         } else {
             echo '<div class="wrap"><h1>Form Submissions</h1><p>LIFT Forms class not found. Please check if the forms module is properly loaded.</p></div>';
         }
+    }
+    
+    /**
+     * Render admin dashboard table row
+     */
+    private function render_admin_table_row($document) {
+        // Get assigned users
+        $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
+        $assigned_users = is_array($assigned_users) ? $assigned_users : array();
+        
+        // Get assigned forms
+        $assigned_forms = get_post_meta($document->ID, '_lift_doc_assigned_forms', true);
+        $assigned_forms = is_array($assigned_forms) ? $assigned_forms : array();
+        
+        // Get user names
+        $user_names = array();
+        if (!empty($assigned_users)) {
+            foreach ($assigned_users as $user_id) {
+                $user = get_user_by('ID', $user_id);
+                if ($user) {
+                    $user_names[] = $user->display_name;
+                }
+            }
+        }
+        
+        ?>
+        <tr>
+            <td class="column-title">
+                <div class="document-title" title="<?php echo esc_attr($document->post_title); ?>">
+                    <?php echo esc_html($document->post_title); ?>
+                </div>
+                <?php if ($document->post_excerpt): ?>
+                    <div class="document-excerpt" title="<?php echo esc_attr($document->post_excerpt); ?>">
+                        <?php echo esc_html($document->post_excerpt); ?>
+                    </div>
+                <?php endif; ?>
+            </td>
+            <td class="column-assigned-users assigned-users-cell">
+                <?php if (!empty($assigned_users)): ?>
+                    <div class="user-count-badge"><?php echo count($assigned_users); ?> <?php _e('users', 'lift-docs-system'); ?></div>
+                    <?php if (!empty($user_names)): ?>
+                        <div class="user-names-list" title="<?php echo esc_attr(implode(', ', $user_names)); ?>">
+                            <?php echo esc_html(implode(', ', $user_names)); ?>
+                        </div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <div class="no-users-assigned"><?php _e('No users assigned', 'lift-docs-system'); ?></div>
+                <?php endif; ?>
+            </td>
+            <td class="column-date">
+                <div class="document-date"><?php echo get_the_date('M j, Y', $document->ID); ?></div>
+                <div class="document-time"><?php echo get_the_time('g:i A', $document->ID); ?></div>
+            </td>
+            <td class="column-actions">
+                <div class="action-buttons">
+                    <button type="button" 
+                            class="btn-view-details" 
+                            data-document-id="<?php echo $document->ID; ?>" 
+                            data-document-title="<?php echo esc_attr($document->post_title); ?>">
+                        <?php _e('View Details', 'lift-docs-system'); ?>
+                    </button>
+                    <a href="<?php echo get_edit_post_link($document->ID); ?>" class="btn-edit">
+                        <?php _e('Edit', 'lift-docs-system'); ?>
+                    </a>
+                </div>
+            </td>
+        </tr>
+        <?php
+    }
+    
+    /**
+     * Get admin document details for modal (AJAX handler)
+     */
+    public function ajax_get_admin_document_details() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'get_admin_document_details')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        // Check user permissions
+        if (!current_user_can('manage_options') && !current_user_can('edit_lift_documents')) {
+            wp_send_json_error(__('Access denied', 'lift-docs-system'));
+        }
+        
+        $document_id = intval($_POST['document_id']);
+        $document = get_post($document_id);
+        
+        if (!$document || $document->post_type !== 'lift_document') {
+            wp_send_json_error(__('Document not found', 'lift-docs-system'));
+        }
+        
+        // Get document data
+        $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
+        $assigned_users = is_array($assigned_users) ? $assigned_users : array();
+        
+        $assigned_forms = get_post_meta($document->ID, '_lift_doc_assigned_forms', true);
+        $assigned_forms = is_array($assigned_forms) ? $assigned_forms : array();
+        
+        $views = get_post_meta($document->ID, '_lift_doc_views', true);
+        $downloads = get_post_meta($document->ID, '_lift_doc_downloads', true);
+        
+        // Get file URLs
+        $file_urls = get_post_meta($document->ID, '_lift_doc_file_urls', true);
+        if (empty($file_urls)) {
+            $file_urls = array(get_post_meta($document->ID, '_lift_doc_file_url', true));
+        }
+        $file_urls = array_filter($file_urls);
+        
+        // Generate view URL
+        if (class_exists('LIFT_Docs_Settings') && LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+            $view_url = LIFT_Docs_Settings::generate_secure_link($document->ID);
+        } else {
+            $view_url = get_permalink($document->ID);
+        }
+        
+        // Get user details
+        $user_details = array();
+        if (!empty($assigned_users)) {
+            foreach ($assigned_users as $user_id) {
+                $user = get_user_by('ID', $user_id);
+                if ($user) {
+                    $user_details[] = array(
+                        'name' => $user->display_name,
+                        'email' => $user->user_email,
+                        'code' => get_user_meta($user_id, 'lift_docs_user_code', true)
+                    );
+                }
+            }
+        }
+        
+        // Get form details
+        $form_details = array();
+        if (!empty($assigned_forms)) {
+            global $wpdb;
+            $forms_table = $wpdb->prefix . 'lift_forms';
+            foreach ($assigned_forms as $form_id) {
+                $form = $wpdb->get_row($wpdb->prepare(
+                    "SELECT id, name, description FROM $forms_table WHERE id = %d AND status = 'active'",
+                    $form_id
+                ));
+                if ($form) {
+                    $form_details[] = array(
+                        'id' => $form->id,
+                        'name' => $form->name,
+                        'description' => $form->description
+                    );
+                }
+            }
+        }
+        
+        ob_start();
+        ?>
+        <div class="modal-section">
+            <div class="modal-info-grid">
+                <div class="modal-stat">
+                    <div class="number"><?php echo $views ? $views : 0; ?></div>
+                    <div class="label"><?php _e('Views', 'lift-docs-system'); ?></div>
+                </div>
+                <div class="modal-stat">
+                    <div class="number"><?php echo $downloads ? $downloads : 0; ?></div>
+                    <div class="label"><?php _e('Downloads', 'lift-docs-system'); ?></div>
+                </div>
+                <div class="modal-stat">
+                    <div class="number"><?php echo count($assigned_users); ?></div>
+                    <div class="label"><?php _e('Assigned Users', 'lift-docs-system'); ?></div>
+                </div>
+                <div class="modal-stat">
+                    <div class="number"><?php echo count($file_urls); ?></div>
+                    <div class="label"><?php _e('Files', 'lift-docs-system'); ?></div>
+                </div>
+            </div>
+        </div>
+        
+        <?php if (!empty($document->post_content)): ?>
+        <div class="modal-section">
+            <h3><?php _e('Description', 'lift-docs-system'); ?></h3>
+            <div style="background: #f6f7f7; padding: 15px; border-radius: 6px; border: 1px solid #dcdcde;">
+                <p style="margin: 0; color: #1d2327; line-height: 1.6;">
+                    <?php echo esc_html(wp_trim_words($document->post_content, 50)); ?>
+                </p>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <div class="modal-section">
+            <h3><?php _e('View URL', 'lift-docs-system'); ?></h3>
+            <div class="view-url-box">
+                <a href="<?php echo esc_url($view_url); ?>" target="_blank">
+                    <?php echo esc_html($view_url); ?>
+                </a>
+            </div>
+        </div>
+        
+        <?php if (!empty($user_details)): ?>
+        <div class="modal-section">
+            <h3><?php _e('Assigned Users', 'lift-docs-system'); ?> (<?php echo count($user_details); ?>)</h3>
+            <div class="assigned-users-grid">
+                <?php foreach ($user_details as $user_info): ?>
+                    <div class="user-item">
+                        <div class="user-info">
+                            <strong><?php echo esc_html($user_info['name']); ?></strong>
+                            <div class="user-email"><?php echo esc_html($user_info['email']); ?></div>
+                        </div>
+                        <?php if (!empty($user_info['code'])): ?>
+                            <div class="user-code-badge">
+                                <?php echo esc_html($user_info['code']); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <?php if (!empty($form_details)): ?>
+        <div class="modal-section">
+            <h3><?php _e('Assigned Forms', 'lift-docs-system'); ?> (<?php echo count($form_details); ?>)</h3>
+            <div class="assigned-forms-grid">
+                <?php foreach ($form_details as $form_info): ?>
+                    <div class="form-badge" title="<?php echo esc_attr($form_info['description']); ?>">
+                        <?php echo esc_html($form_info['name']); ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <?php if (!empty($file_urls)): ?>
+        <div class="modal-section">
+            <h3><?php _e('Files', 'lift-docs-system'); ?> (<?php echo count($file_urls); ?>)</h3>
+            <div class="files-grid">
+                <?php foreach ($file_urls as $index => $file_url): ?>
+                    <?php if (!empty($file_url)): ?>
+                        <div class="file-item">
+                            <a href="<?php echo esc_url($file_url); ?>" target="_blank">
+                                <?php echo esc_html(basename($file_url)); ?>
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <div class="modal-section">
+            <h3><?php _e('Created', 'lift-docs-system'); ?></h3>
+            <p style="margin: 0; color: #646970;">
+                <?php echo get_the_date('F j, Y g:i A', $document->ID); ?> 
+                <?php _e('by', 'lift-docs-system'); ?> 
+                <?php echo get_the_author_meta('display_name', $document->post_author); ?>
+            </p>
+        </div>
+        <?php
+        $content = ob_get_clean();
+        
+        wp_send_json_success(array(
+            'content' => $content
+        ));
     }
 }
