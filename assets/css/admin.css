@@ -1104,3 +1104,96 @@
     }
     
 }
+
+/* Alpha Color Picker Styles */
+.wp-picker-container .iris-alpha-slider {
+    background: linear-gradient(to right, 
+        transparent 0%, 
+        rgba(0,0,0,0.1) 20%, 
+        rgba(0,0,0,0.3) 40%, 
+        rgba(0,0,0,0.5) 50%, 
+        rgba(0,0,0,0.7) 60%, 
+        rgba(0,0,0,0.9) 80%, 
+        rgba(0,0,0,1) 100%
+    );
+    background-size: 20px 20px;
+    background-image: 
+        linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+        linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    border-radius: 4px;
+}
+
+.wp-picker-container .iris-alpha-text {
+    position: absolute;
+    top: 2px;
+    right: 8px;
+    font-size: 11px;
+    color: #666;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+
+.wp-picker-container .iris-alpha-slider .ui-slider-handle {
+    background: #fff !important;
+    border: 2px solid #999 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 50% !important;
+}
+
+.wp-picker-container .iris-alpha-slider .ui-slider-handle:hover {
+    border-color: #555 !important;
+}
+
+.wp-picker-container .iris-alpha-slider .ui-slider-handle:focus {
+    border-color: #0073aa !important;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.3) !important;
+}
+
+/* Color picker input styling */
+.color-picker-alpha {
+    width: 100px !important;
+    margin-right: 10px !important;
+}
+
+/* Enhanced color result display for alpha colors */
+.wp-color-result-alpha {
+    background-size: 20px 20px;
+    background-image: 
+        linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+        linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+/* Settings page specific styles for color pickers */
+.form-table .color-picker-alpha {
+    max-width: 200px;
+}
+
+.form-table .wp-picker-container {
+    margin-bottom: 10px;
+}
+
+.form-table .wp-picker-container .description {
+    margin-top: 8px;
+}
+
+/* Improved visibility for alpha slider */
+.wp-picker-container .iris-picker {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.wp-picker-container .iris-alpha-slider {
+    margin-top: 5px;
+    height: 20px !important;
+    border: 1px solid #ccc !important;
+    position: relative !important;
+}

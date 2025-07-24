@@ -47,6 +47,23 @@ class LIFT_Docs_Settings {
         wp_enqueue_style('wp-color-picker');
         wp_enqueue_script('jquery');
         
+        // Enqueue alpha color picker for transparency support
+        wp_enqueue_script(
+            'wp-color-picker-alpha',
+            plugin_dir_url(__FILE__) . '../assets/js/wp-color-picker-alpha.min.js',
+            array('jquery', 'wp-color-picker'),
+            '3.0.0',
+            true
+        );
+        
+        // Enqueue admin styles for color picker
+        wp_enqueue_style(
+            'lift-docs-admin-styles',
+            plugin_dir_url(__FILE__) . '../assets/css/admin.css',
+            array('wp-color-picker'),
+            '1.0.0'
+        );
+        
         // Force load media scripts
         wp_enqueue_script('media-upload');
         wp_enqueue_script('thickbox');
@@ -86,13 +103,23 @@ class LIFT_Docs_Settings {
         register_setting('lift_docs_settings_interface', 'lift_docs_login_title');
         register_setting('lift_docs_settings_interface', 'lift_docs_login_description');
         
-        // Register login customization settings
+        // Register login customization settings with validation
         register_setting('lift_docs_settings_group', 'lift_docs_login_logo');
-        register_setting('lift_docs_settings_group', 'lift_docs_login_bg_color');
-        register_setting('lift_docs_settings_group', 'lift_docs_login_form_bg');
-        register_setting('lift_docs_settings_group', 'lift_docs_login_btn_color');
-        register_setting('lift_docs_settings_group', 'lift_docs_login_input_color');
-        register_setting('lift_docs_settings_group', 'lift_docs_login_text_color');
+        register_setting('lift_docs_settings_group', 'lift_docs_login_bg_color', array(
+            'sanitize_callback' => array($this, 'validate_bg_color')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_login_form_bg', array(
+            'sanitize_callback' => array($this, 'validate_form_bg_color')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_login_btn_color', array(
+            'sanitize_callback' => array($this, 'validate_btn_color')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_login_input_color', array(
+            'sanitize_callback' => array($this, 'validate_input_color')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_login_text_color', array(
+            'sanitize_callback' => array($this, 'validate_text_color')
+        ));
         
         // General Tab Settings
         add_settings_section(
@@ -679,8 +706,36 @@ class LIFT_Docs_Settings {
                 '-webkit-animation': 'none !important'
             });
             
-            // Color picker - no animation
+            // Color picker with alpha support
             if ($.fn.wpColorPicker) {
+                $('.color-picker-alpha').wpColorPicker({
+                    change: function(event, ui) {
+                        // No animation on color change
+                    },
+                    // Enable alpha transparency
+                    alpha: true,
+                    // Set default alpha to 1 (fully opaque)
+                    defaultColor: false,
+                    // Hide the color picker on outside click
+                    hide: true,
+                    // Custom palettes for common transparent colors
+                    palettes: [
+                        'rgba(255,255,255,0)',   // Transparent white
+                        'rgba(0,0,0,0)',         // Transparent black
+                        'rgba(255,255,255,0.1)', // 10% white
+                        'rgba(255,255,255,0.3)', // 30% white
+                        'rgba(255,255,255,0.5)', // 50% white
+                        'rgba(255,255,255,0.7)', // 70% white
+                        'rgba(255,255,255,0.9)', // 90% white
+                        'rgba(0,0,0,0.1)',       // 10% black
+                        'rgba(0,0,0,0.3)',       // 30% black
+                        'rgba(0,0,0,0.5)',       // 50% black
+                        'rgba(0,0,0,0.7)',       // 70% black
+                        'rgba(0,0,0,0.9)'        // 90% black
+                    ]
+                });
+                
+                // Also initialize regular color pickers for backwards compatibility
                 $('.color-picker').wpColorPicker({
                     change: function(event, ui) {
                         // No animation on color change
@@ -780,8 +835,8 @@ class LIFT_Docs_Settings {
      */
     public function login_bg_color_callback() {
         $color = get_option('lift_docs_login_bg_color', '#f0f4f8');
-        echo '<input type="color" name="lift_docs_login_bg_color" value="' . esc_attr($color) . '" class="color-picker">';
-        echo '<p class="description">' . __('Background color for the login page', 'lift-docs-system') . '</p>';
+        echo '<input type="text" name="lift_docs_login_bg_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
+        echo '<p class="description">' . __('Background color for the login page (supports transparency)', 'lift-docs-system') . '</p>';
     }
     
     /**
@@ -789,8 +844,8 @@ class LIFT_Docs_Settings {
      */
     public function login_form_bg_callback() {
         $color = get_option('lift_docs_login_form_bg', '#ffffff');
-        echo '<input type="color" name="lift_docs_login_form_bg" value="' . esc_attr($color) . '" class="color-picker">';
-        echo '<p class="description">' . __('Background color for the login form', 'lift-docs-system') . '</p>';
+        echo '<input type="text" name="lift_docs_login_form_bg" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
+        echo '<p class="description">' . __('Background color for the login form (supports transparency)', 'lift-docs-system') . '</p>';
     }
     
     /**
@@ -798,8 +853,8 @@ class LIFT_Docs_Settings {
      */
     public function login_btn_color_callback() {
         $color = get_option('lift_docs_login_btn_color', '#1976d2');
-        echo '<input type="color" name="lift_docs_login_btn_color" value="' . esc_attr($color) . '" class="color-picker">';
-        echo '<p class="description">' . __('Primary button color', 'lift-docs-system') . '</p>';
+        echo '<input type="text" name="lift_docs_login_btn_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
+        echo '<p class="description">' . __('Primary button color (supports transparency)', 'lift-docs-system') . '</p>';
     }
     
     /**
@@ -807,8 +862,8 @@ class LIFT_Docs_Settings {
      */
     public function login_input_color_callback() {
         $color = get_option('lift_docs_login_input_color', '#e0e0e0');
-        echo '<input type="color" name="lift_docs_login_input_color" value="' . esc_attr($color) . '" class="color-picker">';
-        echo '<p class="description">' . __('Border color for input fields', 'lift-docs-system') . '</p>';
+        echo '<input type="text" name="lift_docs_login_input_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
+        echo '<p class="description">' . __('Border color for input fields (supports transparency)', 'lift-docs-system') . '</p>';
     }
     
     /**
@@ -816,8 +871,8 @@ class LIFT_Docs_Settings {
      */
     public function login_text_color_callback() {
         $color = get_option('lift_docs_login_text_color', '#333333');
-        echo '<input type="color" name="lift_docs_login_text_color" value="' . esc_attr($color) . '" class="color-picker">';
-        echo '<p class="description">' . __('Main text color', 'lift-docs-system') . '</p>';
+        echo '<input type="text" name="lift_docs_login_text_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
+        echo '<p class="description">' . __('Main text color (supports transparency)', 'lift-docs-system') . '</p>';
     }
     
     /**
@@ -1018,6 +1073,84 @@ class LIFT_Docs_Settings {
         $validated['secure_link_expiry'] = 24;
         
         return $validated;
+    }
+    
+    /**
+     * Validate and sanitize color values (supports both hex and rgba)
+     */
+    private function validate_color($color, $default = '#ffffff') {
+        if (empty($color)) {
+            return $default;
+        }
+        
+        $color = trim($color);
+        
+        // Check for hex color (with or without #)
+        if (preg_match('/^#?([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/', $color)) {
+            return '#' . ltrim($color, '#');
+        }
+        
+        // Check for rgba color
+        if (preg_match('/^rgba\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*([01]?(?:\.\d+)?)\s*\)$/', $color, $matches)) {
+            $r = intval($matches[1]);
+            $g = intval($matches[2]);
+            $b = intval($matches[3]);
+            $a = floatval($matches[4]);
+            
+            // Validate RGB values (0-255) and alpha (0-1)
+            if ($r >= 0 && $r <= 255 && $g >= 0 && $g <= 255 && $b >= 0 && $b <= 255 && $a >= 0 && $a <= 1) {
+                return "rgba($r, $g, $b, $a)";
+            }
+        }
+        
+        // Check for rgb color (convert to rgba with alpha 1)
+        if (preg_match('/^rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/', $color, $matches)) {
+            $r = intval($matches[1]);
+            $g = intval($matches[2]);
+            $b = intval($matches[3]);
+            
+            if ($r >= 0 && $r <= 255 && $g >= 0 && $g <= 255 && $b >= 0 && $b <= 255) {
+                return "rgba($r, $g, $b, 1)";
+            }
+        }
+        
+        // If validation fails, return default
+        return $default;
+    }
+    
+    /**
+     * Validate background color
+     */
+    public function validate_bg_color($input) {
+        return $this->validate_color($input, '#f0f4f8');
+    }
+    
+    /**
+     * Validate form background color
+     */
+    public function validate_form_bg_color($input) {
+        return $this->validate_color($input, '#ffffff');
+    }
+    
+    /**
+     * Validate button color
+     */
+    public function validate_btn_color($input) {
+        return $this->validate_color($input, '#1976d2');
+    }
+    
+    /**
+     * Validate input color
+     */
+    public function validate_input_color($input) {
+        return $this->validate_color($input, '#e0e0e0');
+    }
+    
+    /**
+     * Validate text color
+     */
+    public function validate_text_color($input) {
+        return $this->validate_color($input, '#333333');
     }
     
     /**
