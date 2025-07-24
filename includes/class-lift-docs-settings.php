@@ -1361,13 +1361,11 @@ class LIFT_Docs_Settings {
         // Get assigned users for this document
         $assigned_users = get_post_meta($document_id, '_lift_doc_assigned_users', true);
         
-        // If no specific users are assigned, allow all users with document access role
+        // If no specific users are assigned, only admin and editor can access
         if (empty($assigned_users) || !is_array($assigned_users)) {
             return $user_id && (
-                user_can($user_id, 'view_lift_documents') || 
-                user_can($user_id, 'read_lift_document') ||
-                user_can($user_id, 'edit_lift_documents') ||
-                user_can($user_id, 'manage_options')
+                user_can($user_id, 'manage_options') ||
+                user_can($user_id, 'edit_lift_documents')
             );
         }
         

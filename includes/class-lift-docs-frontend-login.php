@@ -797,9 +797,12 @@ class LIFT_Docs_Frontend_Login {
         foreach ($all_documents as $document) {
             $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
             
-            // If no specific assignments, document is available to all document users
+            // If no specific assignments, only admin and editor can see
             if (empty($assigned_users) || !is_array($assigned_users)) {
-                $user_documents[] = $document;
+                // Only admin and editor can see unassigned documents
+                if (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents')) {
+                    $user_documents[] = $document;
+                }
             } 
             // Check if user is specifically assigned
             else if (in_array($user_id, $assigned_users)) {

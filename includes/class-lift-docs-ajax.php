@@ -721,7 +721,14 @@ class LIFT_Docs_Ajax {
         $user_id = get_current_user_id();
         $assigned_users = get_post_meta($document_id, '_lift_doc_assigned_users', true);
         
-        if (!empty($assigned_users) && is_array($assigned_users) && !in_array($user_id, $assigned_users)) {
+        // If no assignments, only admin and editor can access
+        if (empty($assigned_users) || !is_array($assigned_users)) {
+            if (!user_can($user_id, 'manage_options') && !user_can($user_id, 'edit_lift_documents')) {
+                wp_send_json_error('Access denied');
+            }
+        } 
+        // If assignments exist, check if user is assigned
+        else if (!in_array($user_id, $assigned_users)) {
             wp_send_json_error('Access denied');
         }
         
@@ -858,9 +865,11 @@ class LIFT_Docs_Ajax {
         foreach ($all_documents as $document) {
             $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
             
-            // If no specific assignments, document is available to all document users
+            // If no specific assignments, only admin and editor can see
             if (empty($assigned_users) || !is_array($assigned_users)) {
-                $user_documents_count++;
+                if (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents')) {
+                    $user_documents_count++;
+                }
             } 
             // Check if user is specifically assigned
             else if (in_array($user_id, $assigned_users)) {

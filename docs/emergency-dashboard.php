@@ -19,19 +19,28 @@ if (!in_array('documents_user', $current_user->roles) && !current_user_can('view
     wp_die('You do not have permission to access this page.');
 }
 
-// Get user's documents
-$user_documents = get_posts(array(
+// Get user's documents using new logic
+$all_documents = get_posts(array(
     'post_type' => 'lift_document',
     'post_status' => 'publish',
-    'posts_per_page' => -1,
-    'meta_query' => array(
-        array(
-            'key' => 'lift_docs_assigned_users',
-            'value' => '"' . $current_user->ID . '"',
-            'compare' => 'LIKE'
-        )
-    )
+    'posts_per_page' => -1
 ));
+
+$user_documents = array();
+foreach ($all_documents as $document) {
+    $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
+    
+    // If no specific assignments, only admin and editor can see
+    if (empty($assigned_users) || !is_array($assigned_users)) {
+        if (current_user_can('manage_options') || current_user_can('edit_lift_documents')) {
+            $user_documents[] = $document;
+        }
+    } 
+    // Check if user is specifically assigned
+    else if (in_array($current_user->ID, $assigned_users)) {
+        $user_documents[] = $document;
+    }
+}
 
 get_header();
 ?>

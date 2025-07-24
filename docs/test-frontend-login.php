@@ -161,29 +161,29 @@ if (empty($all_documents)) {
 } else {
     echo "<p style='color: #00a32a;'><strong>✅ Found " . count($all_documents) . " documents</strong> that will be available in the dashboard.</p>\n";
     
-    echo "<h4>Document Assignment Logic:</h4>\n";
+    echo "<h4>Document Assignment Logic (NEW):</h4>\n";
     echo "<ul>\n";
-    echo "<li><strong>No specific assignment:</strong> Document available to ALL document users</li>\n";
+    echo "<li><strong>No specific assignment:</strong> Document available to ADMIN and EDITOR only</li>\n";
     echo "<li><strong>Specific assignment:</strong> Document available only to assigned users</li>\n";
     echo "</ul>\n";
     
     // Check assignments
-    $public_docs = 0;
+    $admin_editor_only_docs = 0;
     $assigned_docs = 0;
     
     foreach ($all_documents as $doc) {
         $assigned_users = get_post_meta($doc->ID, '_lift_doc_assigned_users', true);
         if (empty($assigned_users) || !is_array($assigned_users)) {
-            $public_docs++;
+            $admin_editor_only_docs++;
         } else {
             $assigned_docs++;
         }
     }
     
     echo "<div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;'>\n";
-    echo "<strong>Document Distribution:</strong><br>\n";
-    echo "📖 Public Documents (all users): <strong>{$public_docs}</strong><br>\n";
-    echo "🔒 Assigned Documents (specific users): <strong>{$assigned_docs}</strong>\n";
+    echo "<strong>Document Distribution (NEW LOGIC):</strong><br>\n";
+    echo "� Admin/Editor Only Documents: <strong>{$admin_editor_only_docs}</strong><br>\n";
+    echo "� Assigned Documents (specific users): <strong>{$assigned_docs}</strong>\n";
     echo "</div>\n";
 }
 

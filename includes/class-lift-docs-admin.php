@@ -466,7 +466,7 @@ class LIFT_Docs_Admin {
         $assigned_users = get_post_meta($post_id, '_lift_doc_assigned_users', true);
         
         if (empty($assigned_users) || !is_array($assigned_users)) {
-            echo '<span style="color: #007cba; font-weight: 500;">' . __('All Document Users', 'lift-docs-system') . '</span>';
+            echo '<span style="color: #d63638; font-weight: 500;">' . __('Admin & Editor Only', 'lift-docs-system') . '</span>';
             return;
         }
         
@@ -476,7 +476,7 @@ class LIFT_Docs_Admin {
         if ($user_count === 0) {
             echo '<span style="color: #d63638;">' . __('No Access', 'lift-docs-system') . '</span>';
         } elseif ($user_count === $total_document_users) {
-            echo '<span style="color: #007cba; font-weight: 500;">' . __('All Document Users', 'lift-docs-system') . '</span>';
+            echo '<span style="color: #007cba; font-weight: 500;">' . __('All Document Users Assigned', 'lift-docs-system') . '</span>';
         } else {
             $user_names = array();
             $max_display = 3;
@@ -987,9 +987,13 @@ class LIFT_Docs_Admin {
             font-weight: 500;
             display: inline-block;
         }
+
+        .file-input-row {
+            margin-bottom: 10px;
+        }
         
         /* File Row Number Badge */
-        .file-input-row::before {
+        /* row.file-input-::before {
             content: attr(data-index);
             position: absolute;
             top: -8px;
@@ -1001,11 +1005,11 @@ class LIFT_Docs_Admin {
             padding: 3px 8px;
             border-radius: 12px;
             display: none;
-        }
+        } */
         
-        .file-input-row:nth-child(n+2)::before {
+        /* .file-input-row:nth-child(n+2)::before {
             display: block;
-        }
+        } */
         
         /* Action Buttons Container */
         .file-actions-container {
@@ -1143,7 +1147,7 @@ class LIFT_Docs_Admin {
         <div class="document-assignments">
             <p><strong><?php _e('Assign Document Access', 'lift-docs-system'); ?></strong></p>
             <p class="description">
-                <?php _e('Search and select users who can access this document. Leave empty to allow all Document Users access.', 'lift-docs-system'); ?>
+                <?php _e('Search and select users who can access this document. Leave empty to restrict access to Admin and Editor only.', 'lift-docs-system'); ?>
             </p>
             
             <?php if (empty($document_users)): ?>
@@ -1176,7 +1180,7 @@ class LIFT_Docs_Admin {
                             <?php endforeach; ?>
                         <?php endif; ?>
                         <span class="no-users-selected" style="color: #666; font-style: italic; <?php echo !empty($assigned_users) ? 'display: none;' : ''; ?>">
-                            <?php _e('No users selected (all Document Users will have access)', 'lift-docs-system'); ?>
+                            <?php _e('No users selected (only Admin and Editor will have access)', 'lift-docs-system'); ?>
                         </span>
                     </div>
                 </div>

@@ -202,8 +202,8 @@ if (!empty($documents)) {
         echo '<td><strong>' . esc_html($document->post_title) . '</strong><br><small>ID: ' . $document->ID . '</small></td>';
         
         if (empty($assigned_users) || !is_array($assigned_users)) {
-            echo '<td style="color: #007cba;"><em>All Document Users</em></td>';
-            echo '<td style="color: #007cba;">Open Access</td>';
+            echo '<td style="color: #d63638;"><em>Admin & Editor Only</em></td>';
+            echo '<td style="color: #d63638;">Restricted Access</td>';
         } else {
             echo '<td>';
             foreach ($assigned_users as $user_id) {

@@ -82,7 +82,7 @@ if (!empty($documents)) {
     $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
     
     if (empty($assigned_users) || !is_array($assigned_users)) {
-        echo '<p style="color: orange;">! Document has no specific user assignments (open to all Document Users)</p>';
+        echo '<p style="color: orange;">! Document has no specific user assignments (restricted to Admin and Editor only)</p>';
     } else {
         echo '<p style="color: green;">✓ Document assigned to ' . count($assigned_users) . ' users:</p>';
         echo '<ul>';
