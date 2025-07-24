@@ -204,8 +204,9 @@ class LIFT_Docs_Admin {
             </div>
         </div>
         
-        <!-- Document Details Modal -->
-        <div id="admin-document-modal" class="admin-modal" style="display: none;">
+        <!-- Enhanced Document Details Modal -->
+        <div id="admin-document-modal" class="admin-modal">
+            <div id="admin-modal-backdrop" class="admin-modal-backdrop"></div>
             <div class="admin-modal-content">
                 <div class="admin-modal-header">
                     <h2 id="admin-modal-document-title"><?php _e('Document Details', 'lift-docs-system'); ?></h2>
@@ -216,7 +217,6 @@ class LIFT_Docs_Admin {
                 </div>
             </div>
         </div>
-        <div id="admin-modal-backdrop" class="admin-modal-backdrop" style="display: none;"></div>
         
         <style>
         .lift-docs-admin-dashboard {
@@ -373,15 +373,23 @@ class LIFT_Docs_Admin {
             color: #646970;
         }
         
-        /* Modal Styles */
+        /* Enhanced Modal Styles - Like All Documents */
         .admin-modal {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             z-index: 999999;
             display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .admin-modal.show {
+            display: flex;
         }
         
         .admin-modal-backdrop {
@@ -390,63 +398,413 @@ class LIFT_Docs_Admin {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 100%);
+            animation: backdropFadeIn 0.3s ease-out;
         }
         
         .admin-modal-content {
             position: relative;
-            background: white;
-            margin: 50px auto;
-            width: 90%;
-            max-width: 700px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background: #ffffff;
+            margin: 0;
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+            border-radius: 16px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             z-index: 1000000;
+            overflow: hidden;
+            transform: scale(0.95);
+            animation: modalSlideIn 0.3s ease-out forwards;
         }
         
         .admin-modal-header {
-            padding: 20px 30px;
-            border-bottom: 1px solid #c3c4c7;
+            padding: 25px 35px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f6f7f7;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            position: relative;
+        }
+        
+        .admin-modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #2271b1 0%, #135e96 50%, #0a4775 100%);
         }
         
         .admin-modal-header h2 {
             margin: 0;
             color: #1d2327;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .admin-modal-header h2::before {
+            content: '📄';
             font-size: 18px;
         }
         
         .admin-modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 20px;
             color: #646970;
             cursor: pointer;
-            padding: 0;
-            width: 30px;
-            height: 30px;
+            padding: 8px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 3px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            font-weight: bold;
         }
         
         .admin-modal-close:hover {
-            background: #dcdcde;
-            color: #1d2327;
+            background: #ffffff;
+            color: #dc3232;
+            border-color: rgba(220, 50, 50, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(220, 50, 50, 0.15);
         }
         
         .admin-modal-body {
-            padding: 30px;
+            padding: 0;
+            max-height: calc(90vh - 80px);
+            overflow-y: auto;
+            background: #ffffff;
+        }
+        
+        .admin-modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .admin-modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .admin-modal-body::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        .admin-modal-body::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
         }
         
         .modal-section {
-            margin-bottom: 25px;
+            margin: 0;
+            padding: 25px 35px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .modal-section:last-child {
+            border-bottom: none;
+        }
+        
+        .modal-section:nth-child(even) {
+            background: rgba(248, 249, 250, 0.5);
+        }
+        
+        .modal-section h3 {
+            margin: 0 0 18px 0;
+            color: #1d2327;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 13px;
+            color: #646970;
+        }
+        
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 0;
+        }
+        
+        .modal-stat {
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .modal-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #2271b1, #135e96);
+        }
+        
+        .modal-stat .number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2271b1;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        
+        .modal-stat .label {
+            font-size: 12px;
+            color: #646970;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        
+        .view-url-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            word-break: break-all;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .view-url-box::before {
+            content: '🔗';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 20px;
+            opacity: 0.3;
+        }
+        
+        .view-url-box a {
+            color: #2271b1;
+            text-decoration: none;
+            font-weight: 500;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: color 0.2s ease;
+        }
+        
+        .view-url-box a:hover {
+            color: #135e96;
+            text-decoration: underline;
+        }
+        
+        .assigned-users-grid {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .user-item {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .user-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .user-info strong {
+            color: #1d2327;
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .user-email {
+            color: #646970;
+            font-size: 13px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        .user-code-badge {
+            background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(34, 113, 177, 0.3);
+        }
+        
+        .assigned-forms-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .form-badge {
+            background: linear-gradient(135deg, #50575e 0%, #3c434a 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .form-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(80, 87, 94, 0.3);
+        }
+        
+        .form-badge::before {
+            content: '📋';
+            margin-right: 6px;
+        }
+        
+        .files-grid {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .file-item {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .file-item::before {
+            content: '📎';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 16px;
+            opacity: 0.3;
+        }
+        
+        .file-item a {
+            color: #2271b1;
+            text-decoration: none;
+            font-weight: 500;
+            word-break: break-all;
+            transition: color 0.2s ease;
+            display: block;
+            padding-right: 30px;
+        }
+        
+        .file-item a:hover {
+            color: #135e96;
+            text-decoration: underline;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes backdropFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes modalSlideIn {
+            from { 
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 782px) {
+            .admin-modal-content {
+                width: 98%;
+                max-height: 95vh;
+                border-radius: 12px;
+            }
+            
+            .admin-modal-header,
+            .modal-section {
+                padding: 20px 25px;
+            }
+            
+            .modal-info-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .admin-modal-header h2 {
+                font-size: 18px;
+            }
+            
+            .view-url-box a {
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .admin-modal-content {
+                width: 100%;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+            
+            .modal-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-modal-header,
+            .modal-section {
+                padding: 15px 20px;
+            }
         }
         
         .modal-section h3 {
@@ -598,15 +956,22 @@ class LIFT_Docs_Admin {
         
         <script>
         jQuery(document).ready(function($) {
-            // Open modal for document details
+            // Open modal for document details with animation
             $('.btn-view-details').on('click', function(e) {
                 e.preventDefault();
                 var documentId = $(this).data('document-id');
                 var documentTitle = $(this).data('document-title');
                 
+                // Set title and loading state
                 $('#admin-modal-document-title').text(documentTitle);
-                $('#admin-modal-document-content').html('<p><?php _e('Loading...', 'lift-docs-system'); ?></p>');
-                $('#admin-document-modal, #admin-modal-backdrop').show();
+                $('#admin-modal-document-content').html('<div style="text-align: center; padding: 40px;"><div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2271b1; border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 20px; color: #646970;"><?php _e('Loading document details...', 'lift-docs-system'); ?></p></div><style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>');
+                
+                // Show modal with animation
+                var $modal = $('#admin-document-modal');
+                $modal.addClass('show');
+                
+                // Prevent body scroll
+                $('body').css('overflow', 'hidden');
                 
                 // Load document details via AJAX
                 $.post(ajaxurl, {
@@ -617,23 +982,47 @@ class LIFT_Docs_Admin {
                     if (response.success) {
                         $('#admin-modal-document-content').html(response.data.content);
                     } else {
-                        $('#admin-modal-document-content').html('<p><?php _e('Error loading document details.', 'lift-docs-system'); ?></p>');
+                        $('#admin-modal-document-content').html('<div style="text-align: center; padding: 40px;"><div style="color: #dc3232; font-size: 48px; margin-bottom: 20px;">⚠️</div><p style="color: #dc3232; font-weight: 600;"><?php _e('Error loading document details.', 'lift-docs-system'); ?></p><p style="color: #646970;"><?php _e('Please try again or contact administrator.', 'lift-docs-system'); ?></p></div>');
                     }
+                }).fail(function() {
+                    $('#admin-modal-document-content').html('<div style="text-align: center; padding: 40px;"><div style="color: #dc3232; font-size: 48px; margin-bottom: 20px;">🔌</div><p style="color: #dc3232; font-weight: 600;"><?php _e('Network Error', 'lift-docs-system'); ?></p><p style="color: #646970;"><?php _e('Please check your connection and try again.', 'lift-docs-system'); ?></p></div>');
                 });
             });
             
-            // Close modal
-            $('.admin-modal-close, #admin-modal-backdrop').on('click', function(e) {
+            // Close modal function with animation
+            function closeModal() {
+                var $modal = $('#admin-document-modal');
+                $modal.removeClass('show');
+                
+                // Restore body scroll
+                setTimeout(function() {
+                    $('body').css('overflow', '');
+                }, 300);
+            }
+            
+            // Close modal events
+            $('.admin-modal-close').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeModal();
+            });
+            
+            $('#admin-modal-backdrop').on('click', function(e) {
                 if (e.target === this) {
-                    $('#admin-document-modal, #admin-modal-backdrop').hide();
+                    closeModal();
                 }
             });
             
             // Close modal with Escape key
             $(document).on('keydown', function(e) {
-                if (e.keyCode === 27) {
-                    $('#admin-document-modal, #admin-modal-backdrop').hide();
+                if (e.keyCode === 27 && $('#admin-document-modal').hasClass('show')) {
+                    closeModal();
                 }
+            });
+            
+            // Prevent modal content clicks from closing modal
+            $('.admin-modal-content').on('click', function(e) {
+                e.stopPropagation();
             });
         });
         </script>
