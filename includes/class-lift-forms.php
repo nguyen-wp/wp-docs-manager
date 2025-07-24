@@ -488,14 +488,25 @@ class LIFT_Forms {
             $params[] = $form_id;
         }
         
-        $submissions = $wpdb->get_results($wpdb->prepare(
-            "SELECT s.*, f.name as form_name 
-             FROM $submissions_table s 
-             LEFT JOIN $forms_table f ON s.form_id = f.id 
-             WHERE $where 
-             ORDER BY s.submitted_at DESC",
-            $params
-        ));
+        // Execute query with or without prepare based on params
+        if (!empty($params)) {
+            $submissions = $wpdb->get_results($wpdb->prepare(
+                "SELECT s.*, f.name as form_name 
+                 FROM $submissions_table s 
+                 LEFT JOIN $forms_table f ON s.form_id = f.id 
+                 WHERE $where 
+                 ORDER BY s.submitted_at DESC",
+                $params
+            ));
+        } else {
+            $submissions = $wpdb->get_results(
+                "SELECT s.*, f.name as form_name 
+                 FROM $submissions_table s 
+                 LEFT JOIN $forms_table f ON s.form_id = f.id 
+                 WHERE $where 
+                 ORDER BY s.submitted_at DESC"
+            );
+        }
         
         ?>
         <div class="wrap">
