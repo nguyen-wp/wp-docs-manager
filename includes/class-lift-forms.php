@@ -170,7 +170,7 @@ class LIFT_Forms {
             'lift-forms-builder',
             plugin_dir_url(__FILE__) . '../assets/js/forms-builder.js',
             array('jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable'),
-            '1.0.5', // Clean version without debug
+            '1.0.9', // Cleaned up debug code
             true
         );
         
@@ -640,6 +640,43 @@ class LIFT_Forms {
             wp_send_json_error(__('Form not found', 'lift-docs-system'));
         }
         
+        // Debug log the form fields data from database
+        error_log('LIFT Forms Get - Raw form_fields from DB: ' . print_r($form->form_fields, true));
+        error_log('LIFT Forms Get - form_fields type: ' . gettype($form->form_fields));
+        
+        // Clean form_fields if it contains invalid characters
+        if (!empty($form->form_fields)) {
+            $form->form_fields = trim($form->form_fields);
+            
+            // Test if it's valid JSON
+            $test_decode = json_decode($form->form_fields, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                error_log('LIFT Forms Get - Invalid JSON in DB: ' . json_last_error_msg());
+                error_log('LIFT Forms Get - Problematic data: ' . $form->form_fields);
+                
+                // Try to fix common issues
+                $fixed_json = $form->form_fields;
+                
+                // Remove problematic characters
+                $fixed_json = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $fixed_json);
+                
+                // Try to fix malformed JSON (common issues)
+                $fixed_json = preg_replace('/,\s*}/', '}', $fixed_json); // Remove trailing commas
+                $fixed_json = preg_replace('/,\s*]/', ']', $fixed_json); // Remove trailing commas
+                
+                // Test again
+                $test_decode = json_decode($fixed_json, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $form->form_fields = $fixed_json;
+                    error_log('LIFT Forms Get - Fixed JSON successfully');
+                } else {
+                    // If still broken, set to empty array
+                    $form->form_fields = '[]';
+                    error_log('LIFT Forms Get - Could not fix JSON, using empty array');
+                }
+            }
+        }
+        
         wp_send_json_success($form);
     }
     
@@ -663,6 +700,37 @@ class LIFT_Forms {
         
         if (empty($name)) {
             wp_send_json_error(__('Form name is required', 'lift-docs-system'));
+        }
+        
+        // Validate fields data
+        if (empty($fields) || $fields === '[]' || $fields === 'null' || $fields === 'undefined') {
+            wp_send_json_error(__('Form must have at least one field', 'lift-docs-system'));
+        }
+        
+        // Clean fields data
+        $fields = trim($fields);
+        
+        // Remove BOM if present
+        if (substr($fields, 0, 3) === "\xEF\xBB\xBF") {
+            $fields = substr($fields, 3);
+        }
+        
+        // Remove control characters
+        $fields = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $fields);
+        
+        // Fix trailing commas
+        $fields = preg_replace('/,\s*}/', '}', $fields);
+        $fields = preg_replace('/,\s*]/', ']', $fields);
+        
+        // Test JSON validity
+        $fields_array = json_decode($fields, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $json_error = json_last_error_msg();
+            wp_send_json_error(__('Invalid fields data format: ' . $json_error, 'lift-docs-system'));
+        }
+        
+        if (empty($fields_array) || !is_array($fields_array)) {
+            wp_send_json_error(__('Fields data is empty or invalid', 'lift-docs-system'));
         }
         
         global $wpdb;

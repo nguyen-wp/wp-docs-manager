@@ -90,6 +90,9 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-frontend-login.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-forms.php';
         
+        // Include JSON fixer tool for LIFT Forms
+        // require_once LIFT_DOCS_PLUGIN_DIR . 'fix-lift-forms-json.php';
+        
         // Load test files if in debug mode
         if (defined('WP_DEBUG') && WP_DEBUG) {
             if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'test-multiple-files.php')) {

@@ -115,6 +115,9 @@
             // Select the new field
             this.selectFieldById(fieldId);
             
+            // Update form data
+            this.updateFormData();
+            
             // Update canvas sortable
             $('#form-canvas').sortable('refresh');
         },
@@ -610,6 +613,9 @@
                 $('.canvas-placeholder').show();
                 $('#form-canvas').removeClass('has-fields');
             }
+            
+            // Update form data
+            this.updateFormData();
         },
         
         duplicateField: function(e) {
@@ -659,8 +665,71 @@
             this.selectedField = null;
         },
         
+        cleanFieldData: function(field) {
+            const cleaned = {};
+            
+            // Copy only serializable properties
+            const allowedProps = [
+                'id', 'name', 'type', 'label', 'placeholder', 'required', 
+                'description', 'options', 'min', 'max', 'step', 'rows', 
+                'multiple', 'accept', 'content', 'order', 'validation'
+            ];
+            
+            allowedProps.forEach(prop => {
+                if (field.hasOwnProperty(prop) && field[prop] !== undefined) {
+                    // Handle arrays (like options)
+                    if (Array.isArray(field[prop])) {
+                        cleaned[prop] = field[prop].filter(item => item !== undefined && item !== null);
+                    } 
+                    // Handle objects
+                    else if (typeof field[prop] === 'object' && field[prop] !== null) {
+                        try {
+                            // Test if object is serializable
+                            JSON.stringify(field[prop]);
+                            cleaned[prop] = field[prop];
+                        } catch (e) {
+                            // Skip unserializable properties
+                        }
+                    } 
+                    // Handle primitives
+                    else {
+                        cleaned[prop] = field[prop];
+                    }
+                }
+            });
+            
+            return cleaned;
+        },
+        
+        // Clean all form data for serialization
+        cleanFormData: function() {
+            return {
+                fields: this.formData.fields.map(field => this.cleanFieldData(field)),
+                settings: this.formData.settings || {}
+            };
+        },
+        
         updateFormData: function() {
-            // This could be used to auto-save or validate
+            // Get current field order from canvas and maintain field data
+            const orderedFields = [];
+            
+            $('#form-canvas .canvas-field').each((index, element) => {
+                const fieldId = $(element).data('field-id');
+                const existingField = this.formData.fields.find(f => f.id === fieldId);
+                
+                if (existingField) {
+                    // Update order and keep all field data
+                    existingField.order = index;
+                    orderedFields.push(existingField);
+                }
+            });
+            
+            // Update formData with ordered fields
+            this.formData.fields = orderedFields;
+        },
+        
+        findFieldById: function(fieldId) {
+            return this.formData.fields.find(f => f.id === fieldId);
         },
         
         saveForm: function() {
@@ -674,8 +743,23 @@
                 return;
             }
             
+            // Ensure form data is up to date
+            this.updateFormData();
+            
             if (this.formData.fields.length === 0) {
                 alert('Please add at least one field to the form');
+                return;
+            }
+            
+            // Clean form data before serialization
+            const cleanData = this.cleanFormData();
+            
+            // Test JSON.stringify
+            let fieldsJson;
+            try {
+                fieldsJson = JSON.stringify(cleanData.fields);
+            } catch (e) {
+                alert('Error preparing form data: ' + e.message);
                 return;
             }
             
@@ -692,8 +776,8 @@
                     form_id: formId,
                     name: formName,
                     description: formDescription,
-                    fields: JSON.stringify(this.formData.fields),
-                    settings: JSON.stringify(this.formData.settings)
+                    fields: fieldsJson,
+                    settings: JSON.stringify(cleanData.settings)
                 },
                 success: function(response) {
                     if (response.success) {
@@ -886,6 +970,33 @@
             });
         },
         
+        safeJsonParse: function(jsonString) {
+            if (!jsonString) return null;
+            
+            try {
+                // If already an object/array, return as is
+                if (typeof jsonString !== 'string') {
+                    return jsonString;
+                }
+                
+                // Clean the string
+                let clean = jsonString.trim();
+                
+                // Remove BOM and other problematic characters
+                clean = clean.replace(/^\uFEFF/, ''); // Remove BOM
+                clean = clean.replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Remove control chars
+                
+                // Check if it starts and ends with proper JSON characters
+                if (!clean.startsWith('{') && !clean.startsWith('[')) {
+                    return null;
+                }
+                
+                return JSON.parse(clean);
+            } catch (e) {
+                return null;
+            }
+        },
+        
         loadFormData: function(formData) {
             // Clear existing canvas
             $('#form-canvas').empty();
@@ -894,22 +1005,19 @@
             
             // Parse form fields if they exist
             if (formData.form_fields) {
-                try {
-                    const fields = JSON.parse(formData.form_fields);
-                    if (Array.isArray(fields) && fields.length > 0) {
-                        // Load each field
-                        fields.forEach(field => {
-                            this.loadField(field);
-                        });
-                        
-                        // Hide placeholder and show fields
-                        $('.canvas-placeholder').hide();
-                        $('#form-canvas').addClass('has-fields');
-                    } else {
-                        this.showEmptyCanvas();
-                    }
-                } catch (e) {
-                    console.error('Error parsing form fields:', e);
+                // Use safe JSON parser
+                const fields = this.safeJsonParse(formData.form_fields);
+                
+                if (fields && Array.isArray(fields) && fields.length > 0) {
+                    // Load each field
+                    fields.forEach(field => {
+                        this.loadField(field);
+                    });
+                    
+                    // Hide placeholder and show fields
+                    $('.canvas-placeholder').hide();
+                    $('#form-canvas').addClass('has-fields');
+                } else {
                     this.showEmptyCanvas();
                 }
             } else {
@@ -918,12 +1026,8 @@
             
             // Load form settings if they exist
             if (formData.settings) {
-                try {
-                    this.formData.settings = JSON.parse(formData.settings);
-                } catch (e) {
-                    console.error('Error parsing form settings:', e);
-                    this.formData.settings = {};
-                }
+                const settings = this.safeJsonParse(formData.settings);
+                this.formData.settings = settings || {};
             }
         },
         
