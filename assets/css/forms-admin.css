@@ -218,10 +218,63 @@
     box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
 }
 
+/* Field Header */
+.field-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    cursor: move;
+    color: #666;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+    background: #f0f0f0;
+    color: #0073aa;
+}
+
+.canvas-field.being-sorted .drag-handle {
+    color: #0073aa;
+    background: #f0f8ff;
+}
+
+.field-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.field-type-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.field-name {
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
 .field-controls {
-    position: absolute;
-    top: -10px;
-    right: -10px;
     display: flex;
     gap: 5px;
     opacity: 0;
@@ -733,16 +786,16 @@
 }
 
 .ui-sortable-placeholder {
-    background: #f0f8ff;
+    background: linear-gradient(135deg, #f0f8ff 0%, #e8f4fd 100%);
     border: 2px dashed #0073aa;
     border-radius: 6px;
     margin-bottom: 15px;
     height: 60px;
     position: relative;
+    animation: pulse 1s ease-in-out infinite;
 }
 
-.ui-sortable-placeholder:before {
-    content: '+ Drop field here';
+.ui-sortable-placeholder .placeholder-content {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -750,11 +803,70 @@
     color: #0073aa;
     font-size: 14px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ui-sortable-placeholder .dashicons {
+    font-size: 16px;
+    animation: bounce 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-3px);
+    }
 }
 
 .canvas-content.drag-over {
     background: #f0f8ff;
     border-color: #0073aa;
+}
+
+.canvas-content.sorting-active {
+    background: #fafafa;
+}
+
+.canvas-field.being-sorted {
+    opacity: 0.8;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Sort Notification */
+.sort-notification {
+    position: fixed;
+    top: 32px;
+    right: 20px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    z-index: 9999;
+}
+
+.sort-notification.show {
+    opacity: 1;
+    transform: translateX(0);
 }
 
 /* Form Preview Modal */

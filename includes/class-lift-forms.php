@@ -170,7 +170,7 @@ class LIFT_Forms {
             'lift-forms-builder',
             plugin_dir_url(__FILE__) . '../assets/js/forms-builder.js',
             array('jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable'),
-            '1.0.9', // Cleaned up debug code
+            '1.1.0', // Enhanced sortable functionality
             true
         );
         
@@ -216,7 +216,7 @@ class LIFT_Forms {
             'lift-forms-admin',
             plugin_dir_url(__FILE__) . '../assets/css/forms-admin.css',
             array(),
-            '1.0.2' // Clean version without debug
+            '2.1.0' // Enhanced sortable functionality
         );
         
         wp_localize_script('lift-forms-builder', 'liftForms', array(

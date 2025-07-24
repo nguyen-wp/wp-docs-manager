@@ -1,14 +1,4 @@
 <?php
-/**
- * Emergency JSON Fixer
- * Sửa JSON bị lỗi từ FormBuilder
- */
-
-if (!defined('ABSPATH')) {
-    exit;
-}
-
-// Add emergency JSON fixer to AJAX handler
 add_action('wp_ajax_lift_forms_save', 'emergency_json_fixer', 5);
 
 function emergency_json_fixer() {
@@ -174,4 +164,3 @@ function emergency_json_page() {
     </div>
     <?php
 }
-?>

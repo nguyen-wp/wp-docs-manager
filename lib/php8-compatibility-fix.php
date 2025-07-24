@@ -1,13 +1,4 @@
 <?php
-/**
- * PHP 8 Compatibility Fixes
- * Fix deprecated warnings for null values
- */
-
-if (!defined('ABSPATH')) {
-    exit;
-}
-
 // Fix for deprecated strpos warnings
 if (!function_exists('safe_strpos')) {
     function safe_strpos($haystack, $needle, $offset = 0) {
@@ -51,4 +42,3 @@ add_action('init', function() {
         error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
     }
 }, 1);
-?>

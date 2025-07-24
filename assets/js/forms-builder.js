@@ -49,6 +49,11 @@
             
             // Field selection
             $(document).on('click', '.canvas-field', this.selectField.bind(this));
+            
+            // Prevent field selection when clicking drag handle
+            $(document).on('click', '.drag-handle', function(e) {
+                e.stopPropagation();
+            });
         },
         
         initDragDrop: function() {
