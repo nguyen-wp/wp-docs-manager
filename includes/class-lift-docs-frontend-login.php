@@ -24,6 +24,10 @@ class LIFT_Docs_Frontend_Login {
         add_filter('query_vars', array($this, 'add_query_vars'));
         add_action('template_redirect', array($this, 'handle_docs_login_page'));
         add_action('template_redirect', array($this, 'handle_docs_dashboard_page'));
+        
+        // Register shortcodes
+        add_shortcode('docs_login_form', array($this, 'login_form_shortcode'));
+        add_shortcode('docs_dashboard', array($this, 'dashboard_shortcode'));
     }
     
     /**
@@ -94,18 +98,290 @@ class LIFT_Docs_Frontend_Login {
      * Display login page
      */
     private function display_login_page() {
-        // Get theme header
-        get_header();
+        // Get custom colors and logo
+        $logo_id = get_option('lift_docs_login_logo', '');
+        $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
+        $bg_color = get_option('lift_docs_login_bg_color', '#f0f4f8');
+        $form_bg = get_option('lift_docs_login_form_bg', '#ffffff');
+        $btn_color = get_option('lift_docs_login_btn_color', '#1976d2');
+        $input_color = get_option('lift_docs_login_input_color', '#e0e0e0');
+        $text_color = get_option('lift_docs_login_text_color', '#333333');
         
+        // Simple HTML without theme header/footer
         ?>
-        <div class="lift-docs-login-container">
-            <div class="lift-docs-login-wrapper">
-                <div class="lift-docs-login-header">
-                    <h1><?php _e('Documents Login', 'lift-docs-system'); ?></h1>
-                    <p class="description"><?php _e('Access your personal document library', 'lift-docs-system'); ?></p>
-                </div>
+        <!DOCTYPE html>
+        <html <?php language_attributes(); ?>>
+        <head>
+            <meta charset="<?php bloginfo('charset'); ?>">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title><?php _e('Document Login', 'lift-docs-system'); ?> - <?php bloginfo('name'); ?></title>
+            <?php wp_head(); ?>
+            <style>
+                body {
+                    margin: 0;
+                    padding: 0;
+                    background-color: <?php echo esc_attr($bg_color); ?>;
+                    color: <?php echo esc_attr($text_color); ?>;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
                 
-                <div class="lift-docs-login-form-container">
+                /* Hide back-to-top button */
+                .back-to-top,
+                #back-to-top,
+                .scroll-to-top,
+                [class*="back-to-top"],
+                [id*="back-to-top"],
+                [class*="scroll-top"],
+                [id*="scroll-top"] {
+                    display: none !important;
+                    visibility: hidden !important;
+                }
+                
+                .lift-simple-login-container {
+                    width: 100%;
+                    max-width: 400px;
+                    margin: 20px;
+                }
+                
+                .lift-login-logo {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+                
+                .lift-login-logo img {
+                    max-width: 200px;
+                    max-height: 80px;
+                    height: auto;
+                }
+                
+                .lift-login-form-wrapper {
+                    background: <?php echo esc_attr($form_bg); ?>;
+                    padding: 40px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                }
+                
+                .lift-login-title {
+                    text-align: center;
+                    margin: 0 0 30px 0;
+                    font-size: 24px;
+                    font-weight: 600;
+                    color: <?php echo esc_attr($text_color); ?>;
+                }
+                
+                .lift-form-group {
+                    margin-bottom: 20px;
+                }
+                
+                .lift-form-group label {
+                    display: block;
+                    margin-bottom: 8px;
+                    font-weight: 500;
+                    color: <?php echo esc_attr($text_color); ?>;
+                }
+                
+                .lift-form-group input[type="text"],
+                .lift-form-group input[type="password"] {
+                    width: 100%;
+                    padding: 12px 16px;
+                    border: 2px solid <?php echo esc_attr($input_color); ?>;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    background: #fff;
+                    color: <?php echo esc_attr($text_color); ?>;
+                    box-sizing: border-box;
+                    transition: none; /* Remove transition animation */
+                }
+                
+                .lift-form-group input[type="text"]:focus,
+                .lift-form-group input[type="password"]:focus {
+                    outline: none;
+                    border-color: <?php echo esc_attr($btn_color); ?>;
+                }
+                
+                .password-field-wrapper {
+                    position: relative;
+                }
+                
+                .toggle-password {
+                    position: absolute;
+                    right: 12px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: #666;
+                    padding: 4px;
+                }
+                
+                .form-hint {
+                    font-size: 12px;
+                    color: #666;
+                    margin-top: 4px;
+                    display: block;
+                }
+                
+                .checkbox-group {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+                
+                .checkbox-label {
+                    display: flex;
+                    align-items: center;
+                    cursor: pointer;
+                    margin: 0;
+                    font-size: 14px;
+                    color: <?php echo esc_attr($text_color); ?>;
+                    user-select: none;
+                }
+                
+                .checkbox-label input[type="checkbox"] {
+                    margin: 0 8px 0 0;
+                    width: 16px;
+                    height: 16px;
+                    cursor: pointer;
+                    accent-color: <?php echo esc_attr($btn_color); ?>;
+                }
+                
+                /* Custom checkbox styling for better appearance */
+                .checkbox-label input[type="checkbox"] {
+                    appearance: none;
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid <?php echo esc_attr($input_color); ?>;
+                    border-radius: 4px;
+                    background: #fff;
+                    margin-right: 8px;
+                    position: relative;
+                    cursor: pointer;
+                }
+                
+                .checkbox-label input[type="checkbox"]:checked {
+                    background: <?php echo esc_attr($btn_color); ?>;
+                    border-color: <?php echo esc_attr($btn_color); ?>;
+                }
+                
+                .checkbox-label input[type="checkbox"]:checked::after {
+                    content: '✓';
+                    color: white;
+                    font-size: 12px;
+                    font-weight: bold;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                }
+                
+                .lift-login-btn {
+                    width: 100%;
+                    padding: 14px;
+                    background: <?php echo esc_attr($btn_color); ?>;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    position: relative;
+                }
+                
+                .lift-login-btn:hover {
+                    opacity: 0.9;
+                }
+                
+                .lift-login-btn:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+                
+                .btn-spinner {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                
+                .spinner {
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-top: 2px solid white;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                }
+                
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                
+                .lift-form-messages {
+                    margin-top: 20px;
+                }
+                
+                .login-error {
+                    background: #ffebee;
+                    color: #c62828;
+                    padding: 12px;
+                    border-radius: 6px;
+                    border-left: 4px solid #c62828;
+                    margin-bottom: 10px;
+                }
+                
+                .login-success {
+                    background: #e8f5e8;
+                    color: #2e7d32;
+                    padding: 12px;
+                    border-radius: 6px;
+                    border-left: 4px solid #2e7d32;
+                    margin-bottom: 10px;
+                }
+                
+                .login-help {
+                    text-align: center;
+                    margin-top: 30px;
+                    font-size: 14px;
+                    color: #666;
+                }
+                
+                .login-help a {
+                    color: <?php echo esc_attr($btn_color); ?>;
+                    text-decoration: none;
+                }
+                
+                .login-help a:hover {
+                    text-decoration: underline;
+                }
+                
+                @media (max-width: 480px) {
+                    .lift-simple-login-container {
+                        margin: 10px;
+                    }
+                    
+                    .lift-login-form-wrapper {
+                        padding: 30px 20px;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="lift-simple-login-container">
+                <?php if ($logo_url): ?>
+                <div class="lift-login-logo">
+                    <img src="<?php echo esc_url($logo_url); ?>" alt="<?php bloginfo('name'); ?>">
+                </div>
+                <?php endif; ?>
+                
+                <div class="lift-login-form-wrapper">
+                    <h1 class="lift-login-title"><?php _e('Document Login', 'lift-docs-system'); ?></h1>
+                    
                     <form id="lift-docs-login-form" class="lift-docs-login-form">
                         <?php wp_nonce_field('docs_login_nonce', 'docs_login_nonce'); ?>
                         
@@ -153,40 +429,18 @@ class LIFT_Docs_Frontend_Login {
                         </div>
                     </form>
                     
-                    <div class="lift-docs-login-footer">
-                        <p class="login-help">
-                            <?php _e('Need help accessing your documents?', 'lift-docs-system'); ?>
-                            <a href="<?php echo wp_lostpassword_url(); ?>" class="forgot-password-link">
-                                <?php _e('Reset Password', 'lift-docs-system'); ?>
-                            </a>
-                        </p>
-                        
-                        <?php if (get_option('users_can_register')): ?>
-                        <p class="register-link">
-                            <?php _e("Don't have an account?", 'lift-docs-system'); ?>
-                            <a href="<?php echo wp_registration_url(); ?>">
-                                <?php _e('Request Access', 'lift-docs-system'); ?>
-                            </a>
-                        </p>
-                        <?php endif; ?>
+                    <div class="login-help">
+                        <a href="<?php echo wp_lostpassword_url(); ?>">
+                            <?php _e('Forgot your password?', 'lift-docs-system'); ?>
+                        </a>
                     </div>
                 </div>
-                
-                <div class="lift-docs-features">
-                    <h3><?php _e('What you can access:', 'lift-docs-system'); ?></h3>
-                    <ul class="features-list">
-                        <li><span class="dashicons dashicons-yes"></span> <?php _e('Personal document library', 'lift-docs-system'); ?></li>
-                        <li><span class="dashicons dashicons-yes"></span> <?php _e('Secure document downloads', 'lift-docs-system'); ?></li>
-                        <li><span class="dashicons dashicons-yes"></span> <?php _e('Online document viewer', 'lift-docs-system'); ?></li>
-                        <li><span class="dashicons dashicons-yes"></span> <?php _e('Document access history', 'lift-docs-system'); ?></li>
-                    </ul>
-                </div>
             </div>
-        </div>
-        
+            
+            <?php wp_footer(); ?>
+        </body>
+        </html>
         <?php
-        // Get theme footer
-        get_footer();
     }
     
     /**
@@ -566,8 +820,16 @@ class LIFT_Docs_Frontend_Login {
         // Log the login
         $this->log_user_login($user->ID);
         
+        // Determine redirect URL
+        $redirect_url = '';
+        if (!empty($_POST['redirect_to'])) {
+            $redirect_url = esc_url($_POST['redirect_to']);
+        } else {
+            $redirect_url = $this->get_dashboard_url();
+        }
+        
         wp_send_json_success(array(
-            'redirect_url' => home_url('/docs-dashboard'),
+            'redirect_url' => $redirect_url,
             'message' => sprintf(__('Welcome, %s!', 'lift-docs-system'), $user->display_name)
         ));
     }
@@ -583,7 +845,7 @@ class LIFT_Docs_Frontend_Login {
         }
         
         wp_send_json_success(array(
-            'redirect_url' => home_url('/docs-login'),
+            'redirect_url' => $this->get_login_url(),
             'message' => __('You have been logged out successfully.', 'lift-docs-system')
         ));
     }
@@ -673,8 +935,21 @@ class LIFT_Docs_Frontend_Login {
      * Enqueue scripts and styles
      */
     public function enqueue_scripts() {
-        // Only load on docs pages
-        if (!get_query_var('docs_login') && !get_query_var('docs_dashboard')) {
+        // Load on docs pages OR when shortcodes are present
+        $load_scripts = false;
+        
+        // Check for URL-based pages
+        if (get_query_var('docs_login') || get_query_var('docs_dashboard')) {
+            $load_scripts = true;
+        }
+        
+        // Check for shortcodes in current page content
+        global $post;
+        if ($post && (has_shortcode($post->post_content, 'docs_login_form') || has_shortcode($post->post_content, 'docs_dashboard'))) {
+            $load_scripts = true;
+        }
+        
+        if (!$load_scripts) {
             return;
         }
         
@@ -685,6 +960,8 @@ class LIFT_Docs_Frontend_Login {
         wp_localize_script('lift-docs-frontend-login', 'liftDocsLogin', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('docs_login_nonce'),
+            'dashboard_url' => $this->get_dashboard_url(),
+            'login_url' => $this->get_login_url(),
             'strings' => array(
                 'loginError' => __('Login failed. Please try again.', 'lift-docs-system'),
                 'loginSuccess' => __('Login successful! Redirecting...', 'lift-docs-system'),
@@ -695,6 +972,538 @@ class LIFT_Docs_Frontend_Login {
                 'signIn' => __('Sign In', 'lift-docs-system')
             )
         ));
+    }
+    
+    /**
+     * Get login URL (shortcode page or URL-based)
+     */
+    private function get_login_url() {
+        $login_page_id = get_option('lift_docs_login_page_id');
+        if ($login_page_id && get_post($login_page_id)) {
+            return get_permalink($login_page_id);
+        }
+        return home_url('/docs-login');
+    }
+    
+    /**
+     * Get dashboard URL (shortcode page or URL-based)
+     */
+    private function get_dashboard_url() {
+        $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
+        if ($dashboard_page_id && get_post($dashboard_page_id)) {
+            return get_permalink($dashboard_page_id);
+        }
+        return home_url('/docs-dashboard');
+    }
+    
+    /**
+     * Login form shortcode
+     */
+    public function login_form_shortcode($atts) {
+        // Parse attributes
+        $atts = shortcode_atts(array(
+            'redirect_to' => '', // Custom redirect URL after login
+            'show_features' => 'false', // Show features list (simplified version doesn't show by default)
+            'title' => __('Documents Login', 'lift-docs-system'),
+            'description' => __('Access your personal document library', 'lift-docs-system')
+        ), $atts);
+        
+        // Check if user is already logged in
+        if (is_user_logged_in() && $this->user_has_docs_access()) {
+            $redirect_url = !empty($atts['redirect_to']) ? $atts['redirect_to'] : $this->get_dashboard_url();
+            return '<div class="docs-already-logged-in">
+                <p>' . sprintf(__('You are already logged in. <a href="%s">Go to Dashboard</a>', 'lift-docs-system'), $redirect_url) . '</p>
+            </div>';
+        }
+        
+        // Get custom colors and logo
+        $logo_id = get_option('lift_docs_login_logo', '');
+        $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
+        $bg_color = get_option('lift_docs_login_bg_color', '#f0f4f8');
+        $form_bg = get_option('lift_docs_login_form_bg', '#ffffff');
+        $btn_color = get_option('lift_docs_login_btn_color', '#1976d2');
+        $input_color = get_option('lift_docs_login_input_color', '#e0e0e0');
+        $text_color = get_option('lift_docs_login_text_color', '#333333');
+        
+        // Store redirect URL for AJAX handler
+        if (!empty($atts['redirect_to'])) {
+            set_transient('docs_login_redirect_' . session_id(), $atts['redirect_to'], 300); // 5 minutes
+        }
+        
+        ob_start();
+        ?>
+        <style>
+            /* Hide back-to-top button for shortcode version too */
+            .back-to-top,
+            #back-to-top,
+            .scroll-to-top,
+            [class*="back-to-top"],
+            [id*="back-to-top"],
+            [class*="scroll-top"],
+            [id*="scroll-top"] {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .lift-docs-login-container.shortcode-version {
+                background-color: <?php echo esc_attr($bg_color); ?>;
+                padding: 40px 20px;
+                border-radius: 12px;
+                margin: 20px 0;
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-login-logo {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-login-logo img {
+                max-width: 200px;
+                max-height: 60px;
+                height: auto;
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-docs-login-form-container {
+                background: <?php echo esc_attr($form_bg); ?>;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-docs-login-header h2 {
+                text-align: center;
+                margin: 0 0 20px 0;
+                color: <?php echo esc_attr($text_color); ?>;
+                font-size: 24px;
+            }
+            
+            .lift-docs-login-container.shortcode-version .description {
+                text-align: center;
+                color: <?php echo esc_attr($text_color); ?>;
+                margin-bottom: 25px;
+                opacity: 0.8;
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-form-group {
+                margin-bottom: 20px;
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-form-group label {
+                display: block;
+                margin-bottom: 6px;
+                font-weight: 500;
+                color: <?php echo esc_attr($text_color); ?>;
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-form-group input[type="text"],
+            .lift-docs-login-container.shortcode-version .lift-form-group input[type="password"] {
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid <?php echo esc_attr($input_color); ?>;
+                border-radius: 6px;
+                font-size: 14px;
+                background: #fff;
+                color: <?php echo esc_attr($text_color); ?>;
+                box-sizing: border-box;
+                transition: none; /* Remove transition animation */
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-form-group input:focus {
+                outline: none;
+                border-color: <?php echo esc_attr($btn_color); ?>;
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-login-btn {
+                width: 100%;
+                padding: 12px;
+                background: <?php echo esc_attr($btn_color); ?>;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            
+            .lift-docs-login-container.shortcode-version .lift-login-btn:hover {
+                opacity: 0.9;
+            }
+            
+            .lift-docs-login-container.shortcode-version .form-hint {
+                font-size: 12px;
+                color: #666;
+                margin-top: 4px;
+                display: block;
+            }
+            
+            .lift-docs-login-container.shortcode-version .checkbox-group {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            
+            .lift-docs-login-container.shortcode-version .checkbox-label {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                margin: 0;
+                font-size: 14px;
+                color: <?php echo esc_attr($text_color); ?>;
+                user-select: none;
+            }
+            
+            .lift-docs-login-container.shortcode-version .checkbox-label input[type="checkbox"] {
+                appearance: none;
+                width: 18px;
+                height: 18px;
+                border: 2px solid <?php echo esc_attr($input_color); ?>;
+                border-radius: 4px;
+                background: #fff;
+                margin-right: 8px;
+                position: relative;
+                cursor: pointer;
+            }
+            
+            .lift-docs-login-container.shortcode-version .checkbox-label input[type="checkbox"]:checked {
+                background: <?php echo esc_attr($btn_color); ?>;
+                border-color: <?php echo esc_attr($btn_color); ?>;
+            }
+            
+            .lift-docs-login-container.shortcode-version .checkbox-label input[type="checkbox"]:checked::after {
+                content: '✓';
+                color: white;
+                font-size: 12px;
+                font-weight: bold;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            
+            .lift-docs-login-container.shortcode-version .login-help {
+                text-align: center;
+                margin-top: 20px;
+                font-size: 14px;
+            }
+            
+            .lift-docs-login-container.shortcode-version .login-help a {
+                color: <?php echo esc_attr($btn_color); ?>;
+                text-decoration: none;
+            }
+            
+            .lift-docs-login-container.shortcode-version .login-error {
+                background: #ffebee;
+                color: #c62828;
+                padding: 10px;
+                border-radius: 4px;
+                border-left: 3px solid #c62828;
+                margin-bottom: 10px;
+            }
+            
+            .lift-docs-login-container.shortcode-version .login-success {
+                background: #e8f5e8;
+                color: #2e7d32;
+                padding: 10px;
+                border-radius: 4px;
+                border-left: 3px solid #2e7d32;
+                margin-bottom: 10px;
+            }
+        </style>
+        
+        <div class="lift-docs-login-container shortcode-version">
+            <?php if ($logo_url): ?>
+            <div class="lift-login-logo">
+                <img src="<?php echo esc_url($logo_url); ?>" alt="<?php bloginfo('name'); ?>">
+            </div>
+            <?php endif; ?>
+            
+            <div class="lift-docs-login-form-container">
+                <div class="lift-docs-login-header">
+                    <h2><?php echo esc_html($atts['title']); ?></h2>
+                    <p class="description"><?php echo esc_html($atts['description']); ?></p>
+                </div>
+                
+                <form id="lift-docs-login-form" class="lift-docs-login-form">
+                    <?php wp_nonce_field('docs_login_nonce', 'docs_login_nonce'); ?>
+                    <input type="hidden" name="redirect_to" value="<?php echo esc_attr($atts['redirect_to']); ?>">
+                    
+                    <div class="lift-form-group">
+                        <label for="docs_username"><?php _e('Username, Email or User Code', 'lift-docs-system'); ?></label>
+                        <input type="text" id="docs_username" name="username" 
+                               placeholder="<?php _e('Enter username, email or user code...', 'lift-docs-system'); ?>" 
+                               required autocomplete="username">
+                        <small class="form-hint"><?php _e('You can use your username, email address, or your unique user code', 'lift-docs-system'); ?></small>
+                    </div>
+                    
+                    <div class="lift-form-group">
+                        <label for="docs_password"><?php _e('Password', 'lift-docs-system'); ?></label>
+                        <div class="password-field-wrapper">
+                            <input type="password" id="docs_password" name="password" 
+                                   placeholder="<?php _e('Enter your password...', 'lift-docs-system'); ?>" 
+                                   required autocomplete="current-password">
+                            <button type="button" class="toggle-password" tabindex="-1">
+                                <span class="dashicons dashicons-visibility"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="lift-form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="docs_remember" name="remember" value="1">
+                            <span class="checkmark"></span>
+                            <?php _e('Remember me', 'lift-docs-system'); ?>
+                        </label>
+                    </div>
+                    
+                    <div class="lift-form-group">
+                        <button type="submit" class="lift-login-btn">
+                            <span class="btn-text"><?php _e('Sign In', 'lift-docs-system'); ?></span>
+                            <span class="btn-spinner" style="display: none;">
+                                <span class="spinner"></span>
+                                <?php _e('Signing in...', 'lift-docs-system'); ?>
+                            </span>
+                        </button>
+                    </div>
+                    
+                    <div class="lift-form-messages">
+                        <div class="login-error" style="display: none;"></div>
+                        <div class="login-success" style="display: none;"></div>
+                    </div>
+                </form>
+                
+                <div class="login-help">
+                    <a href="<?php echo wp_lostpassword_url(); ?>">
+                        <?php _e('Forgot your password?', 'lift-docs-system'); ?>
+                    </a>
+                </div>
+            </div>
+            
+            <?php if ($atts['show_features'] === 'true'): ?>
+            <div class="lift-docs-features" style="margin-top: 20px; text-align: center;">
+                <h4 style="color: <?php echo esc_attr($text_color); ?>;"><?php _e('What you can access:', 'lift-docs-system'); ?></h4>
+                <ul style="list-style: none; padding: 0; color: <?php echo esc_attr($text_color); ?>; opacity: 0.8;">
+                    <li><span class="dashicons dashicons-yes"></span> <?php _e('Personal document library', 'lift-docs-system'); ?></li>
+                    <li><span class="dashicons dashicons-yes"></span> <?php _e('Secure document downloads', 'lift-docs-system'); ?></li>
+                    <li><span class="dashicons dashicons-yes"></span> <?php _e('Online document viewer', 'lift-docs-system'); ?></li>
+                    <li><span class="dashicons dashicons-yes"></span> <?php _e('Document access history', 'lift-docs-system'); ?></li>
+                </ul>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+    
+    /**
+     * Dashboard shortcode
+     */
+    public function dashboard_shortcode($atts) {
+        // Parse attributes
+        $atts = shortcode_atts(array(
+            'show_stats' => 'true',
+            'show_search' => 'true',
+            'show_activity' => 'true',
+            'documents_per_page' => 12
+        ), $atts);
+        
+        // Check if user is logged in and has access
+        if (!is_user_logged_in() || !$this->user_has_docs_access()) {
+            $login_url = $this->get_login_url();
+            return '<div class="docs-login-required">
+                <p>' . sprintf(__('Please <a href="%s">login</a> to access your document dashboard.', 'lift-docs-system'), $login_url) . '</p>
+            </div>';
+        }
+        
+        $current_user = wp_get_current_user();
+        $user_code = get_user_meta($current_user->ID, 'lift_docs_user_code', true);
+        $user_documents = $this->get_user_documents($current_user->ID);
+        
+        ob_start();
+        ?>
+        <div class="lift-docs-dashboard-container shortcode-version">
+            <div class="lift-docs-dashboard-wrapper">
+                <!-- Dashboard Header -->
+                <div class="lift-docs-dashboard-header">
+                    <div class="dashboard-user-info">
+                        <h2><?php printf(__('Welcome, %s', 'lift-docs-system'), esc_html($current_user->display_name)); ?></h2>
+                        <div class="user-meta">
+                            <span class="user-email"><?php echo esc_html($current_user->user_email); ?></span>
+                            <?php if ($user_code): ?>
+                                <span class="user-code"><?php _e('Code:', 'lift-docs-system'); ?> <strong><?php echo esc_html($user_code); ?></strong></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="dashboard-actions">
+                        <button type="button" id="docs-logout-btn" class="logout-btn">
+                            <span class="dashicons dashicons-exit"></span>
+                            <?php _e('Logout', 'lift-docs-system'); ?>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Dashboard Content -->
+                <div class="lift-docs-dashboard-content">
+                    <?php if ($atts['show_stats'] === 'true'): ?>
+                    <!-- Quick Stats -->
+                    <div class="dashboard-stats">
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <span class="dashicons dashicons-media-document"></span>
+                            </div>
+                            <div class="stat-content">
+                                <h3><?php echo count($user_documents); ?></h3>
+                                <p><?php _e('Available Documents', 'lift-docs-system'); ?></p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <span class="dashicons dashicons-download"></span>
+                            </div>
+                            <div class="stat-content">
+                                <h3><?php echo $this->get_user_download_count($current_user->ID); ?></h3>
+                                <p><?php _e('Total Downloads', 'lift-docs-system'); ?></p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <span class="dashicons dashicons-visibility"></span>
+                            </div>
+                            <div class="stat-content">
+                                <h3><?php echo $this->get_user_view_count($current_user->ID); ?></h3>
+                                <p><?php _e('Total Views', 'lift-docs-system'); ?></p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <span class="dashicons dashicons-calendar-alt"></span>
+                            </div>
+                            <div class="stat-content">
+                                <h3><?php echo date_i18n('M d', strtotime($current_user->user_registered)); ?></h3>
+                                <p><?php _e('Member Since', 'lift-docs-system'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Document Library -->
+                    <div class="documents-section">
+                        <div class="section-header">
+                            <h3><?php _e('Your Document Library', 'lift-docs-system'); ?></h3>
+                            <?php if ($atts['show_search'] === 'true'): ?>
+                            <div class="section-controls">
+                                <input type="text" id="docs-search" placeholder="<?php _e('Search documents...', 'lift-docs-system'); ?>">
+                                <select id="docs-filter">
+                                    <option value="all"><?php _e('All Documents', 'lift-docs-system'); ?></option>
+                                    <option value="recent"><?php _e('Recently Added', 'lift-docs-system'); ?></option>
+                                    <option value="downloaded"><?php _e('Downloaded', 'lift-docs-system'); ?></option>
+                                </select>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <?php if (!empty($user_documents)): ?>
+                            <div class="documents-grid" id="documents-grid">
+                                <?php 
+                                $documents_to_show = array_slice($user_documents, 0, intval($atts['documents_per_page']));
+                                foreach ($documents_to_show as $document): 
+                                ?>
+                                    <?php $this->render_document_card($document, $current_user->ID); ?>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <?php if (count($user_documents) > intval($atts['documents_per_page'])): ?>
+                            <div class="load-more-container">
+                                <button type="button" id="load-more-docs" class="btn btn-secondary">
+                                    <?php _e('Load More Documents', 'lift-docs-system'); ?>
+                                </button>
+                            </div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <div class="no-documents">
+                                <div class="no-documents-icon">
+                                    <span class="dashicons dashicons-portfolio"></span>
+                                </div>
+                                <h4><?php _e('No Documents Available', 'lift-docs-system'); ?></h4>
+                                <p><?php _e('You don\'t have access to any documents yet. Contact your administrator for access.', 'lift-docs-system'); ?></p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <?php if ($atts['show_activity'] === 'true'): ?>
+                    <!-- Recent Activity -->
+                    <div class="activity-section">
+                        <h3><?php _e('Recent Activity', 'lift-docs-system'); ?></h3>
+                        <div class="activity-list">
+                            <?php $this->render_recent_activity($current_user->ID); ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Document Modal -->
+        <div id="lift-document-modal" class="lift-modal" style="display: none;">
+            <div class="lift-modal-content">
+                <div class="lift-modal-header">
+                    <h3 id="modal-document-title"><?php _e('Document Details', 'lift-docs-system'); ?></h3>
+                    <button type="button" class="lift-modal-close">&times;</button>
+                </div>
+                <div class="lift-modal-body">
+                    <div id="modal-document-content"></div>
+                </div>
+            </div>
+        </div>
+        <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
+        <?php
+        return ob_get_clean();
+    }
+    
+    /**
+     * Create default pages on plugin activation
+     */
+    public function create_default_pages() {
+        // Create login page
+        $login_page_id = get_option('lift_docs_login_page_id');
+        if (!$login_page_id || !get_post($login_page_id)) {
+            $login_page = array(
+                'post_title' => __('Document Login', 'lift-docs-system'),
+                'post_content' => '[docs_login_form]',
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_slug' => 'document-login'
+            );
+            
+            $login_page_id = wp_insert_post($login_page);
+            if ($login_page_id) {
+                update_option('lift_docs_login_page_id', $login_page_id);
+            }
+        }
+        
+        // Create dashboard page
+        $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
+        if (!$dashboard_page_id || !get_post($dashboard_page_id)) {
+            $dashboard_page = array(
+                'post_title' => __('Document Dashboard', 'lift-docs-system'),
+                'post_content' => '[docs_dashboard]',
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_slug' => 'document-dashboard'
+            );
+            
+            $dashboard_page_id = wp_insert_post($dashboard_page);
+            if ($dashboard_page_id) {
+                update_option('lift_docs_dashboard_page_id', $dashboard_page_id);
+            }
+        }
+        
+        // Set flag that pages have been created
+        update_option('lift_docs_default_pages_created', true);
     }
 }
 

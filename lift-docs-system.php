@@ -207,6 +207,9 @@ class LIFT_Docs_System {
         // Set default options
         $this->set_default_options();
         
+        // Create default pages for frontend login
+        $this->create_default_login_pages();
+        
         // Flush rewrite rules
         flush_rewrite_rules();
     }
@@ -260,6 +263,48 @@ class LIFT_Docs_System {
     }
     
     /**
+     * Create default login pages
+     */
+    private function create_default_login_pages() {
+        // Create login page
+        $login_page_id = get_option('lift_docs_login_page_id');
+        if (!$login_page_id || !get_post($login_page_id)) {
+            $login_page = array(
+                'post_title' => __('Document Login', 'lift-docs-system'),
+                'post_content' => '[docs_login_form]',
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_slug' => 'document-login'
+            );
+            
+            $login_page_id = wp_insert_post($login_page);
+            if ($login_page_id) {
+                update_option('lift_docs_login_page_id', $login_page_id);
+            }
+        }
+        
+        // Create dashboard page
+        $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
+        if (!$dashboard_page_id || !get_post($dashboard_page_id)) {
+            $dashboard_page = array(
+                'post_title' => __('Document Dashboard', 'lift-docs-system'),
+                'post_content' => '[docs_dashboard]',
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_slug' => 'document-dashboard'
+            );
+            
+            $dashboard_page_id = wp_insert_post($dashboard_page);
+            if ($dashboard_page_id) {
+                update_option('lift_docs_dashboard_page_id', $dashboard_page_id);
+            }
+        }
+        
+        // Set flag that pages have been created
+        update_option('lift_docs_default_pages_created', true);
+    }
+    
+    /**
      * Set default options
      */
     private function set_default_options() {
@@ -293,12 +338,3 @@ function lift_docs_system_init() {
 
 // Hook to run when WordPress is loaded
 add_action('plugins_loaded', 'lift_docs_system_init');
-
-// Plugin activation hook
-register_activation_hook(__FILE__, array('LIFT_Docs_Activator', 'activate'));
-
-// Plugin deactivation hook  
-register_deactivation_hook(__FILE__, array('LIFT_Docs_Activator', 'deactivate'));
-
-// Plugin uninstall hook
-register_uninstall_hook(__FILE__, array('LIFT_Docs_Activator', 'uninstall'));

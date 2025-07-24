@@ -26,6 +26,22 @@ class LIFT_Docs_Settings {
     private function init_hooks() {
         add_action('admin_menu', array($this, 'add_settings_page'));
         add_action('admin_init', array($this, 'init_settings'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+    }
+    
+    /**
+     * Enqueue admin scripts and styles
+     */
+    public function enqueue_admin_scripts($hook) {
+        // Only load on our settings page
+        if ($hook !== 'lift-documents_page_lift-docs-settings') {
+            return;
+        }
+        
+        // Enqueue WordPress media scripts
+        wp_enqueue_media();
+        wp_enqueue_script('wp-color-picker');
+        wp_enqueue_style('wp-color-picker');
     }
     
     /**
@@ -51,6 +67,14 @@ class LIFT_Docs_Settings {
             'lift_docs_settings',
             array($this, 'validate_settings')
         );
+        
+        // Register login customization settings
+        register_setting('lift_docs_settings_group', 'lift_docs_login_logo');
+        register_setting('lift_docs_settings_group', 'lift_docs_login_bg_color');
+        register_setting('lift_docs_settings_group', 'lift_docs_login_form_bg');
+        register_setting('lift_docs_settings_group', 'lift_docs_login_btn_color');
+        register_setting('lift_docs_settings_group', 'lift_docs_login_input_color');
+        register_setting('lift_docs_settings_group', 'lift_docs_login_text_color');
         
         // General Tab Settings
         add_settings_section(
@@ -192,6 +216,62 @@ class LIFT_Docs_Settings {
             'lift-docs-display',
             'lift_docs_display_section',
             array('field' => 'show_secure_access_notice', 'description' => __('Display notice when accessing via secure link', 'lift-docs-system'))
+        );
+        
+        // Login Page Customization Settings
+        add_settings_section(
+            'lift_docs_login_section',
+            __('Login Page Customization', 'lift-docs-system'),
+            array($this, 'login_section_callback'),
+            'lift-docs-settings'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_logo',
+            __('Login Page Logo', 'lift-docs-system'),
+            array($this, 'login_logo_callback'),
+            'lift-docs-settings',
+            'lift_docs_login_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_bg_color',
+            __('Background Color', 'lift-docs-system'),
+            array($this, 'login_bg_color_callback'),
+            'lift-docs-settings',
+            'lift_docs_login_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_form_bg',
+            __('Form Background Color', 'lift-docs-system'),
+            array($this, 'login_form_bg_callback'),
+            'lift-docs-settings',
+            'lift_docs_login_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_btn_color',
+            __('Button Color', 'lift-docs-system'),
+            array($this, 'login_btn_color_callback'),
+            'lift-docs-settings',
+            'lift_docs_login_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_input_color',
+            __('Input Border Color', 'lift-docs-system'),
+            array($this, 'login_input_color_callback'),
+            'lift-docs-settings',
+            'lift_docs_login_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_text_color',
+            __('Text Color', 'lift-docs-system'),
+            array($this, 'login_text_color_callback'),
+            'lift-docs-settings',
+            'lift_docs_login_section'
         );
     }
     
@@ -451,6 +531,134 @@ class LIFT_Docs_Settings {
      */
     public function general_section_callback() {
         echo '<p>' . __('Configure general settings for the LIFT Docs System.', 'lift-docs-system') . '</p>';
+        
+        // Show shortcode information
+        $this->display_shortcode_info();
+    }
+    
+    /**
+     * Login section callback
+     */
+    public function login_section_callback() {
+        echo '<p>' . __('Customize the appearance of the login page.', 'lift-docs-system') . '</p>';
+    }
+    
+    /**
+     * Login logo callback
+     */
+    public function login_logo_callback() {
+        $logo_id = get_option('lift_docs_login_logo', '');
+        $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
+        
+        echo '<div class="lift-logo-upload-container">';
+        echo '<input type="hidden" name="lift_docs_login_logo" id="lift_docs_login_logo" value="' . esc_attr($logo_id) . '">';
+        
+        echo '<div class="logo-preview" style="margin-bottom: 10px;">';
+        if ($logo_url) {
+            echo '<img src="' . esc_url($logo_url) . '" style="max-width: 200px; max-height: 100px; border: 1px solid #ddd; padding: 5px;" id="logo-preview-img">';
+        } else {
+            echo '<div id="logo-preview-img" style="width: 200px; height: 100px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; color: #666;">' . __('No logo selected', 'lift-docs-system') . '</div>';
+        }
+        echo '</div>';
+        
+        echo '<button type="button" class="button" id="upload-logo-btn">' . __('Select Logo', 'lift-docs-system') . '</button>';
+        if ($logo_url) {
+            echo ' <button type="button" class="button" id="remove-logo-btn">' . __('Remove Logo', 'lift-docs-system') . '</button>';
+        } else {
+            echo ' <button type="button" class="button" id="remove-logo-btn" style="display: none;">' . __('Remove Logo', 'lift-docs-system') . '</button>';
+        }
+        echo '</div>';
+        
+        // Add JavaScript for media uploader
+        ?>
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            var mediaUploader;
+            
+            // Color picker
+            $('.color-picker').wpColorPicker();
+            
+            // Logo upload
+            $('#upload-logo-btn').click(function(e) {
+                e.preventDefault();
+                
+                if (mediaUploader) {
+                    mediaUploader.open();
+                    return;
+                }
+                
+                mediaUploader = wp.media.frames.file_frame = wp.media({
+                    title: '<?php _e('Choose Logo', 'lift-docs-system'); ?>',
+                    button: { text: '<?php _e('Choose Logo', 'lift-docs-system'); ?>' },
+                    multiple: false,
+                    library: { type: 'image' }
+                });
+                
+                mediaUploader.on('select', function() {
+                    var attachment = mediaUploader.state().get('selection').first().toJSON();
+                    $('#lift_docs_login_logo').val(attachment.id);
+                    $('#logo-preview-img').html('<img src="' + attachment.url + '" style="max-width: 200px; max-height: 100px; border: 1px solid #ddd; padding: 5px;">');
+                    $('#remove-logo-btn').show();
+                });
+                
+                mediaUploader.open();
+            });
+            
+            // Logo remove
+            $('#remove-logo-btn').click(function(e) {
+                e.preventDefault();
+                $('#lift_docs_login_logo').val('');
+                $('#logo-preview-img').html('<div style="width: 200px; height: 100px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; color: #666;"><?php _e('No logo selected', 'lift-docs-system'); ?></div>');
+                $(this).hide();
+            });
+        });
+        </script>
+        <?php
+    }
+    
+    /**
+     * Login background color callback
+     */
+    public function login_bg_color_callback() {
+        $color = get_option('lift_docs_login_bg_color', '#f0f4f8');
+        echo '<input type="color" name="lift_docs_login_bg_color" value="' . esc_attr($color) . '" class="color-picker">';
+        echo '<p class="description">' . __('Background color for the login page', 'lift-docs-system') . '</p>';
+    }
+    
+    /**
+     * Login form background callback
+     */
+    public function login_form_bg_callback() {
+        $color = get_option('lift_docs_login_form_bg', '#ffffff');
+        echo '<input type="color" name="lift_docs_login_form_bg" value="' . esc_attr($color) . '" class="color-picker">';
+        echo '<p class="description">' . __('Background color for the login form', 'lift-docs-system') . '</p>';
+    }
+    
+    /**
+     * Login button color callback
+     */
+    public function login_btn_color_callback() {
+        $color = get_option('lift_docs_login_btn_color', '#1976d2');
+        echo '<input type="color" name="lift_docs_login_btn_color" value="' . esc_attr($color) . '" class="color-picker">';
+        echo '<p class="description">' . __('Primary button color', 'lift-docs-system') . '</p>';
+    }
+    
+    /**
+     * Login input color callback
+     */
+    public function login_input_color_callback() {
+        $color = get_option('lift_docs_login_input_color', '#e0e0e0');
+        echo '<input type="color" name="lift_docs_login_input_color" value="' . esc_attr($color) . '" class="color-picker">';
+        echo '<p class="description">' . __('Border color for input fields', 'lift-docs-system') . '</p>';
+    }
+    
+    /**
+     * Login text color callback
+     */
+    public function login_text_color_callback() {
+        $color = get_option('lift_docs_login_text_color', '#333333');
+        echo '<input type="color" name="lift_docs_login_text_color" value="' . esc_attr($color) . '" class="color-picker">';
+        echo '<p class="description">' . __('Main text color', 'lift-docs-system') . '</p>';
     }
     
     /**
@@ -815,6 +1023,102 @@ class LIFT_Docs_Settings {
         
         // Check if user is specifically assigned to this document
         return in_array($user_id, $assigned_users);
+    }
+    
+    /**
+     * Display shortcode information
+     */
+    private function display_shortcode_info() {
+        $login_page_id = get_option('lift_docs_login_page_id');
+        $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
+        
+        ?>
+        <div class="lift-docs-shortcode-info" style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <h4 style="color: #1976d2; margin-top: 0;"><?php _e('📋 Frontend Login & Dashboard Shortcodes', 'lift-docs-system'); ?></h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                <div>
+                    <h5 style="color: #1976d2; margin-bottom: 8px;"><?php _e('🔐 Login Form Shortcode:', 'lift-docs-system'); ?></h5>
+                    <code style="background: #fff; padding: 8px; border-radius: 3px; display: block; font-family: monospace;">[docs_login_form]</code>
+                    
+                    <p style="margin: 8px 0 0; font-size: 12px; color: #555;">
+                        <strong><?php _e('Parameters:', 'lift-docs-system'); ?></strong><br>
+                        • <code>title</code> - <?php _e('Custom title', 'lift-docs-system'); ?><br>
+                        • <code>redirect_to</code> - <?php _e('Custom redirect URL', 'lift-docs-system'); ?><br>
+                        • <code>show_features</code> - <?php _e('Show features list (true/false)', 'lift-docs-system'); ?>
+                    </p>
+                </div>
+                
+                <div>
+                    <h5 style="color: #1976d2; margin-bottom: 8px;"><?php _e('🏠 Dashboard Shortcode:', 'lift-docs-system'); ?></h5>
+                    <code style="background: #fff; padding: 8px; border-radius: 3px; display: block; font-family: monospace;">[docs_dashboard]</code>
+                    
+                    <p style="margin: 8px 0 0; font-size: 12px; color: #555;">
+                        <strong><?php _e('Parameters:', 'lift-docs-system'); ?></strong><br>
+                        • <code>show_stats</code> - <?php _e('Show statistics (true/false)', 'lift-docs-system'); ?><br>
+                        • <code>show_search</code> - <?php _e('Show search box (true/false)', 'lift-docs-system'); ?><br>
+                        • <code>show_activity</code> - <?php _e('Show activity (true/false)', 'lift-docs-system'); ?><br>
+                        • <code>documents_per_page</code> - <?php _e('Documents per page (number)', 'lift-docs-system'); ?>
+                    </p>
+                </div>
+            </div>
+            
+            <?php if ($login_page_id || $dashboard_page_id): ?>
+            <div style="background: rgba(255, 255, 255, 0.7); padding: 12px; border-radius: 3px; margin-top: 15px;">
+                <h5 style="color: #1976d2; margin-top: 0;"><?php _e('📄 Auto-created Pages:', 'lift-docs-system'); ?></h5>
+                <ul style="margin: 0; padding-left: 20px;">
+                    <?php if ($login_page_id && get_post($login_page_id)): ?>
+                    <li>
+                        <strong><?php _e('Login Page:', 'lift-docs-system'); ?></strong> 
+                        <a href="<?php echo get_permalink($login_page_id); ?>" target="_blank">
+                            <?php echo get_the_title($login_page_id); ?>
+                        </a>
+                        <small>(<a href="<?php echo get_edit_post_link($login_page_id); ?>" target="_blank"><?php _e('Edit', 'lift-docs-system'); ?></a>)</small>
+                    </li>
+                    <?php endif; ?>
+                    
+                    <?php if ($dashboard_page_id && get_post($dashboard_page_id)): ?>
+                    <li>
+                        <strong><?php _e('Dashboard Page:', 'lift-docs-system'); ?></strong> 
+                        <a href="<?php echo get_permalink($dashboard_page_id); ?>" target="_blank">
+                            <?php echo get_the_title($dashboard_page_id); ?>
+                        </a>
+                        <small>(<a href="<?php echo get_edit_post_link($dashboard_page_id); ?>" target="_blank"><?php _e('Edit', 'lift-docs-system'); ?></a>)</small>
+                    </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 3px; padding: 10px; margin-top: 15px;">
+                <h5 style="color: #856404; margin-top: 0;"><?php _e('💡 Usage Examples:', 'lift-docs-system'); ?></h5>
+                <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 12px;">
+                    <li><code>[docs_login_form title="Member Login" redirect_to="/dashboard"]</code></li>
+                    <li><code>[docs_dashboard show_stats="false" documents_per_page="6"]</code></li>
+                    <li><strong><?php _e('Alternative URLs:', 'lift-docs-system'); ?></strong> <code>/docs-login</code> & <code>/docs-dashboard</code></li>
+                </ul>
+            </div>
+            
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 3px; padding: 10px; margin-top: 15px;">
+                <h5 style="color: #155724; margin-top: 0;"><?php _e('🔐 Login Methods Supported:', 'lift-docs-system'); ?></h5>
+                <ul style="margin: 0; padding-left: 20px; color: #155724; font-size: 12px;">
+                    <li><strong><?php _e('Username:', 'lift-docs-system'); ?></strong> <?php _e('WordPress username', 'lift-docs-system'); ?></li>
+                    <li><strong><?php _e('Email:', 'lift-docs-system'); ?></strong> <?php _e('User email address', 'lift-docs-system'); ?></li>
+                    <li><strong><?php _e('User Code:', 'lift-docs-system'); ?></strong> <?php _e('Unique 6-8 character code', 'lift-docs-system'); ?></li>
+                </ul>
+            </div>
+            
+            <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 3px; padding: 10px; margin-top: 15px;">
+                <h5 style="color: #721c24; margin-top: 0;"><?php _e('🎨 Simple Login Design:', 'lift-docs-system'); ?></h5>
+                <ul style="margin: 0; padding-left: 20px; color: #721c24; font-size: 12px;">
+                    <li><strong><?php _e('Clean Interface:', 'lift-docs-system'); ?></strong> <?php _e('No theme header/footer on direct URL', 'lift-docs-system'); ?></li>
+                    <li><strong><?php _e('Custom Logo:', 'lift-docs-system'); ?></strong> <?php _e('Upload logo in Login Page Customization settings', 'lift-docs-system'); ?></li>
+                    <li><strong><?php _e('Color Themes:', 'lift-docs-system'); ?></strong> <?php _e('Customize colors below in this settings page', 'lift-docs-system'); ?></li>
+                    <li><strong><?php _e('Responsive:', 'lift-docs-system'); ?></strong> <?php _e('Works perfectly on mobile and desktop', 'lift-docs-system'); ?></li>
+                </ul>
+            </div>
+        </div>
+        <?php
     }
     
     
