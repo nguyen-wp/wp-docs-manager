@@ -54,9 +54,22 @@ class LIFT_Docs_Frontend_Login {
      * Display login page
      */
     private function display_login_page() {
-        // Get custom colors and logo
-        $logo_id = get_option('lift_docs_login_logo', '');
+        // Get custom settings from Interface tab (prioritize new settings)
+        $interface_logo_id = get_option('lift_docs_logo_upload', '');
+        $interface_logo_width = get_option('lift_docs_custom_logo_width', '200');
+        $interface_title = get_option('lift_docs_login_title', '');
+        $interface_description = get_option('lift_docs_login_description', '');
+        
+        // Fallback to old settings if new ones are not set
+        $logo_id = !empty($interface_logo_id) ? $interface_logo_id : get_option('lift_docs_login_logo', '');
         $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
+        $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
+        
+        // Use Interface tab title/description if set, otherwise use defaults
+        $display_title = !empty($interface_title) ? $interface_title : __('Document Access Portal', 'lift-docs-system');
+        $display_description = !empty($interface_description) ? $interface_description : __('Please log in to access your documents', 'lift-docs-system');
+        
+        // Get color settings (keep existing)
         $bg_color = get_option('lift_docs_login_bg_color', '#f0f4f8');
         $form_bg = get_option('lift_docs_login_form_bg', '#ffffff');
         $btn_color = get_option('lift_docs_login_btn_color', '#1976d2');
@@ -105,13 +118,15 @@ class LIFT_Docs_Frontend_Login {
                 
                 .lift-login-logo {
                     text-align: center;
-                    margin-bottom: 30px;
+                    margin-bottom: 35px;
+                    padding: 10px 0;
                 }
                 
                 .lift-login-logo img {
-                    max-width: 200px;
-                    max-height: 80px;
+                    max-width: <?php echo esc_attr($logo_width); ?>;
                     height: auto;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 }
                 
                 .lift-login-form-wrapper {
@@ -123,10 +138,19 @@ class LIFT_Docs_Frontend_Login {
                 
                 .lift-login-title {
                     text-align: center;
-                    margin: 0 0 30px 0;
-                    font-size: 24px;
+                    margin: 0 0 15px 0;
+                    font-size: 28px;
                     font-weight: 600;
                     color: <?php echo esc_attr($text_color); ?>;
+                }
+                
+                .lift-login-description {
+                    text-align: center;
+                    margin-bottom: 25px;
+                    color: <?php echo esc_attr($text_color); ?>;
+                    opacity: 0.8;
+                    font-size: 16px;
+                    line-height: 1.5;
                 }
                 
                 .lift-form-group {
@@ -338,7 +362,10 @@ class LIFT_Docs_Frontend_Login {
                 <?php endif; ?>
                 
                 <div class="lift-login-form-wrapper">
-                    <h1 class="lift-login-title"><?php _e('Document Login', 'lift-docs-system'); ?></h1>
+                    <h1 class="lift-login-title"><?php echo esc_html($display_title); ?></h1>
+                    <?php if (!empty($display_description)): ?>
+                    <p class="lift-login-description" style="text-align: center; margin-bottom: 25px; color: <?php echo esc_attr($text_color); ?>; opacity: 0.8;"><?php echo esc_html($display_description); ?></p>
+                    <?php endif; ?>
                     
                     <form id="lift-docs-login-form" class="lift-docs-login-form">
                         <?php wp_nonce_field('docs_login_nonce', 'docs_login_nonce'); ?>
@@ -992,9 +1019,22 @@ class LIFT_Docs_Frontend_Login {
             </div>';
         }
         
-        // Get custom colors and logo
-        $logo_id = get_option('lift_docs_login_logo', '');
+        // Get custom settings from Interface tab (prioritize new settings)
+        $interface_logo_id = get_option('lift_docs_logo_upload', '');
+        $interface_logo_width = get_option('lift_docs_custom_logo_width', '200');
+        $interface_title = get_option('lift_docs_login_title', '');
+        $interface_description = get_option('lift_docs_login_description', '');
+        
+        // Fallback to old settings if new ones are not set
+        $logo_id = !empty($interface_logo_id) ? $interface_logo_id : get_option('lift_docs_login_logo', '');
         $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
+        $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
+        
+        // Use Interface tab title/description if set, otherwise use shortcode attributes
+        $display_title = !empty($interface_title) ? $interface_title : $atts['title'];
+        $display_description = !empty($interface_description) ? $interface_description : $atts['description'];
+        
+        // Get color settings (keep existing)
         $bg_color = get_option('lift_docs_login_bg_color', '#f0f4f8');
         $form_bg = get_option('lift_docs_login_form_bg', '#ffffff');
         $btn_color = get_option('lift_docs_login_btn_color', '#1976d2');
@@ -1030,13 +1070,15 @@ class LIFT_Docs_Frontend_Login {
             
             .lift-docs-login-container.shortcode-version .lift-login-logo {
                 text-align: center;
-                margin-bottom: 20px;
+                margin-bottom: 25px;
+                padding: 15px 0;
             }
             
             .lift-docs-login-container.shortcode-version .lift-login-logo img {
-                max-width: 200px;
-                max-height: 60px;
+                max-width: <?php echo esc_attr($logo_width); ?>;
                 height: auto;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             }
             
             .lift-docs-login-container.shortcode-version .lift-docs-login-form-container {
@@ -1197,8 +1239,10 @@ class LIFT_Docs_Frontend_Login {
             
             <div class="lift-docs-login-form-container">
                 <div class="lift-docs-login-header">
-                    <h2><?php echo esc_html($atts['title']); ?></h2>
-                    <p class="description"><?php echo esc_html($atts['description']); ?></p>
+                    <h2><?php echo esc_html($display_title); ?></h2>
+                    <?php if (!empty($display_description)): ?>
+                    <p class="description"><?php echo esc_html($display_description); ?></p>
+                    <?php endif; ?>
                 </div>
                 
                 <form id="lift-docs-login-form" class="lift-docs-login-form">
