@@ -43,6 +43,9 @@ class LIFT_Forms {
         $this->create_tables();
         $this->register_post_type();
         $this->setup_capabilities();
+        
+        // Force check for missing columns on every init
+        $this->maybe_add_user_id_column();
     }
     
     /**
@@ -134,6 +137,17 @@ class LIFT_Forms {
             // Add user_id column
             $wpdb->query("ALTER TABLE {$submissions_table} ADD COLUMN user_id bigint(20) UNSIGNED DEFAULT NULL AFTER form_data");
             $wpdb->query("ALTER TABLE {$submissions_table} ADD INDEX user_id (user_id)");
+        }
+        
+        // Check if updated_at column exists
+        $updated_at_exists = $wpdb->get_results($wpdb->prepare(
+            "SHOW COLUMNS FROM {$submissions_table} LIKE %s",
+            'updated_at'
+        ));
+        
+        if (empty($updated_at_exists)) {
+            // Add updated_at column
+            $wpdb->query("ALTER TABLE {$submissions_table} ADD COLUMN updated_at datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP AFTER submitted_at");
         }
     }
     
@@ -925,8 +939,9 @@ class LIFT_Forms {
         
         // If document_id is provided, check for document-specific submission
         if ($document_id) {
-            $sql .= " AND JSON_EXTRACT(form_data, '$._document_id') = %d";
-            $params[] = $document_id;
+            // Use LIKE for safer JSON search - compatible with more MySQL versions
+            $sql .= " AND form_data LIKE %s";
+            $params[] = '%"_document_id":' . $document_id . '%';
         }
         
         $sql .= " LIMIT 1";
@@ -947,8 +962,9 @@ class LIFT_Forms {
         $params = array($form_id, $user_id);
         
         if ($document_id) {
-            $sql .= " AND JSON_EXTRACT(form_data, '$._document_id') = %d";
-            $params[] = $document_id;
+            // Use LIKE for safer JSON search - compatible with more MySQL versions
+            $sql .= " AND form_data LIKE %s";
+            $params[] = '%"_document_id":' . $document_id . '%';
         }
         
         $sql .= " ORDER BY submitted_at DESC LIMIT 1";
@@ -1196,6 +1212,9 @@ class LIFT_Forms {
         $is_edit = isset($_POST['is_edit']) && $_POST['is_edit'] == '1';
         $submission_id = intval($_POST['submission_id'] ?? 0);
         
+        // Debug logging
+        error_log('LIFT Forms Submit - is_edit: ' . ($is_edit ? 'true' : 'false') . ', submission_id: ' . $submission_id);
+        
         if (!$form_id) {
             wp_send_json_error(__('Invalid form', 'lift-docs-system'));
         }
@@ -1252,8 +1271,29 @@ class LIFT_Forms {
             $current_user_id = null; // Store as NULL for guest users
         }
 
-        // Save or update submission
+        // Define submissions table
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+
+        // If editing, validate that submission exists and belongs to current user
+        if ($is_edit && $submission_id) {
+            if ($current_user_id === null) {
+                // Guest users cannot edit submissions
+                wp_send_json_error(__('You must be logged in to edit submissions', 'lift-docs-system'));
+            }
+            
+            $existing_submission = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$submissions_table} WHERE id = %d AND user_id = %d",
+                $submission_id,
+                $current_user_id
+            ));
+            
+            if (!$existing_submission) {
+                error_log('Edit validation failed - submission not found or user mismatch. Submission ID: ' . $submission_id . ', User ID: ' . $current_user_id);
+                wp_send_json_error(__('You do not have permission to edit this submission', 'lift-docs-system'));
+            }
+            
+            error_log('Edit validation passed - User can edit submission ID: ' . $submission_id);
+        }
         
         $submission_data = array(
             'form_id' => $form_id,
@@ -1266,13 +1306,60 @@ class LIFT_Forms {
         if ($is_edit && $submission_id) {
             // Update existing submission
             $submission_data['updated_at'] = current_time('mysql');
+            
+            // Debug: Log the submission data
+            error_log('Update submission data: ' . print_r($submission_data, true));
+            error_log('Submission ID: ' . $submission_id . ', User ID: ' . $current_user_id);
+            
+            // Build format array dynamically based on actual data
+            $formats = array();
+            foreach ($submission_data as $key => $value) {
+                switch ($key) {
+                    case 'form_id':
+                    case 'user_id':
+                        $formats[] = '%d';
+                        break;
+                    case 'form_data':
+                    case 'user_ip':
+                    case 'user_agent':
+                    case 'updated_at':
+                        $formats[] = '%s';
+                        break;
+                    default:
+                        $formats[] = '%s';
+                }
+            }
+            
+            error_log('Using formats: ' . print_r($formats, true));
+            
+            // Use simpler WHERE clause - just ID since we already validated ownership above
             $result = $wpdb->update(
                 $submissions_table,
                 $submission_data,
-                array('id' => $submission_id, 'user_id' => $current_user_id), // Ensure user can only edit their own submission
-                array('%d', '%s', '%d', '%s', '%s', '%s'),
-                array('%d', '%d')
+                array('id' => $submission_id),
+                $formats, // dynamic format array
+                array('%d') // format for where (id)
             );
+            
+            // Log any database errors
+            if ($result === false) {
+                error_log('Database update error: ' . $wpdb->last_error);
+                error_log('Last query: ' . $wpdb->last_query);
+                wp_send_json_error(__('Database error: ' . $wpdb->last_error, 'lift-docs-system'));
+            } else if ($result === 0) {
+                error_log('Update returned 0 rows affected - possible no changes or submission not found');
+                // Check if submission still exists
+                $exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$submissions_table} WHERE id = %d", $submission_id));
+                if (!$exists) {
+                    error_log('Submission not found in database');
+                    wp_send_json_error(__('Submission no longer exists', 'lift-docs-system'));
+                } else {
+                    error_log('Submission exists but no changes were made');
+                }
+            } else {
+                error_log('Update successful. Rows affected: ' . $result);
+            }
+            
             $success_message = __('Form updated successfully!', 'lift-docs-system');
         } else {
             // Insert new submission
@@ -1281,7 +1368,7 @@ class LIFT_Forms {
             $success_message = __('Form submitted successfully!', 'lift-docs-system');
         }
 
-        if ($result !== false) {
+        if ($result !== false && ($result > 0 || !$is_edit)) {
             // Send notification email if configured (only for new submissions)
             if (!$is_edit) {
                 $this->send_submission_notification($form, $processed_data);
@@ -1290,12 +1377,16 @@ class LIFT_Forms {
             // If submission is from a document, return redirect URL
             $response_data = array('message' => $success_message);
             if ($document_id) {
-                $response_data['redirect_url'] = home_url('/document-dashboard/');
+                $response_data['redirect_url'] = home_url('/docs-dashboard/');
             }
             
             wp_send_json_success($response_data);
         } else {
-            wp_send_json_error($is_edit ? __('Failed to update form', 'lift-docs-system') : __('Failed to submit form', 'lift-docs-system'));
+            if ($is_edit && $result === 0) {
+                wp_send_json_error(__('No changes were made to the submission', 'lift-docs-system'));
+            } else {
+                wp_send_json_error($is_edit ? __('Failed to update form', 'lift-docs-system') : __('Failed to submit form', 'lift-docs-system'));
+            }
         }
     }
     
