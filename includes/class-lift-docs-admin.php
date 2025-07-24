@@ -1135,7 +1135,7 @@ class LIFT_Docs_Admin {
         <div class="document-assignments">
             <p><strong><?php _e('Assign Document Access', 'lift-docs-system'); ?></strong></p>
             <p class="description">
-                <?php _e('Only assigned users can view and download this document. Leave empty to allow all Document Users access.', 'lift-docs-system'); ?>
+                <?php _e('Search and select users who can access this document. Leave empty to allow all Document Users access.', 'lift-docs-system'); ?>
             </p>
             
             <?php if (empty($document_users)): ?>
@@ -1147,78 +1147,229 @@ class LIFT_Docs_Admin {
                     ); ?>
                 </p>
             <?php else: ?>
-                <div class="users-assignment-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 3px; padding: 10px; background: #fafafa;">
-                    <label style="margin-bottom: 10px; display: block;">
-                        <input type="checkbox" id="select_all_users" style="margin-right: 5px;">
-                        <strong><?php _e('Select All', 'lift-docs-system'); ?></strong>
-                    </label>
-                    <hr style="margin: 10px 0;">
+                <!-- Selected Users Display -->
+                <div class="selected-users-container" style="margin-bottom: 15px;">
+                    <label><strong><?php _e('Selected Users:', 'lift-docs-system'); ?></strong></label>
+                    <div class="selected-users-list" style="min-height: 40px; border: 1px solid #ddd; border-radius: 3px; padding: 8px; background: #f9f9f9;">
+                        <?php if (!empty($assigned_users)): ?>
+                            <?php foreach ($assigned_users as $user_id): ?>
+                                <?php $user = get_user_by('id', $user_id); ?>
+                                <?php if ($user): ?>
+                                    <span class="selected-user-tag" data-user-id="<?php echo esc_attr($user_id); ?>" style="display: inline-block; background: #0073aa; color: #fff; padding: 4px 8px; margin: 2px; border-radius: 3px; font-size: 12px;">
+                                        <?php echo esc_html($user->display_name); ?>
+                                        <span class="remove-user" style="margin-left: 5px; cursor: pointer; font-weight: bold;">&times;</span>
+                                        <input type="hidden" name="lift_doc_assigned_users[]" value="<?php echo esc_attr($user_id); ?>">
+                                    </span>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                        <span class="no-users-selected" style="color: #666; font-style: italic; <?php echo !empty($assigned_users) ? 'display: none;' : ''; ?>">
+                            <?php _e('No users selected (all Document Users will have access)', 'lift-docs-system'); ?>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Search and Add Users -->
+                <div class="add-users-container">
+                    <label for="user-search-input"><strong><?php _e('Add Users:', 'lift-docs-system'); ?></strong></label>
+                    <input type="text" id="user-search-input" placeholder="<?php _e('Search users by name or email...', 'lift-docs-system'); ?>" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px;">
                     
-                    <?php foreach ($document_users as $user): ?>
-                        <label style="display: block; margin-bottom: 8px; padding: 5px; border-radius: 3px; background: #fff;">
-                            <input type="checkbox" 
-                                   name="lift_doc_assigned_users[]" 
-                                   value="<?php echo esc_attr($user->ID); ?>"
-                                   <?php checked(in_array($user->ID, $assigned_users)); ?>
-                                   style="margin-right: 8px;">
-                            <?php echo esc_html($user->display_name); ?>
-                            <small style="color: #666; display: block; margin-left: 20px;">
-                                <?php echo esc_html($user->user_email); ?>
-                            </small>
-                        </label>
-                    <?php endforeach; ?>
+                    <div class="users-search-results" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 3px; background: #fff; display: none;">
+                        <?php foreach ($document_users as $user): ?>
+                            <div class="user-search-item" 
+                                 data-user-id="<?php echo esc_attr($user->ID); ?>"
+                                 data-user-name="<?php echo esc_attr(strtolower($user->display_name)); ?>"
+                                 data-user-email="<?php echo esc_attr(strtolower($user->user_email)); ?>"
+                                 style="padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; <?php echo in_array($user->ID, $assigned_users) ? 'display: none;' : ''; ?>">
+                                <div style="font-weight: 500;"><?php echo esc_html($user->display_name); ?></div>
+                                <div style="font-size: 12px; color: #666;"><?php echo esc_html($user->user_email); ?></div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 10px;">
+                    <button type="button" id="select-all-users" class="button button-secondary" style="margin-right: 10px;">
+                        <?php _e('Select All', 'lift-docs-system'); ?>
+                    </button>
+                    <button type="button" id="clear-all-users" class="button button-secondary">
+                        <?php _e('Clear All', 'lift-docs-system'); ?>
+                    </button>
                 </div>
                 
                 <p class="description" style="margin-top: 10px;">
-                    <?php printf(
-                        __('Total Document Users: %d | Selected: %d', 'lift-docs-system'),
-                        count($document_users),
-                        count($assigned_users)
-                    ); ?>
+                    <span id="users-count">
+                        <?php printf(
+                            __('Total Document Users: %d | Selected: %d', 'lift-docs-system'),
+                            count($document_users),
+                            count($assigned_users)
+                        ); ?>
+                    </span>
                 </p>
             <?php endif; ?>
         </div>
         
         <script>
         jQuery(document).ready(function($) {
-            // Select all functionality
-            $('#select_all_users').on('change', function() {
-                const isChecked = $(this).is(':checked');
-                $('input[name="lift_doc_assigned_users[]"]').prop('checked', isChecked);
-                updateSelectedCount();
+            var allUsers = <?php echo json_encode($document_users); ?>;
+            var totalUsers = allUsers.length;
+            
+            // Search functionality
+            $('#user-search-input').on('input', function() {
+                var searchTerm = $(this).val().toLowerCase();
+                var $results = $('.users-search-results');
+                var $items = $('.user-search-item');
+                
+                if (searchTerm.length > 0) {
+                    $results.show();
+                    
+                    $items.each(function() {
+                        var $item = $(this);
+                        var userName = $item.data('user-name');
+                        var userEmail = $item.data('user-email');
+                        
+                        if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
+                            $item.show();
+                        } else {
+                            $item.hide();
+                        }
+                    });
+                } else {
+                    $results.hide();
+                }
             });
             
-            // Update select all when individual checkboxes change
-            $('input[name="lift_doc_assigned_users[]"]').on('change', function() {
-                const totalCheckboxes = $('input[name="lift_doc_assigned_users[]"]').length;
-                const checkedCheckboxes = $('input[name="lift_doc_assigned_users[]"]:checked').length;
-                
-                $('#select_all_users').prop('checked', totalCheckboxes === checkedCheckboxes);
-                updateSelectedCount();
+            // Hide search results when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.add-users-container').length) {
+                    $('.users-search-results').hide();
+                }
             });
             
-            function updateSelectedCount() {
-                const checkedCount = $('input[name="lift_doc_assigned_users[]"]:checked').length;
-                const totalCount = $('input[name="lift_doc_assigned_users[]"]').length;
+            // Add user when clicked
+            $(document).on('click', '.user-search-item', function() {
+                var $item = $(this);
+                var userId = $item.data('user-id');
+                var userName = $item.find('div:first').text();
                 
-                $('.description').last().html(
-                    '<?php _e('Total Document Users:', 'lift-docs-system'); ?> ' + totalCount + 
-                    ' | <?php _e('Selected:', 'lift-docs-system'); ?> ' + checkedCount
-                );
+                addUser(userId, userName);
+                $item.hide();
+                $('#user-search-input').val('');
+                $('.users-search-results').hide();
+            });
+            
+            // Remove user when X is clicked
+            $(document).on('click', '.remove-user', function() {
+                var $tag = $(this).closest('.selected-user-tag');
+                var userId = $tag.data('user-id');
+                
+                removeUser(userId);
+            });
+            
+            // Select all users
+            $('#select-all-users').on('click', function() {
+                allUsers.forEach(function(user) {
+                    if (!isUserSelected(user.ID)) {
+                        addUser(user.ID, user.display_name);
+                    }
+                });
+                updateSearchResults();
+            });
+            
+            // Clear all users
+            $('#clear-all-users').on('click', function() {
+                $('.selected-user-tag').remove();
+                $('.user-search-item').show();
+                updateNoUsersMessage();
+                updateUsersCount();
+            });
+            
+            function addUser(userId, userName) {
+                if (isUserSelected(userId)) {
+                    return;
+                }
+                
+                var userTag = $('<span class="selected-user-tag" data-user-id="' + userId + '" style="display: inline-block; background: #0073aa; color: #fff; padding: 4px 8px; margin: 2px; border-radius: 3px; font-size: 12px;">' +
+                    userName +
+                    '<span class="remove-user" style="margin-left: 5px; cursor: pointer; font-weight: bold;">&times;</span>' +
+                    '<input type="hidden" name="lift_doc_assigned_users[]" value="' + userId + '">' +
+                    '</span>');
+                
+                $('.selected-users-list').append(userTag);
+                updateNoUsersMessage();
+                updateUsersCount();
+            }
+            
+            function removeUser(userId) {
+                $('.selected-user-tag[data-user-id="' + userId + '"]').remove();
+                $('.user-search-item[data-user-id="' + userId + '"]').show();
+                updateNoUsersMessage();
+                updateUsersCount();
+            }
+            
+            function isUserSelected(userId) {
+                return $('.selected-user-tag[data-user-id="' + userId + '"]').length > 0;
+            }
+            
+            function updateNoUsersMessage() {
+                var selectedCount = $('.selected-user-tag').length;
+                if (selectedCount > 0) {
+                    $('.no-users-selected').hide();
+                } else {
+                    $('.no-users-selected').show();
+                }
+            }
+            
+            function updateUsersCount() {
+                var selectedCount = $('.selected-user-tag').length;
+                $('#users-count').text('<?php _e('Total Document Users:', 'lift-docs-system'); ?> ' + totalUsers + ' | <?php _e('Selected:', 'lift-docs-system'); ?> ' + selectedCount);
+            }
+            
+            function updateSearchResults() {
+                $('.user-search-item').each(function() {
+                    var userId = $(this).data('user-id');
+                    if (isUserSelected(userId)) {
+                        $(this).hide();
+                    } else {
+                        $(this).show();
+                    }
+                });
             }
             
             // Initialize
-            updateSelectedCount();
+            updateNoUsersMessage();
+            updateUsersCount();
+            updateSearchResults();
         });
         </script>
         
         <style>
-        .document-assignments .users-assignment-list label:hover {
-            background-color: #f0f8ff !important;
+        .user-search-item:hover {
+            background-color: #f0f8ff;
         }
         
-        .document-assignments .users-assignment-list input[type="checkbox"] {
-            transform: scale(1.1);
+        .selected-user-tag {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .remove-user:hover {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+        
+        #user-search-input:focus {
+            border-color: #0073aa;
+            box-shadow: 0 0 2px rgba(0, 115, 170, 0.8);
+            outline: none;
+        }
+        
+        .users-search-results {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         </style>
         <?php
