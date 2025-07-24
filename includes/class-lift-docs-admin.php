@@ -2212,65 +2212,12 @@ class LIFT_Docs_Admin {
     }
     
     /**
-     * Add user code field to user profile
+     * Add user code field to user profile (removed - managed only in users list)
      */
     public function add_user_code_field($user) {
-        // Only show for users with documents_user role or admins viewing the field
-        if (!in_array('documents_user', $user->roles) && !current_user_can('manage_options')) {
-            return;
-        }
-        
-        $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
-        
-        ?>
-        <h3><?php _e('Document System', 'lift-docs-system'); ?></h3>
-        <table class="form-table">
-            <tr>
-                <th><label for="lift_docs_user_code"><?php _e('User Code', 'lift-docs-system'); ?></label></th>
-                <td>
-                    <input type="text" name="lift_docs_user_code" id="lift_docs_user_code" 
-                           value="<?php echo esc_attr($user_code); ?>" class="regular-text" 
-                           <?php echo current_user_can('manage_options') ? '' : 'readonly'; ?> />
-                    <p class="description">
-                        <?php _e('Unique code for document access identification. Used for searching and assignment.', 'lift-docs-system'); ?>
-                        <?php if (current_user_can('manage_options')): ?>
-                            <br><button type="button" id="generate-new-code" class="button button-secondary" style="margin-top: 5px;">
-                                <?php _e('Generate New Code', 'lift-docs-system'); ?>
-                            </button>
-                        <?php endif; ?>
-                    </p>
-                </td>
-            </tr>
-        </table>
-        
-        <?php if (current_user_can('manage_options')): ?>
-        <script>
-        jQuery(document).ready(function($) {
-            $('#generate-new-code').click(function() {
-                if (confirm('<?php _e('Are you sure you want to generate a new user code? This will replace the existing code.', 'lift-docs-system'); ?>')) {
-                    $.ajax({
-                        url: ajaxurl,
-                        type: 'POST',
-                        data: {
-                            action: 'generate_user_code',
-                            user_id: <?php echo $user->ID; ?>,
-                            nonce: '<?php echo wp_create_nonce('generate_user_code_' . $user->ID); ?>'
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                $('#lift_docs_user_code').val(response.data.code);
-                                alert('<?php _e('New user code generated successfully!', 'lift-docs-system'); ?>');
-                            } else {
-                                alert('<?php _e('Error generating user code. Please try again.', 'lift-docs-system'); ?>');
-                            }
-                        }
-                    });
-                }
-            });
-        });
-        </script>
-        <?php endif; ?>
-        <?php
+        // User Code management removed from user profile
+        // Now handled only in Users list page
+        return;
     }
     
     /**
@@ -2355,10 +2302,18 @@ class LIFT_Docs_Admin {
             $user = get_user_by('id', $user_id);
             if ($user && in_array('documents_user', $user->roles)) {
                 $user_code = get_user_meta($user_id, 'lift_docs_user_code', true);
+                $nonce = wp_create_nonce('generate_user_code');
+                
                 if ($user_code) {
-                    return '<strong style="color: #0073aa; font-family: monospace;">' . esc_html($user_code) . '</strong>';
+                    // User has a code - show code with regenerate button
+                    return '<div id="user-code-cell-' . $user_id . '">' .
+                           '<strong style="color: #0073aa; font-family: monospace;">' . esc_html($user_code) . '</strong><br>' .
+                           '<button type="button" class="button button-small button-secondary generate-user-code-btn-list" ' .
+                           'data-user-id="' . $user_id . '" data-nonce="' . $nonce . '" ' .
+                           'style="margin-top: 5px; font-size: 11px;">Generate New Code</button>' .
+                           '</div>';
                 } else {
-                    $nonce = wp_create_nonce('generate_user_code');
+                    // User has no code - show generate button
                     return '<div id="user-code-cell-' . $user_id . '">' .
                            '<span style="color: #d63638; font-style: italic;">No Code</span><br>' .
                            '<button type="button" class="button button-small button-primary generate-user-code-btn-list" ' .
@@ -2385,7 +2340,7 @@ class LIFT_Docs_Admin {
         $user_id = intval($_POST['user_id']);
         $nonce = $_POST['nonce'];
         
-        // Verify nonce
+        // Verify nonce - only support users list context now
         if (!wp_verify_nonce($nonce, 'generate_user_code')) {
             wp_send_json_error('Security check failed');
         }
@@ -2401,18 +2356,11 @@ class LIFT_Docs_Admin {
             wp_send_json_error('Invalid user or user does not have Documents User role');
         }
         
-        // Check if user already has a code (allow regeneration)
-        $existing_code = get_user_meta($user_id, 'lift_docs_user_code', true);
-        if ($existing_code) {
-            // Return existing code instead of error
-            wp_send_json_success(array('code' => $existing_code, 'message' => 'User already had a code'));
-        }
-        
-        // Generate new code
+        // Generate new code (overwrite existing if any)
         $user_code = $this->generate_unique_user_code();
         update_user_meta($user_id, 'lift_docs_user_code', $user_code);
         
-        wp_send_json_success(array('code' => $user_code, 'message' => 'New code generated'));
+        wp_send_json_success(array('code' => $user_code, 'message' => 'User code generated successfully'));
     }
     
     /**
@@ -2437,6 +2385,15 @@ class LIFT_Docs_Admin {
                 var userId = $button.data('user-id');
                 var nonce = $button.data('nonce');
                 var $cell = $('#user-code-cell-' + userId);
+                var isRegenerate = $button.hasClass('button-secondary');
+                var originalText = $button.text();
+                
+                // Confirm if regenerating existing code
+                if (isRegenerate) {
+                    if (!confirm('Are you sure you want to generate a new code? This will replace the existing code.')) {
+                        return;
+                    }
+                }
                 
                 // Disable button and show loading
                 $button.prop('disabled', true).text('Generating...');
@@ -2452,11 +2409,17 @@ class LIFT_Docs_Admin {
                     },
                     success: function(response) {
                         if (response.success && response.data.code) {
-                            // Update the cell with new code
-                            $cell.html('<strong style="color: #0073aa; font-family: monospace;">' + response.data.code + '</strong>');
+                            // Update the cell with new code and regenerate button
+                            var newHtml = '<strong style="color: #0073aa; font-family: monospace;">' + response.data.code + '</strong><br>' +
+                                         '<button type="button" class="button button-small button-secondary generate-user-code-btn-list" ' +
+                                         'data-user-id="' + userId + '" data-nonce="' + nonce + '" ' +
+                                         'style="margin-top: 5px; font-size: 11px;">Generate New Code</button>';
+                            
+                            $cell.html(newHtml);
                             
                             // Show success message
-                            var successMsg = $('<div class="notice notice-success is-dismissible" style="margin: 10px 0; position: fixed; top: 32px; right: 20px; z-index: 9999; max-width: 300px;"><p>User Code generated successfully!</p></div>');
+                            var message = isRegenerate ? 'User Code regenerated successfully!' : 'User Code generated successfully!';
+                            var successMsg = $('<div class="notice notice-success is-dismissible" style="margin: 10px 0; position: fixed; top: 32px; right: 20px; z-index: 9999; max-width: 300px;"><p>' + message + '</p></div>');
                             $('body').append(successMsg);
                             
                             // Auto-dismiss success message after 3 seconds
@@ -2470,14 +2433,14 @@ class LIFT_Docs_Admin {
                             // Show error message
                             var errorMsg = response.data || 'Error generating User Code. Please try again.';
                             alert(errorMsg);
-                            $button.prop('disabled', false).text('Generate Code');
+                            $button.prop('disabled', false).text(originalText);
                         }
                     },
                     error: function(xhr, status, error) {
                         // Show detailed error message
                         console.error('AJAX Error:', status, error, xhr.responseText);
                         alert('Error generating User Code. Please try again. Status: ' + status);
-                        $button.prop('disabled', false).text('Generate Code');
+                        $button.prop('disabled', false).text(originalText);
                     }
                 });
             });
@@ -2486,18 +2449,34 @@ class LIFT_Docs_Admin {
         
         <style type="text/css">
         .generate-user-code-btn-list {
-            background: #00a32a !important;
-            border-color: #00a32a !important;
-            color: #fff !important;
             font-size: 11px !important;
             padding: 2px 8px !important;
             height: auto !important;
             line-height: 1.2 !important;
         }
         
-        .generate-user-code-btn-list:hover {
+        /* Primary button for users without code */
+        .generate-user-code-btn-list.button-primary {
+            background: #00a32a !important;
+            border-color: #00a32a !important;
+            color: #fff !important;
+        }
+        
+        .generate-user-code-btn-list.button-primary:hover {
             background: #008a20 !important;
             border-color: #008a20 !important;
+        }
+        
+        /* Secondary button for users with existing code */
+        .generate-user-code-btn-list.button-secondary {
+            background: #f39c12 !important;
+            border-color: #f39c12 !important;
+            color: #fff !important;
+        }
+        
+        .generate-user-code-btn-list.button-secondary:hover {
+            background: #e67e22 !important;
+            border-color: #e67e22 !important;
         }
         
         .generate-user-code-btn-list:disabled {
