@@ -722,7 +722,7 @@ class LIFT_Forms {
      * AJAX save form
      */
     public function ajax_save_form() {
-        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_nonce')) {
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'lift_forms_nonce')) {
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
         
@@ -730,11 +730,21 @@ class LIFT_Forms {
             wp_send_json_error(__('Insufficient permissions', 'lift-docs-system'));
         }
         
-        $form_id = intval($_POST['form_id']);
-        $name = sanitize_text_field($_POST['name']);
-        $description = sanitize_textarea_field($_POST['description']);
-        $fields = $_POST['fields']; // JSON data
-        $settings = $_POST['settings']; // JSON data
+        $form_id = intval($_POST['form_id'] ?? 0);
+        $name = sanitize_text_field($_POST['name'] ?? '');
+        $description = sanitize_textarea_field($_POST['description'] ?? '');
+        $fields = $_POST['fields'] ?? ''; // JSON data
+        $settings = $_POST['settings'] ?? '{}'; // JSON data
+        
+        // Ensure fields is a string
+        if (!is_string($fields)) {
+            $fields = '';
+        }
+        
+        // Ensure settings is a string
+        if (!is_string($settings)) {
+            $settings = '{}';
+        }
         
         if (empty($name)) {
             wp_send_json_error(__('Form name is required', 'lift-docs-system'));
@@ -745,26 +755,62 @@ class LIFT_Forms {
             wp_send_json_error(__('Form must have at least one field', 'lift-docs-system'));
         }
         
-        // Clean fields data
+        // Enhanced JSON cleaning and validation
         $fields = trim($fields);
+        
+        // Log the raw fields data for debugging
+        error_log('LIFT Forms - Raw fields data: ' . $fields);
+        error_log('LIFT Forms - Fields length: ' . strlen($fields));
         
         // Remove BOM if present
         if (substr($fields, 0, 3) === "\xEF\xBB\xBF") {
             $fields = substr($fields, 3);
         }
         
-        // Remove control characters
-        $fields = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $fields);
+        // Remove any non-printable characters except newlines and tabs
+        $fields = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\xFF]/', '', $fields);
         
-        // Fix trailing commas
-        $fields = preg_replace('/,\s*}/', '}', $fields);
-        $fields = preg_replace('/,\s*]/', ']', $fields);
+        // Clean up common JSON issues
+        if (!empty($fields)) {
+            // Fix trailing commas in objects
+            $fields = preg_replace('/,\s*}/', '}', $fields);
+            // Fix trailing commas in arrays  
+            $fields = preg_replace('/,\s*]/', ']', $fields);
+            // Fix multiple consecutive commas
+            $fields = preg_replace('/,+/', ',', $fields);
+            // Fix missing quotes around property names (basic fix)
+            $fields = preg_replace('/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/', '$1"$2":', $fields);
+        }
         
-        // Test JSON validity
+        error_log('LIFT Forms - Cleaned fields data: ' . $fields);
+        
+        // Test JSON validity with better error reporting
         $fields_array = json_decode($fields, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $json_error = json_last_error_msg();
-            wp_send_json_error(__('Invalid fields data format: ' . $json_error, 'lift-docs-system'));
+        $json_error = json_last_error();
+        
+        if ($json_error !== JSON_ERROR_NONE) {
+            $json_error_msg = json_last_error_msg();
+            error_log('LIFT Forms - JSON Error: ' . $json_error_msg);
+            error_log('LIFT Forms - JSON Error Code: ' . $json_error);
+            error_log('LIFT Forms - Problematic JSON: ' . $fields);
+            
+            // Try to identify the specific issue
+            $error_details = '';
+            switch ($json_error) {
+                case JSON_ERROR_SYNTAX:
+                    $error_details = 'Syntax error in JSON. Check for missing quotes, commas, or brackets.';
+                    break;
+                case JSON_ERROR_UTF8:
+                    $error_details = 'Invalid UTF-8 characters in JSON.';
+                    break;
+                case JSON_ERROR_DEPTH:
+                    $error_details = 'JSON is too deeply nested.';
+                    break;
+                default:
+                    $error_details = 'Unknown JSON error.';
+            }
+            
+            wp_send_json_error(__('Invalid fields data format: ' . $json_error_msg . ' - ' . $error_details, 'lift-docs-system'));
         }
         
         if (empty($fields_array) || !is_array($fields_array)) {

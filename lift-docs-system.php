@@ -93,6 +93,18 @@ class LIFT_Docs_System {
         // Include JSON fixer tool for LIFT Forms
         // require_once LIFT_DOCS_PLUGIN_DIR . 'fix-lift-forms-json.php';
         
+        // TEMPORARY: Include AJAX save debug tool
+        require_once LIFT_DOCS_PLUGIN_DIR . 'debug-ajax-save.php';
+        
+        // Include enhanced FormBuilder debug
+        require_once LIFT_DOCS_PLUGIN_DIR . 'enhanced-formbuilder-debug.php';
+        
+        // Include emergency JSON fixer
+        require_once LIFT_DOCS_PLUGIN_DIR . 'emergency-json-fixer.php';
+        
+        // Include PHP 8 compatibility fixes
+        require_once LIFT_DOCS_PLUGIN_DIR . 'php8-compatibility-fix.php';
+        
         // Include emergency AJAX debug tool (disabled - working correctly)
         // require_once LIFT_DOCS_PLUGIN_DIR . 'emergency-ajax-debug.php';
         
