@@ -244,12 +244,10 @@
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     border-top-color: white;
-    animation: spin 1s ease-in-out infinite;
+    /* Animation removed */
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+/* Spinner animation removed */
 
 /* Messages */
 .lift-form-messages {
@@ -957,24 +955,10 @@
     padding: 40px;
 }
 
-/* Animation Classes */
-.fadeIn {
-    animation: fadeIn 0.3s ease;
-}
+/* Animation Classes - DISABLED */
+/* .fadeIn and .fadeOut classes now have no animations */
 
-.fadeOut {
-    animation: fadeOut 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(-10px); }
-}
+/* All keyframes animations removed */
 
 /* Input Focus Effects */
 .lift-form-group input.has-value,
@@ -985,16 +969,8 @@
 /* Remove all transitions and animations for better performance */
 .lift-docs-login-container *,
 .lift-docs-dashboard-container * {
-    
+    transition: none !important;
     animation: none !important;
 }
 
-/* Exception: Keep only the spinner animation for login button */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.spinner {
-    animation: spin 1s linear infinite !important;
-}
+/* No spinner animations */

@@ -1381,13 +1381,10 @@ class LIFT_Docs_Admin {
         }
         
         .selected-user-tag {
-            animation: fadeIn 0.3s ease;
+            /* No animation */
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        /* Animation removed */
         
         .remove-user:hover {
             background-color: rgba(255,255,255,0.2);
@@ -2021,9 +2018,7 @@ class LIFT_Docs_Admin {
                             
                             // Auto-dismiss success message after 3 seconds
                             setTimeout(function() {
-                                successMsg.fadeOut(function() {
-                                    $(this).remove();
-                                });
+                                successMsg.hide().remove();
                             }, 3000);
                             
                         } else {
@@ -2395,9 +2390,7 @@ class LIFT_Docs_Admin {
                             
                             // Auto-dismiss success message after 3 seconds
                             setTimeout(function() {
-                                successMsg.fadeOut(function() {
-                                    $(this).remove();
-                                });
+                                successMsg.hide().remove();
                             }, 3000);
                             
                         } else {

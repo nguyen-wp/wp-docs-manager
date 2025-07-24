@@ -191,11 +191,11 @@ class LIFT_Docs_Frontend_Login {
                     height: auto;
                     border-radius: 12px;
                     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-                    transition: transform 0.3s ease;
+                    /* No animation */
                 }
                 
                 .lift-login-logo img:hover {
-                    transform: scale(1.02);
+                    /* No hover animation */
                 }
                 
                 .lift-login-form-wrapper {
@@ -264,7 +264,7 @@ class LIFT_Docs_Frontend_Login {
                     background: #fff;
                     color: <?php echo esc_attr($text_color); ?>;
                     box-sizing: border-box;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    /* No animation */
                     font-weight: 500;
                 }
                 
@@ -273,7 +273,7 @@ class LIFT_Docs_Frontend_Login {
                     outline: none;
                     border-color: <?php echo esc_attr($btn_color); ?>;
                     box-shadow: 0 0 0 3px <?php echo esc_attr($btn_color); ?>20;
-                    transform: translateY(-1px);
+                    /* No transform animation */
                 }
                 
                 .lift-form-group input[type="text"]::placeholder,
@@ -297,7 +297,7 @@ class LIFT_Docs_Frontend_Login {
                     color: #666;
                     padding: 8px;
                     border-radius: 6px;
-                    transition: all 0.2s ease;
+                    /* No animation */
                 }
                 
                 .toggle-password:hover {
@@ -348,7 +348,7 @@ class LIFT_Docs_Frontend_Login {
                     position: relative;
                     cursor: pointer;
                     flex-shrink: 0;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    /* No animation */
                 }
                 
                 .checkbox-label input[type="checkbox"]:focus {
@@ -359,7 +359,7 @@ class LIFT_Docs_Frontend_Login {
                 .checkbox-label input[type="checkbox"]:checked {
                     background: <?php echo esc_attr($btn_color); ?>;
                     border-color: <?php echo esc_attr($btn_color); ?>;
-                    transform: scale(1.05);
+                    /* No scale animation */
                 }
                 
                 .checkbox-label input[type="checkbox"]:checked::after {
@@ -371,13 +371,10 @@ class LIFT_Docs_Frontend_Login {
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
-                    animation: checkmark 0.3s ease;
+                    /* No animation */
                 }
                 
-                @keyframes checkmark {
-                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-                    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                }
+                /* Checkmark animation removed */
                 
                 .checkbox-label:hover input[type="checkbox"]:not(:checked) {
                     border-color: <?php echo esc_attr($btn_color); ?>;
@@ -397,24 +394,24 @@ class LIFT_Docs_Frontend_Login {
                     cursor: pointer;
                     position: relative;
                     letter-spacing: 0.5px;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    /* No animation */
                     box-shadow: 0 4px 12px <?php echo esc_attr($btn_color); ?>40;
                 }
                 
                 .lift-login-btn:hover {
-                    transform: translateY(-2px);
+                    /* No hover animation */
                     box-shadow: 0 8px 20px <?php echo esc_attr($btn_color); ?>60;
                 }
                 
                 .lift-login-btn:active {
-                    transform: translateY(0);
+                    /* No active animation */
                     box-shadow: 0 2px 8px <?php echo esc_attr($btn_color); ?>40;
                 }
                 
                 .lift-login-btn:disabled {
                     opacity: 0.7;
                     cursor: not-allowed;
-                    transform: none;
+                    /* No transform */
                     box-shadow: 0 2px 8px <?php echo esc_attr($btn_color); ?>30;
                 }
                 
@@ -431,13 +428,10 @@ class LIFT_Docs_Frontend_Login {
                     border: 2px solid rgba(255, 255, 255, 0.3);
                     border-top: 2px solid white;
                     border-radius: 50%;
-                    animation: spin 1s linear infinite;
+                    /* No spinner animation */
                 }
                 
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
+                /* Spinner animation removed */
                 
                 /* Enhanced form messages */
                 .lift-form-messages {
@@ -477,7 +471,7 @@ class LIFT_Docs_Frontend_Login {
                     color: <?php echo esc_attr($btn_color); ?>;
                     text-decoration: none;
                     font-weight: 600;
-                    transition: color 0.2s ease;
+                    /* No animation */
                 }
                 
                 .login-help a:hover {

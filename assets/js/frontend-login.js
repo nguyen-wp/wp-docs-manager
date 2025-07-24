@@ -282,7 +282,7 @@ jQuery(document).ready(function($) {
      * Show Success Message
      */
     function showSuccess(message) {
-        $('.login-success').html('<span class="dashicons dashicons-yes-alt"></span> ' + message).fadeIn();
+        $('.login-success').html('<span class="dashicons dashicons-yes-alt"></span> ' + message).show();
         $('.login-error').hide();
     }
     
@@ -290,7 +290,7 @@ jQuery(document).ready(function($) {
      * Show Error Message
      */
     function showError(message) {
-        $('.login-error').html('<span class="dashicons dashicons-warning"></span> ' + message).fadeIn();
+        $('.login-error').html('<span class="dashicons dashicons-warning"></span> ' + message).show();
         $('.login-success').hide();
     }
     
@@ -339,9 +339,9 @@ jQuery(document).ready(function($) {
             }
             
             if (matchesSearch && matchesFilter) {
-                $card.fadeIn();
+                $card.show();
             } else {
-                $card.fadeOut();
+                $card.hide();
             }
         });
         
