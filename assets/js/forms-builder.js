@@ -1,0 +1,895 @@
+/**
+ * LIFT Forms Builder JavaScript
+ */
+
+(function($) {
+    'use strict';
+    
+    let formBuilder = {
+        fieldCounter: 0,
+        selectedField: null,
+        formData: {
+            fields: [],
+            settings: {}
+        },
+        
+        init: function() {
+            this.bindEvents();
+            this.initDragDrop();
+            this.loadExistingForm();
+        },
+        
+        bindEvents: function() {
+            // Save form
+            $('#save-form').on('click', this.saveForm.bind(this));
+            
+            // Preview form
+            $('#preview-form').on('click', this.previewForm.bind(this));
+            
+            // Clear form
+            $('#clear-form').on('click', this.clearForm.bind(this));
+            
+            // Close settings panel
+            $('.panel-close').on('click', this.closeSettingsPanel.bind(this));
+            
+            // Close modals
+            $('.lift-modal-close, .lift-modal-backdrop').on('click', this.closeModal.bind(this));
+            
+            // Form field changes
+            $(document).on('input change', '.settings-form input, .settings-form textarea, .settings-form select', this.updateFieldSettings.bind(this));
+            
+            // Add/remove options
+            $(document).on('click', '.add-option', this.addOption.bind(this));
+            $(document).on('click', '.option-remove', this.removeOption.bind(this));
+            
+            // Field controls
+            $(document).on('click', '.field-edit', this.editField.bind(this));
+            $(document).on('click', '.field-delete', this.deleteField.bind(this));
+            $(document).on('click', '.field-duplicate', this.duplicateField.bind(this));
+            
+            // Field selection
+            $(document).on('click', '.canvas-field', this.selectField.bind(this));
+        },
+        
+        initDragDrop: function() {
+            // Make field items draggable
+            $('.field-item').draggable({
+                helper: 'clone',
+                cursor: 'grabbing',
+                opacity: 0.8,
+                revert: 'invalid',
+                start: function(event, ui) {
+                    ui.helper.css('z-index', 1000);
+                    $('#form-canvas').addClass('drag-over');
+                }
+            });
+            
+            // Make canvas droppable
+            $('#form-canvas .canvas-content').droppable({
+                accept: '.field-item',
+                tolerance: 'pointer',
+                drop: function(event, ui) {
+                    const fieldType = ui.draggable.data('type');
+                    formBuilder.addField(fieldType);
+                    $('#form-canvas').removeClass('drag-over');
+                },
+                over: function() {
+                    $(this).addClass('drag-over');
+                },
+                out: function() {
+                    $(this).removeClass('drag-over');
+                }
+            });
+            
+            // Make canvas sortable
+            $('#form-canvas .canvas-content').sortable({
+                items: '.canvas-field',
+                placeholder: 'ui-sortable-placeholder',
+                handle: '.canvas-field',
+                tolerance: 'pointer',
+                update: function() {
+                    formBuilder.updateFieldOrder();
+                }
+            });
+        },
+        
+        addField: function(type) {
+            this.fieldCounter++;
+            const fieldId = 'field_' + this.fieldCounter;
+            const fieldName = type + '_' + this.fieldCounter;
+            
+            const fieldConfig = this.getFieldDefaults(type);
+            fieldConfig.id = fieldId;
+            fieldConfig.name = fieldName;
+            fieldConfig.type = type;
+            
+            this.formData.fields.push(fieldConfig);
+            
+            const fieldHtml = this.renderCanvasField(fieldConfig);
+            $('#form-canvas .canvas-content').append(fieldHtml);
+            
+            // Hide placeholder
+            $('.canvas-placeholder').hide();
+            $('#form-canvas').addClass('has-fields');
+            
+            // Select the new field
+            this.selectFieldById(fieldId);
+            
+            // Update canvas sortable
+            $('#form-canvas .canvas-content').sortable('refresh');
+        },
+        
+        getFieldDefaults: function(type) {
+            const defaults = {
+                text: {
+                    label: 'Text Input',
+                    placeholder: 'Enter text...',
+                    required: false,
+                    description: ''
+                },
+                textarea: {
+                    label: 'Textarea',
+                    placeholder: 'Enter text...',
+                    required: false,
+                    description: '',
+                    rows: 4
+                },
+                email: {
+                    label: 'Email Address',
+                    placeholder: 'Enter email...',
+                    required: false,
+                    description: ''
+                },
+                number: {
+                    label: 'Number',
+                    placeholder: 'Enter number...',
+                    required: false,
+                    description: '',
+                    min: '',
+                    max: '',
+                    step: ''
+                },
+                date: {
+                    label: 'Date',
+                    required: false,
+                    description: ''
+                },
+                file: {
+                    label: 'File Upload',
+                    required: false,
+                    description: '',
+                    accept: '',
+                    multiple: false
+                },
+                select: {
+                    label: 'Dropdown',
+                    required: false,
+                    description: '',
+                    options: [
+                        { label: 'Option 1', value: 'option1' },
+                        { label: 'Option 2', value: 'option2' }
+                    ]
+                },
+                radio: {
+                    label: 'Radio Buttons',
+                    required: false,
+                    description: '',
+                    options: [
+                        { label: 'Option 1', value: 'option1' },
+                        { label: 'Option 2', value: 'option2' }
+                    ]
+                },
+                checkbox: {
+                    label: 'Checkboxes',
+                    required: false,
+                    description: '',
+                    options: [
+                        { label: 'Option 1', value: 'option1' },
+                        { label: 'Option 2', value: 'option2' }
+                    ]
+                },
+                section: {
+                    title: 'Section Title',
+                    description: 'Section description'
+                },
+                column: {
+                    columns: 2,
+                    fields: [[], []]
+                },
+                html: {
+                    content: '<p>HTML content goes here</p>'
+                }
+            };
+            
+            return defaults[type] || {};
+        },
+        
+        renderCanvasField: function(field) {
+            const fieldHtml = `
+                <div class="canvas-field" data-field-id="${field.id}" data-field-type="${field.type}">
+                    <div class="field-controls">
+                        <button type="button" class="field-control-btn field-edit" title="Edit Field">
+                            <span class="dashicons dashicons-edit"></span>
+                        </button>
+                        <button type="button" class="field-control-btn field-duplicate" title="Duplicate Field">
+                            <span class="dashicons dashicons-admin-page"></span>
+                        </button>
+                        <button type="button" class="field-control-btn field-delete delete" title="Delete Field">
+                            <span class="dashicons dashicons-trash"></span>
+                        </button>
+                    </div>
+                    <div class="field-preview">
+                        ${this.renderFieldPreview(field)}
+                    </div>
+                </div>
+            `;
+            
+            return fieldHtml;
+        },
+        
+        renderFieldPreview: function(field) {
+            const required = field.required ? '<span class="required">*</span>' : '';
+            const description = field.description ? `<small class="field-description">${field.description}</small>` : '';
+            
+            switch (field.type) {
+                case 'text':
+                case 'email':
+                case 'number':
+                    return `
+                        <label>${field.label}${required}</label>
+                        <input type="${field.type}" placeholder="${field.placeholder || ''}" disabled>
+                        ${description}
+                    `;
+                    
+                case 'date':
+                    return `
+                        <label>${field.label}${required}</label>
+                        <input type="date" disabled>
+                        ${description}
+                    `;
+                    
+                case 'textarea':
+                    return `
+                        <label>${field.label}${required}</label>
+                        <textarea placeholder="${field.placeholder || ''}" rows="${field.rows || 4}" disabled></textarea>
+                        ${description}
+                    `;
+                    
+                case 'file':
+                    return `
+                        <label>${field.label}${required}</label>
+                        <input type="file" ${field.multiple ? 'multiple' : ''} disabled>
+                        ${description}
+                    `;
+                    
+                case 'select':
+                    let selectOptions = '<option>Please select...</option>';
+                    if (field.options) {
+                        field.options.forEach(option => {
+                            selectOptions += `<option value="${option.value}">${option.label}</option>`;
+                        });
+                    }
+                    return `
+                        <label>${field.label}${required}</label>
+                        <select disabled>${selectOptions}</select>
+                        ${description}
+                    `;
+                    
+                case 'radio':
+                    let radioOptions = '';
+                    if (field.options) {
+                        field.options.forEach((option, index) => {
+                            radioOptions += `
+                                <label class="radio-label">
+                                    <input type="radio" name="${field.name}" value="${option.value}" disabled>
+                                    <span>${option.label}</span>
+                                </label>
+                            `;
+                        });
+                    }
+                    return `
+                        <fieldset>
+                            <legend>${field.label}${required}</legend>
+                            ${radioOptions}
+                        </fieldset>
+                        ${description}
+                    `;
+                    
+                case 'checkbox':
+                    let checkboxOptions = '';
+                    if (field.options) {
+                        field.options.forEach((option, index) => {
+                            checkboxOptions += `
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="${field.name}[]" value="${option.value}" disabled>
+                                    <span>${option.label}</span>
+                                </label>
+                            `;
+                        });
+                    }
+                    return `
+                        <fieldset>
+                            <legend>${field.label}${required}</legend>
+                            ${checkboxOptions}
+                        </fieldset>
+                        ${description}
+                    `;
+                    
+                case 'section':
+                    return `
+                        <div class="section-title">${field.title || 'Section Title'}</div>
+                        <p>${field.description || 'Section description'}</p>
+                    `;
+                    
+                case 'column':
+                    const columnCount = field.columns || 2;
+                    let columnsHtml = '';
+                    for (let i = 0; i < columnCount; i++) {
+                        columnsHtml += `
+                            <div class="column" data-column="${i}">
+                                <div class="column-placeholder">Drop fields here</div>
+                            </div>
+                        `;
+                    }
+                    return `<div class="columns-container">${columnsHtml}</div>`;
+                    
+                case 'html':
+                    return field.content || '<p>HTML content</p>';
+                    
+                default:
+                    return `<p>Unknown field type: ${field.type}</p>`;
+            }
+        },
+        
+        selectField: function(e) {
+            e.stopPropagation();
+            const fieldElement = $(e.currentTarget);
+            this.selectFieldElement(fieldElement);
+        },
+        
+        selectFieldById: function(fieldId) {
+            const fieldElement = $(`.canvas-field[data-field-id="${fieldId}"]`);
+            this.selectFieldElement(fieldElement);
+        },
+        
+        selectFieldElement: function(fieldElement) {
+            // Remove previous selection
+            $('.canvas-field').removeClass('selected');
+            
+            // Select current field
+            fieldElement.addClass('selected');
+            
+            const fieldId = fieldElement.data('field-id');
+            this.selectedField = this.getFieldById(fieldId);
+            
+            if (this.selectedField) {
+                this.showFieldSettings(this.selectedField);
+            }
+        },
+        
+        showFieldSettings: function(field) {
+            const settingsHtml = this.renderFieldSettings(field);
+            $('#field-settings-content').html(settingsHtml);
+            $('#field-settings-panel').addClass('active');
+        },
+        
+        renderFieldSettings: function(field) {
+            let settingsHtml = `
+                <div class="settings-form">
+                    <div class="settings-group">
+                        <label>Field Label</label>
+                        <input type="text" name="label" value="${field.label || ''}" placeholder="Enter field label">
+                    </div>
+            `;
+            
+            // Common settings for most fields
+            if (['text', 'textarea', 'email', 'number'].includes(field.type)) {
+                settingsHtml += `
+                    <div class="settings-group">
+                        <label>Placeholder Text</label>
+                        <input type="text" name="placeholder" value="${field.placeholder || ''}" placeholder="Enter placeholder text">
+                    </div>
+                `;
+            }
+            
+            if (field.type === 'textarea') {
+                settingsHtml += `
+                    <div class="settings-group">
+                        <label>Rows</label>
+                        <input type="number" name="rows" value="${field.rows || 4}" min="2" max="20">
+                    </div>
+                `;
+            }
+            
+            if (field.type === 'number') {
+                settingsHtml += `
+                    <div class="settings-group">
+                        <label>Minimum Value</label>
+                        <input type="number" name="min" value="${field.min || ''}" placeholder="Minimum value">
+                    </div>
+                    <div class="settings-group">
+                        <label>Maximum Value</label>
+                        <input type="number" name="max" value="${field.max || ''}" placeholder="Maximum value">
+                    </div>
+                    <div class="settings-group">
+                        <label>Step</label>
+                        <input type="number" name="step" value="${field.step || ''}" placeholder="Step value">
+                    </div>
+                `;
+            }
+            
+            if (field.type === 'file') {
+                settingsHtml += `
+                    <div class="settings-group">
+                        <label>Accepted File Types</label>
+                        <input type="text" name="accept" value="${field.accept || ''}" placeholder="e.g., .pdf,.doc,.jpg">
+                    </div>
+                    <div class="settings-group checkbox-setting">
+                        <input type="checkbox" name="multiple" ${field.multiple ? 'checked' : ''}>
+                        <label>Allow Multiple Files</label>
+                    </div>
+                `;
+            }
+            
+            // Options for select, radio, checkbox
+            if (['select', 'radio', 'checkbox'].includes(field.type)) {
+                settingsHtml += `
+                    <div class="settings-group">
+                        <label>Options</label>
+                        <div class="options-list">
+                `;
+                
+                if (field.options && field.options.length > 0) {
+                    field.options.forEach((option, index) => {
+                        settingsHtml += `
+                            <div class="option-item">
+                                <input type="text" name="option_label_${index}" value="${option.label}" placeholder="Option label">
+                                <input type="text" name="option_value_${index}" value="${option.value}" placeholder="Option value">
+                                <button type="button" class="option-remove">Remove</button>
+                            </div>
+                        `;
+                    });
+                }
+                
+                settingsHtml += `
+                        </div>
+                        <button type="button" class="add-option">Add Option</button>
+                    </div>
+                `;
+            }
+            
+            // Section settings
+            if (field.type === 'section') {
+                settingsHtml += `
+                    <div class="settings-group">
+                        <label>Section Title</label>
+                        <input type="text" name="title" value="${field.title || ''}" placeholder="Enter section title">
+                    </div>
+                `;
+            }
+            
+            // Column settings
+            if (field.type === 'column') {
+                settingsHtml += `
+                    <div class="settings-group">
+                        <label>Number of Columns</label>
+                        <select name="columns">
+                            <option value="2" ${field.columns == 2 ? 'selected' : ''}>2 Columns</option>
+                            <option value="3" ${field.columns == 3 ? 'selected' : ''}>3 Columns</option>
+                            <option value="4" ${field.columns == 4 ? 'selected' : ''}>4 Columns</option>
+                        </select>
+                    </div>
+                `;
+            }
+            
+            // HTML content
+            if (field.type === 'html') {
+                settingsHtml += `
+                    <div class="settings-group">
+                        <label>HTML Content</label>
+                        <textarea name="content" rows="8" placeholder="Enter HTML content">${field.content || ''}</textarea>
+                    </div>
+                `;
+            }
+            
+            // Description for most fields
+            if (!['section', 'column', 'html'].includes(field.type)) {
+                settingsHtml += `
+                    <div class="settings-group">
+                        <label>Description</label>
+                        <textarea name="description" rows="3" placeholder="Enter field description">${field.description || ''}</textarea>
+                    </div>
+                `;
+                
+                // Required checkbox
+                settingsHtml += `
+                    <div class="settings-group checkbox-setting">
+                        <input type="checkbox" name="required" ${field.required ? 'checked' : ''}>
+                        <label>Required Field</label>
+                    </div>
+                `;
+            }
+            
+            settingsHtml += '</div>';
+            
+            return settingsHtml;
+        },
+        
+        updateFieldSettings: function(e) {
+            if (!this.selectedField) return;
+            
+            const fieldElement = $(`.canvas-field[data-field-id="${this.selectedField.id}"]`);
+            const settingName = $(e.target).attr('name');
+            const settingValue = $(e.target).is(':checkbox') ? $(e.target).is(':checked') : $(e.target).val();
+            
+            // Update field data
+            this.selectedField[settingName] = settingValue;
+            
+            // Handle options update
+            if (settingName.startsWith('option_')) {
+                this.updateFieldOptions();
+            }
+            
+            // Update field preview
+            const previewHtml = this.renderFieldPreview(this.selectedField);
+            fieldElement.find('.field-preview').html(previewHtml);
+            
+            // Update form data
+            this.updateFormData();
+        },
+        
+        updateFieldOptions: function() {
+            if (!this.selectedField || !['select', 'radio', 'checkbox'].includes(this.selectedField.type)) {
+                return;
+            }
+            
+            const options = [];
+            $('.option-item').each(function() {
+                const label = $(this).find('input[name^="option_label_"]').val();
+                const value = $(this).find('input[name^="option_value_"]').val();
+                
+                if (label && value) {
+                    options.push({ label: label, value: value });
+                }
+            });
+            
+            this.selectedField.options = options;
+        },
+        
+        addOption: function(e) {
+            e.preventDefault();
+            const optionsList = $(e.target).siblings('.options-list');
+            const index = optionsList.find('.option-item').length;
+            
+            const optionHtml = `
+                <div class="option-item">
+                    <input type="text" name="option_label_${index}" value="" placeholder="Option label">
+                    <input type="text" name="option_value_${index}" value="" placeholder="Option value">
+                    <button type="button" class="option-remove">Remove</button>
+                </div>
+            `;
+            
+            optionsList.append(optionHtml);
+        },
+        
+        removeOption: function(e) {
+            e.preventDefault();
+            $(e.target).closest('.option-item').remove();
+            this.updateFieldOptions();
+        },
+        
+        editField: function(e) {
+            e.stopPropagation();
+            const fieldElement = $(e.target).closest('.canvas-field');
+            this.selectFieldElement(fieldElement);
+        },
+        
+        deleteField: function(e) {
+            e.stopPropagation();
+            
+            if (!confirm('Are you sure you want to delete this field?')) {
+                return;
+            }
+            
+            const fieldElement = $(e.target).closest('.canvas-field');
+            const fieldId = fieldElement.data('field-id');
+            
+            // Remove from form data
+            this.formData.fields = this.formData.fields.filter(field => field.id !== fieldId);
+            
+            // Remove from DOM
+            fieldElement.remove();
+            
+            // Close settings panel if this field was selected
+            if (this.selectedField && this.selectedField.id === fieldId) {
+                this.closeSettingsPanel();
+            }
+            
+            // Show placeholder if no fields left
+            if (this.formData.fields.length === 0) {
+                $('.canvas-placeholder').show();
+                $('#form-canvas').removeClass('has-fields');
+            }
+        },
+        
+        duplicateField: function(e) {
+            e.stopPropagation();
+            const fieldElement = $(e.target).closest('.canvas-field');
+            const fieldId = fieldElement.data('field-id');
+            const originalField = this.getFieldById(fieldId);
+            
+            if (originalField) {
+                // Create duplicate with new ID
+                this.fieldCounter++;
+                const duplicateField = JSON.parse(JSON.stringify(originalField));
+                duplicateField.id = 'field_' + this.fieldCounter;
+                duplicateField.name = originalField.type + '_' + this.fieldCounter;
+                duplicateField.label = originalField.label + ' (Copy)';
+                
+                this.formData.fields.push(duplicateField);
+                
+                const fieldHtml = this.renderCanvasField(duplicateField);
+                fieldElement.after(fieldHtml);
+                
+                // Select the duplicated field
+                this.selectFieldById(duplicateField.id);
+            }
+        },
+        
+        updateFieldOrder: function() {
+            const newOrder = [];
+            $('#form-canvas .canvas-field').each(function() {
+                const fieldId = $(this).data('field-id');
+                const field = formBuilder.getFieldById(fieldId);
+                if (field) {
+                    newOrder.push(field);
+                }
+            });
+            
+            this.formData.fields = newOrder;
+        },
+        
+        getFieldById: function(fieldId) {
+            return this.formData.fields.find(field => field.id === fieldId);
+        },
+        
+        closeSettingsPanel: function() {
+            $('#field-settings-panel').removeClass('active');
+            $('.canvas-field').removeClass('selected');
+            this.selectedField = null;
+        },
+        
+        updateFormData: function() {
+            // This could be used to auto-save or validate
+        },
+        
+        saveForm: function() {
+            const formId = $('#form-id').val();
+            const formName = $('#form-name').val().trim();
+            const formDescription = $('#form-description').val().trim();
+            
+            if (!formName) {
+                alert('Please enter a form name');
+                $('#form-name').focus();
+                return;
+            }
+            
+            if (this.formData.fields.length === 0) {
+                alert('Please add at least one field to the form');
+                return;
+            }
+            
+            const saveBtn = $('#save-form');
+            const originalText = saveBtn.text();
+            saveBtn.text(liftForms.strings.saving).prop('disabled', true);
+            
+            $.ajax({
+                url: liftForms.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'lift_forms_save',
+                    nonce: liftForms.nonce,
+                    form_id: formId,
+                    name: formName,
+                    description: formDescription,
+                    fields: JSON.stringify(this.formData.fields),
+                    settings: JSON.stringify(this.formData.settings)
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (!formId) {
+                            // New form - update form ID
+                            $('#form-id').val(response.data.form_id);
+                            
+                            // Update URL to include ID
+                            const newUrl = window.location.href + '&id=' + response.data.form_id;
+                            window.history.replaceState({}, '', newUrl);
+                        }
+                        
+                        alert(liftForms.strings.saved);
+                    } else {
+                        alert(response.data || liftForms.strings.error);
+                    }
+                },
+                error: function() {
+                    alert(liftForms.strings.error);
+                },
+                complete: function() {
+                    saveBtn.text(originalText).prop('disabled', false);
+                }
+            });
+        },
+        
+        previewForm: function() {
+            const formName = $('#form-name').val().trim();
+            const formDescription = $('#form-description').val().trim();
+            
+            if (this.formData.fields.length === 0) {
+                alert('Please add some fields to preview the form');
+                return;
+            }
+            
+            let previewHtml = `
+                <div class="lift-form-container">
+                    <div class="lift-form-header">
+                        <h2>${formName || 'Untitled Form'}</h2>
+                        ${formDescription ? `<p>${formDescription}</p>` : ''}
+                    </div>
+                    <form class="lift-form">
+            `;
+            
+            this.formData.fields.forEach(field => {
+                previewHtml += this.renderFieldForPreview(field);
+            });
+            
+            previewHtml += `
+                        <div class="lift-form-submit">
+                            <button type="submit" class="lift-form-submit-btn">Submit Form</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            $('#form-preview-content').html(previewHtml);
+            this.showModal('#form-preview-modal');
+        },
+        
+        renderFieldForPreview: function(field) {
+            // This renders actual form fields for preview
+            const required = field.required ? 'required' : '';
+            const requiredAsterisk = field.required ? ' <span class="required">*</span>' : '';
+            const description = field.description ? `<small class="field-description">${field.description}</small>` : '';
+            
+            let html = `<div class="lift-form-field lift-field-${field.type}">`;
+            
+            switch (field.type) {
+                case 'text':
+                case 'email':
+                case 'number':
+                case 'date':
+                    html += `
+                        <label for="${field.id}">${field.label}${requiredAsterisk}</label>
+                        <input type="${field.type}" id="${field.id}" name="${field.name}" placeholder="${field.placeholder || ''}" ${required}>
+                        ${description}
+                    `;
+                    break;
+                    
+                case 'textarea':
+                    html += `
+                        <label for="${field.id}">${field.label}${requiredAsterisk}</label>
+                        <textarea id="${field.id}" name="${field.name}" placeholder="${field.placeholder || ''}" rows="${field.rows || 4}" ${required}></textarea>
+                        ${description}
+                    `;
+                    break;
+                    
+                case 'file':
+                    html += `
+                        <label for="${field.id}">${field.label}${requiredAsterisk}</label>
+                        <input type="file" id="${field.id}" name="${field.name}" ${field.multiple ? 'multiple' : ''} ${required}>
+                        ${description}
+                    `;
+                    break;
+                    
+                case 'select':
+                    html += `<label for="${field.id}">${field.label}${requiredAsterisk}</label>`;
+                    html += `<select id="${field.id}" name="${field.name}" ${required}>`;
+                    html += '<option value="">Please select...</option>';
+                    if (field.options) {
+                        field.options.forEach(option => {
+                            html += `<option value="${option.value}">${option.label}</option>`;
+                        });
+                    }
+                    html += `</select>${description}`;
+                    break;
+                    
+                case 'radio':
+                    html += `<fieldset><legend>${field.label}${requiredAsterisk}</legend>`;
+                    if (field.options) {
+                        field.options.forEach(option => {
+                            html += `
+                                <label class="radio-label">
+                                    <input type="radio" name="${field.name}" value="${option.value}" ${required}>
+                                    <span>${option.label}</span>
+                                </label>
+                            `;
+                        });
+                    }
+                    html += `</fieldset>${description}`;
+                    break;
+                    
+                case 'checkbox':
+                    html += `<fieldset><legend>${field.label}${requiredAsterisk}</legend>`;
+                    if (field.options) {
+                        field.options.forEach(option => {
+                            html += `
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="${field.name}[]" value="${option.value}">
+                                    <span>${option.label}</span>
+                                </label>
+                            `;
+                        });
+                    }
+                    html += `</fieldset>${description}`;
+                    break;
+                    
+                case 'section':
+                    html += `
+                        <div class="section-title">${field.title || 'Section Title'}</div>
+                        <p>${field.description || ''}</p>
+                    `;
+                    break;
+                    
+                case 'html':
+                    html += field.content || '';
+                    break;
+            }
+            
+            html += '</div>';
+            return html;
+        },
+        
+        clearForm: function() {
+            if (!confirm('Are you sure you want to clear all fields? This action cannot be undone.')) {
+                return;
+            }
+            
+            this.formData.fields = [];
+            $('#form-canvas .canvas-content').empty();
+            $('.canvas-placeholder').show();
+            $('#form-canvas').removeClass('has-fields');
+            this.closeSettingsPanel();
+        },
+        
+        loadExistingForm: function() {
+            // Load existing form data if editing
+            const formId = $('#form-id').val();
+            if (!formId) return;
+            
+            // This would typically load via AJAX
+            // For now, we'll assume the form data is already loaded into the page
+        },
+        
+        showModal: function(modalSelector) {
+            $(modalSelector).show();
+            $(modalSelector.replace('modal', 'modal-backdrop')).show();
+        },
+        
+        closeModal: function(e) {
+            if ($(e.target).hasClass('lift-modal-close') || $(e.target).hasClass('lift-modal-backdrop')) {
+                $('.lift-modal').hide();
+                $('.lift-modal-backdrop').hide();
+            }
+        }
+    };
+    
+    // Initialize when DOM is ready
+    $(document).ready(function() {
+        if ($('.lift-form-builder').length > 0) {
+            formBuilder.init();
+        }
+    });
+    
+    // Make formBuilder globally accessible
+    window.liftFormBuilder = formBuilder;
+    
+})(jQuery);

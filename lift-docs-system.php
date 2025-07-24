@@ -88,6 +88,7 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-secure-links.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-layout.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-frontend-login.php';
+        require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-forms.php';
         
         // Load test files if in debug mode
         if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -99,6 +100,15 @@ class LIFT_Docs_System {
             }
             if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'test-multiple-files-modal.php')) {
                 require_once LIFT_DOCS_PLUGIN_DIR . 'test-multiple-files-modal.php';
+            }
+            if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'test-lift-forms.php')) {
+                require_once LIFT_DOCS_PLUGIN_DIR . 'test-lift-forms.php';
+            }
+            if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'debug-lift-forms-menu.php')) {
+                require_once LIFT_DOCS_PLUGIN_DIR . 'debug-lift-forms-menu.php';
+            }
+            if (file_exists(LIFT_DOCS_PLUGIN_DIR . 'force-lift-forms-menu.php')) {
+                require_once LIFT_DOCS_PLUGIN_DIR . 'force-lift-forms-menu.php';
             }
         }
     }
@@ -121,6 +131,9 @@ class LIFT_Docs_System {
         
         // Initialize frontend login system
         new LIFT_Docs_Frontend_Login();
+        
+        // Initialize LIFT Forms
+        new LIFT_Forms();
     }
     
     /**
