@@ -1377,7 +1377,7 @@ class LIFT_Forms {
             // If submission is from a document, return redirect URL
             $response_data = array('message' => $success_message);
             if ($document_id) {
-                $response_data['redirect_url'] = home_url('/docs-dashboard/');
+                $response_data['redirect_url'] = home_url('/document-dashboard/');
             }
             
             wp_send_json_success($response_data);
