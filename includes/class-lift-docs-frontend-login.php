@@ -185,7 +185,7 @@ class LIFT_Docs_Frontend_Login {
                 .checkbox-group {
                     display: flex;
                     align-items: center;
-                    margin-bottom: 20px;
+                    margin-bottom: 25px;
                 }
                 
                 .checkbox-label {
@@ -196,27 +196,26 @@ class LIFT_Docs_Frontend_Login {
                     font-size: 14px;
                     color: <?php echo esc_attr($text_color); ?>;
                     user-select: none;
+                    font-weight: 500;
                 }
                 
-                .checkbox-label input[type="checkbox"] {
-                    margin: 0 8px 0 0;
-                    width: 16px;
-                    height: 16px;
-                    cursor: pointer;
-                    accent-color: <?php echo esc_attr($btn_color); ?>;
-                }
-                
-                /* Custom checkbox styling for better appearance */
+                /* Enhanced checkbox styling */
                 .checkbox-label input[type="checkbox"] {
                     appearance: none;
-                    width: 18px;
-                    height: 18px;
+                    width: 20px;
+                    height: 20px;
                     border: 2px solid <?php echo esc_attr($input_color); ?>;
-                    border-radius: 4px;
+                    border-radius: 6px;
                     background: #fff;
-                    margin-right: 8px;
+                    margin-right: 12px;
                     position: relative;
                     cursor: pointer;
+                    flex-shrink: 0;
+                }
+                
+                .checkbox-label input[type="checkbox"]:focus {
+                    outline: 2px solid <?php echo esc_attr($btn_color); ?>40;
+                    outline-offset: 2px;
                 }
                 
                 .checkbox-label input[type="checkbox"]:checked {
@@ -227,12 +226,18 @@ class LIFT_Docs_Frontend_Login {
                 .checkbox-label input[type="checkbox"]:checked::after {
                     content: '✓';
                     color: white;
-                    font-size: 12px;
+                    font-size: 14px;
                     font-weight: bold;
                     position: absolute;
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
+                    line-height: 1;
+                }
+                
+                .checkbox-label:hover input[type="checkbox"]:not(:checked) {
+                    border-color: <?php echo esc_attr($btn_color); ?>;
+                    background: #f8f9fa;
                 }
                 
                 .lift-login-btn {
@@ -270,13 +275,10 @@ class LIFT_Docs_Frontend_Login {
                     border: 2px solid rgba(255, 255, 255, 0.3);
                     border-top: 2px solid white;
                     border-radius: 50%;
-                    animation: spin 1s linear infinite;
+                    /* No animation */
                 }
                 
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
+                /* Remove all keyframe animations */
                 
                 .lift-form-messages {
                     margin-top: 20px;
