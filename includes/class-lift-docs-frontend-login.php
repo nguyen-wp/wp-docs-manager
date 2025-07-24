@@ -25,20 +25,40 @@ class LIFT_Docs_Frontend_Login {
         // Register shortcodes for regular pages
         add_shortcode('docs_login_form', array($this, 'login_form_shortcode'));
         add_shortcode('docs_dashboard', array($this, 'dashboard_shortcode'));
+        add_shortcode('document_form', array($this, 'document_form_shortcode'));
+        
+        // Handle form display
+        add_action('template_redirect', array($this, 'handle_form_display'));
+        add_action('query_vars', array($this, 'add_query_vars'));
     }
     
     /**
      * Initialize
      */
     public function init() {
-        // Note: Using regular pages (/document-login/, /document-dashboard/) instead of rewrite rules
-        // to avoid conflicts and keep URLs consistent
+        // Add rewrite rule for document forms
+        add_rewrite_rule('^document-form/?$', 'index.php?document_form=1', 'top');
+        
+        // Flush rewrite rules if needed
+        $this->maybe_flush_rewrite_rules();
     }
     
     /**
-     * Add custom query vars (removed docs-specific vars since using regular pages)
+     * Maybe flush rewrite rules
+     */
+    private function maybe_flush_rewrite_rules() {
+        $version = get_option('lift_docs_form_rewrite_version');
+        if ($version !== LIFT_DOCS_VERSION) {
+            flush_rewrite_rules();
+            update_option('lift_docs_form_rewrite_version', LIFT_DOCS_VERSION);
+        }
+    }
+    
+    /**
+     * Add custom query vars
      */
     public function add_query_vars($vars) {
+        $vars[] = 'document_form';
         return $vars;
     }
     
@@ -48,6 +68,320 @@ class LIFT_Docs_Frontend_Login {
     private function user_has_docs_access() {
         return current_user_can('view_lift_documents') || 
                in_array('documents_user', wp_get_current_user()->roles);
+    }
+    
+    /**
+     * Handle form display
+     */
+    public function handle_form_display() {
+        if (get_query_var('document_form')) {
+            $this->display_form_page();
+            exit;
+        }
+    }
+    
+    /**
+     * Display form page
+     */
+    private function display_form_page() {
+        // Check if user is logged in
+        if (!is_user_logged_in() || !$this->user_has_docs_access()) {
+            wp_redirect(wp_login_url(home_url('/document-form/')));
+            exit;
+        }
+        
+        $document_id = intval($_GET['document_id'] ?? 0);
+        $form_id = intval($_GET['form_id'] ?? 0);
+        
+        if (!$document_id || !$form_id) {
+            wp_die(__('Invalid parameters.', 'lift-docs-system'), __('Error', 'lift-docs-system'));
+        }
+        
+        // Verify user has access to the document
+        if (!$this->user_can_view_document($document_id)) {
+            wp_die(__('You do not have access to this document.', 'lift-docs-system'), __('Access Denied', 'lift-docs-system'));
+        }
+        
+        // Verify form is assigned to document
+        $assigned_forms = get_post_meta($document_id, '_lift_doc_assigned_forms', true);
+        if (!is_array($assigned_forms) || !in_array($form_id, $assigned_forms)) {
+            wp_die(__('This form is not assigned to the document.', 'lift-docs-system'), __('Access Denied', 'lift-docs-system'));
+        }
+        
+        // Get form data
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        $form = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $forms_table WHERE id = %d AND status = 'active'",
+            $form_id
+        ));
+        
+        if (!$form) {
+            wp_die(__('Form not found.', 'lift-docs-system'), __('Error', 'lift-docs-system'));
+        }
+        
+        // Get document data
+        $document = get_post($document_id);
+        if (!$document || $document->post_type !== 'lift_document') {
+            wp_die(__('Document not found.', 'lift-docs-system'), __('Error', 'lift-docs-system'));
+        }
+        
+        // Render form page
+        $this->render_form_page($document, $form);
+    }
+    
+    /**
+     * Render form page
+     */
+    private function render_form_page($document, $form) {
+        $current_user = wp_get_current_user();
+        $form_fields = json_decode($form->form_fields, true);
+        
+        ?>
+        <!DOCTYPE html>
+        <html <?php language_attributes(); ?>>
+        <head>
+            <meta charset="<?php bloginfo('charset'); ?>">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title><?php echo esc_html($form->name); ?> - <?php echo esc_html($document->post_title); ?></title>
+            <?php wp_head(); ?>
+            <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+                background: #f1f1f1;
+                margin: 0;
+                padding: 20px;
+            }
+            .form-container {
+                max-width: 800px;
+                margin: 0 auto;
+                background: #fff;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.13);
+            }
+            .form-header {
+                border-bottom: 1px solid #e1e1e1;
+                padding-bottom: 20px;
+                margin-bottom: 30px;
+            }
+            .form-header h1 {
+                margin: 0 0 10px 0;
+                color: #23282d;
+            }
+            .form-header .document-info {
+                color: #666;
+                font-size: 14px;
+            }
+            .form-field {
+                margin-bottom: 20px;
+            }
+            .form-field label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: 600;
+                color: #23282d;
+            }
+            .form-field input,
+            .form-field textarea,
+            .form-field select {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            .form-field textarea {
+                height: 100px;
+                resize: vertical;
+            }
+            .form-actions {
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid #e1e1e1;
+                text-align: right;
+            }
+            .btn {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 14px;
+                margin-left: 10px;
+            }
+            .btn-primary {
+                background: #0073aa;
+                color: #fff;
+            }
+            .btn-secondary {
+                background: #f1f1f1;
+                color: #333;
+            }
+            .btn:hover {
+                opacity: 0.9;
+            }
+            .required {
+                color: #d63384;
+            }
+            </style>
+        </head>
+        <body>
+            <div class="form-container">
+                <div class="form-header">
+                    <h1><?php echo esc_html($form->name); ?></h1>
+                    <div class="document-info">
+                        <?php printf(__('Related to document: %s', 'lift-docs-system'), '<strong>' . esc_html($document->post_title) . '</strong>'); ?>
+                    </div>
+                    <?php if ($form->description): ?>
+                        <p><?php echo esc_html($form->description); ?></p>
+                    <?php endif; ?>
+                </div>
+                
+                <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>">
+                    <input type="hidden" name="action" value="lift_forms_submit">
+                    <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
+                    <input type="hidden" name="document_id" value="<?php echo esc_attr($document->ID); ?>">
+                    <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('lift_forms_submit_nonce'); ?>">
+                    
+                    <?php if (!empty($form_fields) && is_array($form_fields)): ?>
+                        <?php foreach ($form_fields as $field): ?>
+                            <div class="form-field">
+                                <label for="field_<?php echo esc_attr($field['id']); ?>">
+                                    <?php echo esc_html($field['label']); ?>
+                                    <?php if (isset($field['required']) && $field['required']): ?>
+                                        <span class="required">*</span>
+                                    <?php endif; ?>
+                                </label>
+                                
+                                <?php $this->render_form_field($field); ?>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p><?php _e('This form has no fields configured.', 'lift-docs-system'); ?></p>
+                    <?php endif; ?>
+                    
+                    <div class="form-actions">
+                        <a href="javascript:history.back()" class="btn btn-secondary">
+                            <?php _e('Cancel', 'lift-docs-system'); ?>
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <?php _e('Submit Form', 'lift-docs-system'); ?>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <script>
+            jQuery(document).ready(function($) {
+                $('#document-form').on('submit', function(e) {
+                    e.preventDefault();
+                    
+                    var formData = $(this).serialize();
+                    
+                    $.post($(this).attr('action'), formData, function(response) {
+                        if (response.success) {
+                            alert('<?php _e('Form submitted successfully!', 'lift-docs-system'); ?>');
+                            window.history.back();
+                        } else {
+                            alert('<?php _e('Error submitting form: ', 'lift-docs-system'); ?>' + (response.data || '<?php _e('Unknown error', 'lift-docs-system'); ?>'));
+                        }
+                    }).fail(function() {
+                        alert('<?php _e('Network error. Please try again.', 'lift-docs-system'); ?>');
+                    });
+                });
+            });
+            </script>
+            
+            <?php wp_footer(); ?>
+        </body>
+        </html>
+        <?php
+    }
+    
+    /**
+     * Render form field
+     */
+    private function render_form_field($field) {
+        $field_id = 'field_' . esc_attr($field['id']);
+        $field_name = 'form_fields[' . esc_attr($field['id']) . ']';
+        $required = isset($field['required']) && $field['required'] ? 'required' : '';
+        
+        switch ($field['type']) {
+            case 'text':
+            case 'email':
+            case 'number':
+                ?>
+                <input type="<?php echo esc_attr($field['type']); ?>" 
+                       id="<?php echo $field_id; ?>" 
+                       name="<?php echo $field_name; ?>" 
+                       placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
+                       <?php echo $required; ?>>
+                <?php
+                break;
+                
+            case 'textarea':
+                ?>
+                <textarea id="<?php echo $field_id; ?>" 
+                          name="<?php echo $field_name; ?>" 
+                          placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
+                          <?php echo $required; ?>></textarea>
+                <?php
+                break;
+                
+            case 'select':
+                ?>
+                <select id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>" <?php echo $required; ?>>
+                    <option value=""><?php _e('Please select...', 'lift-docs-system'); ?></option>
+                    <?php if (isset($field['options']) && is_array($field['options'])): ?>
+                        <?php foreach ($field['options'] as $option): ?>
+                            <option value="<?php echo esc_attr($option); ?>"><?php echo esc_html($option); ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+                <?php
+                break;
+                
+            case 'checkbox':
+                ?>
+                <label>
+                    <input type="checkbox" 
+                           id="<?php echo $field_id; ?>" 
+                           name="<?php echo $field_name; ?>" 
+                           value="1"
+                           <?php echo $required; ?>>
+                    <?php echo esc_html($field['label']); ?>
+                </label>
+                <?php
+                break;
+                
+            case 'radio':
+                if (isset($field['options']) && is_array($field['options'])):
+                    foreach ($field['options'] as $index => $option):
+                        ?>
+                        <label style="display: block; margin-bottom: 5px;">
+                            <input type="radio" 
+                                   name="<?php echo $field_name; ?>" 
+                                   value="<?php echo esc_attr($option); ?>"
+                                   <?php echo $required; ?>>
+                            <?php echo esc_html($option); ?>
+                        </label>
+                        <?php
+                    endforeach;
+                endif;
+                break;
+                
+            default:
+                ?>
+                <input type="text" 
+                       id="<?php echo $field_id; ?>" 
+                       name="<?php echo $field_name; ?>" 
+                       placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
+                       <?php echo $required; ?>>
+                <?php
+                break;
+        }
     }
     
     /**
@@ -922,7 +1256,7 @@ class LIFT_Docs_Frontend_Login {
             
             <div class="document-card-actions">
                 <?php 
-                // Only show View URL link
+                // Show View URL link
                 if ($this->user_can_view_document($document->ID)) {
                     $view_text = __('View Document', 'lift-docs-system');
                     if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
@@ -936,6 +1270,33 @@ class LIFT_Docs_Frontend_Login {
                         <?php echo $view_text; ?>
                     </a>
                     <?php
+                }
+                
+                // Show assigned form links
+                $assigned_forms = get_post_meta($document->ID, '_lift_doc_assigned_forms', true);
+                if (!empty($assigned_forms) && is_array($assigned_forms)) {
+                    global $wpdb;
+                    $forms_table = $wpdb->prefix . 'lift_forms';
+                    
+                    foreach ($assigned_forms as $form_id) {
+                        $form = $wpdb->get_row($wpdb->prepare(
+                            "SELECT id, name FROM $forms_table WHERE id = %d AND status = 'active'",
+                            $form_id
+                        ));
+                        
+                        if ($form) {
+                            $form_url = add_query_arg(array(
+                                'document_id' => $document->ID,
+                                'form_id' => $form->id
+                            ), home_url('/document-form/'));
+                            ?>
+                            <a href="<?php echo esc_url($form_url); ?>" class="btn btn-secondary" target="_blank">
+                                <span class="dashicons dashicons-forms"></span>
+                                <?php echo esc_html($form->name); ?>
+                            </a>
+                            <?php
+                        }
+                    }
                 }
                 ?>
             </div>
@@ -1693,6 +2054,211 @@ class LIFT_Docs_Frontend_Login {
             </div>
         </div>
         <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
+        <?php
+        return ob_get_clean();
+    }
+    
+    /**
+     * Document form shortcode
+     */
+    public function document_form_shortcode($atts) {
+        $atts = shortcode_atts(array(
+            'document_id' => 0,
+            'form_id' => 0
+        ), $atts);
+        
+        $document_id = intval($atts['document_id']);
+        $form_id = intval($atts['form_id']);
+        
+        if (!$document_id || !$form_id) {
+            return '<div class="error"><p>' . __('Document ID and Form ID are required.', 'lift-docs-system') . '</p></div>';
+        }
+        
+        // Check if user is logged in
+        if (!is_user_logged_in() || !$this->user_has_docs_access()) {
+            $login_url = $this->get_login_url();
+            return '<div class="docs-login-required">
+                <p>' . sprintf(__('Please <a href="%s">login</a> to access this form.', 'lift-docs-system'), $login_url) . '</p>
+            </div>';
+        }
+        
+        // Verify user has access to the document
+        if (!$this->user_can_view_document($document_id)) {
+            return '<div class="error"><p>' . __('You do not have access to this document.', 'lift-docs-system') . '</p></div>';
+        }
+        
+        // Verify form is assigned to document
+        $assigned_forms = get_post_meta($document_id, '_lift_doc_assigned_forms', true);
+        if (!is_array($assigned_forms) || !in_array($form_id, $assigned_forms)) {
+            return '<div class="error"><p>' . __('This form is not assigned to the document.', 'lift-docs-system') . '</p></div>';
+        }
+        
+        // Get form data
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        $form = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $forms_table WHERE id = %d AND status = 'active'",
+            $form_id
+        ));
+        
+        if (!$form) {
+            return '<div class="error"><p>' . __('Form not found.', 'lift-docs-system') . '</p></div>';
+        }
+        
+        // Get document data
+        $document = get_post($document_id);
+        if (!$document || $document->post_type !== 'lift_document') {
+            return '<div class="error"><p>' . __('Document not found.', 'lift-docs-system') . '</p></div>';
+        }
+        
+        $form_fields = json_decode($form->form_fields, true);
+        
+        ob_start();
+        ?>
+        <div class="document-form-container">
+            <div class="form-header">
+                <h3><?php echo esc_html($form->name); ?></h3>
+                <div class="document-info">
+                    <?php printf(__('Related to document: %s', 'lift-docs-system'), '<strong>' . esc_html($document->post_title) . '</strong>'); ?>
+                </div>
+                <?php if ($form->description): ?>
+                    <p class="form-description"><?php echo esc_html($form->description); ?></p>
+                <?php endif; ?>
+            </div>
+            
+            <form id="document-form-shortcode" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>">
+                <input type="hidden" name="action" value="lift_forms_submit">
+                <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
+                <input type="hidden" name="document_id" value="<?php echo esc_attr($document->ID); ?>">
+                <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('lift_forms_submit_nonce'); ?>">
+                
+                <div id="form-messages"></div>
+                
+                <?php if (!empty($form_fields) && is_array($form_fields)): ?>
+                    <?php foreach ($form_fields as $field): ?>
+                        <div class="form-field">
+                            <label for="field_<?php echo esc_attr($field['id']); ?>">
+                                <?php echo esc_html($field['label']); ?>
+                                <?php if (isset($field['required']) && $field['required']): ?>
+                                    <span class="required">*</span>
+                                <?php endif; ?>
+                            </label>
+                            
+                            <?php $this->render_form_field($field); ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p><?php _e('This form has no fields configured.', 'lift-docs-system'); ?></p>
+                <?php endif; ?>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <?php _e('Submit Form', 'lift-docs-system'); ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            $('#document-form-shortcode').on('submit', function(e) {
+                e.preventDefault();
+                
+                var $form = $(this);
+                var $messages = $('#form-messages');
+                var $button = $form.find('button[type="submit"]');
+                
+                $button.prop('disabled', true).text('<?php _e('Submitting...', 'lift-docs-system'); ?>');
+                $messages.html('');
+                
+                var formData = $form.serialize();
+                
+                $.post($form.attr('action'), formData, function(response) {
+                    if (response.success) {
+                        $messages.html('<div class="notice notice-success"><p>' + response.data + '</p></div>');
+                        $form[0].reset();
+                    } else {
+                        $messages.html('<div class="notice notice-error"><p>' + (response.data || '<?php _e('Unknown error', 'lift-docs-system'); ?>') + '</p></div>');
+                    }
+                }).fail(function() {
+                    $messages.html('<div class="notice notice-error"><p><?php _e('Network error. Please try again.', 'lift-docs-system'); ?></p></div>');
+                }).always(function() {
+                    $button.prop('disabled', false).text('<?php _e('Submit Form', 'lift-docs-system'); ?>');
+                });
+            });
+        });
+        </script>
+        
+        <style>
+        .document-form-container {
+            max-width: 600px;
+            margin: 20px 0;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .form-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .form-header h3 {
+            margin: 0 0 10px 0;
+        }
+        .document-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .form-description {
+            color: #666;
+            font-style: italic;
+        }
+        .form-field {
+            margin-bottom: 15px;
+        }
+        .form-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .form-field input,
+        .form-field textarea,
+        .form-field select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-field textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        .required {
+            color: #d63384;
+        }
+        .form-actions {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .notice {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .notice-success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .notice-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        </style>
         <?php
         return ob_get_clean();
     }

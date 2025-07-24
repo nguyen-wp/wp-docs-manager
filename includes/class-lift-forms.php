@@ -887,7 +887,8 @@ class LIFT_Forms {
         }
         
         $form_id = intval($_POST['form_id']);
-        $form_data = $_POST['form_data'];
+        $document_id = intval($_POST['document_id'] ?? 0);
+        $form_data = $_POST['form_fields'] ?? $_POST['form_data'] ?? array();
         
         if (!$form_id) {
             wp_send_json_error(__('Invalid form', 'lift-docs-system'));
@@ -900,6 +901,21 @@ class LIFT_Forms {
         
         if (!$form) {
             wp_send_json_error(__('Form not found', 'lift-docs-system'));
+        }
+        
+        // If document_id is provided, verify access
+        if ($document_id) {
+            // Check if user has access to the document
+            if (!current_user_can('view_lift_documents') && 
+                !in_array('documents_user', wp_get_current_user()->roles)) {
+                wp_send_json_error(__('Access denied', 'lift-docs-system'));
+            }
+            
+            // Verify form is assigned to document
+            $assigned_forms = get_post_meta($document_id, '_lift_doc_assigned_forms', true);
+            if (!is_array($assigned_forms) || !in_array($form_id, $assigned_forms)) {
+                wp_send_json_error(__('This form is not assigned to the document', 'lift-docs-system'));
+            }
         }
         
         // Validate form data
@@ -915,6 +931,14 @@ class LIFT_Forms {
         
         // Process file uploads
         $processed_data = $this->process_form_uploads($form_data);
+        
+        // Add additional context if from document
+        if ($document_id) {
+            $processed_data['_document_id'] = $document_id;
+            $processed_data['_document_title'] = get_the_title($document_id);
+            $processed_data['_submitted_by'] = wp_get_current_user()->display_name;
+            $processed_data['_user_id'] = get_current_user_id();
+        }
         
         // Save submission
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';

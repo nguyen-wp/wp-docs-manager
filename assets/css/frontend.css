@@ -858,10 +858,114 @@
     animation: fadeIn 0.5s ease-out;
 }
 
+/* Document Form Buttons */
+.document-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.document-card-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.document-card-actions .btn .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+.document-card-actions .btn-primary {
+    background: #0073aa;
+    color: #fff;
+    border-color: #0073aa;
+}
+
+.document-card-actions .btn-primary:hover {
+    background: #005a87;
+    border-color: #005a87;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.document-card-actions .btn-secondary {
+    background: #f8f9fa;
+    color: #495057;
+    border-color: #dee2e6;
+}
+
+.document-card-actions .btn-secondary:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+    transform: translateY(-1px);
+}
+
+/* Form Page Styles */
+.form-container {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.form-field {
+    position: relative;
+}
+
+.form-field.has-error input,
+.form-field.has-error textarea,
+.form-field.has-error select {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-field .error-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
 /* Print Styles */
 @media print {
     .lift-docs-actions,
-    .lift-docs-related {
+    .lift-docs-related,
+    .document-card-actions {
         display: none;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .document-card-actions {
+        flex-direction: column;
+    }
+    
+    .document-card-actions .btn {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .form-container {
+        margin: 10px;
+        padding: 20px;
+    }
+    
+    .form-actions {
+        text-align: center;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        margin: 5px 0;
     }
 }

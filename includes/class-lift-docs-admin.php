@@ -551,6 +551,15 @@ class LIFT_Docs_Admin {
             'side',
             'high'
         );
+        
+        add_meta_box(
+            'lift-docs-forms',
+            __('Assigned Forms', 'lift-docs-system'),
+            array($this, 'document_forms_meta_box'),
+            'lift_document',
+            'side',
+            'default'
+        );
     }
     
     /**
@@ -1433,6 +1442,105 @@ class LIFT_Docs_Admin {
     }
     
     /**
+     * Document forms meta box
+     */
+    public function document_forms_meta_box($post) {
+        wp_nonce_field('lift_docs_forms_meta_box', 'lift_docs_forms_meta_box_nonce');
+        
+        // Get assigned forms
+        $assigned_forms = get_post_meta($post->ID, '_lift_doc_assigned_forms', true);
+        if (!is_array($assigned_forms)) {
+            $assigned_forms = array();
+        }
+        
+        // Get all available forms
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        $available_forms = $wpdb->get_results("SELECT id, name, description FROM $forms_table WHERE status = 'active' ORDER BY name ASC");
+        
+        ?>
+        <div class="document-forms">
+            <p><strong><?php _e('Assign Forms to Document', 'lift-docs-system'); ?></strong></p>
+            <p class="description">
+                <?php _e('Select forms that users can access when viewing this document. Form links will appear on the document dashboard.', 'lift-docs-system'); ?>
+            </p>
+            
+            <?php if (empty($available_forms)): ?>
+                <p class="notice notice-warning inline">
+                    <?php printf(
+                        __('No forms available. %sCreate forms%s first.', 'lift-docs-system'),
+                        '<a href="' . admin_url('admin.php?page=lift-forms-builder') . '">',
+                        '</a>'
+                    ); ?>
+                </p>
+            <?php else: ?>
+                <div class="forms-list">
+                    <?php foreach ($available_forms as $form): ?>
+                        <label style="display: block; margin: 8px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
+                            <input type="checkbox" 
+                                   name="lift_doc_assigned_forms[]" 
+                                   value="<?php echo esc_attr($form->id); ?>"
+                                   <?php checked(in_array($form->id, $assigned_forms)); ?>
+                                   style="margin-right: 8px;">
+                            <strong><?php echo esc_html($form->name); ?></strong>
+                            <?php if ($form->description): ?>
+                                <br><small style="color: #666; margin-left: 20px;"><?php echo esc_html($form->description); ?></small>
+                            <?php endif; ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <button type="button" id="select-all-forms" class="button button-secondary" style="margin-right: 10px;">
+                        <?php _e('Select All', 'lift-docs-system'); ?>
+                    </button>
+                    <button type="button" id="clear-all-forms" class="button button-secondary">
+                        <?php _e('Clear All', 'lift-docs-system'); ?>
+                    </button>
+                </div>
+                
+                <p class="description" style="margin-top: 10px;">
+                    <span id="forms-count">
+                        <?php printf(
+                            __('Total Forms: %d | Selected: %d', 'lift-docs-system'),
+                            count($available_forms),
+                            count($assigned_forms)
+                        ); ?>
+                    </span>
+                </p>
+            <?php endif; ?>
+        </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Select all forms
+            $('#select-all-forms').on('click', function() {
+                $('input[name="lift_doc_assigned_forms[]"]').prop('checked', true);
+                updateFormsCount();
+            });
+            
+            // Clear all forms
+            $('#clear-all-forms').on('click', function() {
+                $('input[name="lift_doc_assigned_forms[]"]').prop('checked', false);
+                updateFormsCount();
+            });
+            
+            // Update forms count when checkboxes change
+            $('input[name="lift_doc_assigned_forms[]"]').on('change', function() {
+                updateFormsCount();
+            });
+            
+            function updateFormsCount() {
+                var totalForms = $('input[name="lift_doc_assigned_forms[]"]').length;
+                var selectedForms = $('input[name="lift_doc_assigned_forms[]"]:checked').length;
+                $('#forms-count').text('<?php _e('Total Forms:', 'lift-docs-system'); ?> ' + totalForms + ' | <?php _e('Selected:', 'lift-docs-system'); ?> ' + selectedForms);
+            }
+        });
+        </script>
+        <?php
+    }
+    
+    /**
      * Save meta boxes
      */
     public function save_meta_boxes($post_id) {
@@ -1481,6 +1589,38 @@ class LIFT_Docs_Admin {
                         update_post_meta($post_id, '_lift_doc_assigned_users', $valid_users);
                     } else {
                         delete_post_meta($post_id, '_lift_doc_assigned_users');
+                    }
+                }
+            }
+        }
+        
+        // Check document forms nonce
+        if (isset($_POST['lift_docs_forms_meta_box_nonce']) && wp_verify_nonce($_POST['lift_docs_forms_meta_box_nonce'], 'lift_docs_forms_meta_box')) {
+            if (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) {
+                if (current_user_can('edit_post', $post_id)) {
+                    // Handle assigned forms
+                    if (isset($_POST['lift_doc_assigned_forms']) && is_array($_POST['lift_doc_assigned_forms'])) {
+                        $assigned_forms = array_map('intval', $_POST['lift_doc_assigned_forms']);
+                        
+                        // Validate that all assigned forms exist
+                        $valid_forms = array();
+                        global $wpdb;
+                        $forms_table = $wpdb->prefix . 'lift_forms';
+                        
+                        foreach ($assigned_forms as $form_id) {
+                            $form_exists = $wpdb->get_var($wpdb->prepare(
+                                "SELECT COUNT(*) FROM $forms_table WHERE id = %d AND status = 'active'",
+                                $form_id
+                            ));
+                            
+                            if ($form_exists) {
+                                $valid_forms[] = $form_id;
+                            }
+                        }
+                        
+                        update_post_meta($post_id, '_lift_doc_assigned_forms', $valid_forms);
+                    } else {
+                        delete_post_meta($post_id, '_lift_doc_assigned_forms');
                     }
                 }
             }
