@@ -38,6 +38,21 @@ class LIFT_Docs_Admin {
         
         // Create custom roles and capabilities
         add_action('init', array($this, 'create_document_roles'));
+        
+        // User management hooks
+        add_action('show_user_profile', array($this, 'add_user_code_field'));
+        add_action('edit_user_profile', array($this, 'add_user_code_field'));
+        add_action('personal_options_update', array($this, 'save_user_code_field'));
+        add_action('edit_user_profile_update', array($this, 'save_user_code_field'));
+        add_action('user_register', array($this, 'generate_user_code_on_register'));
+        add_action('set_user_role', array($this, 'generate_user_code_on_role_change'), 10, 3);
+        
+        // Add user code column to users list
+        add_filter('manage_users_columns', array($this, 'add_user_code_column'));
+        add_filter('manage_users_custom_column', array($this, 'show_user_code_column'), 10, 3);
+        
+        // AJAX handlers
+        add_action('wp_ajax_generate_user_code', array($this, 'ajax_generate_user_code'));
     }
     
     /**
@@ -1131,6 +1146,11 @@ class LIFT_Docs_Admin {
             'order' => 'ASC'
         ));
         
+        // Add user codes to the user objects for JavaScript
+        foreach ($document_users as $user) {
+            $user->lift_docs_user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
+        }
+        
         ?>
         <div class="document-assignments">
             <p><strong><?php _e('Assign Document Access', 'lift-docs-system'); ?></strong></p>
@@ -1155,8 +1175,12 @@ class LIFT_Docs_Admin {
                             <?php foreach ($assigned_users as $user_id): ?>
                                 <?php $user = get_user_by('id', $user_id); ?>
                                 <?php if ($user): ?>
+                                    <?php $user_code = get_user_meta($user_id, 'lift_docs_user_code', true); ?>
                                     <span class="selected-user-tag" data-user-id="<?php echo esc_attr($user_id); ?>" style="display: inline-block; background: #0073aa; color: #fff; padding: 4px 8px; margin: 2px; border-radius: 3px; font-size: 12px;">
                                         <?php echo esc_html($user->display_name); ?>
+                                        <?php if ($user_code): ?>
+                                            <small style="opacity: 0.8; margin-left: 4px; font-family: monospace;">(<?php echo esc_html($user_code); ?>)</small>
+                                        <?php endif; ?>
                                         <span class="remove-user" style="margin-left: 5px; cursor: pointer; font-weight: bold;">&times;</span>
                                         <input type="hidden" name="lift_doc_assigned_users[]" value="<?php echo esc_attr($user_id); ?>">
                                     </span>
@@ -1172,16 +1196,25 @@ class LIFT_Docs_Admin {
                 <!-- Search and Add Users -->
                 <div class="add-users-container">
                     <label for="user-search-input"><strong><?php _e('Add Users:', 'lift-docs-system'); ?></strong></label>
-                    <input type="text" id="user-search-input" placeholder="<?php _e('Search users by name or email...', 'lift-docs-system'); ?>" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px;">
+                    <input type="text" id="user-search-input" placeholder="<?php _e('Search users by name, email, or user code...', 'lift-docs-system'); ?>" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px;">
                     
                     <div class="users-search-results" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 3px; background: #fff; display: none;">
                         <?php foreach ($document_users as $user): ?>
+                            <?php $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true); ?>
                             <div class="user-search-item" 
                                  data-user-id="<?php echo esc_attr($user->ID); ?>"
                                  data-user-name="<?php echo esc_attr(strtolower($user->display_name)); ?>"
                                  data-user-email="<?php echo esc_attr(strtolower($user->user_email)); ?>"
+                                 data-user-code="<?php echo esc_attr(strtolower($user_code)); ?>"
                                  style="padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; <?php echo in_array($user->ID, $assigned_users) ? 'display: none;' : ''; ?>">
-                                <div style="font-weight: 500;"><?php echo esc_html($user->display_name); ?></div>
+                                <div style="font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
+                                    <span><?php echo esc_html($user->display_name); ?></span>
+                                    <?php if ($user_code): ?>
+                                        <span style="background: #f0f0f0; color: #333; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 11px; font-weight: normal;">
+                                            <?php echo esc_html($user_code); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                                 <div style="font-size: 12px; color: #666;"><?php echo esc_html($user->user_email); ?></div>
                             </div>
                         <?php endforeach; ?>
@@ -1227,8 +1260,11 @@ class LIFT_Docs_Admin {
                         var $item = $(this);
                         var userName = $item.data('user-name');
                         var userEmail = $item.data('user-email');
+                        var userCode = $item.data('user-code');
                         
-                        if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
+                        if (userName.includes(searchTerm) || 
+                            userEmail.includes(searchTerm) || 
+                            (userCode && userCode.includes(searchTerm))) {
                             $item.show();
                         } else {
                             $item.hide();
@@ -1250,9 +1286,10 @@ class LIFT_Docs_Admin {
             $(document).on('click', '.user-search-item', function() {
                 var $item = $(this);
                 var userId = $item.data('user-id');
-                var userName = $item.find('div:first').text();
+                var userName = $item.find('div:first span:first').text();
+                var userCode = $item.data('user-code');
                 
-                addUser(userId, userName);
+                addUser(userId, userName, userCode);
                 $item.hide();
                 $('#user-search-input').val('');
                 $('.users-search-results').hide();
@@ -1270,7 +1307,8 @@ class LIFT_Docs_Admin {
             $('#select-all-users').on('click', function() {
                 allUsers.forEach(function(user) {
                     if (!isUserSelected(user.ID)) {
-                        addUser(user.ID, user.display_name);
+                        var userCode = user.lift_docs_user_code || '';
+                        addUser(user.ID, user.display_name, userCode);
                     }
                 });
                 updateSearchResults();
@@ -1284,13 +1322,15 @@ class LIFT_Docs_Admin {
                 updateUsersCount();
             });
             
-            function addUser(userId, userName) {
+            function addUser(userId, userName, userCode) {
                 if (isUserSelected(userId)) {
                     return;
                 }
                 
+                var userCodeDisplay = userCode ? '<small style="opacity: 0.8; margin-left: 4px; font-family: monospace;">(' + userCode + ')</small>' : '';
+                
                 var userTag = $('<span class="selected-user-tag" data-user-id="' + userId + '" style="display: inline-block; background: #0073aa; color: #fff; padding: 4px 8px; margin: 2px; border-radius: 3px; font-size: 12px;">' +
-                    userName +
+                    userName + userCodeDisplay +
                     '<span class="remove-user" style="margin-left: 5px; cursor: pointer; font-weight: bold;">&times;</span>' +
                     '<input type="hidden" name="lift_doc_assigned_users[]" value="' + userId + '">' +
                     '</span>');
@@ -1993,5 +2033,217 @@ class LIFT_Docs_Admin {
             </ul>
         </div>
         <?php
+    }
+    
+    /**
+     * Generate unique user code
+     */
+    public function generate_unique_user_code() {
+        $attempts = 0;
+        $max_attempts = 50;
+        
+        do {
+            // Generate random code: 6-8 characters, alphanumeric
+            $length = rand(6, 8);
+            $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            $code = '';
+            
+            for ($i = 0; $i < $length; $i++) {
+                $code .= $characters[rand(0, strlen($characters) - 1)];
+            }
+            
+            // Check if code already exists
+            $existing_user = get_users(array(
+                'meta_key' => 'lift_docs_user_code',
+                'meta_value' => $code,
+                'meta_compare' => '='
+            ));
+            
+            $attempts++;
+            
+        } while (!empty($existing_user) && $attempts < $max_attempts);
+        
+        return $code;
+    }
+    
+    /**
+     * Add user code field to user profile
+     */
+    public function add_user_code_field($user) {
+        // Only show for users with documents_user role or admins viewing the field
+        if (!in_array('documents_user', $user->roles) && !current_user_can('manage_options')) {
+            return;
+        }
+        
+        $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
+        
+        ?>
+        <h3><?php _e('Document System', 'lift-docs-system'); ?></h3>
+        <table class="form-table">
+            <tr>
+                <th><label for="lift_docs_user_code"><?php _e('User Code', 'lift-docs-system'); ?></label></th>
+                <td>
+                    <input type="text" name="lift_docs_user_code" id="lift_docs_user_code" 
+                           value="<?php echo esc_attr($user_code); ?>" class="regular-text" 
+                           <?php echo current_user_can('manage_options') ? '' : 'readonly'; ?> />
+                    <p class="description">
+                        <?php _e('Unique code for document access identification. Used for searching and assignment.', 'lift-docs-system'); ?>
+                        <?php if (current_user_can('manage_options')): ?>
+                            <br><button type="button" id="generate-new-code" class="button button-secondary" style="margin-top: 5px;">
+                                <?php _e('Generate New Code', 'lift-docs-system'); ?>
+                            </button>
+                        <?php endif; ?>
+                    </p>
+                </td>
+            </tr>
+        </table>
+        
+        <?php if (current_user_can('manage_options')): ?>
+        <script>
+        jQuery(document).ready(function($) {
+            $('#generate-new-code').click(function() {
+                if (confirm('<?php _e('Are you sure you want to generate a new user code? This will replace the existing code.', 'lift-docs-system'); ?>')) {
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'generate_user_code',
+                            user_id: <?php echo $user->ID; ?>,
+                            nonce: '<?php echo wp_create_nonce('generate_user_code_' . $user->ID); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $('#lift_docs_user_code').val(response.data.code);
+                                alert('<?php _e('New user code generated successfully!', 'lift-docs-system'); ?>');
+                            } else {
+                                alert('<?php _e('Error generating user code. Please try again.', 'lift-docs-system'); ?>');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+        </script>
+        <?php endif; ?>
+        <?php
+    }
+    
+    /**
+     * Save user code field
+     */
+    public function save_user_code_field($user_id) {
+        if (!current_user_can('edit_user', $user_id)) {
+            return false;
+        }
+        
+        if (isset($_POST['lift_docs_user_code'])) {
+            $user_code = sanitize_text_field($_POST['lift_docs_user_code']);
+            
+            // Validate code format (6-8 alphanumeric characters)
+            if (preg_match('/^[A-Z0-9]{6,8}$/', $user_code)) {
+                // Check for duplicates (excluding current user)
+                $existing_user = get_users(array(
+                    'meta_key' => 'lift_docs_user_code',
+                    'meta_value' => $user_code,
+                    'meta_compare' => '=',
+                    'exclude' => array($user_id)
+                ));
+                
+                if (empty($existing_user)) {
+                    update_user_meta($user_id, 'lift_docs_user_code', $user_code);
+                } else {
+                    add_action('admin_notices', function() {
+                        echo '<div class="notice notice-error"><p>' . __('User code already exists. Please choose a different code.', 'lift-docs-system') . '</p></div>';
+                    });
+                }
+            } else if (!empty($user_code)) {
+                add_action('admin_notices', function() {
+                    echo '<div class="notice notice-error"><p>' . __('Invalid user code format. Use 6-8 alphanumeric characters only.', 'lift-docs-system') . '</p></div>';
+                });
+            }
+        }
+    }
+    
+    /**
+     * Generate user code when user registers
+     */
+    public function generate_user_code_on_register($user_id) {
+        $user = get_user_by('id', $user_id);
+        if ($user && in_array('documents_user', $user->roles)) {
+            $this->generate_and_save_user_code($user_id);
+        }
+    }
+    
+    /**
+     * Generate user code when role changes to documents_user
+     */
+    public function generate_user_code_on_role_change($user_id, $role, $old_roles) {
+        if ($role === 'documents_user') {
+            $existing_code = get_user_meta($user_id, 'lift_docs_user_code', true);
+            if (empty($existing_code)) {
+                $this->generate_and_save_user_code($user_id);
+            }
+        }
+    }
+    
+    /**
+     * Generate and save user code
+     */
+    private function generate_and_save_user_code($user_id) {
+        $user_code = $this->generate_unique_user_code();
+        update_user_meta($user_id, 'lift_docs_user_code', $user_code);
+    }
+    
+    /**
+     * Add user code column to users list
+     */
+    public function add_user_code_column($columns) {
+        $columns['lift_docs_user_code'] = __('User Code', 'lift-docs-system');
+        return $columns;
+    }
+    
+    /**
+     * Show user code in users list column
+     */
+    public function show_user_code_column($value, $column_name, $user_id) {
+        if ($column_name === 'lift_docs_user_code') {
+            $user = get_user_by('id', $user_id);
+            if ($user && in_array('documents_user', $user->roles)) {
+                $user_code = get_user_meta($user_id, 'lift_docs_user_code', true);
+                if ($user_code) {
+                    return '<strong style="color: #0073aa; font-family: monospace;">' . esc_html($user_code) . '</strong>';
+                } else {
+                    return '<span style="color: #d63638; font-style: italic;">No Code</span>';
+                }
+            } else {
+                return '—';
+            }
+        }
+        return $value;
+    }
+    
+    /**
+     * AJAX handler for generating user code
+     */
+    public function ajax_generate_user_code() {
+        if (!isset($_POST['user_id']) || !isset($_POST['nonce'])) {
+            wp_die('Invalid request');
+        }
+        
+        $user_id = intval($_POST['user_id']);
+        $nonce = $_POST['nonce'];
+        
+        if (!wp_verify_nonce($nonce, 'generate_user_code_' . $user_id)) {
+            wp_die('Security check failed');
+        }
+        
+        if (!current_user_can('edit_user', $user_id)) {
+            wp_die('Insufficient permissions');
+        }
+        
+        $user_code = $this->generate_unique_user_code();
+        update_user_meta($user_id, 'lift_docs_user_code', $user_code);
+        
+        wp_send_json_success(array('code' => $user_code));
     }
 }
