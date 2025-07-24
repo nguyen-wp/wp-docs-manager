@@ -29,6 +29,7 @@ class LIFT_Docs_Frontend_Login {
         
         // Handle form display
         add_action('template_redirect', array($this, 'handle_form_display'));
+        add_action('wp_loaded', array($this, 'check_dashboard_access'), 10);
         add_action('query_vars', array($this, 'add_query_vars'));
     }
     
@@ -71,12 +72,43 @@ class LIFT_Docs_Frontend_Login {
     }
     
     /**
-     * Handle form display
+     * Handle form display and dashboard redirect
      */
     public function handle_form_display() {
+        // Handle document form display
         if (get_query_var('document_form')) {
             $this->display_form_page();
             exit;
+        }
+        
+        // Handle dashboard redirect for non-logged users
+        global $post;
+        if ($post && $post->post_name === 'document-dashboard') {
+            if (!is_user_logged_in() || !$this->user_has_docs_access()) {
+                $login_url = $this->get_login_url();
+                wp_redirect($login_url);
+                exit;
+            }
+        }
+    }
+    
+    /**
+     * Check dashboard access early
+     */
+    public function check_dashboard_access() {
+        // Only check on frontend, not admin
+        if (is_admin()) {
+            return;
+        }
+        
+        // Check if we're on the dashboard page
+        $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+        if (strpos($request_uri, '/document-dashboard') !== false) {
+            if (!is_user_logged_in() || !$this->user_has_docs_access()) {
+                $login_url = $this->get_login_url();
+                wp_redirect($login_url);
+                exit;
+            }
         }
     }
     
