@@ -1963,6 +1963,14 @@ class LIFT_Docs_Frontend_Login {
         
         // Check if user is logged in and has access
         if (!is_user_logged_in() || !$this->user_has_docs_access()) {
+            // If this is not an AJAX request, redirect to login page
+            if (!wp_doing_ajax() && !defined('DOING_AJAX')) {
+                $login_url = $this->get_login_url();
+                wp_redirect($login_url);
+                exit;
+            }
+            
+            // For AJAX requests or other contexts, show login message
             $login_url = $this->get_login_url();
             return '<div class="docs-login-required">
                 <p>' . sprintf(__('Please <a href="%s">login</a> to access your document dashboard.', 'lift-docs-system'), $login_url) . '</p>
