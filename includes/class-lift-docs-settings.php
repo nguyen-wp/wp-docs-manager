@@ -33,15 +33,27 @@ class LIFT_Docs_Settings {
      * Enqueue admin scripts and styles
      */
     public function enqueue_admin_scripts($hook) {
-        // Only load on our settings page
-        if ($hook !== 'lift-documents_page_lift-docs-settings') {
-            return;
+        // Load on our settings page and any page containing 'lift-docs'
+        if (strpos($hook, 'lift-docs-settings') === false && strpos($hook, 'lift-docs') === false) {
+            // Also load if we're on any admin page with lift-docs in the URL
+            if (!isset($_GET['page']) || strpos($_GET['page'], 'lift-docs') === false) {
+                return;
+            }
         }
         
-        // Enqueue WordPress media scripts
+        // Enqueue WordPress media scripts - ALWAYS LOAD
         wp_enqueue_media();
         wp_enqueue_script('wp-color-picker');
         wp_enqueue_style('wp-color-picker');
+        wp_enqueue_script('jquery');
+        
+        // Force load media scripts
+        wp_enqueue_script('media-upload');
+        wp_enqueue_script('thickbox');
+        wp_enqueue_style('thickbox');
+        
+        // Debug info
+        error_log('LIFT Docs: Admin scripts enqueued on hook: ' . $hook);
     }
     
     /**
