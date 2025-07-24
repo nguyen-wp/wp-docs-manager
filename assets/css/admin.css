@@ -1,6 +1,14 @@
 /**
- * Admin Styles for LIFT Docs System
+ * Admin Styles for LIFT Docs System - NO ANIMATIONS
  */
+
+/* Global animation disabling */
+*, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+    -webkit-transition: none !important;
+    -webkit-animation: none !important;
+}
 
 /* Dashboard Styles */
 .lift-docs-dashboard {
@@ -384,12 +392,12 @@
     text-align: center;
     background: #fafafa;
     margin: 20px 0;
-    transition: border-color 0.3s ease;
 }
 
 .lift-docs-upload-area:hover {
     border-color: #0073aa;
     background: #f0f8ff;
+}
 }
 
 .lift-docs-upload-area.dragover {
@@ -429,7 +437,6 @@
 .lift-docs-progress-bar {
     height: 100%;
     background: #0073aa;
-    transition: width 0.3s ease;
 }
 
 /* Notifications */
@@ -507,13 +514,7 @@
     border: 2px solid #f3f3f3;
     border-top: 2px solid #0073aa;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
     margin-right: 5px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
 }
 
 /* Tooltips */
