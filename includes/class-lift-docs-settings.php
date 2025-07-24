@@ -68,6 +68,12 @@ class LIFT_Docs_Settings {
             array($this, 'validate_settings')
         );
         
+        // Register interface settings
+        register_setting('lift_docs_settings_interface', 'lift_docs_logo_upload');
+        register_setting('lift_docs_settings_interface', 'lift_docs_custom_logo_width'); 
+        register_setting('lift_docs_settings_interface', 'lift_docs_login_title');
+        register_setting('lift_docs_settings_interface', 'lift_docs_login_description');
+        
         // Register login customization settings
         register_setting('lift_docs_settings_group', 'lift_docs_login_logo');
         register_setting('lift_docs_settings_group', 'lift_docs_login_bg_color');
@@ -273,6 +279,62 @@ class LIFT_Docs_Settings {
             'lift-docs-settings',
             'lift_docs_login_section'
         );
+        
+        // Interface Tab Settings (move login customization here)
+        add_settings_section(
+            'lift_docs_interface_section',
+            __('Login Page Appearance', 'lift-docs-system'),
+            array($this, 'interface_section_callback'),
+            'lift-docs-interface'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_logo',
+            __('Login Page Logo', 'lift-docs-system'),
+            array($this, 'login_logo_callback'),
+            'lift-docs-interface',
+            'lift_docs_interface_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_bg_color',
+            __('Background Color', 'lift-docs-system'),
+            array($this, 'login_bg_color_callback'),
+            'lift-docs-interface',
+            'lift_docs_interface_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_form_bg',
+            __('Form Background Color', 'lift-docs-system'),
+            array($this, 'login_form_bg_callback'),
+            'lift-docs-interface',
+            'lift_docs_interface_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_btn_color',
+            __('Button Color', 'lift-docs-system'),
+            array($this, 'login_btn_color_callback'),
+            'lift-docs-interface',
+            'lift_docs_interface_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_input_color',
+            __('Input Border Color', 'lift-docs-system'),
+            array($this, 'login_input_color_callback'),
+            'lift-docs-interface',
+            'lift_docs_interface_section'
+        );
+        
+        add_settings_field(
+            'lift_docs_login_text_color',
+            __('Text Color', 'lift-docs-system'),
+            array($this, 'login_text_color_callback'),
+            'lift-docs-interface',
+            'lift_docs_interface_section'
+        );
     }
     
     /**
@@ -282,7 +344,7 @@ class LIFT_Docs_Settings {
         $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
         
         // Ensure valid tab
-        $valid_tabs = array('general', 'security', 'display');
+        $valid_tabs = array('general', 'security', 'display', 'interface');
         if (!in_array($active_tab, $valid_tabs)) {
             $active_tab = 'general';
         }
@@ -299,6 +361,9 @@ class LIFT_Docs_Settings {
                 </a>
                 <a href="#display" class="nav-tab nav-tab-js <?php echo $active_tab == 'display' ? 'nav-tab-active' : ''; ?>" data-tab="display">
                    <?php _e('Display', 'lift-docs-system'); ?>
+                </a>
+                <a href="#interface" class="nav-tab nav-tab-js <?php echo $active_tab == 'interface' ? 'nav-tab-active' : ''; ?>" data-tab="interface">
+                   <?php _e('Interface', 'lift-docs-system'); ?>
                 </a>
             </h2>
             
@@ -318,6 +383,11 @@ class LIFT_Docs_Settings {
                 <!-- Display Tab Content -->
                 <div id="display-tab" class="tab-content <?php echo $active_tab == 'display' ? 'active' : ''; ?>">
                     <?php do_settings_sections('lift-docs-display'); ?>
+                </div>
+                
+                <!-- Interface Tab Content -->
+                <div id="interface-tab" class="tab-content <?php echo $active_tab == 'interface' ? 'active' : ''; ?>">
+                    <?php do_settings_sections('lift-docs-interface'); ?>
                 </div>
                 
                 <?php submit_button(); ?>
@@ -544,6 +614,17 @@ class LIFT_Docs_Settings {
     }
     
     /**
+     * Interface section callback
+     */
+    public function interface_section_callback() {
+        echo '<div style="background: #f9f9f9; padding: 20px; border-radius: 6px; border-left: 4px solid #1976d2; margin-bottom: 20px;">';
+        echo '<h3 style="margin-top: 0; color: #1976d2;">🎨 ' . __('Tùy chỉnh giao diện', 'lift-docs-system') . '</h3>';
+        echo '<p>' . __('Customize the appearance and branding of your document login page. These settings control how the login page looks to your users.', 'lift-docs-system') . '</p>';
+        echo '<p><strong>' . __('Applies to:', 'lift-docs-system') . '</strong> /document-login/, /document-dashboard/, secure document pages, and access denied pages.</p>';
+        echo '</div>';
+    }
+    
+    /**
      * Login logo callback
      */
     public function login_logo_callback() {
@@ -611,6 +692,42 @@ class LIFT_Docs_Settings {
                 $('#logo-preview-img').html('<div style="width: 200px; height: 100px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; color: #666;"><?php _e('No logo selected', 'lift-docs-system'); ?></div>');
                 $(this).hide();
             });
+            
+            // Interface tab media uploader
+            var interfaceMediaUploader;
+            
+            $('#interface-upload-logo-btn').click(function(e) {
+                e.preventDefault();
+                
+                if (interfaceMediaUploader) {
+                    interfaceMediaUploader.open();
+                    return;
+                }
+                
+                interfaceMediaUploader = wp.media.frames.interface_file_frame = wp.media({
+                    title: '<?php _e('Choose Logo for Interface', 'lift-docs-system'); ?>',
+                    button: { text: '<?php _e('Use This Image', 'lift-docs-system'); ?>' },
+                    multiple: false,
+                    library: { type: 'image' }
+                });
+                
+                interfaceMediaUploader.on('select', function() {
+                    var attachment = interfaceMediaUploader.state().get('selection').first().toJSON();
+                    $('#lift_docs_logo_upload').val(attachment.id);
+                    $('#interface-logo-preview').html('<img src="' + attachment.url + '" style="max-width: 300px; max-height: 150px; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">');
+                    $('#interface-remove-logo-btn').show();
+                });
+                
+                interfaceMediaUploader.open();
+            });
+            
+            // Interface logo remove
+            $('#interface-remove-logo-btn').click(function(e) {
+                e.preventDefault();
+                $('#lift_docs_logo_upload').val('');
+                $('#interface-logo-preview').html('<div style="width: 300px; height: 150px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; border-radius: 4px; background: #f9f9f9;"><span>📷 <?php _e('No logo uploaded', 'lift-docs-system'); ?></span></div>');
+                $(this).hide();
+            });
         });
         </script>
         <?php
@@ -659,6 +776,64 @@ class LIFT_Docs_Settings {
         $color = get_option('lift_docs_login_text_color', '#333333');
         echo '<input type="color" name="lift_docs_login_text_color" value="' . esc_attr($color) . '" class="color-picker">';
         echo '<p class="description">' . __('Main text color', 'lift-docs-system') . '</p>';
+    }
+    
+    /**
+     * Logo upload callback for Interface tab
+     */
+    public function logo_upload_callback() {
+        $logo_id = get_option('lift_docs_logo_upload', '');
+        $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
+        
+        echo '<div class="lift-interface-logo-container">';
+        echo '<input type="hidden" name="lift_docs_logo_upload" id="lift_docs_logo_upload" value="' . esc_attr($logo_id) . '">';
+        
+        echo '<div class="logo-preview" style="margin-bottom: 15px;">';
+        if ($logo_url) {
+            echo '<img src="' . esc_url($logo_url) . '" style="max-width: 300px; max-height: 150px; border: 1px solid #ddd; padding: 10px; border-radius: 4px;" id="interface-logo-preview">';
+        } else {
+            echo '<div id="interface-logo-preview" style="width: 300px; height: 150px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; border-radius: 4px; background: #f9f9f9;">';
+            echo '<span>📷 ' . __('No logo uploaded', 'lift-docs-system') . '</span>';
+            echo '</div>';
+        }
+        echo '</div>';
+        
+        echo '<button type="button" class="button button-secondary" id="interface-upload-logo-btn">📤 ' . __('Upload Logo', 'lift-docs-system') . '</button>';
+        if ($logo_url) {
+            echo ' <button type="button" class="button button-link-delete" id="interface-remove-logo-btn">🗑️ ' . __('Remove', 'lift-docs-system') . '</button>';
+        } else {
+            echo ' <button type="button" class="button button-link-delete" id="interface-remove-logo-btn" style="display: none;">🗑️ ' . __('Remove', 'lift-docs-system') . '</button>';
+        }
+        echo '<p class="description">' . __('Upload a logo image to display on the login page. Recommended size: 300x150px or smaller.', 'lift-docs-system') . '</p>';
+        echo '</div>';
+    }
+    
+    /**
+     * Custom logo width callback
+     */
+    public function custom_logo_width_callback() {
+        $width = get_option('lift_docs_custom_logo_width', '200');
+        echo '<input type="number" name="lift_docs_custom_logo_width" value="' . esc_attr($width) . '" min="50" max="500" style="width: 100px;">';
+        echo ' <span>px</span>';
+        echo '<p class="description">' . __('Maximum width for the logo display (50-500px). Height will be automatically adjusted.', 'lift-docs-system') . '</p>';
+    }
+    
+    /**
+     * Login title callback
+     */
+    public function login_title_callback() {
+        $title = get_option('lift_docs_login_title', '');
+        echo '<input type="text" name="lift_docs_login_title" value="' . esc_attr($title) . '" style="width: 100%;" placeholder="' . __('Document Access Portal', 'lift-docs-system') . '">';
+        echo '<p class="description">' . __('Custom title to display on the login page. Leave empty to use default.', 'lift-docs-system') . '</p>';
+    }
+    
+    /**
+     * Login description callback
+     */
+    public function login_description_callback() {
+        $description = get_option('lift_docs_login_description', '');
+        echo '<textarea name="lift_docs_login_description" rows="3" style="width: 100%;" placeholder="' . __('Please log in to access your documents.', 'lift-docs-system') . '">' . esc_textarea($description) . '</textarea>';
+        echo '<p class="description">' . __('Custom description text to display below the title on the login page.', 'lift-docs-system') . '</p>';
     }
     
     /**
