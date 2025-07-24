@@ -38,11 +38,8 @@ class LIFT_Docs_Frontend_Login {
         add_rewrite_rule('^docs-login/?$', 'index.php?docs_login=1', 'top');
         add_rewrite_rule('^docs-dashboard/?$', 'index.php?docs_dashboard=1', 'top');
         
-        // Flush rewrite rules if needed
-        if (!get_option('lift_docs_rewrite_rules_flushed')) {
-            flush_rewrite_rules();
-            update_option('lift_docs_rewrite_rules_flushed', true);
-        }
+        // Always flush rewrite rules to ensure they work
+        flush_rewrite_rules();
     }
     
     /**
@@ -408,7 +405,6 @@ class LIFT_Docs_Frontend_Login {
                         <div class="lift-form-group checkbox-group">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="docs_remember" name="remember" value="1">
-                                <span class="checkmark"></span>
                                 <?php _e('Remember me', 'lift-docs-system'); ?>
                             </label>
                         </div>
@@ -782,7 +778,7 @@ class LIFT_Docs_Frontend_Login {
     public function handle_ajax_login() {
         // Check nonce
         if (!wp_verify_nonce($_POST['nonce'], 'docs_login_nonce')) {
-            wp_send_json_error('Security check failed');
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
         
         $username = sanitize_text_field($_POST['username']);
@@ -800,25 +796,27 @@ class LIFT_Docs_Frontend_Login {
             wp_send_json_error(__('User not found. Please check your credentials.', 'lift-docs-system'));
         }
         
-        // Check if user has document access
-        if (!in_array('documents_user', $user->roles) && !user_can($user->ID, 'view_lift_documents')) {
+        // Use wp_signon like WordPress login
+        $credentials = array(
+            'user_login'    => $user->user_login,
+            'user_password' => $password,
+            'remember'      => $remember
+        );
+        
+        $user_signon = wp_signon($credentials, false);
+        
+        if (is_wp_error($user_signon)) {
+            wp_send_json_error($user_signon->get_error_message());
+        }
+        
+        // Check if user has document access after successful login
+        if (!in_array('documents_user', $user_signon->roles) && !user_can($user_signon->ID, 'view_lift_documents')) {
+            wp_logout(); // Logout if no access
             wp_send_json_error(__('You do not have permission to access documents.', 'lift-docs-system'));
         }
         
-        // Authenticate user
-        $auth_result = wp_authenticate($user->user_login, $password);
-        
-        if (is_wp_error($auth_result)) {
-            wp_send_json_error(__('Invalid password. Please try again.', 'lift-docs-system'));
-        }
-        
-        // Log the user in
-        wp_clear_auth_cookie();
-        wp_set_current_user($user->ID);
-        wp_set_auth_cookie($user->ID, $remember);
-        
         // Log the login
-        $this->log_user_login($user->ID);
+        $this->log_user_login($user_signon->ID);
         
         // Determine redirect URL
         $redirect_url = '';
@@ -871,6 +869,13 @@ class LIFT_Docs_Frontend_Login {
         ));
         
         return !empty($users) ? $users[0] : false;
+    }
+    
+    /**
+     * Public method for debugging - find user by login
+     */
+    public function debug_find_user($login) {
+        return $this->find_user_by_login($login);
     }
     
     /**
@@ -1252,7 +1257,6 @@ class LIFT_Docs_Frontend_Login {
                     <div class="lift-form-group checkbox-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="docs_remember" name="remember" value="1">
-                            <span class="checkmark"></span>
                             <?php _e('Remember me', 'lift-docs-system'); ?>
                         </label>
                     </div>
