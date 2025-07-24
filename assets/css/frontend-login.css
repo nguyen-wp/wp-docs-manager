@@ -44,6 +44,7 @@
     padding: 40px 40px 20px;
     text-align: center;
     border-bottom: 1px solid #e9ecef;
+    display: none;
 }
 
 .lift-docs-login-header h1 {
@@ -131,10 +132,10 @@
     gap: 4px;
 }
 
-.field-error::before {
+/* .field-error::before {
     content: "⚠";
     font-size: 14px;
-}
+} */
 
 /* Password Field */
 .password-field-wrapper {
