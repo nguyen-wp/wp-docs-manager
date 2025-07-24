@@ -115,27 +115,45 @@ class LIFT_Docs_Frontend_Login {
             "SELECT * FROM $forms_table WHERE id = %d AND status = 'active'",
             $form_id
         ));
-        
+
         if (!$form) {
             wp_die(__('Form not found.', 'lift-docs-system'), __('Error', 'lift-docs-system'));
         }
-        
+
         // Get document data
         $document = get_post($document_id);
         if (!$document || $document->post_type !== 'lift_document') {
             wp_die(__('Document not found.', 'lift-docs-system'), __('Error', 'lift-docs-system'));
         }
+
+        // Check if user has already submitted this form for this document
+        $current_user_id = get_current_user_id();
+        $existing_submission = null;
+        $is_edit_mode = false;
         
+        if ($current_user_id > 0) {
+            // Get LIFT_Forms instance to check for existing submission
+            $lift_forms = new LIFT_Forms();
+            $existing_submission = $lift_forms->get_user_submission($current_user_id, $form_id, $document_id);
+            $is_edit_mode = !empty($existing_submission);
+        }
+
         // Render form page
-        $this->render_form_page($document, $form);
+        $this->render_form_page($document, $form, $existing_submission, $is_edit_mode);
     }
     
     /**
      * Render form page
      */
-    private function render_form_page($document, $form) {
+    private function render_form_page($document, $form, $existing_submission = null, $is_edit_mode = false) {
         $current_user = wp_get_current_user();
         $form_fields = json_decode($form->form_fields, true);
+        
+        // Parse existing form data if in edit mode
+        $existing_data = array();
+        if ($is_edit_mode && $existing_submission) {
+            $existing_data = json_decode($existing_submission->form_data, true);
+        }
         
         ?>
         <!DOCTYPE html>
@@ -234,6 +252,13 @@ class LIFT_Docs_Frontend_Login {
                     <div class="document-info">
                         <?php printf(__('Related to document: %s', 'lift-docs-system'), '<strong>' . esc_html($document->post_title) . '</strong>'); ?>
                     </div>
+                    <?php if ($is_edit_mode): ?>
+                        <div class="edit-mode-notice" style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 12px; border-radius: 4px; margin: 15px 0; color: #856404;">
+                            <strong><?php _e('Edit Mode:', 'lift-docs-system'); ?></strong> 
+                            <?php _e('You have already submitted this form. You can edit your submission below.', 'lift-docs-system'); ?>
+                            <br><small><?php printf(__('Originally submitted: %s', 'lift-docs-system'), date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($existing_submission->submitted_at))); ?></small>
+                        </div>
+                    <?php endif; ?>
                     <?php if ($form->description): ?>
                         <p><?php echo esc_html($form->description); ?></p>
                     <?php endif; ?>
@@ -244,6 +269,10 @@ class LIFT_Docs_Frontend_Login {
                     <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
                     <input type="hidden" name="document_id" value="<?php echo esc_attr($document->ID); ?>">
                     <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('lift_forms_submit_nonce'); ?>">
+                    <?php if ($is_edit_mode && $existing_submission): ?>
+                        <input type="hidden" name="submission_id" value="<?php echo esc_attr($existing_submission->id); ?>">
+                        <input type="hidden" name="is_edit" value="1">
+                    <?php endif; ?>
                     
                     <?php if (!empty($form_fields) && is_array($form_fields)): ?>
                         <?php foreach ($form_fields as $field): ?>
@@ -255,7 +284,7 @@ class LIFT_Docs_Frontend_Login {
                                     <?php endif; ?>
                                 </label>
                                 
-                                <?php $this->render_form_field($field); ?>
+                                <?php $this->render_form_field($field, $existing_data); ?>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -263,11 +292,11 @@ class LIFT_Docs_Frontend_Login {
                     <?php endif; ?>
                     
                     <div class="form-actions">
-                        <a href="javascript:history.back()" class="btn btn-secondary">
-                            <?php _e('Cancel', 'lift-docs-system'); ?>
+                        <a href="<?php echo home_url('/document-dashboard/'); ?>" class="btn btn-secondary">
+                            <?php _e('Back to Dashboard', 'lift-docs-system'); ?>
                         </a>
                         <button type="submit" class="btn btn-primary">
-                            <?php _e('Submit Form', 'lift-docs-system'); ?>
+                            <?php echo $is_edit_mode ? __('Update Submission', 'lift-docs-system') : __('Submit Form', 'lift-docs-system'); ?>
                         </button>
                     </div>
                 </form>
@@ -282,8 +311,15 @@ class LIFT_Docs_Frontend_Login {
                     
                     $.post($(this).attr('action'), formData, function(response) {
                         if (response.success) {
-                            alert('<?php _e('Form submitted successfully!', 'lift-docs-system'); ?>');
-                            window.history.back();
+                            var message = '<?php echo $is_edit_mode ? __('Form updated successfully!', 'lift-docs-system') : __('Form submitted successfully!', 'lift-docs-system'); ?>';
+                            alert(message);
+                            
+                            // Redirect to dashboard if redirect URL is provided, otherwise go back
+                            if (response.data && response.data.redirect_url) {
+                                window.location.href = response.data.redirect_url;
+                            } else {
+                                window.location.href = '<?php echo home_url('/document-dashboard/'); ?>';
+                            }
                         } else {
                             alert('<?php _e('Error submitting form: ', 'lift-docs-system'); ?>' + (response.data || '<?php _e('Unknown error', 'lift-docs-system'); ?>'));
                         }
@@ -303,10 +339,13 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Render form field
      */
-    private function render_form_field($field) {
+    private function render_form_field($field, $existing_data = array()) {
         $field_id = 'field_' . esc_attr($field['id']);
         $field_name = 'form_fields[' . esc_attr($field['id']) . ']';
         $required = isset($field['required']) && $field['required'] ? 'required' : '';
+        
+        // Get existing value for this field
+        $field_value = isset($existing_data[$field['id']]) ? $existing_data[$field['id']] : '';
         
         switch ($field['type']) {
             case 'text':
@@ -316,6 +355,7 @@ class LIFT_Docs_Frontend_Login {
                 <input type="<?php echo esc_attr($field['type']); ?>" 
                        id="<?php echo $field_id; ?>" 
                        name="<?php echo $field_name; ?>" 
+                       value="<?php echo esc_attr($field_value); ?>"
                        placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
                        <?php echo $required; ?>>
                 <?php
@@ -326,7 +366,7 @@ class LIFT_Docs_Frontend_Login {
                 <textarea id="<?php echo $field_id; ?>" 
                           name="<?php echo $field_name; ?>" 
                           placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
-                          <?php echo $required; ?>></textarea>
+                          <?php echo $required; ?>><?php echo esc_textarea($field_value); ?></textarea>
                 <?php
                 break;
                 
@@ -336,7 +376,7 @@ class LIFT_Docs_Frontend_Login {
                     <option value=""><?php _e('Please select...', 'lift-docs-system'); ?></option>
                     <?php if (isset($field['options']) && is_array($field['options'])): ?>
                         <?php foreach ($field['options'] as $option): ?>
-                            <option value="<?php echo esc_attr($option); ?>"><?php echo esc_html($option); ?></option>
+                            <option value="<?php echo esc_attr($option); ?>" <?php selected($field_value, $option); ?>><?php echo esc_html($option); ?></option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
@@ -1277,6 +1317,7 @@ class LIFT_Docs_Frontend_Login {
                 if (!empty($assigned_forms) && is_array($assigned_forms)) {
                     global $wpdb;
                     $forms_table = $wpdb->prefix . 'lift_forms';
+                    $current_user_id = get_current_user_id();
                     
                     foreach ($assigned_forms as $form_id) {
                         $form = $wpdb->get_row($wpdb->prepare(
@@ -1289,10 +1330,28 @@ class LIFT_Docs_Frontend_Login {
                                 'document_id' => $document->ID,
                                 'form_id' => $form->id
                             ), home_url('/document-form/'));
+                            
+                            // Check if user has already submitted this form for this document
+                            $has_submitted = false;
+                            $button_text = $form->name;
+                            $button_class = 'btn btn-secondary';
+                            
+                            if ($current_user_id > 0) {
+                                $lift_forms = new LIFT_Forms();
+                                $has_submitted = $lift_forms->user_has_submitted_form($current_user_id, $form->id, $document->ID);
+                                
+                                if ($has_submitted) {
+                                    $button_text = sprintf(__('Edit %s', 'lift-docs-system'), $form->name);
+                                    $button_class = 'btn btn-primary';
+                                }
+                            }
                             ?>
-                            <a href="<?php echo esc_url($form_url); ?>" class="btn btn-secondary" target="_blank">
+                            <a href="<?php echo esc_url($form_url); ?>" class="<?php echo esc_attr($button_class); ?>" target="_blank">
                                 <span class="dashicons dashicons-forms"></span>
-                                <?php echo esc_html($form->name); ?>
+                                <?php echo esc_html($button_text); ?>
+                                <?php if ($has_submitted): ?>
+                                    <span class="dashicons dashicons-edit" style="margin-left: 5px;"></span>
+                                <?php endif; ?>
                             </a>
                             <?php
                         }

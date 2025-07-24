@@ -1443,7 +1443,7 @@ class LIFT_Docs_Settings {
                 <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 12px;">
                     <li><code>[docs_login_form title="Member Login" redirect_to="/dashboard"]</code></li>
                     <li><code>[docs_dashboard show_stats="false" documents_per_page="6"]</code></li>
-                    <li><strong><?php _e('Alternative URLs:', 'lift-docs-system'); ?></strong> <code>/docs-login</code> & <code>/docs-dashboard</code></li>
+                    <li><strong><?php _e('Alternative URLs:', 'lift-docs-system'); ?></strong> <code>/document-login</code> & <code>/document-dashboard/</code></li>
                 </ul>
             </div>
             

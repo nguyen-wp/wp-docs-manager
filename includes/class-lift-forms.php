@@ -914,6 +914,49 @@ class LIFT_Forms {
     }
     
     /**
+     * Check if user has already submitted a form for a specific document
+     */
+    public function user_has_submitted_form($user_id, $form_id, $document_id = null) {
+        global $wpdb;
+        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+        
+        $sql = "SELECT id FROM $submissions_table WHERE form_id = %d AND user_id = %d";
+        $params = array($form_id, $user_id);
+        
+        // If document_id is provided, check for document-specific submission
+        if ($document_id) {
+            $sql .= " AND JSON_EXTRACT(form_data, '$._document_id') = %d";
+            $params[] = $document_id;
+        }
+        
+        $sql .= " LIMIT 1";
+        
+        $existing = $wpdb->get_var($wpdb->prepare($sql, $params));
+        
+        return !empty($existing);
+    }
+    
+    /**
+     * Get user's existing submission for a form and document
+     */
+    public function get_user_submission($user_id, $form_id, $document_id = null) {
+        global $wpdb;
+        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+        
+        $sql = "SELECT * FROM $submissions_table WHERE form_id = %d AND user_id = %d";
+        $params = array($form_id, $user_id);
+        
+        if ($document_id) {
+            $sql .= " AND JSON_EXTRACT(form_data, '$._document_id') = %d";
+            $params[] = $document_id;
+        }
+        
+        $sql .= " ORDER BY submitted_at DESC LIMIT 1";
+        
+        return $wpdb->get_row($wpdb->prepare($sql, $params));
+    }
+
+    /**
      * AJAX get form
      */
     public function ajax_get_form() {
@@ -1150,6 +1193,8 @@ class LIFT_Forms {
         $form_id = intval($_POST['form_id']);
         $document_id = intval($_POST['document_id'] ?? 0);
         $form_data = $_POST['form_fields'] ?? $_POST['form_data'] ?? array();
+        $is_edit = isset($_POST['is_edit']) && $_POST['is_edit'] == '1';
+        $submission_id = intval($_POST['submission_id'] ?? 0);
         
         if (!$form_id) {
             wp_send_json_error(__('Invalid form', 'lift-docs-system'));
@@ -1206,28 +1251,51 @@ class LIFT_Forms {
         if ($current_user_id === 0) {
             $current_user_id = null; // Store as NULL for guest users
         }
-        
-        // Save submission
+
+        // Save or update submission
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
-        $result = $wpdb->insert(
-            $submissions_table,
-            array(
-                'form_id' => $form_id,
-                'form_data' => json_encode($processed_data),
-                'user_id' => $current_user_id,
-                'user_ip' => $this->get_client_ip(),
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-                'submitted_at' => current_time('mysql')
-            )
+        
+        $submission_data = array(
+            'form_id' => $form_id,
+            'form_data' => json_encode($processed_data),
+            'user_id' => $current_user_id,
+            'user_ip' => $this->get_client_ip(),
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? ''
         );
         
-        if ($result !== false) {
-            // Send notification email if configured
-            $this->send_submission_notification($form, $processed_data);
-            
-            wp_send_json_success(__('Form submitted successfully!', 'lift-docs-system'));
+        if ($is_edit && $submission_id) {
+            // Update existing submission
+            $submission_data['updated_at'] = current_time('mysql');
+            $result = $wpdb->update(
+                $submissions_table,
+                $submission_data,
+                array('id' => $submission_id, 'user_id' => $current_user_id), // Ensure user can only edit their own submission
+                array('%d', '%s', '%d', '%s', '%s', '%s'),
+                array('%d', '%d')
+            );
+            $success_message = __('Form updated successfully!', 'lift-docs-system');
         } else {
-            wp_send_json_error(__('Failed to submit form', 'lift-docs-system'));
+            // Insert new submission
+            $submission_data['submitted_at'] = current_time('mysql');
+            $result = $wpdb->insert($submissions_table, $submission_data);
+            $success_message = __('Form submitted successfully!', 'lift-docs-system');
+        }
+
+        if ($result !== false) {
+            // Send notification email if configured (only for new submissions)
+            if (!$is_edit) {
+                $this->send_submission_notification($form, $processed_data);
+            }
+            
+            // If submission is from a document, return redirect URL
+            $response_data = array('message' => $success_message);
+            if ($document_id) {
+                $response_data['redirect_url'] = home_url('/document-dashboard/');
+            }
+            
+            wp_send_json_success($response_data);
+        } else {
+            wp_send_json_error($is_edit ? __('Failed to update form', 'lift-docs-system') : __('Failed to submit form', 'lift-docs-system'));
         }
     }
     
