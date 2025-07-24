@@ -21,11 +21,8 @@ class LIFT_Docs_Frontend_Login {
         add_action('wp_ajax_docs_login', array($this, 'handle_ajax_login'));
         add_action('wp_ajax_nopriv_docs_logout', array($this, 'handle_ajax_logout'));
         add_action('wp_ajax_docs_logout', array($this, 'handle_ajax_logout'));
-        add_filter('query_vars', array($this, 'add_query_vars'));
-        add_action('template_redirect', array($this, 'handle_docs_login_page'));
-        add_action('template_redirect', array($this, 'handle_docs_dashboard_page'));
         
-        // Register shortcodes
+        // Register shortcodes for regular pages
         add_shortcode('docs_login_form', array($this, 'login_form_shortcode'));
         add_shortcode('docs_dashboard', array($this, 'dashboard_shortcode'));
     }
@@ -34,53 +31,15 @@ class LIFT_Docs_Frontend_Login {
      * Initialize
      */
     public function init() {
-        // Add rewrite rules for docs-login page
-        add_rewrite_rule('^docs-login/?$', 'index.php?docs_login=1', 'top');
-        add_rewrite_rule('^docs-dashboard/?$', 'index.php?docs_dashboard=1', 'top');
-        
-        // Always flush rewrite rules to ensure they work
-        flush_rewrite_rules();
+        // Note: Using regular pages (/document-login/, /document-dashboard/) instead of rewrite rules
+        // to avoid conflicts and keep URLs consistent
     }
     
     /**
-     * Add custom query vars
+     * Add custom query vars (removed docs-specific vars since using regular pages)
      */
     public function add_query_vars($vars) {
-        $vars[] = 'docs_login';
-        $vars[] = 'docs_dashboard';
         return $vars;
-    }
-    
-    /**
-     * Handle docs-login page
-     */
-    public function handle_docs_login_page() {
-        if (get_query_var('docs_login')) {
-            // Check if user is already logged in and has docs access
-            if (is_user_logged_in() && $this->user_has_docs_access()) {
-                wp_redirect(home_url('/docs-dashboard'));
-                exit;
-            }
-            
-            $this->display_login_page();
-            exit;
-        }
-    }
-    
-    /**
-     * Handle docs-dashboard page
-     */
-    public function handle_docs_dashboard_page() {
-        if (get_query_var('docs_dashboard')) {
-            // Check if user is logged in and has docs access
-            if (!is_user_logged_in() || !$this->user_has_docs_access()) {
-                wp_redirect(home_url('/docs-login'));
-                exit;
-            }
-            
-            $this->display_dashboard_page();
-            exit;
-        }
     }
     
     /**
@@ -980,25 +939,35 @@ class LIFT_Docs_Frontend_Login {
     }
     
     /**
-     * Get login URL (shortcode page or URL-based)
+     * Get login URL (from page created during activation)
      */
     private function get_login_url() {
         $login_page_id = get_option('lift_docs_login_page_id');
         if ($login_page_id && get_post($login_page_id)) {
             return get_permalink($login_page_id);
         }
-        return home_url('/docs-login');
+        // Fallback: try to find page by slug
+        $page = get_page_by_path('document-login');
+        if ($page) {
+            return get_permalink($page->ID);
+        }
+        return home_url('/document-login/');
     }
     
     /**
-     * Get dashboard URL (shortcode page or URL-based)
+     * Get dashboard URL (from page created during activation)
      */
     private function get_dashboard_url() {
         $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
         if ($dashboard_page_id && get_post($dashboard_page_id)) {
             return get_permalink($dashboard_page_id);
         }
-        return home_url('/docs-dashboard');
+        // Fallback: try to find page by slug
+        $page = get_page_by_path('document-dashboard');
+        if ($page) {
+            return get_permalink($page->ID);
+        }
+        return home_url('/document-dashboard/');
     }
     
     /**
