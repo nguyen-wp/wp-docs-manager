@@ -76,7 +76,21 @@ class LIFT_Docs_Frontend_Login {
         $input_color = get_option('lift_docs_login_input_color', '#e0e0e0');
         $text_color = get_option('lift_docs_login_text_color', '#333333');
         
-        // Simple HTML without theme header/footer
+        // Function to adjust brightness for gradient colors
+        function adjustBrightness($color, $percent) {
+            $color = str_replace('#', '', $color);
+            $r = hexdec(substr($color, 0, 2));
+            $g = hexdec(substr($color, 2, 2));
+            $b = hexdec(substr($color, 4, 2));
+            
+            $r = max(0, min(255, $r + ($r * $percent / 100)));
+            $g = max(0, min(255, $g + ($g * $percent / 100)));
+            $b = max(0, min(255, $b + ($b * $percent / 100)));
+            
+            return '#' . str_pad(dechex($r), 2, '0', STR_PAD_LEFT) . str_pad(dechex($g), 2, '0', STR_PAD_LEFT) . str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
+        }
+        
+        // Simple HTML without theme header/footer - Clean standalone login page
         ?>
         <!DOCTYPE html>
         <html <?php language_attributes(); ?>>
@@ -86,101 +100,186 @@ class LIFT_Docs_Frontend_Login {
             <title><?php _e('Document Login', 'lift-docs-system'); ?> - <?php bloginfo('name'); ?></title>
             <?php wp_head(); ?>
             <style>
+                /* Reset and hide all theme elements for standalone login page */
+                * {
+                    box-sizing: border-box;
+                }
+                
+                html {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    height: 100%;
+                }
+                
                 body {
-                    margin: 0;
-                    padding: 0;
+                    margin: 0 !important;
+                    padding: 0 !important;
                     background-color: <?php echo esc_attr($bg_color); ?>;
                     color: <?php echo esc_attr($text_color); ?>;
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                     min-height: 100vh;
+                    height: 100vh;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    overflow-x: hidden;
+                    background: linear-gradient(135deg, <?php echo esc_attr($bg_color); ?> 0%, <?php echo esc_attr(adjustBrightness($bg_color, -10)); ?> 100%);
                 }
                 
-                /* Hide back-to-top button */
-                .back-to-top,
-                #back-to-top,
-                .scroll-to-top,
-                [class*="back-to-top"],
-                [id*="back-to-top"],
-                [class*="scroll-top"],
-                [id*="scroll-top"] {
+                /* Hide WordPress admin bar completely */
+                #wpadminbar {
+                    display: none !important;
+                    visibility: hidden !important;
+                    height: 0 !important;
+                    margin: 0 !important;
+                }
+                
+                /* Hide ALL theme elements aggressively */
+                body > *:not(.lift-simple-login-container),
+                header, footer, main, aside, section, article,
+                .header, .footer, .main, .content, .container, .wrapper,
+                nav, .nav, .navigation, .menu, .menubar,
+                .sidebar, .widget, .widget-area,
+                .site-header, .site-footer, .site-content, .site-main,
+                .page-header, .page-footer, .page-content,
+                .entry-header, .entry-footer, .entry-content,
+                .post-header, .post-footer, .post-content,
+                [class*="header"], [class*="footer"], [class*="nav"], 
+                [class*="menu"], [class*="sidebar"], [class*="widget"],
+                [id*="header"], [id*="footer"], [id*="nav"], 
+                [id*="menu"], [id*="sidebar"], [id*="widget"] {
+                    display: none !important;
+                    visibility: hidden !important;
+                    position: absolute !important;
+                    left: -9999px !important;
+                    top: -9999px !important;
+                    width: 0 !important;
+                    height: 0 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                
+                /* Hide other common theme elements */
+                .back-to-top, #back-to-top, .scroll-to-top,
+                [class*="back-to-top"], [id*="back-to-top"],
+                [class*="scroll-top"], [id*="scroll-top"],
+                .breadcrumb, .breadcrumbs, [class*="breadcrumb"],
+                .social, .social-links, [class*="social"],
+                .search-form, .searchform, [class*="search"],
+                .comments, .comment, [class*="comment"] {
                     display: none !important;
                     visibility: hidden !important;
                 }
                 
+                /* Enhanced form container styling */
                 .lift-simple-login-container {
                     width: 100%;
-                    max-width: 400px;
+                    max-width: 420px;
                     margin: 20px;
+                    position: relative;
+                    z-index: 9999;
                 }
                 
                 .lift-login-logo {
                     text-align: center;
-                    margin-bottom: 35px;
-                    padding: 10px 0;
+                    margin-bottom: 40px;
+                    padding: 15px 0;
                 }
                 
                 .lift-login-logo img {
                     max-width: <?php echo esc_attr($logo_width); ?>;
                     height: auto;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    border-radius: 12px;
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                    transition: transform 0.3s ease;
+                }
+                
+                .lift-login-logo img:hover {
+                    transform: scale(1.02);
                 }
                 
                 .lift-login-form-wrapper {
                     background: <?php echo esc_attr($form_bg); ?>;
-                    padding: 40px;
-                    border-radius: 12px;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    padding: 50px 40px;
+                    border-radius: 20px;
+                    box-shadow: 
+                        0 10px 30px rgba(0, 0, 0, 0.15),
+                        0 1px 8px rgba(0, 0, 0, 0.1);
+                    backdrop-filter: blur(10px);
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .lift-login-form-wrapper::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 4px;
+                    background: linear-gradient(90deg, <?php echo esc_attr($btn_color); ?>, <?php echo esc_attr(adjustBrightness($btn_color, 20)); ?>);
                 }
                 
                 .lift-login-title {
                     text-align: center;
-                    margin: 0 0 15px 0;
-                    font-size: 28px;
-                    font-weight: 600;
+                    margin: 0 0 20px 0;
+                    font-size: 32px;
+                    font-weight: 700;
                     color: <?php echo esc_attr($text_color); ?>;
+                    letter-spacing: -0.5px;
                 }
                 
                 .lift-login-description {
                     text-align: center;
-                    margin-bottom: 25px;
+                    margin-bottom: 35px;
                     color: <?php echo esc_attr($text_color); ?>;
-                    opacity: 0.8;
+                    opacity: 0.7;
                     font-size: 16px;
-                    line-height: 1.5;
+                    line-height: 1.6;
+                    font-weight: 400;
                 }
                 
+                /* Enhanced form field styling */
                 .lift-form-group {
-                    margin-bottom: 20px;
+                    margin-bottom: 25px;
+                    position: relative;
                 }
                 
                 .lift-form-group label {
                     display: block;
-                    margin-bottom: 8px;
-                    font-weight: 500;
+                    margin-bottom: 10px;
+                    font-weight: 600;
                     color: <?php echo esc_attr($text_color); ?>;
+                    font-size: 14px;
+                    letter-spacing: 0.3px;
                 }
                 
                 .lift-form-group input[type="text"],
                 .lift-form-group input[type="password"] {
                     width: 100%;
-                    padding: 12px 16px;
+                    padding: 16px 20px;
                     border: 2px solid <?php echo esc_attr($input_color); ?>;
-                    border-radius: 8px;
+                    border-radius: 12px;
                     font-size: 16px;
                     background: #fff;
                     color: <?php echo esc_attr($text_color); ?>;
                     box-sizing: border-box;
-                    transition: none; /* Remove transition animation */
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    font-weight: 500;
                 }
                 
                 .lift-form-group input[type="text"]:focus,
                 .lift-form-group input[type="password"]:focus {
                     outline: none;
                     border-color: <?php echo esc_attr($btn_color); ?>;
+                    box-shadow: 0 0 0 3px <?php echo esc_attr($btn_color); ?>20;
+                    transform: translateY(-1px);
+                }
+                
+                .lift-form-group input[type="text"]::placeholder,
+                .lift-form-group input[type="password"]::placeholder {
+                    color: #aaa;
+                    font-weight: 400;
                 }
                 
                 .password-field-wrapper {
@@ -189,27 +288,37 @@ class LIFT_Docs_Frontend_Login {
                 
                 .toggle-password {
                     position: absolute;
-                    right: 12px;
+                    right: 16px;
                     top: 50%;
                     transform: translateY(-50%);
                     background: none;
                     border: none;
                     cursor: pointer;
                     color: #666;
-                    padding: 4px;
+                    padding: 8px;
+                    border-radius: 6px;
+                    transition: all 0.2s ease;
+                }
+                
+                .toggle-password:hover {
+                    background: rgba(0, 0, 0, 0.05);
+                    color: <?php echo esc_attr($btn_color); ?>;
                 }
                 
                 .form-hint {
-                    font-size: 12px;
-                    color: #666;
-                    margin-top: 4px;
+                    font-size: 13px;
+                    color: #888;
+                    margin-top: 6px;
                     display: block;
+                    font-weight: 400;
+                    line-height: 1.4;
                 }
                 
+                /* Enhanced checkbox styling */
                 .checkbox-group {
                     display: flex;
                     align-items: center;
-                    margin-bottom: 25px;
+                    margin-bottom: 30px;
                 }
                 
                 .checkbox-label {
@@ -221,42 +330,53 @@ class LIFT_Docs_Frontend_Login {
                     color: <?php echo esc_attr($text_color); ?>;
                     user-select: none;
                     font-weight: 500;
+                    transition: all 0.2s ease;
                 }
                 
-                /* Enhanced checkbox styling */
+                .checkbox-label:hover {
+                    color: <?php echo esc_attr($btn_color); ?>;
+                }
+                
                 .checkbox-label input[type="checkbox"] {
                     appearance: none;
-                    width: 20px;
-                    height: 20px;
+                    width: 22px;
+                    height: 22px;
                     border: 2px solid <?php echo esc_attr($input_color); ?>;
-                    border-radius: 6px;
+                    border-radius: 8px;
                     background: #fff;
-                    margin-right: 12px;
+                    margin-right: 14px;
                     position: relative;
                     cursor: pointer;
                     flex-shrink: 0;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 }
                 
                 .checkbox-label input[type="checkbox"]:focus {
-                    outline: 2px solid <?php echo esc_attr($btn_color); ?>40;
-                    outline-offset: 2px;
+                    outline: none;
+                    box-shadow: 0 0 0 3px <?php echo esc_attr($btn_color); ?>20;
                 }
                 
                 .checkbox-label input[type="checkbox"]:checked {
                     background: <?php echo esc_attr($btn_color); ?>;
                     border-color: <?php echo esc_attr($btn_color); ?>;
+                    transform: scale(1.05);
                 }
                 
                 .checkbox-label input[type="checkbox"]:checked::after {
                     content: '✓';
                     color: white;
-                    font-size: 14px;
+                    font-size: 16px;
                     font-weight: bold;
                     position: absolute;
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
-                    line-height: 1;
+                    animation: checkmark 0.3s ease;
+                }
+                
+                @keyframes checkmark {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
                 }
                 
                 .checkbox-label:hover input[type="checkbox"]:not(:checked) {
@@ -264,91 +384,182 @@ class LIFT_Docs_Frontend_Login {
                     background: #f8f9fa;
                 }
                 
+                /* Enhanced button styling */
                 .lift-login-btn {
                     width: 100%;
-                    padding: 14px;
-                    background: <?php echo esc_attr($btn_color); ?>;
+                    padding: 18px 24px;
+                    background: linear-gradient(135deg, <?php echo esc_attr($btn_color); ?> 0%, <?php echo esc_attr(adjustBrightness($btn_color, -10)); ?> 100%);
                     color: white;
                     border: none;
-                    border-radius: 8px;
+                    border-radius: 12px;
                     font-size: 16px;
-                    font-weight: 600;
+                    font-weight: 700;
                     cursor: pointer;
                     position: relative;
+                    letter-spacing: 0.5px;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 4px 12px <?php echo esc_attr($btn_color); ?>40;
                 }
                 
                 .lift-login-btn:hover {
-                    opacity: 0.9;
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px <?php echo esc_attr($btn_color); ?>60;
+                }
+                
+                .lift-login-btn:active {
+                    transform: translateY(0);
+                    box-shadow: 0 2px 8px <?php echo esc_attr($btn_color); ?>40;
                 }
                 
                 .lift-login-btn:disabled {
-                    opacity: 0.6;
+                    opacity: 0.7;
                     cursor: not-allowed;
+                    transform: none;
+                    box-shadow: 0 2px 8px <?php echo esc_attr($btn_color); ?>30;
                 }
                 
                 .btn-spinner {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 8px;
+                    gap: 10px;
                 }
                 
                 .spinner {
-                    width: 16px;
-                    height: 16px;
+                    width: 18px;
+                    height: 18px;
                     border: 2px solid rgba(255, 255, 255, 0.3);
                     border-top: 2px solid white;
                     border-radius: 50%;
-                    /* No animation */
+                    animation: spin 1s linear infinite;
                 }
                 
-                /* Remove all keyframe animations */
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
                 
+                /* Enhanced form messages */
                 .lift-form-messages {
-                    margin-top: 20px;
+                    margin-top: 25px;
                 }
                 
                 .login-error {
-                    background: #ffebee;
+                    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
                     color: #c62828;
-                    padding: 12px;
-                    border-radius: 6px;
+                    padding: 16px 20px;
+                    border-radius: 12px;
                     border-left: 4px solid #c62828;
-                    margin-bottom: 10px;
+                    margin-bottom: 15px;
+                    font-weight: 500;
+                    box-shadow: 0 2px 8px rgba(198, 40, 40, 0.1);
                 }
                 
                 .login-success {
-                    background: #e8f5e8;
+                    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
                     color: #2e7d32;
-                    padding: 12px;
-                    border-radius: 6px;
+                    padding: 16px 20px;
+                    border-radius: 12px;
                     border-left: 4px solid #2e7d32;
-                    margin-bottom: 10px;
+                    margin-bottom: 15px;
+                    font-weight: 500;
+                    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.1);
                 }
                 
                 .login-help {
                     text-align: center;
-                    margin-top: 30px;
+                    margin-top: 35px;
                     font-size: 14px;
-                    color: #666;
+                    color: #888;
                 }
                 
                 .login-help a {
                     color: <?php echo esc_attr($btn_color); ?>;
                     text-decoration: none;
+                    font-weight: 600;
+                    transition: color 0.2s ease;
                 }
                 
                 .login-help a:hover {
+                    color: <?php echo esc_attr(adjustBrightness($btn_color, -15)); ?>;
                     text-decoration: underline;
                 }
                 
-                @media (max-width: 480px) {
+                /* Responsive Design */
+                @media (max-width: 768px) {
+                    body {
+                        padding: 10px;
+                        align-items: flex-start;
+                        padding-top: 40px;
+                    }
+                    
                     .lift-simple-login-container {
-                        margin: 10px;
+                        max-width: 100%;
+                        margin: 0;
+                        width: 100%;
                     }
                     
                     .lift-login-form-wrapper {
+                        padding: 35px 25px;
+                        border-radius: 16px;
+                    }
+                    
+                    .lift-login-title {
+                        font-size: 28px;
+                    }
+                    
+                    .lift-form-group input[type="text"],
+                    .lift-form-group input[type="password"] {
+                        padding: 14px 16px;
+                        font-size: 16px; /* Prevent zoom on iOS */
+                    }
+                    
+                    .lift-login-btn {
+                        padding: 16px 20px;
+                        font-size: 16px;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .lift-login-form-wrapper {
                         padding: 30px 20px;
+                        margin: 0 10px;
+                    }
+                    
+                    .lift-login-title {
+                        font-size: 24px;
+                    }
+                    
+                    .lift-login-description {
+                        font-size: 14px;
+                    }
+                    
+                    .lift-form-group label {
+                        font-size: 13px;
+                    }
+                }
+                
+                /* Dark mode support */
+                @media (prefers-color-scheme: dark) {
+                    body {
+                        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                    }
+                    
+                    .lift-login-form-wrapper {
+                        background: rgba(30, 30, 30, 0.95);
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                    }
+                    
+                    .lift-form-group input[type="text"],
+                    .lift-form-group input[type="password"] {
+                        background: rgba(255, 255, 255, 0.05);
+                        border-color: rgba(255, 255, 255, 0.2);
+                        color: #fff;
+                    }
+                    
+                    .lift-form-group input[type="text"]::placeholder,
+                    .lift-form-group input[type="password"]::placeholder {
+                        color: rgba(255, 255, 255, 0.5);
                     }
                 }
             </style>
