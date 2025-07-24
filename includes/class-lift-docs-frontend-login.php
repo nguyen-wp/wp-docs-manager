@@ -838,6 +838,30 @@ class LIFT_Docs_Frontend_Login {
     }
     
     /**
+     * Check if user can view document
+     */
+    private function user_can_view_document($document_id) {
+        // Get current user
+        $current_user_id = get_current_user_id();
+        
+        // Admin and editors can always view
+        if (user_can($current_user_id, 'manage_options') || user_can($current_user_id, 'edit_lift_documents')) {
+            return true;
+        }
+        
+        // Check if document is assigned to current user
+        $assigned_users = get_post_meta($document_id, '_lift_doc_assigned_users', true);
+        
+        if (empty($assigned_users) || !is_array($assigned_users)) {
+            // Unassigned documents - only admin/editor can view
+            return false;
+        }
+        
+        // Check if current user is in assigned list
+        return in_array($current_user_id, $assigned_users);
+    }
+    
+    /**
      * Render document card
      */
     private function render_document_card($document, $user_id) {
@@ -897,26 +921,23 @@ class LIFT_Docs_Frontend_Login {
             </div>
             
             <div class="document-card-actions">
-                <?php if ($file_count === 1): ?>
-                    <button type="button" class="btn btn-primary view-document-btn" 
-                            data-document-id="<?php echo $document->ID; ?>"
-                            data-file-url="<?php echo esc_url($file_urls[0]); ?>">
+                <?php 
+                // Only show View URL link
+                if ($this->user_can_view_document($document->ID)) {
+                    $view_text = __('View Document', 'lift-docs-system');
+                    if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+                        $view_url = LIFT_Docs_Settings::generate_secure_link($document->ID);
+                    } else {
+                        $view_url = get_permalink($document->ID);
+                    }
+                    ?>
+                    <a href="<?php echo esc_url($view_url); ?>" class="btn btn-primary" target="_blank">
                         <span class="dashicons dashicons-visibility"></span>
-                        <?php _e('View', 'lift-docs-system'); ?>
-                    </button>
-                    <button type="button" class="btn btn-secondary download-document-btn" 
-                            data-document-id="<?php echo $document->ID; ?>"
-                            data-file-url="<?php echo esc_url($file_urls[0]); ?>">
-                        <span class="dashicons dashicons-download"></span>
-                        <?php _e('Download', 'lift-docs-system'); ?>
-                    </button>
-                <?php else: ?>
-                    <button type="button" class="btn btn-primary view-details-btn" 
-                            data-document-id="<?php echo $document->ID; ?>">
-                        <span class="dashicons dashicons-portfolio"></span>
-                        <?php _e('View All Files', 'lift-docs-system'); ?>
-                    </button>
-                <?php endif; ?>
+                        <?php echo $view_text; ?>
+                    </a>
+                    <?php
+                }
+                ?>
             </div>
         </div>
         <?php
