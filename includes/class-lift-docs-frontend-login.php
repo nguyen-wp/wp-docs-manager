@@ -1216,10 +1216,7 @@ class LIFT_Docs_Frontend_Login {
     public function login_form_shortcode($atts) {
         // Parse attributes
         $atts = shortcode_atts(array(
-            'redirect_to' => '', // Custom redirect URL after login
-            'show_features' => 'false', // Show features list (simplified version doesn't show by default)
-            'title' => __('Documents Login', 'lift-docs-system'),
-            'description' => __('Access your personal document library', 'lift-docs-system')
+            'redirect_to' => '' // Custom redirect URL after login
         ), $atts);
         
         // Check if user is already logged in
@@ -1241,9 +1238,9 @@ class LIFT_Docs_Frontend_Login {
         $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
         $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
         
-        // Use Interface tab title/description if set, otherwise use shortcode attributes
-        $display_title = !empty($interface_title) ? $interface_title : $atts['title'];
-        $display_description = !empty($interface_description) ? $interface_description : $atts['description'];
+        // Use Interface tab title/description if set, otherwise use defaults
+        $display_title = !empty($interface_title) ? $interface_title : __('Documents Login', 'lift-docs-system');
+        $display_description = !empty($interface_description) ? $interface_description : __('Access your personal document library', 'lift-docs-system');
         
         // Get color settings (keep existing)
         $bg_color = get_option('lift_docs_login_bg_color', '#f0f4f8');
@@ -1509,18 +1506,6 @@ class LIFT_Docs_Frontend_Login {
                     </a>
                 </div>
             </div>
-            
-            <?php if ($atts['show_features'] === 'true'): ?>
-            <div class="lift-docs-features" style="margin-top: 20px; text-align: center;">
-                <h4 style="color: <?php echo esc_attr($text_color); ?>;"><?php _e('What you can access:', 'lift-docs-system'); ?></h4>
-                <ul style="list-style: none; padding: 0; color: <?php echo esc_attr($text_color); ?>; opacity: 0.8;">
-                    <li><span class="dashicons dashicons-yes"></span> <?php _e('Personal document library', 'lift-docs-system'); ?></li>
-                    <li><span class="dashicons dashicons-yes"></span> <?php _e('Secure document downloads', 'lift-docs-system'); ?></li>
-                    <li><span class="dashicons dashicons-yes"></span> <?php _e('Online document viewer', 'lift-docs-system'); ?></li>
-                    <li><span class="dashicons dashicons-yes"></span> <?php _e('Document access history', 'lift-docs-system'); ?></li>
-                </ul>
-            </div>
-            <?php endif; ?>
         </div>
         <?php
         return ob_get_clean();

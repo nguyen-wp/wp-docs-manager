@@ -37,15 +37,11 @@ Trang Documents Login đã được thiết kế lại với giao diện đơn g
 // Form đăng nhập cơ bản
 [docs_login_form]
 
-// Với tiêu đề tùy chỉnh
-[docs_login_form title="Đăng nhập thành viên" description="Truy cập thư viện tài liệu của bạn"]
-
-// Hiển thị danh sách tính năng
-[docs_login_form show_features="true"]
-
 // Với URL chuyển hướng tùy chỉnh
 [docs_login_form redirect_to="/dashboard-custom"]
 ```
+
+**Lưu ý:** Tiêu đề và mô tả của form đăng nhập hiện được quản lý thông qua **LIFT Docs Settings → Interface Tab** thay vì sử dụng shortcode attributes.
 
 ## 🌟 URL và Shortcode
 
