@@ -1127,9 +1127,6 @@ class LIFT_Docs_Admin {
         ?>
         <div class="document-assignments">
             <p><strong><?php _e('Assign Document Access', 'lift-docs-system'); ?></strong></p>
-            <p class="description">
-                <?php _e('Search and select users who can access this document. Leave empty to restrict access to Admin and Editor only.', 'lift-docs-system'); ?>
-            </p>
             
             <?php if (empty($document_users)): ?>
                 <p class="notice notice-warning inline">
@@ -1405,10 +1402,6 @@ class LIFT_Docs_Admin {
         ?>
         <div class="document-forms">
             <p><strong><?php _e('Assign Forms to Document', 'lift-docs-system'); ?></strong></p>
-            <p class="description">
-                <?php _e('Search and select forms that users can access when viewing this document. Selected forms will appear on the document dashboard.', 'lift-docs-system'); ?>
-            </p>
-            
             <?php if (empty($available_forms)): ?>
                 <p class="notice notice-warning inline">
                     <?php printf(
