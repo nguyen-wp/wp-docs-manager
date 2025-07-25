@@ -91,15 +91,6 @@ class LIFT_Docs_Admin {
         
         add_submenu_page(
             'edit.php?post_type=lift_document',
-            __('Analytics', 'lift-docs-system'),
-            __('Analytics', 'lift-docs-system'),
-            'manage_options',
-            'lift-docs-analytics',
-            array($this, 'analytics_page')
-        );
-        
-        add_submenu_page(
-            'edit.php?post_type=lift_document',
             __('Document Users', 'lift-docs-system'),
             __('Document Users', 'lift-docs-system'),
             'manage_options',
@@ -141,29 +132,6 @@ class LIFT_Docs_Admin {
      */
     public function init_admin() {
         // Additional admin initialization if needed
-    }
-    
-    /**
-     * Analytics page
-     */
-    public function analytics_page() {
-        ?>
-        <div class="wrap">
-            <h1><?php _e('Document Analytics', 'lift-docs-system'); ?></h1>
-            
-            <div class="lift-docs-analytics">
-                <div class="analytics-summary">
-                    <h2><?php _e('Summary', 'lift-docs-system'); ?></h2>
-                    <?php $this->display_analytics_summary(); ?>
-                </div>
-                
-                <div class="analytics-charts">
-                    <h2><?php _e('Popular Documents', 'lift-docs-system'); ?></h2>
-                    <?php $this->display_popular_documents(); ?>
-                </div>
-            </div>
-        </div>
-        <?php
     }
     
     /**
@@ -1892,74 +1860,6 @@ class LIFT_Docs_Admin {
             echo '</ul>';
         } else {
             echo '<p>' . __('No documents found.', 'lift-docs-system') . '</p>';
-        }
-    }
-    
-    /**
-     * Display analytics summary
-     */
-    private function display_analytics_summary() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
-        $today_views = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(*) FROM $table_name WHERE action = 'view' AND DATE(timestamp) = %s",
-                current_time('Y-m-d')
-            )
-        );
-        
-        $week_views = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(*) FROM $table_name WHERE action = 'view' AND timestamp >= %s",
-                date('Y-m-d H:i:s', strtotime('-7 days'))
-            )
-        );
-        
-        ?>
-        <div class="analytics-stats">
-            <div class="stat-item">
-                <h3><?php _e('Today\'s Views', 'lift-docs-system'); ?></h3>
-                <p class="stat-number"><?php echo $today_views; ?></p>
-            </div>
-            <div class="stat-item">
-                <h3><?php _e('This Week\'s Views', 'lift-docs-system'); ?></h3>
-                <p class="stat-number"><?php echo $week_views; ?></p>
-            </div>
-        </div>
-        <?php
-    }
-    
-    /**
-     * Display popular documents
-     */
-    private function display_popular_documents() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
-        $popular_docs = $wpdb->get_results(
-            "SELECT document_id, COUNT(*) as view_count 
-             FROM $table_name 
-             WHERE action = 'view' 
-             GROUP BY document_id 
-             ORDER BY view_count DESC 
-             LIMIT 10"
-        );
-        
-        if ($popular_docs) {
-            echo '<ol>';
-            foreach ($popular_docs as $doc) {
-                $post = get_post($doc->document_id);
-                if ($post) {
-                    echo '<li>';
-                    echo '<a href="' . get_edit_post_link($doc->document_id) . '">' . esc_html($post->post_title) . '</a>';
-                    echo ' (' . $doc->view_count . ' ' . __('views', 'lift-docs-system') . ')';
-                    echo '</li>';
-                }
-            }
-            echo '</ol>';
-        } else {
-            echo '<p>' . __('No analytics data available.', 'lift-docs-system') . '</p>';
         }
     }
     
