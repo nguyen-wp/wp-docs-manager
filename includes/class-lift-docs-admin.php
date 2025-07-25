@@ -411,7 +411,7 @@ class LIFT_Docs_Admin {
         $file_size = get_post_meta($post_id, '_lift_doc_file_size', true);
         
         ?>
-        <button type="button" class="button button-small lift-details-btn" 
+        <button type="button" class="button button-primary lift-details-btn" 
                 data-post-id="<?php echo esc_attr($post_id); ?>"
                 data-view-url="<?php echo esc_attr($view_url); ?>"
                 data-view-label="<?php echo esc_attr($view_label); ?>"
