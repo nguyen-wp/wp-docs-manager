@@ -1,5 +1,4 @@
 /* LIFT Forms Admin Styles */
-
 /* Main Layout */
 .lift-form-builder {
     display: flex;
@@ -7,7 +6,6 @@
     height: calc(100vh - 160px);
     margin: 20px 0;
 }
-
 .form-builder-header {
     display: flex;
     justify-content: space-between;
@@ -16,23 +14,19 @@
     border-bottom: 1px solid #ddd;
     margin-bottom: 20px;
 }
-
 .form-basic-settings {
     display: flex;
     gap: 20px;
     flex: 1;
 }
-
 .setting-group {
     flex: 1;
 }
-
 .setting-group label {
     display: block;
     font-weight: 600;
     margin-bottom: 5px;
 }
-
 .setting-group input,
 .setting-group textarea {
     width: 100%;
@@ -40,17 +34,14 @@
     border: 1px solid #ddd;
     border-radius: 4px;
 }
-
 .setting-group textarea {
     height: 60px;
     resize: vertical;
 }
-
 .form-actions {
     display: flex;
     gap: 10px;
 }
-
 /* Builder Content Layout */
 .form-builder-content {
     display: flex;
@@ -58,7 +49,6 @@
     gap: 20px;
     min-height: 600px;
 }
-
 /* Field Palette */
 .field-palette {
     width: 280px;
@@ -69,32 +59,27 @@
     overflow-y: auto;
     max-height: 100%;
 }
-
 .field-palette h3 {
     margin: 0 0 20px 0;
     font-size: 16px;
     color: #333;
 }
-
 .field-category {
     margin-bottom: 25px;
 }
-
 .field-category h4 {
     margin: 0 0 15px 0;
     font-size: 14px;
     color: #666;
-    text-transform: uppercase;
+    text-
     font-weight: 600;
     letter-spacing: 0.5px;
 }
-
 .field-items {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
-
 .field-item {
     display: flex;
     align-items: center;
@@ -104,31 +89,23 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     cursor: grab;
-    transition: all 0.2s ease;
     user-select: none;
 }
-
 .field-item:hover {
     border-color: #0073aa;
-    box-shadow: 0 2px 8px rgba(0, 115, 170, 0.15);
-    transform: translateY(-1px);
 }
-
 .field-item:active {
     cursor: grabbing;
 }
-
 .field-item .dashicons {
     color: #666;
     font-size: 16px;
 }
-
 .field-item span:last-child {
     font-size: 13px;
     font-weight: 500;
     color: #333;
 }
-
 /* Form Canvas */
 .form-canvas {
     flex: 1;
@@ -138,7 +115,6 @@
     position: relative;
     overflow: hidden;
 }
-
 .canvas-header {
     display: flex;
     justify-content: space-between;
@@ -147,24 +123,20 @@
     background: #f8f9fa;
     border-bottom: 1px solid #ddd;
 }
-
 .canvas-header h3 {
     margin: 0;
     font-size: 14px;
     color: #333;
 }
-
 .canvas-tools {
     display: flex;
     gap: 10px;
 }
-
 .canvas-content {
     padding: 20px;
     min-height: 500px;
     position: relative;
 }
-
 .canvas-placeholder {
     display: flex;
     flex-direction: column;
@@ -174,28 +146,23 @@
     color: #999;
     text-align: center;
 }
-
 .canvas-placeholder .dashicons {
     font-size: 48px;
     margin-bottom: 15px;
     opacity: 0.5;
 }
-
 .canvas-placeholder p {
     font-size: 16px;
     margin: 0;
 }
-
 /* Canvas when active */
 .form-canvas.has-fields {
     border-style: solid;
     border-color: #0073aa;
 }
-
 .form-canvas.has-fields .canvas-placeholder {
     display: none;
 }
-
 /* Form Fields in Canvas */
 .canvas-field {
     position: relative;
@@ -204,20 +171,15 @@
     border: 2px solid transparent;
     border-radius: 6px;
     background: #fafafa;
-    transition: all 0.2s ease;
 }
-
 .canvas-field:hover {
     border-color: #0073aa;
     background: #f0f8ff;
 }
-
 .canvas-field.selected {
     border-color: #0073aa;
     background: #e8f4fd;
-    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
 }
-
 /* Field Header */
 .field-header {
     display: flex;
@@ -227,7 +189,6 @@
     padding-bottom: 8px;
     border-bottom: 1px solid #e0e0e0;
 }
-
 .drag-handle {
     display: flex;
     align-items: center;
@@ -237,26 +198,21 @@
     cursor: move;
     color: #666;
     border-radius: 4px;
-    transition: all 0.2s ease;
 }
-
 .drag-handle:hover {
     background: #f0f0f0;
     color: #0073aa;
 }
-
 .canvas-field.being-sorted .drag-handle {
     color: #0073aa;
     background: #f0f8ff;
 }
-
 .field-info {
     flex: 1;
     display: flex;
     align-items: center;
     gap: 8px;
 }
-
 .field-type-badge {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -264,28 +220,23 @@
     border-radius: 12px;
     font-size: 11px;
     font-weight: 600;
-    text-transform: uppercase;
+    text-
     letter-spacing: 0.5px;
 }
-
 .field-name {
     font-weight: 500;
     color: #333;
     font-size: 14px;
 }
-
 .field-controls {
     display: flex;
     gap: 5px;
     opacity: 0;
-    transition: opacity 0.2s ease;
 }
-
 .canvas-field:hover .field-controls,
 .canvas-field.selected .field-controls {
     opacity: 1;
 }
-
 .field-control-btn {
     width: 24px;
     height: 24px;
@@ -298,22 +249,16 @@
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    transition: all 0.2s ease;
 }
-
 .field-control-btn:hover {
     background: #005177;
-    transform: scale(1.1);
 }
-
 .field-control-btn.delete {
     background: #dc3232;
 }
-
 .field-control-btn.delete:hover {
     background: #a00;
 }
-
 /* Field Preview Styles */
 .field-preview label {
     display: block;
@@ -321,7 +266,6 @@
     margin-bottom: 8px;
     color: #333;
 }
-
 .field-preview input,
 .field-preview textarea,
 .field-preview select {
@@ -331,12 +275,10 @@
     border-radius: 4px;
     font-size: 14px;
 }
-
 .field-preview textarea {
     height: 80px;
     resize: vertical;
 }
-
 .field-preview .radio-label,
 .field-preview .checkbox-label {
     display: flex;
@@ -345,17 +287,14 @@
     margin-bottom: 8px;
     font-weight: normal;
 }
-
 .field-preview .radio-label input,
 .field-preview .checkbox-label input {
     width: auto;
     margin: 0;
 }
-
 .field-preview .required {
     color: #dc3232;
 }
-
 .field-preview .field-description {
     display: block;
     margin-top: 5px;
@@ -363,7 +302,6 @@
     color: #666;
     font-style: italic;
 }
-
 /* Field Settings Panel */
 .field-settings-panel {
     width: 320px;
@@ -374,11 +312,9 @@
     flex-direction: column;
     max-height: 100%;
 }
-
 .field-settings-panel.active {
     display: flex;
 }
-
 .panel-header {
     display: flex;
     justify-content: space-between;
@@ -388,13 +324,11 @@
     border-bottom: 1px solid #ddd;
     border-radius: 8px 8px 0 0;
 }
-
 .panel-header h3 {
     margin: 0;
     font-size: 14px;
     color: #333;
 }
-
 .panel-close {
     background: none;
     border: none;
@@ -409,37 +343,31 @@
     justify-content: center;
     border-radius: 4px;
 }
-
 .panel-close:hover {
     background: #ddd;
     color: #333;
 }
-
 .panel-content {
     padding: 20px;
     overflow-y: auto;
     flex: 1;
 }
-
 /* Settings Form */
 .settings-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
-
 .settings-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
-
 .settings-group label {
     font-weight: 600;
     color: #333;
     font-size: 13px;
 }
-
 .settings-group input,
 .settings-group textarea,
 .settings-group select {
@@ -448,28 +376,23 @@
     border-radius: 4px;
     font-size: 13px;
 }
-
 .settings-group textarea {
     height: 60px;
     resize: vertical;
 }
-
 .checkbox-setting {
     flex-direction: row;
     align-items: center;
     gap: 8px;
 }
-
 .checkbox-setting input {
     width: auto;
     margin: 0;
 }
-
 .checkbox-setting label {
     margin: 0;
     font-weight: normal;
 }
-
 /* Options List */
 .options-list {
     border: 1px solid #ddd;
@@ -477,18 +400,15 @@
     padding: 10px;
     background: #fafafa;
 }
-
 .option-item {
     display: flex;
     gap: 8px;
     margin-bottom: 8px;
     align-items: center;
 }
-
 .option-item:last-child {
     margin-bottom: 0;
 }
-
 .option-item input {
     flex: 1;
     padding: 6px 8px;
@@ -496,7 +416,6 @@
     border-radius: 3px;
     font-size: 12px;
 }
-
 .option-remove {
     background: #dc3232;
     color: white;
@@ -506,11 +425,9 @@
     cursor: pointer;
     font-size: 11px;
 }
-
 .option-remove:hover {
     background: #a00;
 }
-
 .add-option {
     background: #0073aa;
     color: white;
@@ -521,17 +438,14 @@
     font-size: 12px;
     margin-top: 8px;
 }
-
 .add-option:hover {
     background: #005177;
 }
-
 /* Column Layout */
 .canvas-field.field-columns {
     display: flex;
     gap: 15px;
 }
-
 .column {
     flex: 1;
     min-height: 100px;
@@ -540,29 +454,24 @@
     padding: 10px;
     position: relative;
 }
-
 .column.drag-over {
     border-color: #0073aa;
     background: #f0f8ff;
 }
-
 .column-placeholder {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     color: #999;
     font-size: 12px;
     pointer-events: none;
 }
-
 /* Section */
 .canvas-field.field-section {
     border: 2px solid #0073aa;
     background: #f8f9fa;
     padding: 20px;
 }
-
 .section-title {
     font-size: 16px;
     font-weight: 600;
@@ -571,18 +480,15 @@
     padding-bottom: 10px;
     border-bottom: 1px solid #ddd;
 }
-
 /* Forms Overview */
 .lift-forms-overview {
     margin: 20px 0;
 }
-
 .lift-forms-stats {
     display: flex;
     gap: 20px;
     margin-bottom: 30px;
 }
-
 .stat-box {
     background: #fff;
     border: 1px solid #ddd;
@@ -591,20 +497,17 @@
     text-align: center;
     flex: 1;
 }
-
 .stat-box h3 {
     margin: 0 0 10px 0;
     font-size: 32px;
     color: #0073aa;
     font-weight: 700;
 }
-
 .stat-box p {
     margin: 0;
     color: #666;
     font-size: 14px;
 }
-
 .lift-forms-empty {
     text-align: center;
     padding: 60px 20px;
@@ -612,53 +515,44 @@
     border: 1px solid #ddd;
     border-radius: 8px;
 }
-
 .empty-icon .dashicons {
     font-size: 64px;
     color: #ddd;
     margin-bottom: 20px;
 }
-
 .lift-forms-empty h2 {
     margin: 0 0 15px 0;
     color: #333;
 }
-
 .lift-forms-empty p {
     margin: 0 0 25px 0;
     color: #666;
     font-size: 16px;
 }
-
 /* Status Badges */
 .status {
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
+    text-
 }
-
 .status-active {
     background: #d4edda;
     color: #155724;
 }
-
 .status-inactive {
     background: #f8d7da;
     color: #721c24;
 }
-
 .status-unread {
     background: #fff3cd;
     color: #856404;
 }
-
 .status-read {
     background: #d1ecf1;
     color: #0c5460;
 }
-
 /* Submissions */
 .submissions-filters {
     margin: 20px 0;
@@ -667,13 +561,11 @@
     border: 1px solid #ddd;
     border-radius: 6px;
 }
-
 .submissions-filters select {
     padding: 6px 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
-
 .lift-empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -682,24 +574,20 @@
     border-radius: 8px;
     margin: 20px 0;
 }
-
 .lift-empty-state .dashicons {
     font-size: 64px;
     color: #ddd;
     margin-bottom: 20px;
 }
-
 .lift-empty-state h2 {
     margin: 0 0 15px 0;
     color: #333;
 }
-
 .lift-empty-state p {
     margin: 0;
     color: #666;
     font-size: 16px;
 }
-
 /* Modal Styles */
 .lift-modal {
     position: fixed;
@@ -712,7 +600,6 @@
     align-items: center;
     justify-content: center;
 }
-
 .lift-modal-backdrop {
     position: fixed;
     top: 0;
@@ -722,7 +609,6 @@
     background: rgba(0, 0, 0, 0.7);
     z-index: 99999;
 }
-
 .lift-modal-content {
     background: #fff;
     border-radius: 8px;
@@ -734,7 +620,6 @@
     display: flex;
     flex-direction: column;
 }
-
 .lift-modal-header {
     display: flex;
     justify-content: space-between;
@@ -743,13 +628,11 @@
     border-bottom: 1px solid #ddd;
     background: #f8f9fa;
 }
-
 .lift-modal-header h2 {
     margin: 0;
     font-size: 18px;
     color: #333;
 }
-
 .lift-modal-close {
     background: none;
     border: none;
@@ -763,28 +646,23 @@
     justify-content: center;
     border-radius: 4px;
 }
-
 .lift-modal-close:hover {
     background: #ddd;
     color: #333;
 }
-
 .lift-modal-body {
     padding: 20px;
     overflow-y: auto;
     flex: 1;
 }
-
 /* Drag and Drop States */
 .ui-sortable-helper {
     background: #fff;
     border: 1px solid #0073aa;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: rotate(3deg);
+    border: 2px solid #0073aa;
     opacity: 0.9;
 }
-
 .ui-sortable-placeholder {
     background: linear-gradient(135deg, #f0f8ff 0%, #e8f4fd 100%);
     border: 2px dashed #0073aa;
@@ -792,14 +670,11 @@
     margin-bottom: 15px;
     height: 60px;
     position: relative;
-    animation: pulse 1s ease-in-out infinite;
 }
-
 .ui-sortable-placeholder .placeholder-content {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     color: #0073aa;
     font-size: 14px;
     font-weight: 600;
@@ -807,45 +682,19 @@
     align-items: center;
     gap: 8px;
 }
-
 .ui-sortable-placeholder .dashicons {
     font-size: 16px;
-    animation: bounce 0.6s ease-in-out infinite alternate;
 }
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 0.7;
-    }
-    50% {
-        opacity: 1;
-    }
-}
-
-@keyframes bounce {
-    from {
-        transform: translateY(0);
-    }
-    to {
-        transform: translateY(-3px);
-    }
-}
-
 .canvas-content.drag-over {
     background: #f0f8ff;
     border-color: #0073aa;
 }
-
 .canvas-content.sorting-active {
     background: #fafafa;
 }
-
 .canvas-field.being-sorted {
     opacity: 0.8;
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-
 /* Sort Notification */
 .sort-notification {
     position: fixed;
@@ -857,18 +706,13 @@
     border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ddd;
     opacity: 0;
-    transform: translateX(100%);
-    transition: all 0.3s ease;
     z-index: 9999;
 }
-
 .sort-notification.show {
     opacity: 1;
-    transform: translateX(0);
 }
-
 /* Form Preview Modal */
 .lift-modal {
     position: fixed;
@@ -882,7 +726,6 @@
     justify-content: center;
     padding: 20px;
 }
-
 .lift-modal-backdrop {
     position: fixed;
     top: 0;
@@ -892,11 +735,9 @@
     background: rgba(0, 0, 0, 0.6);
     z-index: 99999;
 }
-
 .lift-modal-content {
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     max-width: 800px;
     max-height: 90vh;
     width: 100%;
@@ -905,7 +746,6 @@
     position: relative;
     z-index: 100001;
 }
-
 .lift-modal-header {
     display: flex;
     justify-content: space-between;
@@ -915,13 +755,11 @@
     background: #f9f9f9;
     border-radius: 8px 8px 0 0;
 }
-
 .lift-modal-header h2 {
     margin: 0;
     font-size: 18px;
     color: #333;
 }
-
 .lift-modal-close {
     background: none;
     border: none;
@@ -936,46 +774,38 @@
     justify-content: center;
     border-radius: 4px;
 }
-
 .lift-modal-close:hover {
     background: #ddd;
     color: #333;
 }
-
 .lift-modal-body {
     padding: 25px;
     overflow-y: auto;
     flex: 1;
 }
-
 /* Preview Form Styles */
 .lift-form-container {
     max-width: 600px;
     margin: 0 auto;
 }
-
 .lift-form-header h2 {
     color: #333;
     margin-bottom: 10px;
 }
-
 .lift-form-header p {
     color: #666;
     margin-bottom: 25px;
     line-height: 1.5;
 }
-
 .lift-form .lift-form-field {
     margin-bottom: 20px;
 }
-
 .lift-form label {
     display: block;
     font-weight: 600;
     margin-bottom: 5px;
     color: #333;
 }
-
 .lift-form input,
 .lift-form textarea,
 .lift-form select {
@@ -984,17 +814,13 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
-    transition: border-color 0.2s ease;
 }
-
 .lift-form input:focus,
 .lift-form textarea:focus,
 .lift-form select:focus {
     outline: none;
     border-color: #0073aa;
-    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
 }
-
 .lift-form .radio-label,
 .lift-form .checkbox-label {
     display: flex;
@@ -1003,30 +829,25 @@
     margin-bottom: 8px;
     font-weight: normal;
 }
-
 .lift-form .radio-label input,
 .lift-form .checkbox-label input {
     width: auto;
     margin: 0;
 }
-
 .lift-form fieldset {
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 15px;
     margin: 0;
 }
-
 .lift-form legend {
     font-weight: 600;
     padding: 0 10px;
     color: #333;
 }
-
 .lift-form .required {
     color: #dc3232;
 }
-
 .lift-form .field-description {
     display: block;
     margin-top: 5px;
@@ -1034,12 +855,10 @@
     font-size: 12px;
     font-style: italic;
 }
-
 .lift-form-submit {
     margin-top: 30px;
     text-align: center;
 }
-
 .lift-form-submit-btn {
     background: #0073aa;
     color: #fff;
@@ -1049,30 +868,24 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s ease;
 }
-
 .lift-form-submit-btn:hover {
     background: #005177;
 }
-
 /* Checkbox Settings */
 .checkbox-setting {
     flex-direction: row !important;
     align-items: center;
     gap: 10px;
 }
-
 .checkbox-setting input {
     width: auto !important;
     margin: 0;
 }
-
 .checkbox-setting label {
     margin: 0;
     font-weight: normal;
 }
-
 /* Option Management */
 .options-list {
     display: flex;
@@ -1086,7 +899,6 @@
     padding: 10px;
     background: #f9f9f9;
 }
-
 .option-item {
     display: flex;
     gap: 8px;
@@ -1096,7 +908,6 @@
     border: 1px solid #ddd;
     border-radius: 4px;
 }
-
 .option-item input {
     flex: 1;
     margin: 0 !important;
@@ -1105,7 +916,6 @@
     border-radius: 3px;
     font-size: 12px;
 }
-
 .option-remove {
     background: #dc3232;
     color: white;
@@ -1116,11 +926,9 @@
     font-size: 11px;
     white-space: nowrap;
 }
-
 .option-remove:hover {
     background: #a00;
 }
-
 .add-option {
     background: #0073aa;
     color: white;
@@ -1131,40 +939,28 @@
     font-size: 13px;
     font-weight: 500;
 }
-
 .add-option:hover {
     background: #005177;
 }
-
 /* Loading States */
 .button[disabled] {
     opacity: 0.6;
     cursor: not-allowed;
 }
-
 .button.saving {
     position: relative;
 }
-
 .button.saving::after {
     content: '';
     position: absolute;
     top: 50%;
     right: 10px;
-    transform: translateY(-50%);
     width: 12px;
     height: 12px;
     border: 2px solid transparent;
     border-top: 2px solid currentColor;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
 }
-
-@keyframes spin {
-    0% { transform: translateY(-50%) rotate(0deg); }
-    100% { transform: translateY(-50%) rotate(360deg); }
-}
-
 /* Success/Error Messages */
 .notice {
     padding: 10px 15px;
@@ -1172,30 +968,24 @@
     border-radius: 4px;
     border-left: 4px solid;
 }
-
 .notice-success {
     background: #f0fff4;
     border-left-color: #00a32a;
     color: #155724;
 }
-
 .notice-error {
     background: #ffeaea;
     border-left-color: #dc3232;
     color: #721c24;
 }
-
 /* Drag and Drop States */
 .ui-sortable-helper {
     background: #fff;
     border: 1px solid #0073aa;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: rotate(3deg);
     opacity: 0.9;
     z-index: 1000;
 }
-
 .ui-sortable-placeholder {
     background: #f0f8ff;
     border: 2px dashed #0073aa;
@@ -1204,110 +994,88 @@
     height: 60px;
     position: relative;
 }
-
 .ui-sortable-placeholder:before {
     content: '+ Drop field here';
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     color: #0073aa;
     font-size: 14px;
     font-weight: 600;
 }
-
 .ui-draggable-helper {
     z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     border: 1px solid #0073aa;
 }
-
 /* Responsive Design */
 @media (max-width: 1200px) {
     .form-builder-content {
         flex-direction: column;
         gap: 20px;
     }
-    
     .field-palette {
         width: 100%;
         max-height: 250px;
         order: -1;
         overflow-y: auto;
     }
-    
     .field-settings-panel {
         width: 100%;
         max-height: 300px;
         position: relative;
-        transform: none;
         opacity: 1;
         pointer-events: auto;
     }
-    
     .field-settings-panel.active {
         display: block;
     }
-    
     .form-canvas {
         min-height: 400px;
     }
-    
     .columns-container {
         flex-direction: column;
     }
 }
-
 @media (max-width: 768px) {
     .form-builder-header {
         flex-direction: column;
         align-items: stretch;
         gap: 15px;
     }
-    
     .form-basic-settings {
         flex-direction: column;
         gap: 15px;
     }
-    
     .form-actions {
         justify-content: stretch;
     }
-    
     .form-actions .button {
         flex: 1;
     }
-    
     .field-categories {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 15px;
     }
-    
     .lift-modal-content {
         margin: 10px;
         max-height: calc(100vh - 20px);
     }
-    
     .lift-modal-body {
         padding: 15px;
     }
 }
-
 @media (max-width: 768px) {
     .form-builder-header {
         flex-direction: column;
         gap: 15px;
     }
-    
     .form-basic-settings {
         flex-direction: column;
     }
-    
     .lift-forms-stats {
         flex-direction: column;
     }
-    
     .field-palette {
         max-height: 200px;
     }

@@ -333,7 +333,6 @@ class LIFT_Docs_Admin {
             font-weight: 500;
             border: none;
             cursor: pointer;
-            transition: background 0.2s;
         }
         
         .btn-view-details:hover {
@@ -384,8 +383,6 @@ class LIFT_Docs_Admin {
             display: none;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(2px);
-            animation: fadeIn 0.3s ease-out;
         }
         
         .admin-modal.show {
@@ -398,8 +395,7 @@ class LIFT_Docs_Admin {
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 100%);
-            animation: backdropFadeIn 0.3s ease-out;
+            background: rgba(0,0,0,0.7);
         }
         
         .admin-modal-content {
@@ -410,14 +406,9 @@ class LIFT_Docs_Admin {
             max-width: 900px;
             max-height: 90vh;
             border-radius: 16px;
-            box-shadow: 
-                0 25px 50px -12px rgba(0, 0, 0, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid #ddd;
             z-index: 1000000;
             overflow: hidden;
-            transform: scale(0.95);
-            animation: modalSlideIn 0.3s ease-out forwards;
         }
         
         .admin-modal-header {
@@ -426,7 +417,7 @@ class LIFT_Docs_Admin {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: #f8f9fa;
             position: relative;
         }
         
@@ -437,7 +428,7 @@ class LIFT_Docs_Admin {
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #2271b1 0%, #135e96 50%, #0a4775 100%);
+            background: #2271b1;
         }
         
         .admin-modal-header h2 {
@@ -469,7 +460,6 @@ class LIFT_Docs_Admin {
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            transition: all 0.2s ease;
             font-weight: bold;
         }
         
@@ -477,8 +467,6 @@ class LIFT_Docs_Admin {
             background: #ffffff;
             color: #dc3232;
             border-color: rgba(220, 50, 50, 0.2);
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(220, 50, 50, 0.15);
         }
         
         .admin-modal-body {
@@ -543,18 +531,12 @@ class LIFT_Docs_Admin {
         
         .modal-stat {
             text-align: center;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            background: #ffffff;
             padding: 20px;
             border-radius: 12px;
             border: 1px solid rgba(0, 0, 0, 0.08);
             position: relative;
             overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .modal-stat:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
         
         .modal-stat::before {
@@ -564,7 +546,7 @@ class LIFT_Docs_Admin {
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #2271b1, #135e96);
+            background: #2271b1;
         }
         
         .modal-stat .number {
@@ -584,7 +566,7 @@ class LIFT_Docs_Admin {
         }
         
         .view-url-box {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: #f8f9fa;
             padding: 20px;
             border-radius: 12px;
             border: 1px solid rgba(0, 0, 0, 0.08);
@@ -609,7 +591,6 @@ class LIFT_Docs_Admin {
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-size: 14px;
             line-height: 1.6;
-            transition: color 0.2s ease;
         }
         
         .view-url-box a:hover {
@@ -623,19 +604,13 @@ class LIFT_Docs_Admin {
         }
         
         .user-item {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            background: #ffffff;
             padding: 16px;
             border-radius: 12px;
             border: 1px solid rgba(0, 0, 0, 0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .user-item:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
         
         .user-info strong {
@@ -652,7 +627,7 @@ class LIFT_Docs_Admin {
         }
         
         .user-code-badge {
-            background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
+            background: #2271b1;
             color: white;
             padding: 6px 12px;
             border-radius: 20px;
@@ -660,7 +635,6 @@ class LIFT_Docs_Admin {
             font-weight: 600;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            box-shadow: 0 2px 4px rgba(34, 113, 177, 0.3);
         }
         
         .assigned-forms-grid {
@@ -670,21 +644,15 @@ class LIFT_Docs_Admin {
         }
         
         .form-badge {
-            background: linear-gradient(135deg, #50575e 0%, #3c434a 100%);
+            background: #50575e;
             color: white;
             padding: 10px 16px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
             cursor: default;
             position: relative;
             overflow: hidden;
-        }
-        
-        .form-badge:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(80, 87, 94, 0.3);
         }
         
         .form-badge::before {
@@ -698,18 +666,12 @@ class LIFT_Docs_Admin {
         }
         
         .file-item {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            background: #ffffff;
             padding: 14px;
             border-radius: 12px;
             border: 1px solid rgba(0, 0, 0, 0.08);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
             position: relative;
             overflow: hidden;
-        }
-        
-        .file-item:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
         
         .file-item::before {
@@ -726,7 +688,6 @@ class LIFT_Docs_Admin {
             text-decoration: none;
             font-weight: 500;
             word-break: break-all;
-            transition: color 0.2s ease;
             display: block;
             padding-right: 30px;
         }
@@ -734,28 +695,6 @@ class LIFT_Docs_Admin {
         .file-item a:hover {
             color: #135e96;
             text-decoration: underline;
-        }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes backdropFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes modalSlideIn {
-            from { 
-                opacity: 0;
-                transform: scale(0.9) translateY(-20px);
-            }
-            to { 
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
         }
         
         /* Responsive Design */
@@ -964,7 +903,7 @@ class LIFT_Docs_Admin {
                 
                 // Set title and loading state
                 $('#admin-modal-document-title').text(documentTitle);
-                $('#admin-modal-document-content').html('<div style="text-align: center; padding: 40px;"><div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2271b1; border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 20px; color: #646970;"><?php _e('Loading document details...', 'lift-docs-system'); ?></p></div><style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>');
+                $('#admin-modal-document-content').html('<div style="text-align: center; padding: 40px;"><div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2271b1; border-radius: 50%;"></div><p style="margin-top: 20px; color: #646970;"><?php _e('Loading document details...', 'lift-docs-system'); ?></p></div>');
                 
                 // Show modal with animation
                 var $modal = $('#admin-document-modal');

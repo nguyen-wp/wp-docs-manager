@@ -1,5 +1,4 @@
 /* Document Details Modal Styles */
-
 .lift-modal {
     position: fixed;
     top: 0;
@@ -11,7 +10,6 @@
     align-items: center;
     justify-content: center;
 }
-
 .lift-modal-backdrop {
     position: fixed;
     top: 0;
@@ -21,11 +19,10 @@
     background: rgba(0, 0, 0, 0.7);
     z-index: 999998;
 }
-
 .lift-modal-content {
     background: #fff;
     border-radius: 6px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid #ddd;
     max-width: 600px;
     width: 90%;
     max-height: 90%;
@@ -33,7 +30,6 @@
     position: relative;
     z-index: 999999;
 }
-
 .lift-modal-header {
     padding: 20px 24px;
     border-bottom: 1px solid #ddd;
@@ -43,14 +39,12 @@
     background: #f9f9f9;
     border-radius: 6px 6px 0 0;
 }
-
 .lift-modal-header h2 {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
     color: #333;
 }
-
 .lift-modal-close {
     background: none;
     border: none;
@@ -65,18 +59,14 @@
     align-items: center;
     justify-content: center;
     border-radius: 3px;
-    transition: all 0.2s ease;
 }
-
 .lift-modal-close:hover {
     background: #eee;
     color: #333;
 }
-
 .lift-modal-body {
     padding: 24px;
 }
-
 .lift-modal-footer {
     padding: 16px 24px;
     border-top: 1px solid #ddd;
@@ -84,15 +74,12 @@
     text-align: right;
     border-radius: 0 0 6px 6px;
 }
-
 .lift-detail-group {
     margin-bottom: 20px;
 }
-
 .lift-detail-group:last-child {
     margin-bottom: 0;
 }
-
 .lift-detail-group label {
     display: block;
     font-weight: 600;
@@ -100,13 +87,11 @@
     color: #333;
     font-size: 14px;
 }
-
 .lift-input-group {
     display: flex;
     gap: 8px;
     align-items: center;
 }
-
 .lift-input-group input[type="text"] {
     flex: 1;
     padding: 8px 12px;
@@ -116,26 +101,21 @@
     font-family: monospace;
     background: #f9f9f9;
 }
-
 .lift-input-group input[type="text"]:focus {
     outline: none;
     border-color: #0073aa;
-    box-shadow: 0 0 0 1px #0073aa;
 }
-
 .lift-copy-btn {
     font-size: 12px !important;
     padding: 6px 12px !important;
     height: auto !important;
     line-height: 1.2 !important;
 }
-
 .lift-copy-btn.copied {
     background: #46b450 !important;
     color: #fff !important;
     border-color: #46b450 !important;
 }
-
 /* View Online Button */
 #lift-online-view {
     font-size: 12px !important;
@@ -147,17 +127,14 @@
     border-color: #0073aa !important;
     text-decoration: none;
 }
-
 #lift-online-view:hover {
     background: #005a87 !important;
     border-color: #005a87 !important;
     color: #fff !important;
 }
-
 #lift-online-view:focus {
-    box-shadow: 0 0 0 1px #0073aa !important;
+    border-color: #0073aa !important;
 }
-
 .lift-stats-display {
     display: flex;
     gap: 20px;
@@ -166,12 +143,10 @@
     border-radius: 4px;
     border: 1px solid #ddd;
 }
-
 .lift-stat-item {
     text-align: center;
     flex: 1;
 }
-
 .lift-stat-item strong {
     display: block;
     font-size: 24px;
@@ -179,14 +154,12 @@
     color: #0073aa;
     margin-bottom: 4px;
 }
-
 .lift-stat-item span {
     font-size: 12px;
     color: #666;
-    text-transform: uppercase;
+    text-
     letter-spacing: 0.5px;
 }
-
 /* Button styling for document list page */
 .lift-details-btn {
     background: #0073aa !important;
@@ -197,107 +170,63 @@
     height: auto !important;
     line-height: 1.2 !important;
 }
-
 .lift-details-btn:hover {
     background: #005177 !important;
     border-color: #003f5c !important;
     color: #fff !important;
 }
-
 /* Responsive adjustments */
 @media (max-width: 600px) {
     .lift-modal-content {
         width: 95%;
         margin: 20px;
     }
-    
     .lift-stats-display {
         flex-direction: column;
         gap: 12px;
     }
-    
     .lift-input-group {
         flex-direction: column;
         align-items: stretch;
     }
-    
     .lift-input-group .button {
         margin-top: 8px;
     }
 }
-
-/* Animation */
-.lift-modal {
-    animation: liftModalFadeIn 0.2s ease-out;
-}
-
-.lift-modal-content {
-    animation: liftModalSlideIn 0.2s ease-out;
-}
-
-@keyframes liftModalFadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes liftModalSlideIn {
-    from {
-        transform: translateY(-20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
 /* Multiple Files List Styles */
 .multiple-files-list {
     max-height: 300px;
     overflow-y: auto;
     padding: 5px 0;
 }
-
 .multiple-files-list .file-item {
     margin-bottom: 12px;
     padding: 12px;
     background: #f8f9fa;
     border-radius: 6px;
     border-left: 3px solid #007cba;
-    transition: all 0.2s ease;
 }
-
 .multiple-files-list .file-item:hover {
     background: #f0f6fc;
     border-left-color: #0073aa;
-    transform: translateX(2px);
 }
-
 .multiple-files-list .file-item:last-child {
     margin-bottom: 0;
 }
-
 .multiple-files-list .file-header {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
 }
-
 .multiple-files-list .file-header strong {
     color: #23282d;
     font-size: 14px;
     font-weight: 600;
 }
-
 .multiple-files-list .lift-input-group {
     margin-top: 8px;
 }
-
 .multiple-files-list .lift-input-group input {
     font-size: 12px;
     font-family: monospace;
@@ -305,67 +234,54 @@
     border: 1px solid #ddd;
     padding: 6px 10px;
 }
-
 .multiple-files-list .lift-input-group input:focus {
     border-color: #007cba;
-    box-shadow: 0 0 0 1px rgba(0, 124, 186, 0.25);
     outline: none;
 }
-
 .multiple-files-list .button {
     font-size: 12px;
     padding: 4px 12px;
     height: auto;
     line-height: 1.4;
 }
-
 /* Secure files styling */
 #lift-multiple-secure-downloads .file-item {
     background: #f0f8ff;
     border-left-color: #0073aa;
 }
-
 #lift-multiple-secure-downloads .file-item:hover {
     background: #e6f3ff;
     border-left-color: #005177;
 }
-
 #lift-multiple-secure-downloads .file-header strong {
     color: #0073aa;
 }
-
 /* Copy button states */
 .lift-copy-btn.copied {
     background: #46b450 !important;
     border-color: #46b450 !important;
     color: #fff !important;
 }
-
 .lift-copy-btn.copy-error {
     background: #dc3232 !important;
     border-color: #dc3232 !important;
     color: #fff !important;
 }
-
 /* Enhanced scrollbar for multiple files */
 .multiple-files-list::-webkit-scrollbar {
     width: 8px;
 }
-
 .multiple-files-list::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
 }
-
 .multiple-files-list::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
 }
-
 .multiple-files-list::-webkit-scrollbar-thumb:hover {
     background: #a1a1a1;
 }
-
 /* Description text styling */
 .lift-detail-group .description {
     margin-top: 5px;
@@ -376,36 +292,30 @@
     align-items: center;
     gap: 5px;
 }
-
 /* Files count stat item */
 .lift-stat-item:last-child {
     border-right: none;
 }
-
 /* Improved modal width for multiple files */
 @media (min-width: 768px) {
     .lift-modal-content {
         max-width: 700px;
     }
 }
-
 /* Mobile adjustments for multiple files */
 @media (max-width: 600px) {
     .multiple-files-list .file-item {
         padding: 10px;
         margin-bottom: 10px;
     }
-    
     .multiple-files-list .file-header {
         flex-wrap: wrap;
         gap: 5px;
     }
-    
     .multiple-files-list .lift-input-group {
         flex-direction: column;
         gap: 8px;
     }
-    
     .multiple-files-list .button {
         width: 100%;
         text-align: center;

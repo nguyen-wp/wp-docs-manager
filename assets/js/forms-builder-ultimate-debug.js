@@ -1,5 +1,14 @@
 /**
- * Real-time Form Builder Debug - Override and Monitor Everything
+ * Real-time Form Builder Debug - O                    right: 10px; 
+                    width: 400px; 
+                    max-height: 500px; 
+                    background: #fff; 
+                    border: 2px solid #dc3232; 
+                    border-radius: 5px; 
+                    z-index: 99999;
+                    font-family: monospace;
+                    font-size: 12px;
+                ">" Monitor Everything
  * Giải pháp mạnh mẽ để debug lỗi "Form must have at least one field"
  */
 

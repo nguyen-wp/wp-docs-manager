@@ -2,13 +2,11 @@
  * Frontend Styles for LIFT Docs System
  * Compatible with default theme layouts
  */
-
 /* Document content enhancement for single posts */
 .single-lift_document .entry-content,
 .lift-document-content {
     position: relative;
 }
-
 /* Document meta information */
 .lift-document-meta {
     background: #f8f9fa;
@@ -18,31 +16,26 @@
     margin: 1.5rem 0;
     font-size: 0.9em;
 }
-
 .lift-document-meta .meta-row {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
     margin-bottom: 0.5rem;
 }
-
 .lift-document-meta .meta-row:last-child {
     margin-bottom: 0;
 }
-
 .lift-document-meta .meta-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     color: #666;
 }
-
 .lift-document-meta .dashicons {
     width: 16px;
     height: 16px;
     font-size: 16px;
 }
-
 /* Document actions */
 .lift-document-actions {
     background: #fff;
@@ -52,14 +45,12 @@
     margin: 2rem 0;
     text-align: center;
 }
-
 .lift-document-actions .action-buttons {
     display: flex;
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
 }
-
 .lift-document-actions .btn {
     display: inline-flex;
     align-items: center;
@@ -68,33 +59,27 @@
     border-radius: 4px;
     text-decoration: none;
     font-weight: 600;
-    transition: all 0.3s ease;
     border: 1px solid;
 }
-
 .lift-document-actions .btn-primary {
     background: #0073aa;
     color: #fff;
     border-color: #0073aa;
 }
-
 .lift-document-actions .btn-primary:hover {
     background: #005a87;
     border-color: #005a87;
     color: #fff;
 }
-
 .lift-document-actions .btn-secondary {
     background: #fff;
     color: #0073aa;
     border-color: #0073aa;
 }
-
 .lift-document-actions .btn-secondary:hover {
     background: #0073aa;
     color: #fff;
 }
-
 /* Login Required Message */
 .lift-docs-login-required,
 .lift-docs-restricted {
@@ -105,19 +90,16 @@
     margin: 1rem 0;
     text-align: center;
 }
-
 .lift-docs-login-required p,
 .lift-docs-restricted p {
     margin: 0 0 1rem 0;
     color: #8a6d3b;
     font-weight: 500;
 }
-
 .lift-docs-login-required p:last-child,
 .lift-docs-restricted p:last-child {
     margin-bottom: 0;
 }
-
 .lift-docs-login-required .button,
 .lift-docs-restricted .button {
     background: #0073aa;
@@ -128,25 +110,20 @@
     text-decoration: none;
     font-weight: 600;
     display: inline-block;
-    transition: all 0.3s ease;
 }
-
 .lift-docs-login-required .button:hover,
 .lift-docs-restricted .button:hover {
     background: #005a87;
     border-color: #005a87;
     color: #fff;
 }
-
 .lift-doc-download-widget.lift-docs-restricted {
     border-color: #f0ad4e;
 }
-
 .lift-doc-download-widget.lift-docs-restricted .doc-title {
     margin-bottom: 1rem;
     color: #333;
 }
-
 /* Related documents */
 .lift-related-documents {
     margin: 3rem 0;
@@ -154,52 +131,39 @@
     background: #f8f9fa;
     border-radius: 8px;
 }
-
 .lift-related-documents h3 {
     margin-top: 0;
     margin-bottom: 1.5rem;
     font-size: 1.25rem;
     color: #333;
 }
-
 .lift-related-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1rem;
 }
-
 .lift-related-item {
     background: #fff;
     border: 1px solid #e9ecef;
     border-radius: 6px;
     padding: 1rem;
-    transition: box-shadow 0.3s ease;
 }
-
-.lift-related-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
 .lift-related-item h4 {
     margin: 0 0 0.5rem 0;
     font-size: 1rem;
 }
-
 .lift-related-item h4 a {
     text-decoration: none;
     color: #333;
 }
-
 .lift-related-item h4 a:hover {
     color: #0073aa;
 }
-
 .lift-related-item .excerpt {
     color: #666;
     font-size: 0.9em;
     line-height: 1.4;
 }
-
 /* Document List Styles for shortcodes */
 .lift-docs-list {
     display: grid;
@@ -207,7 +171,6 @@
     gap: 20px;
     margin: 20px 0;
 }
-
 /* Archive page styling for lift_document post type */
 .post-type-archive-lift_document .site-main,
 .tax-lift_doc_category .site-main,
@@ -215,7 +178,6 @@
     /* Override theme constraints if needed */
     max-width: none;
 }
-
 /* Grid layout for archive pages */
 .post-type-archive-lift_document .posts-grid,
 .tax-lift_doc_category .posts-grid,
@@ -225,7 +187,6 @@
     gap: 2rem;
     margin: 2rem 0;
 }
-
 /* Individual post styling in archives */
 .post-type-archive-lift_document .post,
 .tax-lift_doc_category .post,
@@ -234,37 +195,20 @@
     border: 1px solid #e1e1e1;
     border-radius: 8px;
     overflow: hidden;
-    transition: box-shadow 0.3s ease;
 }
-
-.post-type-archive-lift_document .post:hover,
-.tax-lift_doc_category .post:hover,
-.tax-lift_doc_tag .post:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
 .post-type-archive-lift_document .post-thumbnail,
 .tax-lift_doc_category .post-thumbnail,
 .tax-lift_doc_tag .post-thumbnail {
     position: relative;
     overflow: hidden;
 }
-
 .post-type-archive-lift_document .post-thumbnail img,
 .tax-lift_doc_category .post-thumbnail img,
 .tax-lift_doc_tag .post-thumbnail img {
     width: 100%;
     height: 200px;
     object-fit: cover;
-    transition: transform 0.3s ease;
 }
-
-.post-type-archive-lift_document .post:hover .post-thumbnail img,
-.tax-lift_doc_category .post:hover .post-thumbnail img,
-.tax-lift_doc_tag .post:hover .post-thumbnail img {
-    transform: scale(1.05);
-}
-
 .post-type-archive-lift_document .entry-header,
 .post-type-archive-lift_document .entry-content,
 .post-type-archive-lift_document .entry-footer,
@@ -276,7 +220,6 @@
 .tax-lift_doc_tag .entry-footer {
     padding: 1.5rem;
 }
-
 .post-type-archive-lift_document .entry-title,
 .tax-lift_doc_category .entry-title,
 .tax-lift_doc_tag .entry-title {
@@ -284,28 +227,23 @@
     font-size: 1.25rem;
     line-height: 1.3;
 }
-
 .post-type-archive-lift_document .entry-title a,
 .tax-lift_doc_category .entry-title a,
 .tax-lift_doc_tag .entry-title a {
     text-decoration: none;
     color: inherit;
-    transition: color 0.3s ease;
 }
-
 .post-type-archive-lift_document .entry-title a:hover,
 .tax-lift_doc_category .entry-title a:hover,
 .tax-lift_doc_tag .entry-title a:hover {
     color: #0073aa;
 }
-
 /* Document actions in archive */
 .lift-doc-actions {
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid #e9ecef;
 }
-
 .lift-download-btn {
     display: inline-flex;
     align-items: center;
@@ -316,74 +254,55 @@
     text-decoration: none;
     border-radius: 4px;
     font-size: 0.9rem;
-    transition: background 0.3s ease;
 }
-
 .lift-download-btn:hover {
     background: #005a87;
     color: #fff;
 }
-
 .lift-download-btn .dashicons {
     width: 16px;
     height: 16px;
     font-size: 16px;
 }
-
 /* Document meta in archive */
 .lift-doc-meta {
     margin-top: 0.5rem;
     font-size: 0.85rem;
     color: #666;
 }
-
 .lift-view-count {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
 }
-
 .lift-view-count .dashicons {
     width: 14px;
     height: 14px;
     font-size: 14px;
 }
-
 .lift-doc-item {
     border: 1px solid #e1e1e1;
     border-radius: 8px;
     padding: 20px;
     background: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
-.lift-doc-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
 .lift-doc-item h3 {
     margin: 0 0 10px 0;
     font-size: 1.2em;
 }
-
 .lift-doc-item h3 a {
     text-decoration: none;
     color: #333;
 }
-
 .lift-doc-item h3 a:hover {
     color: #0073aa;
 }
-
 .lift-doc-item .excerpt {
     color: #666;
     font-size: 0.9em;
     line-height: 1.5;
     margin-bottom: 15px;
 }
-
 .lift-doc-item .doc-meta {
     font-size: 0.8em;
     color: #999;
@@ -391,61 +310,40 @@
     padding-top: 10px;
     margin-top: 15px;
 }
-
 .lift-doc-item .doc-meta span {
     margin-right: 15px;
 }
-
 /* Document Card Styles */
 .lift-doc-card {
     border: 1px solid #e1e1e1;
     border-radius: 8px;
     overflow: hidden;
     background: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
-.lift-doc-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
 .lift-doc-card .doc-thumbnail {
     position: relative;
     overflow: hidden;
     height: 180px;
 }
-
 .lift-doc-card .doc-thumbnail img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
 }
-
-.lift-doc-card:hover .doc-thumbnail img {
-    transform: scale(1.05);
-}
-
 .lift-doc-card .doc-content {
     padding: 20px;
 }
-
 .lift-doc-card .doc-title {
     margin: 0 0 10px 0;
     font-size: 1.1em;
 }
-
 .lift-doc-card .doc-title a {
     text-decoration: none;
     color: #333;
 }
-
 .lift-doc-card .doc-title a:hover {
     color: #0073aa;
 }
-
 .lift-doc-card .doc-excerpt {
     color: #666;
     font-size: 0.9em;
@@ -456,7 +354,6 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
-
 .lift-doc-card .doc-meta {
     font-size: 0.8em;
     color: #999;
@@ -464,47 +361,38 @@
     border-top: 1px solid #eee;
     padding-top: 10px;
 }
-
 .lift-doc-card .doc-meta span {
     margin-right: 15px;
     display: inline-block;
 }
-
 .lift-doc-card .doc-actions {
     display: flex;
     gap: 10px;
 }
-
 .lift-doc-card .btn-view,
 .lift-doc-card .btn-download {
     padding: 8px 16px;
     border-radius: 4px;
     text-decoration: none;
     font-size: 0.9em;
-    transition: background-color 0.3s ease;
 }
-
 .lift-doc-card .btn-view {
     background: #0073aa;
     color: #fff;
 }
-
 .lift-doc-card .btn-view:hover {
     background: #005a87;
     color: #fff;
 }
-
 .lift-doc-card .btn-download {
     background: #f1f1f1;
     color: #333;
     border: 1px solid #ddd;
 }
-
 .lift-doc-card .btn-download:hover {
     background: #e1e1e1;
     color: #333;
 }
-
 /* Single Document Styles */
 .lift-document-single .lift-docs-meta {
     background: #f9f9f9;
@@ -513,33 +401,26 @@
     padding: 15px;
     margin: 20px 0;
 }
-
 .lift-docs-meta .meta-item {
     margin-bottom: 8px;
 }
-
 .lift-docs-meta .meta-item:last-child {
     margin-bottom: 0;
 }
-
 .lift-docs-meta .meta-label {
     font-weight: 600;
     color: #333;
 }
-
 .lift-docs-meta .meta-value {
     color: #666;
 }
-
 .lift-docs-meta .meta-value a {
     color: #0073aa;
     text-decoration: none;
 }
-
 .lift-docs-meta .meta-value a:hover {
     text-decoration: underline;
 }
-
 /* Document Actions */
 .lift-docs-actions {
     text-align: center;
@@ -548,36 +429,30 @@
     background: #f9f9f9;
     border-radius: 6px;
 }
-
 .lift-docs-download-btn,
 .lift-docs-share-btn {
     margin: 0 10px;
     padding: 12px 24px;
     font-size: 1em;
 }
-
 .lift-docs-download-btn {
     background: #0073aa;
     color: #fff;
     border: none;
 }
-
 .lift-docs-download-btn:hover {
     background: #005a87;
     color: #fff;
 }
-
 .lift-docs-share-btn {
     background: #f1f1f1;
     color: #333;
     border: 1px solid #ddd;
 }
-
 .lift-docs-share-btn:hover {
     background: #e1e1e1;
     color: #333;
 }
-
 /* Related Documents */
 .related-documents {
     margin-top: 20px;
@@ -585,27 +460,22 @@
     background: #f9f9f9;
     border-radius: 5px;
 }
-
 .related-documents h4 {
     margin: 0 0 10px 0;
     color: #333;
 }
-
 .related-documents ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-
 .related-documents li {
     padding: 5px 0;
     border-bottom: 1px solid #eee;
 }
-
 .related-documents li:last-child {
     border-bottom: none;
 }
-
 /* Document Download Widget */
 .lift-doc-download-widget {
     margin: 20px 0;
@@ -615,19 +485,16 @@
     background: #f9f9f9;
     text-align: center;
 }
-
 .lift-doc-download-widget .doc-title {
     margin: 0 0 10px 0;
     color: #333;
     font-size: 16px;
 }
-
 .lift-doc-download-widget .doc-info {
     margin: 10px 0;
     font-size: 14px;
     color: #666;
 }
-
 .lift-doc-download-widget .file-type,
 .lift-doc-download-widget .file-size {
     display: inline-block;
@@ -637,7 +504,6 @@
     border-radius: 3px;
     font-size: 12px;
 }
-
 .lift-doc-download-widget .lift-download-btn {
     display: inline-block;
     padding: 10px 20px;
@@ -645,27 +511,22 @@
     color: white;
     text-decoration: none;
     border-radius: 3px;
-    transition: background 0.3s;
 }
-
 .lift-doc-download-widget .lift-download-btn:hover {
     background: #005a87;
     color: white;
 }
-
 .lift-doc-download-widget .lift-download-btn .dashicons {
     font-size: 16px;
     vertical-align: text-top;
     margin-right: 5px;
 }
-
 /* Search Form */
 .lift-docs-search {
     display: flex;
     margin: 20px 0;
     max-width: 400px;
 }
-
 .lift-docs-search input[type="search"] {
     flex: 1;
     padding: 10px;
@@ -674,7 +535,6 @@
     border-radius: 4px 0 0 4px;
     font-size: 1em;
 }
-
 .lift-docs-search button {
     padding: 10px 20px;
     background: #0073aa;
@@ -684,12 +544,10 @@
     cursor: pointer;
     font-size: 1em;
 }
-
 .lift-docs-search button:hover {
     background: #005a87;
     border-color: #005a87;
 }
-
 /* Categories List */
 .lift-docs-categories {
     list-style: none;
@@ -699,23 +557,19 @@
     flex-wrap: wrap;
     gap: 10px;
 }
-
 .lift-docs-categories li {
     background: #f1f1f1;
     border-radius: 20px;
     padding: 5px 15px;
 }
-
 .lift-docs-categories a {
     color: #333;
     text-decoration: none;
     font-size: 0.9em;
 }
-
 .lift-docs-categories a:hover {
     color: #0073aa;
 }
-
 /* Restricted Access */
 .lift-docs-restricted {
     text-align: center;
@@ -725,12 +579,10 @@
     border-radius: 6px;
     margin: 20px 0;
 }
-
 .lift-docs-restricted p {
     margin: 10px 0;
     color: #666;
 }
-
 .lift-docs-restricted a {
     background: #0073aa;
     color: #fff;
@@ -740,18 +592,15 @@
     display: inline-block;
     margin-top: 10px;
 }
-
 .lift-docs-restricted a:hover {
     background: #005a87;
     color: #fff;
 }
-
 /* Load More Button */
 .lift-docs-load-more {
     text-align: center;
     margin: 30px 0;
 }
-
 .lift-docs-load-more button {
     background: #0073aa;
     color: #fff;
@@ -761,58 +610,47 @@
     cursor: pointer;
     font-size: 1em;
 }
-
 .lift-docs-load-more button:hover {
     background: #005a87;
 }
-
 .lift-docs-load-more button:disabled {
     background: #ccc;
     cursor: not-allowed;
 }
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .lift-docs-list {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
     .lift-doc-card .doc-actions {
         flex-direction: column;
     }
-    
     .lift-docs-actions {
         text-align: center;
     }
-    
     .lift-docs-download-btn,
     .lift-docs-share-btn {
         margin: 5px 0;
         display: block;
         width: 100%;
     }
-    
     .lift-docs-search {
         max-width: 100%;
     }
-    
     .lift-docs-categories {
         flex-direction: column;
         gap: 5px;
     }
-    
     .lift-docs-categories li {
         text-align: center;
     }
 }
-
 /* Loading Spinner */
 .lift-docs-loading {
     text-align: center;
     padding: 20px;
 }
-
 .lift-docs-spinner {
     display: inline-block;
     width: 20px;
@@ -820,19 +658,11 @@
     border: 3px solid #f3f3f3;
     border-top: 3px solid #0073aa;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
 }
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
 /* Featured Document */
 .lift-document-featured {
     position: relative;
 }
-
 .lift-document-featured::before {
     content: "Featured";
     position: absolute;
@@ -846,18 +676,6 @@
     font-weight: 600;
     z-index: 10;
 }
-
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.lift-doc-item,
-.lift-doc-card {
-    animation: fadeIn 0.5s ease-out;
-}
-
 /* Document Form Buttons */
 .document-card-actions {
     display: flex;
@@ -865,7 +683,6 @@
     gap: 8px;
     margin-top: 15px;
 }
-
 .document-card-actions .btn {
     display: inline-flex;
     align-items: center;
@@ -875,66 +692,48 @@
     text-decoration: none;
     font-size: 13px;
     font-weight: 500;
-    transition: all 0.2s ease;
     border: 1px solid;
     white-space: nowrap;
 }
-
 .document-card-actions .btn .dashicons {
     width: 16px;
     height: 16px;
     font-size: 16px;
 }
-
 .document-card-actions .btn-primary {
     background: #0073aa;
     color: #fff;
     border-color: #0073aa;
 }
-
 .document-card-actions .btn-primary:hover {
     background: #005a87;
     border-color: #005a87;
     color: #fff;
-    transform: translateY(-1px);
 }
-
 .document-card-actions .btn-secondary {
     background: #f8f9fa;
     color: #495057;
     border-color: #dee2e6;
 }
-
 .document-card-actions .btn-secondary:hover {
     background: #e9ecef;
     border-color: #adb5bd;
     color: #495057;
-    transform: translateY(-1px);
 }
-
-/* Form Page Styles */
-.form-container {
-    animation: fadeIn 0.3s ease-out;
-}
-
 .form-field {
     position: relative;
 }
-
 .form-field.has-error input,
 .form-field.has-error textarea,
 .form-field.has-error select {
     border-color: #dc3545;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
-
 .form-field .error-message {
     color: #dc3545;
     font-size: 12px;
     margin-top: 4px;
     display: block;
 }
-
 /* Print Styles */
 @media print {
     .lift-docs-actions,
@@ -943,27 +742,22 @@
         display: none;
     }
 }
-
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .document-card-actions {
         flex-direction: column;
     }
-    
     .document-card-actions .btn {
         justify-content: center;
         width: 100%;
     }
-    
     .form-container {
         margin: 10px;
         padding: 20px;
     }
-    
     .form-actions {
         text-align: center;
     }
-    
     .form-actions .btn {
         width: 100%;
         margin: 5px 0;

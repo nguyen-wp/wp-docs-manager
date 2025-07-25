@@ -1,15 +1,11 @@
 /**
  * Admin Styles for LIFT Docs System - NO ANIMATIONS
  */
-
 /* Global animation disabling */
 *, *::before, *::after {
-    transition: none !important;
-    animation: none !important;
-    -webkit-transition: none !important;
-    -webkit-animation: none !important;
+    -webkit-
+    -webkit-
 }
-
 /* Dashboard Styles */
 .lift-docs-dashboard {
     display: grid;
@@ -17,45 +13,37 @@
     gap: 20px;
     margin-top: 20px;
 }
-
 .lift-docs-stats {
     display: flex;
     gap: 15px;
     margin-bottom: 20px;
 }
-
 .lift-docs-stat-box {
-    background: #fff;
-    border: 1px solid #e1e1e1;
+    background: white;
+    border: 1px solid #ddd;
     border-radius: 8px;
     padding: 20px;
     text-align: center;
     flex: 1;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .lift-docs-stat-box h3 {
     margin: 0 0 10px 0;
     color: #333;
     font-size: 1em;
 }
-
 .lift-docs-stat-box .stat-number {
     font-size: 2em;
     font-weight: 600;
     color: #0073aa;
     margin: 0;
 }
-
 /* Quick Actions */
 .lift-docs-quick-actions {
     background: #fff;
     border: 1px solid #e1e1e1;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 /* Secure Links Styles */
 .lift-docs-secure-links {
     background: #fff;
@@ -64,7 +52,6 @@
     padding: 20px;
     margin-top: 20px;
 }
-
 .lift-secure-link-generator {
     border: 1px solid #ddd;
     border-radius: 6px;
@@ -72,26 +59,22 @@
     margin: 15px 0;
     background: #f9f9f9;
 }
-
 .lift-secure-link-generator h4 {
     margin: 0 0 15px 0;
     color: #333;
 }
-
 .secure-link-form {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 15px;
 }
-
 .secure-link-form select,
 .secure-link-form input[type="number"] {
     padding: 6px 8px;
     border: 1px solid #ddd;
     border-radius: 3px;
 }
-
 .secure-link-output {
     background: #fff;
     border: 1px solid #ddd;
@@ -100,7 +83,6 @@
     margin-top: 10px;
     position: relative;
 }
-
 .secure-link-url {
     font-family: monospace;
     word-break: break-all;
@@ -109,7 +91,6 @@
     background: #f5f5f5;
     border-radius: 3px;
 }
-
 .copy-secure-link {
     position: absolute;
     top: 10px;
@@ -122,110 +103,89 @@
     cursor: pointer;
     font-size: 12px;
 }
-
 .copy-secure-link:hover {
     background: #005a87;
 }
-
 .secure-link-info {
     font-size: 12px;
     color: #666;
     margin-top: 10px;
 }
-
 .security-status {
     display: inline-block;
     padding: 3px 8px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 500;
-    text-transform: uppercase;
+    text-
 }
-
 .security-status.enabled {
     background: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
 }
-
 .security-status.disabled {
     background: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
-
 .lift-docs-quick-actions h2 {
     margin: 0 0 15px 0;
     color: #333;
 }
-
 .lift-docs-quick-actions .button {
     margin-right: 10px;
     margin-bottom: 10px;
 }
-
 /* Recent Documents */
 .lift-docs-recent {
     background: #fff;
     border: 1px solid #e1e1e1;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .lift-docs-recent h2 {
     margin: 0 0 15px 0;
     color: #333;
 }
-
 .lift-docs-recent ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-
 .lift-docs-recent li {
     padding: 8px 0;
     border-bottom: 1px solid #f1f1f1;
 }
-
 .lift-docs-recent li:last-child {
     border-bottom: none;
 }
-
 .lift-docs-recent a {
     color: #0073aa;
     text-decoration: none;
 }
-
 .lift-docs-recent a:hover {
     text-decoration: underline;
 }
-
 /* Analytics Styles */
 .lift-docs-analytics {
     margin-top: 20px;
 }
-
 .analytics-summary {
     background: #fff;
     border: 1px solid #e1e1e1;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .analytics-summary h2 {
     margin: 0 0 15px 0;
     color: #333;
 }
-
 .analytics-stats {
     display: flex;
     gap: 20px;
 }
-
 .analytics-stats .stat-item {
     background: #f9f9f9;
     border: 1px solid #e1e1e1;
@@ -234,127 +194,102 @@
     text-align: center;
     flex: 1;
 }
-
 .analytics-stats .stat-item h3 {
     margin: 0 0 10px 0;
     color: #666;
     font-size: 0.9em;
 }
-
 .analytics-stats .stat-item .stat-number {
     font-size: 1.8em;
     font-weight: 600;
     color: #0073aa;
     margin: 0;
 }
-
 /* Analytics Charts */
 .analytics-charts {
     background: #fff;
     border: 1px solid #e1e1e1;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .analytics-charts h2 {
     margin: 0 0 15px 0;
     color: #333;
 }
-
 .analytics-charts ol {
     padding-left: 20px;
 }
-
 .analytics-charts li {
     padding: 5px 0;
 }
-
 .analytics-charts a {
     color: #0073aa;
     text-decoration: none;
 }
-
 .analytics-charts a:hover {
     text-decoration: underline;
 }
-
 /* Meta Box Styles */
 .lift-docs-meta-box {
     padding: 10px;
 }
-
 .lift-docs-meta-box .form-table th {
     width: 150px;
     vertical-align: top;
     padding-top: 8px;
 }
-
 .lift-docs-meta-box .form-table td {
     padding: 8px 10px;
 }
-
 .lift-docs-meta-box .regular-text {
     width: 100%;
     max-width: 400px;
 }
-
 .lift-docs-meta-box .description {
     margin-top: 5px;
     color: #666;
     font-style: italic;
 }
-
 /* Document Settings Meta Box */
 .lift-docs-settings-meta p {
     margin: 10px 0;
 }
-
 .lift-docs-settings-meta label {
     display: block;
     margin-bottom: 5px;
 }
-
 .lift-docs-settings-meta input[type="checkbox"] {
     margin-right: 5px;
 }
-
 .lift-docs-settings-meta input[type="password"],
 .lift-docs-settings-meta input[type="text"] {
     width: 100%;
     margin-top: 5px;
 }
-
 /* Settings Page Styles */
 .lift-docs-settings-page {
     max-width: 800px;
 }
-
 .lift-docs-settings-page .form-table th {
     width: 200px;
     vertical-align: top;
     padding-top: 15px;
 }
-
 .lift-docs-settings-page .form-table td {
     padding: 10px;
     vertical-align: top;
 }
-
 .lift-docs-settings-page .description {
     margin-top: 5px;
     color: #666;
     font-style: italic;
 }
-
 .lift-docs-settings-page .small-text {
     width: 60px;
 }
-
 .lift-docs-settings-page .regular-text {
     width: 300px;
 }
-
 /* Custom Columns */
 .column-category,
 .column-views,
@@ -362,15 +297,12 @@
 .column-assignments {
     width: 120px;
 }
-
 .column-views {
     text-align: center;
 }
-
 .column-assignments {
     width: 160px;
 }
-
 /* Bulk Actions */
 .lift-docs-bulk-actions {
     margin: 10px 0;
@@ -379,11 +311,9 @@
     border: 1px solid #e1e1e1;
     border-radius: 4px;
 }
-
 .lift-docs-bulk-actions select {
     margin-right: 10px;
 }
-
 /* Upload Area */
 .lift-docs-upload-area {
     border: 2px dashed #ccc;
@@ -393,23 +323,19 @@
     background: #fafafa;
     margin: 20px 0;
 }
-
 .lift-docs-upload-area:hover {
     border-color: #0073aa;
     background: #f0f8ff;
 }
 }
-
 .lift-docs-upload-area.dragover {
     border-color: #0073aa;
     background: #f0f8ff;
 }
-
 .lift-docs-upload-area p {
     margin: 10px 0;
     color: #666;
 }
-
 .lift-docs-upload-area .upload-button {
     background: #0073aa;
     color: #fff;
@@ -419,11 +345,9 @@
     cursor: pointer;
     font-size: 1em;
 }
-
 .lift-docs-upload-area .upload-button:hover {
     background: #005a87;
 }
-
 /* Progress Bar */
 .lift-docs-progress {
     width: 100%;
@@ -433,12 +357,10 @@
     overflow: hidden;
     margin: 10px 0;
 }
-
 .lift-docs-progress-bar {
     height: 100%;
     background: #0073aa;
 }
-
 /* Notifications */
 .lift-docs-notice {
     padding: 10px 15px;
@@ -446,67 +368,56 @@
     border-radius: 4px;
     border-left: 4px solid;
 }
-
 .lift-docs-notice.success {
     background: #dff0d8;
     border-color: #5cb85c;
     color: #3c763d;
 }
-
 .lift-docs-notice.error {
     background: #f2dede;
     border-color: #d9534f;
     color: #a94442;
 }
-
 .lift-docs-notice.warning {
     background: #fcf8e3;
     border-color: #f0ad4e;
     color: #8a6d3b;
 }
-
 .lift-docs-notice.info {
     background: #d9edf7;
     border-color: #5bc0de;
     color: #31708f;
 }
-
 /* Responsive Admin */
 @media (max-width: 768px) {
     .lift-docs-dashboard {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
     .lift-docs-stats {
         flex-direction: column;
         gap: 10px;
     }
-    
     .analytics-stats {
         flex-direction: column;
         gap: 15px;
     }
-    
     .lift-docs-settings-page .form-table th,
     .lift-docs-settings-page .form-table td {
         display: block;
         width: 100%;
         padding: 5px 0;
     }
-    
     .lift-docs-settings-page .regular-text,
     .lift-docs-settings-page .small-text {
         width: 100%;
     }
 }
-
 /* Loading States */
 .lift-docs-loading {
     opacity: 0.6;
     pointer-events: none;
 }
-
 .lift-docs-spinner {
     display: inline-block;
     width: 16px;
@@ -516,19 +427,16 @@
     border-radius: 50%;
     margin-right: 5px;
 }
-
 /* Tooltips */
 .lift-docs-tooltip {
     position: relative;
     cursor: help;
 }
-
 .lift-docs-tooltip:hover::after {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 100%;
     left: 50%;
-    transform: translateX(-50%);
     background: #333;
     color: #fff;
     padding: 5px 10px;
@@ -538,18 +446,15 @@
     z-index: 1000;
     margin-bottom: 5px;
 }
-
 .lift-docs-tooltip:hover::before {
     content: '';
     position: absolute;
     bottom: 100%;
     left: 50%;
-    transform: translateX(-50%);
     border: 5px solid transparent;
     border-top-color: #333;
     z-index: 1000;
 }
-
 /* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
     .lift-docs-stat-box,
@@ -561,7 +466,6 @@
         border-color: #3c434a;
         color: #f0f0f1;
     }
-    
     .lift-docs-stat-box h3,
     .lift-docs-quick-actions h2,
     .lift-docs-recent h2,
@@ -569,14 +473,12 @@
     .analytics-charts h2 {
         color: #f0f0f1;
     }
-    
     .analytics-stats .stat-item {
         background: #1d2327;
         border-color: #3c434a;
         color: #f0f0f1;
     }
 }
-
 /* Custom columns styling for document list */
 .lift-url-field input,
 .lift-shortcode-field input {
@@ -588,145 +490,115 @@
     cursor: text;
     font-size: 11px;
 }
-
 .lift-url-field input:hover,
 .lift-shortcode-field input:hover {
     background: #fff;
     border-color: #0073aa;
 }
-
 .lift-url-field input:focus,
 .lift-shortcode-field input:focus {
     outline: none;
     background: #fff;
     border-color: #0073aa;
-    box-shadow: 0 0 3px rgba(0, 115, 170, 0.3);
 }
-
 .lift-url-field small,
 .lift-shortcode-field small {
     display: block;
     margin-top: 2px;
     font-size: 10px;
 }
-
 .lift-url-field small a,
 .lift-shortcode-field small a {
     color: #0073aa;
     text-decoration: none;
 }
-
 .lift-url-field small a:hover,
 .lift-shortcode-field small a:hover {
     text-decoration: underline;
 }
-
 /* Security status indicators */
 .lift-url-field.secure-url input {
     border-left: 3px solid #28a745;
 }
-
 .lift-url-field.public-url input {
     border-left: 3px solid #0073aa;
 }
-
 .lift-url-field.login-required input {
     border-left: 3px solid #ffc107;
     background: #fff8e1;
 }
-
 .lift-shortcode-field {
     max-width: 300px;
 }
-
 .lift-shortcode-field input {
     margin-bottom: 2px;
 }
-
 .lift-shortcode-field small {
     display: block;
     color: #666;
     font-size: 11px;
     margin-top: 2px;
 }
-
 .column-view_url,
 .column-download_url {
     width: 280px;
 }
-
 .column-shortcode {
     width: 320px;
 }
-
 .lift-stats {
     text-align: center;
 }
-
 .lift-stats strong {
     color: #0073aa;
     font-weight: 600;
 }
-
 .lift-url-field input:focus,
 .lift-shortcode-field input:focus {
     background: #fff;
     border-color: #007cba;
     outline: none;
-    box-shadow: 0 0 2px rgba(0, 124, 186, 0.3);
 }
-
 .lift-url-field small a {
     color: #0073aa;
     text-decoration: none;
 }
-
 .lift-url-field small a:hover {
     text-decoration: underline;
 }
-
 .lift-stats {
     font-size: 12px;
     line-height: 1.4;
 }
-
 .lift-stats strong {
     color: #0073aa;
     font-weight: 600;
 }
-
 /* Column width adjustments */
 .wp-list-table .column-view_url {
     width: 220px;
 }
-
 .wp-list-table .column-download_url {
     width: 200px;
 }
-
 .wp-list-table .column-shortcode {
     width: 180px;
 }
-
 .wp-list-table .column-views {
     width: 80px;
     text-align: center;
 }
-
 .wp-list-table .column-file_size {
     width: 80px;
     text-align: center;
 }
-
 .wp-list-table .column-category {
     width: 120px;
 }
-
 .wp-list-table .column-document_details {
     width: 100px;
     text-align: center;
 }
-
 /* Responsive adjustments */
 @media screen and (max-width: 1200px) {
     .wp-list-table .column-view_url,
@@ -734,13 +606,11 @@
     .wp-list-table .column-shortcode {
         width: 150px;
     }
-    
     .lift-url-field input,
     .lift-shortcode-field input {
         font-size: 10px;
     }
 }
-
 @media screen and (max-width: 960px) {
     .wp-list-table .column-view_url,
     .wp-list-table .column-download_url,
@@ -749,7 +619,6 @@
         display: none;
     }
 }
-
 /* Multiple Files Support Styles */
 .lift-doc-files-container {
     border: 1px solid #ddd;
@@ -758,17 +627,13 @@
     background: #fafafa;
     margin-bottom: 20px;
 }
-
     border: 1px solid #ddd;
     border-radius: 5px;
     background: white;
 }
-
 .file-input-row:hover {
     border-color: #007cba;
-    box-shadow: 0 0 0 1px rgba(0, 124, 186, 0.1);
 }
-
 .file-input-row .file-url-input {
     flex: 1;
     margin-right: 10px;
@@ -776,13 +641,10 @@
     border-radius: 3px;
     font-size: 14px;
 }
-
 .file-input-row .file-url-input:focus {
     border-color: #007cba;
-    box-shadow: 0 0 0 1px rgba(0, 124, 186, 0.25);
     outline: none;
 }
-
 .file-input-row .button {
     margin-left: 5px;
     font-size: 13px;
@@ -790,28 +652,21 @@
     border-radius: 3px;
     border: none;
     cursor: pointer;
-    transition: background-color 0.2s ease;
 }
-
 .file-input-row .upload-button {
     background: #007cba;
     color: white;
 }
-
 .file-input-row .upload-button:hover {
     background: #005a87;
 }
-
 .file-input-row .remove-file {
     background: #dc3545;
     color: white;
 }
-
 .file-input-row .remove-file:hover {
     background: #c82333;
 }
-
-
 /* Multiple download links styling */
 .multiple-download-links {
     margin-top: 25px;
@@ -820,7 +675,6 @@
     border-radius: 5px;
     padding: 20px;
 }
-
 .multiple-download-links h3 {
     margin: 0 0 15px 0;
     color: #495057;
@@ -829,7 +683,6 @@
     border-bottom: 2px solid #007cba;
     padding-bottom: 8px;
 }
-
 .download-link-item {
     margin-bottom: 20px;
     padding: 15px;
@@ -837,29 +690,20 @@
     border: 1px solid #dee2e6;
     border-radius: 5px;
     position: relative;
-    transition: box-shadow 0.2s ease;
 }
-
-.download-link-item:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 .download-link-item:last-child {
     margin-bottom: 0;
 }
-
 .download-link-item h4 {
     margin: 0 0 12px 0;
     color: #495057;
     font-size: 14px;
     font-weight: 600;
 }
-
 .download-link-item h4:before {
     content: "📄 ";
     margin-right: 5px;
 }
-
 .download-link-item textarea {
     width: 100%;
     min-height: 70px;
@@ -873,13 +717,11 @@
     line-height: 1.4;
     color: #495057;
 }
-
 .download-link-item textarea:focus {
     background: white;
     border-color: #007cba;
     outline: none;
 }
-
 .download-link-item .copy-link {
     margin-top: 10px;
     background: #007cba;
@@ -890,18 +732,14 @@
     cursor: pointer;
     font-size: 12px;
     font-weight: 500;
-    transition: background-color 0.2s ease;
 }
-
 .download-link-item .copy-link:hover {
     background: #005a87;
 }
-
 .download-link-item .copy-link:before {
     content: "📋 ";
     margin-right: 3px;
 }
-
 /* File counter */
 .file-counter {
     position: absolute;
@@ -914,7 +752,6 @@
     border-radius: 10px;
     font-weight: 500;
 }
-
 /* Empty state */
 .no-files-message {
     text-align: center;
@@ -926,13 +763,11 @@
     border-radius: 5px;
     margin: 10px 0;
 }
-
 /* Loading state */
 .generating-links {
     opacity: 0.6;
     position: relative;
 }
-
 .generating-links:after {
     content: "";
     position: absolute;
@@ -944,58 +779,44 @@
     border: 2px solid #007cba;
     border-radius: 50%;
     border-top-color: transparent;
-    animation: spin 1s linear infinite;
 }
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
 /* Responsive design for multiple files */
 @media (max-width: 768px) {
     .file-input-row {
         flex-direction: column;
         align-items: stretch;
     }
-    
     .file-input-row .file-url-input {
         margin-right: 0;
         margin-bottom: 10px;
     }
-    
     .file-input-row .button {
         margin-left: 0;
         margin-top: 5px;
         width: 100%;
     }
-    
     .multiple-download-links {
         padding: 15px;
     }
-    
     .download-link-item {
         padding: 12px;
     }
-    
     .download-link-item textarea {
         min-height: 80px;
         font-size: 10px;
     }
 }
-
 /* Document assignments column styling */
 .column-assignments {
     font-size: 13px;
     line-height: 1.4;
 }
-
 .column-assignments small {
     font-size: 11px;
     color: #666;
     margin-top: 2px;
     display: block;
 }
-
 /* Document assignments meta box styling */
 .document-assignments .selected-users-list {
     min-height: 40px;
@@ -1004,7 +825,6 @@
     background: #f9f9f9;
     padding: 8px;
 }
-
 .document-assignments .selected-user-tag {
     display: inline-block;
     background: #0073aa;
@@ -1013,50 +833,39 @@
     margin: 2px;
     border-radius: 3px;
     font-size: 12px;
-    animation: fadeIn 0.3s ease;
 }
-
 .document-assignments .remove-user {
     margin-left: 5px;
     cursor: pointer;
     font-weight: bold;
     opacity: 0.8;
-    transition: opacity 0.2s;
 }
-
 .document-assignments .remove-user:hover {
     opacity: 1;
     background-color: rgba(255,255,255,0.2);
     border-radius: 50%;
     padding: 1px 3px;
 }
-
 .document-assignments .users-search-results {
     max-height: 200px;
     overflow-y: auto;
     border: 1px solid #ddd;
     border-radius: 3px;
     background: #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     z-index: 1000;
     position: relative;
 }
-
 .document-assignments .user-search-item {
     padding: 8px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
-    transition: background-color 0.2s;
 }
-
 .document-assignments .user-search-item:hover {
     background-color: #f0f8ff;
 }
-
 .document-assignments .user-search-item:last-child {
     border-bottom: none;
 }
-
 .document-assignments #user-search-input {
     width: 100%;
     padding: 8px;
@@ -1065,46 +874,27 @@
     border-radius: 3px;
     font-size: 14px;
 }
-
 .document-assignments #user-search-input:focus {
     border-color: #0073aa;
-    box-shadow: 0 0 2px rgba(0, 115, 170, 0.8);
     outline: none;
 }
-
 .document-assignments .no-users-selected {
     color: #666;
     font-style: italic;
 }
-
 .document-assignments .description {
     margin-top: 10px;
     font-style: italic;
     color: #666;
 }
-
-@keyframes fadeIn {
-    from { 
-        opacity: 0; 
-        transform: scale(0.8); 
-    }
-    to { 
-        opacity: 1; 
-        transform: scale(1); 
-    }
-}
-
 @media (max-width: 480px) {
     .lift-doc-files-container {
         padding: 10px;
     }
-    
     .file-input-row {
         padding: 8px;
     }
-    
 }
-
 /* Alpha Color Picker Styles */
 .wp-picker-container .iris-alpha-slider {
     background: linear-gradient(to right, 
@@ -1125,7 +915,6 @@
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
     border-radius: 4px;
 }
-
 .wp-picker-container .iris-alpha-text {
     position: absolute;
     top: 2px;
@@ -1137,29 +926,22 @@
     border-radius: 2px;
     font-weight: 500;
 }
-
 .wp-picker-container .iris-alpha-slider .ui-slider-handle {
     background: #fff !important;
     border: 2px solid #999 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
     border-radius: 50% !important;
 }
-
 .wp-picker-container .iris-alpha-slider .ui-slider-handle:hover {
     border-color: #555 !important;
 }
-
 .wp-picker-container .iris-alpha-slider .ui-slider-handle:focus {
     border-color: #0073aa !important;
-    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.3) !important;
 }
-
 /* Color picker input styling */
 .color-picker-alpha {
     width: 100px !important;
     margin-right: 10px !important;
 }
-
 /* Enhanced color result display for alpha colors */
 .wp-color-result-alpha {
     background-size: 20px 20px;
@@ -1170,27 +952,22 @@
         linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
-
 /* Settings page specific styles for color pickers */
 .form-table .color-picker-alpha {
     max-width: 200px;
 }
-
 .form-table .wp-picker-container {
     margin-bottom: 10px;
 }
-
 .form-table .wp-picker-container .description {
     margin-top: 8px;
 }
-
 /* Improved visibility for alpha slider */
 .wp-picker-container .iris-picker {
     border: 1px solid #ddd;
     border-radius: 4px;
     overflow: hidden;
 }
-
 .wp-picker-container .iris-alpha-slider {
     margin-top: 5px;
     height: 20px !important;
