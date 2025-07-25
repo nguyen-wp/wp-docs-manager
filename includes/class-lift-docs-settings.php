@@ -41,6 +41,9 @@ class LIFT_Docs_Settings {
             }
         }
         
+        // Enqueue Font Awesome first
+        wp_enqueue_style('font-awesome-6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
+        
         // Enqueue WordPress media scripts - ALWAYS LOAD
         wp_enqueue_media();
         wp_enqueue_script('wp-color-picker');

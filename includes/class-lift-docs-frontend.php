@@ -33,6 +33,15 @@ class LIFT_Docs_Frontend {
         add_action('init', array($this, 'handle_document_view_online'));
         add_filter('document_class', array($this, 'add_document_classes'));
         add_action('wp_footer', array($this, 'add_document_tracking'));
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
+    }
+    
+    /**
+     * Enqueue frontend scripts and styles
+     */
+    public function enqueue_frontend_scripts() {
+        // Enqueue Font Awesome for frontend
+        wp_enqueue_style('font-awesome-6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
     }
     
     /**

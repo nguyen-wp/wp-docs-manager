@@ -142,9 +142,9 @@
             
             // Set view description
             if (filesCount > 1) {
-                $('#lift-view-description').text('📄 Xem trang document với ' + filesCount + ' files được đính kèm').show();
+                $('#lift-view-description').html('<i class="fas fa-file"></i> Xem trang document với ' + filesCount + ' files được đính kèm').show();
             } else if (filesCount === 1) {
-                $('#lift-view-description').text('📄 Xem trang document với 1 file được đính kèm').show();
+                $('#lift-view-description').html('<i class="fas fa-file"></i> Xem trang document với 1 file được đính kèm').show();
             } else {
                 $('#lift-view-description').text('⚠️ Chưa có file nào được upload').show();
             }
@@ -215,7 +215,7 @@
                     var fileIcon = getFileIcon(fileData.name);
                     secureHtml += '<div class="file-item" style="margin-bottom: 10px; padding: 10px; background: #f0f8ff; border-radius: 4px; border-left: 3px solid #0073aa;">';
                     secureHtml += '<div class="file-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">';
-                    secureHtml += '<span style="font-size: 16px;">🔒</span>';
+                    secureHtml += '<span style="font-size: 16px;"><i class="fas fa-lock"></i></span>';
                     secureHtml += '<span style="font-size: 14px;">' + fileIcon + '</span>';
                     secureHtml += '<strong style="color: #0073aa;">' + (fileData.name || 'File ' + (index + 1)) + '</strong>';
                     secureHtml += '</div>';
@@ -245,29 +245,26 @@
          * Get file icon based on file name
          */
         function getFileIcon(fileName) {
-            if (!fileName) return '📄';
+            if (!fileName) return '<i class="fas fa-file"></i>';
             
-            var ext = fileName.toLowerCase().split('.').pop();
+            const extension = fileName.split('.').pop().toLowerCase();
+            const icons = {
+                // Images
+                'jpg': '<i class="fas fa-image"></i>', 'jpeg': '<i class="fas fa-image"></i>', 'png': '<i class="fas fa-image"></i>', 'gif': '<i class="fas fa-image"></i>', 'webp': '<i class="fas fa-image"></i>', 'svg': '<i class="fas fa-image"></i>',
+                // Videos
+                'mp4': '<i class="fas fa-video"></i>', 'avi': '<i class="fas fa-video"></i>', 'mov': '<i class="fas fa-video"></i>', 'wmv': '<i class="fas fa-video"></i>', 'flv': '<i class="fas fa-video"></i>', 'webm': '<i class="fas fa-video"></i>',
+                // Audio
+                'mp3': '<i class="fas fa-music"></i>', 'wav': '<i class="fas fa-music"></i>', 'ogg': '<i class="fas fa-music"></i>', 'flac': '<i class="fas fa-music"></i>', 'aac': '<i class="fas fa-music"></i>',
+                // Documents
+                'pdf': '<i class="fas fa-file-pdf"></i>',
+                'doc': '<i class="fas fa-file-word"></i>', 'docx': '<i class="fas fa-file-word"></i>',
+                'xls': '<i class="fas fa-file-excel"></i>', 'xlsx': '<i class="fas fa-file-excel"></i>',
+                'ppt': '<i class="fas fa-file-powerpoint"></i>', 'pptx': '<i class="fas fa-file-powerpoint"></i>',
+                // Archives
+                'zip': '<i class="fas fa-file-archive"></i>', 'rar': '<i class="fas fa-file-archive"></i>', '7z': '<i class="fas fa-file-archive"></i>', 'tar': '<i class="fas fa-file-archive"></i>', 'gz': '<i class="fas fa-file-archive"></i>'
+            };
             
-            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
-                return '🖼️';
-            } else if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'].includes(ext)) {
-                return '🎥';
-            } else if (['mp3', 'wav', 'ogg', 'flac', 'aac'].includes(ext)) {
-                return '🎵';
-            } else if (ext === 'pdf') {
-                return '📕';
-            } else if (['doc', 'docx'].includes(ext)) {
-                return '📘';
-            } else if (['xls', 'xlsx'].includes(ext)) {
-                return '📗';
-            } else if (['ppt', 'pptx'].includes(ext)) {
-                return '📙';
-            } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
-                return '📦';
-            } else {
-                return '📄';
-            }
+            return icons[extension] || '<i class="fas fa-file"></i>';
         }
         
         /**

@@ -783,21 +783,21 @@ class LIFT_Docs_Layout {
     private function get_file_icon($extension) {
         $icons = array(
             // Images
-            'jpg' => '🖼️', 'jpeg' => '🖼️', 'png' => '🖼️', 'gif' => '🖼️', 'webp' => '🖼️', 'svg' => '🖼️',
+            'jpg' => '<i class="fas fa-image"></i>', 'jpeg' => '<i class="fas fa-image"></i>', 'png' => '<i class="fas fa-image"></i>', 'gif' => '<i class="fas fa-image"></i>', 'webp' => '<i class="fas fa-image"></i>', 'svg' => '<i class="fas fa-image"></i>',
             // Videos
-            'mp4' => '🎥', 'avi' => '🎥', 'mov' => '🎥', 'wmv' => '🎥', 'flv' => '🎥', 'webm' => '🎥',
+            'mp4' => '<i class="fas fa-video"></i>', 'avi' => '<i class="fas fa-video"></i>', 'mov' => '<i class="fas fa-video"></i>', 'wmv' => '<i class="fas fa-video"></i>', 'flv' => '<i class="fas fa-video"></i>', 'webm' => '<i class="fas fa-video"></i>',
             // Audio
-            'mp3' => '🎵', 'wav' => '🎵', 'ogg' => '🎵', 'flac' => '🎵', 'aac' => '🎵',
+            'mp3' => '<i class="fas fa-music"></i>', 'wav' => '<i class="fas fa-music"></i>', 'ogg' => '<i class="fas fa-music"></i>', 'flac' => '<i class="fas fa-music"></i>', 'aac' => '<i class="fas fa-music"></i>',
             // Documents
-            'pdf' => '📕',
-            'doc' => '📘', 'docx' => '📘',
-            'xls' => '📗', 'xlsx' => '📗',
-            'ppt' => '📙', 'pptx' => '📙',
+            'pdf' => '<i class="fas fa-file-pdf"></i>',
+            'doc' => '<i class="fas fa-file-word"></i>', 'docx' => '<i class="fas fa-file-word"></i>',
+            'xls' => '<i class="fas fa-file-excel"></i>', 'xlsx' => '<i class="fas fa-file-excel"></i>',
+            'ppt' => '<i class="fas fa-file-powerpoint"></i>', 'pptx' => '<i class="fas fa-file-powerpoint"></i>',
             // Archives
-            'zip' => '📦', 'rar' => '📦', '7z' => '📦', 'tar' => '📦', 'gz' => '📦'
+            'zip' => '<i class="fas fa-file-archive"></i>', 'rar' => '<i class="fas fa-file-archive"></i>', '7z' => '<i class="fas fa-file-archive"></i>', 'tar' => '<i class="fas fa-file-archive"></i>', 'gz' => '<i class="fas fa-file-archive"></i>'
         );
         
-        return $icons[strtolower($extension)] ?? '📄';
+        return $icons[strtolower($extension)] ?? '<i class="fas fa-file"></i>';
     }
     
     /**

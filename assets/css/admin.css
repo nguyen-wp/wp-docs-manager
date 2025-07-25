@@ -701,7 +701,9 @@
     font-weight: 600;
 }
 .download-link-item h4:before {
-    content: "📄 ";
+    content: "\f15b";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
     margin-right: 5px;
 }
 .download-link-item textarea {
@@ -737,7 +739,9 @@
     background: #005a87;
 }
 .download-link-item .copy-link:before {
-    content: "📋 ";
+    content: "\f328";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
     margin-right: 3px;
 }
 /* File counter */

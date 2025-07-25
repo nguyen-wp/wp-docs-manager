@@ -443,7 +443,9 @@ class LIFT_Docs_Admin {
         }
         
         .admin-modal-header h2::before {
-            content: '📄';
+            content: '\f15b'; /* fa-file */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
             font-size: 18px;
         }
         
@@ -576,7 +578,9 @@ class LIFT_Docs_Admin {
         }
         
         .view-url-box::before {
-            content: '🔗';
+            content: '\f0c1'; /* fa-link */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
             position: absolute;
             top: 15px;
             right: 15px;
@@ -656,7 +660,9 @@ class LIFT_Docs_Admin {
         }
         
         .form-badge::before {
-            content: '📋';
+            content: '\f15c'; /* fa-file-text */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
             margin-right: 6px;
         }
         
@@ -675,7 +681,9 @@ class LIFT_Docs_Admin {
         }
         
         .file-item::before {
-            content: '📎';
+            content: '\f0c6'; /* fa-paperclip */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
             position: absolute;
             top: 12px;
             right: 12px;
@@ -921,10 +929,10 @@ class LIFT_Docs_Admin {
                     if (response.success) {
                         $('#admin-modal-document-content').html(response.data.content);
                     } else {
-                        $('#admin-modal-document-content').html('<div style="text-align: center; padding: 40px;"><div style="color: #dc3232; font-size: 48px; margin-bottom: 20px;">⚠️</div><p style="color: #dc3232; font-weight: 600;"><?php _e('Error loading document details.', 'lift-docs-system'); ?></p><p style="color: #646970;"><?php _e('Please try again or contact administrator.', 'lift-docs-system'); ?></p></div>');
+                        $('#admin-modal-document-content').html('<div style="text-align: center; padding: 40px;"><i class="fas fa-exclamation-triangle" style="color: #dc3232; font-size: 48px; margin-bottom: 20px;"></i><p style="color: #dc3232; font-weight: 600;"><?php _e('Error loading document details.', 'lift-docs-system'); ?></p><p style="color: #646970;"><?php _e('Please try again or contact administrator.', 'lift-docs-system'); ?></p></div>');
                     }
                 }).fail(function() {
-                    $('#admin-modal-document-content').html('<div style="text-align: center; padding: 40px;"><div style="color: #dc3232; font-size: 48px; margin-bottom: 20px;">🔌</div><p style="color: #dc3232; font-weight: 600;"><?php _e('Network Error', 'lift-docs-system'); ?></p><p style="color: #646970;"><?php _e('Please check your connection and try again.', 'lift-docs-system'); ?></p></div>');
+                    $('#admin-modal-document-content').html('<div style="text-align: center; padding: 40px;"><i class="fas fa-plug" style="color: #dc3232; font-size: 48px; margin-bottom: 20px;"></i><p style="color: #dc3232; font-weight: 600;"><?php _e('Network Error', 'lift-docs-system'); ?></p><p style="color: #646970;"><?php _e('Please check your connection and try again.', 'lift-docs-system'); ?></p></div>');
                 });
             });
             
@@ -1099,7 +1107,7 @@ class LIFT_Docs_Admin {
         ?>
         <div class="<?php echo esc_attr($view_class); ?>">
             <a href="<?php echo esc_url($view_url); ?>" class="button" target="_blank" title="<?php _e('Open in new tab', 'lift-docs-system'); ?>">
-                <?php echo $can_view ? __('Preview', 'lift-docs-system') : '🔒 ' . __('Login Required', 'lift-docs-system'); ?>
+                <?php echo $can_view ? __('Preview', 'lift-docs-system') : '<i class="fas fa-lock"></i> ' . __('Login Required', 'lift-docs-system'); ?>
             </a>
         </div>
         <?php
@@ -1360,7 +1368,7 @@ class LIFT_Docs_Admin {
                             <div class="file-input-row" data-index="0">
                                 <input type="url" name="lift_doc_file_urls[]" value="" class="file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
                                 <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Upload', 'lift-docs-system'); ?></button>
-                                <button type="button" class="button button-danger remove-file-button button-large" style="display: none;"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button button-danger remove-file-button button-large" style="display: none;"><?php _e('<i class="fas fa-times"></i> Remove', 'lift-docs-system'); ?></button>
                                 <!-- <span class="file-size-display"></span> -->
                             </div>
                         <?php else: ?>
@@ -1368,11 +1376,11 @@ class LIFT_Docs_Admin {
                             <div class="file-input-row" data-index="<?php echo $index; ?>">
                                 <input type="url" name="lift_doc_file_urls[]" value="<?php echo esc_attr($url); ?>" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
                                 <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Upload', 'lift-docs-system'); ?></button>
-                                <button type="button" class="button button-danger remove-file-button button-large" <?php echo count($file_urls) <= 1 ? 'style="display: none;"' : ''; ?>><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button button-danger remove-file-button button-large" <?php echo count($file_urls) <= 1 ? 'style="display: none;"' : ''; ?>><i class="fas fa-times"></i> <?php _e('Remove', 'lift-docs-system'); ?></button>
                                 <!-- <span class="file-size-display">
                                     <?php if ($url): ?>
                                         <span style="color: #0073aa; font-weight: 500;">
-                                            📄 <?php echo basename(parse_url($url, PHP_URL_PATH)); ?>
+                                            <i class="fas fa-file"></i> <?php echo basename(parse_url($url, PHP_URL_PATH)); ?>
                                         </span>
                                     <?php endif; ?>
                                 </span> -->
@@ -1403,7 +1411,7 @@ class LIFT_Docs_Admin {
             ?>
             <tr>
                 <th colspan="2" style="padding-top: 25px; border-top: 1px solid #ddd;">
-                    <h3 style="margin: 0; color: #23282d;"><?php _e('🔒 Secure Links', 'lift-docs-system'); ?></h3>
+                    <h3 style="margin: 0; color: #23282d;"><i class="fas fa-lock"></i> <?php _e('Secure Links', 'lift-docs-system'); ?></h3>
                 </th>
             </tr>
             <tr>
@@ -1472,7 +1480,7 @@ class LIFT_Docs_Admin {
             <?php elseif (class_exists('LIFT_Docs_Settings')): ?>
             <tr>
                 <th colspan="2" style="padding-top: 25px; border-top: 1px solid #ddd;">
-                    <h3 style="margin: 0; color: #666;"><?php _e('🔒 Secure Links', 'lift-docs-system'); ?></h3>
+                    <h3 style="margin: 0; color: #666;"><i class="fas fa-lock"></i> <?php _e('Secure Links', 'lift-docs-system'); ?></h3>
                 </th>
             </tr>
             <tr>
@@ -1501,7 +1509,7 @@ class LIFT_Docs_Admin {
                         <div class="file-input-row" data-index="${fileIndex}">
                             <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
                             <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Upload', 'lift-docs-system'); ?></button>
-                            <button type="button" class="button button-danger remove-file-button button-large"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                            <button type="button" class="button button-danger remove-file-button button-large"><?php _e('<i class="fas fa-times"></i> Remove', 'lift-docs-system'); ?></button>
                             <span class="file-size-display"></span>
                         </div>
                     `);
@@ -1560,23 +1568,23 @@ class LIFT_Docs_Admin {
                         const fileType = attachment.subtype || attachment.type || 'file';
                         
                         // Choose appropriate icon based on file type
-                        let fileIcon = '📄'; // Default document icon
+                        let fileIcon = '<i class="fas fa-file"></i>'; // Default document icon
                         if (attachment.type === 'image') {
-                            fileIcon = '🖼️';
+                            fileIcon = '<i class="fas fa-image"></i>';
                         } else if (attachment.type === 'video') {
-                            fileIcon = '🎥';
+                            fileIcon = '<i class="fas fa-video"></i>';
                         } else if (attachment.type === 'audio') {
-                            fileIcon = '🎵';
+                            fileIcon = '<i class="fas fa-music"></i>';
                         } else if (fileType.includes('pdf')) {
-                            fileIcon = '📕';
+                            fileIcon = '<i class="fas fa-file-pdf"></i>';
                         } else if (fileType.includes('word') || fileType.includes('doc')) {
-                            fileIcon = '📘';
+                            fileIcon = '<i class="fas fa-file-word"></i>';
                         } else if (fileType.includes('excel') || fileType.includes('sheet')) {
-                            fileIcon = '📗';
+                            fileIcon = '<i class="fas fa-file-excel"></i>';
                         } else if (fileType.includes('powerpoint') || fileType.includes('presentation')) {
-                            fileIcon = '📙';
+                            fileIcon = '<i class="fas fa-file-powerpoint"></i>';
                         } else if (fileType.includes('zip') || fileType.includes('rar')) {
-                            fileIcon = '📦';
+                            fileIcon = '<i class="fas fa-file-archive"></i>';
                         }
                         
                         sizeDisplay.html(`
@@ -1593,7 +1601,7 @@ class LIFT_Docs_Admin {
                         
                         // Show success feedback
                         const originalText = button.text();
-                        button.text('✅ <?php _e('Uploaded', 'lift-docs-system'); ?>');
+                        button.html('<i class="fas fa-check"></i> <?php _e('Uploaded', 'lift-docs-system'); ?>');
                         setTimeout(function() {
                             button.text(originalText);
                         }, 2000);
@@ -1624,7 +1632,7 @@ class LIFT_Docs_Admin {
                             <div class="file-input-row" data-index="0">
                                 <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
                                 <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Upload', 'lift-docs-system'); ?></button>
-                                <button type="button" class="button button-danger remove-file-button button-large" style="display: none;"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                                <button type="button" class="button button-danger remove-file-button button-large" style="display: none;"><i class="fas fa-times"></i> <?php _e('Remove', 'lift-docs-system'); ?></button>
                                 <span class="file-size-display"></span>
                             </div>
                         `);
@@ -1645,7 +1653,7 @@ class LIFT_Docs_Admin {
                         <div class="file-input-row" data-index="${fileIndex}">
                             <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL', 'lift-docs-system'); ?>" />
                             <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Browse', 'lift-docs-system'); ?></button>
-                            <button type="button" class="button button-danger remove-file-button button-large"><?php _e('✖ Remove', 'lift-docs-system'); ?></button>
+                            <button type="button" class="button button-danger remove-file-button button-large"><?php _e('<i class="fas fa-times"></i> Remove', 'lift-docs-system'); ?></button>
                             <span class="file-size-display"></span>
                         </div>
                     `);
@@ -1688,24 +1696,24 @@ class LIFT_Docs_Admin {
                             const fileSize = formatFileSize(file.size);
                             
                             // Choose appropriate icon based on file type
-                            let fileIcon = '📄'; // Default document icon
+                            let fileIcon = '<i class="fas fa-file"></i>'; // Default document icon
                             const fileType = file.type.toLowerCase();
                             if (fileType.startsWith('image/')) {
-                                fileIcon = '🖼️';
+                                fileIcon = '<i class="fas fa-image"></i>';
                             } else if (fileType.startsWith('video/')) {
-                                fileIcon = '🎥';
+                                fileIcon = '<i class="fas fa-video"></i>';
                             } else if (fileType.startsWith('audio/')) {
-                                fileIcon = '🎵';
+                                fileIcon = '<i class="fas fa-music"></i>';
                             } else if (fileType.includes('pdf')) {
-                                fileIcon = '📕';
+                                fileIcon = '<i class="fas fa-file-pdf"></i>';
                             } else if (fileType.includes('word') || fileType.includes('document')) {
-                                fileIcon = '📘';
+                                fileIcon = '<i class="fas fa-file-word"></i>';
                             } else if (fileType.includes('excel') || fileType.includes('sheet')) {
-                                fileIcon = '📗';
+                                fileIcon = '<i class="fas fa-file-excel"></i>';
                             } else if (fileType.includes('powerpoint') || fileType.includes('presentation')) {
-                                fileIcon = '📙';
+                                fileIcon = '<i class="fas fa-file-powerpoint"></i>';
                             } else if (fileType.includes('zip') || fileType.includes('rar')) {
-                                fileIcon = '📦';
+                                fileIcon = '<i class="fas fa-file-archive"></i>';
                             }
                             
                             sizeDisplay.html(`
@@ -1766,6 +1774,7 @@ class LIFT_Docs_Admin {
             background: #f8f9fa;
             border-radius: 4px;
             border: 1px solid #e9ecef;
+            display: none;
         }
         
         .file-size-display:empty {
@@ -2606,6 +2615,9 @@ class LIFT_Docs_Admin {
      */
     public function enqueue_admin_scripts($hook) {
         global $pagenow, $post_type;
+        
+        // Enqueue Font Awesome for all admin pages of this plugin
+        wp_enqueue_style('font-awesome-6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
         
         // Enqueue LIFT Forms scripts on forms pages
         if (strpos($hook, 'lift-forms') !== false && class_exists('LIFT_Forms')) {

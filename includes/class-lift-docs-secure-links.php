@@ -531,7 +531,7 @@ class LIFT_Docs_Secure_Links {
                 
                 <?php if ($settings['show_secure_access_notice']): ?>
                 <div class="secure-header">
-                    <div class="secure-badge">🔒 Secure Access</div>
+                    <div class="secure-badge"><i class="fas fa-lock"></i> Secure Access</div>
                     <p style="margin: 0; opacity: 0.9;"><?php _e('You are viewing this document via a secure encrypted link.', 'lift-docs-system'); ?></p>
                 </div>
                 <?php endif; ?>
@@ -586,7 +586,7 @@ class LIFT_Docs_Secure_Links {
                     
                     <?php if ($settings['show_download_button'] && !empty($file_urls)): ?>
                     <div class="document-files">
-                        <h3><?php _e('📄 Document Files', 'lift-docs-system'); ?></h3>
+                        <h3><i class="fas fa-file"></i> <?php _e('Document Files', 'lift-docs-system'); ?></h3>
                         
                         <?php foreach ($file_urls as $index => $file_url): ?>
                         <?php
@@ -610,13 +610,13 @@ class LIFT_Docs_Secure_Links {
                                 <?php if ($settings['show_view_buttons'] ?? true): ?>
                                 <a href="<?php echo esc_url($this->get_secure_view_url($document->ID, $index)); ?>" 
                                    class="btn btn-secondary" target="_blank">
-                                    👁️ <?php _e('View', 'lift-docs-system'); ?>
+                                    <i class="fas fa-eye"></i> <?php _e('View', 'lift-docs-system'); ?>
                                 </a>
                                 <?php endif; ?>
                                 
                                 <a href="<?php echo esc_url($secure_download_url); ?>" 
                                    class="btn btn-primary">
-                                    ⬇️ <?php _e('Download', 'lift-docs-system'); ?>
+                                    <i class="fas fa-download"></i> <?php _e('Download', 'lift-docs-system'); ?>
                                 </a>
                             </div>
                         </div>
@@ -696,7 +696,7 @@ class LIFT_Docs_Secure_Links {
                 
                 <?php if ($settings['show_secure_access_notice']): ?>
                 <div class="secure-access-notice">
-                    <span class="security-badge"><?php _e('🔒 Secure Access', 'lift-docs-system'); ?></span>
+                    <span class="security-badge"><i class="fas fa-lock"></i> <?php _e('Secure Access', 'lift-docs-system'); ?></span>
                     <p><?php _e('You are viewing this document via a secure encrypted link.', 'lift-docs-system'); ?></p>
                 </div>
                 <?php endif; ?>
@@ -746,7 +746,7 @@ class LIFT_Docs_Secure_Links {
                         <?php if ($settings['show_download_button'] && !empty($file_urls)): ?>
                         <div class="document-download">
                             
-                                <h3><?php _e('📄 Download Files', 'lift-docs-system'); ?></h3>
+                                <h3><i class="fas fa-file"></i> <?php _e('Download Files', 'lift-docs-system'); ?></h3>
                                 <div class="multiple-downloads">
                                     <?php foreach ($file_urls as $index => $url): ?>
                                         <?php 
@@ -1058,7 +1058,7 @@ class LIFT_Docs_Secure_Links {
                 <?php endif; ?>
                 
                 <div class="lift-access-denied-wrapper">
-                    <div class="error-icon">🔒</div>
+                    <div class="error-icon"><i class="fas fa-lock" style="font-size: 4em; color: #dc3232;"></i></div>
                     
                     <h1 class="error-title"><?php _e('Access Denied', 'lift-docs-system'); ?></h1>
                     
@@ -1068,10 +1068,10 @@ class LIFT_Docs_Secure_Links {
                     
                     <div class="error-actions">
                         <a href="<?php echo home_url('/document-login/'); ?>" class="btn btn-primary">
-                            🔐 <?php _e('Document Login', 'lift-docs-system'); ?>
+                            <i class="fas fa-lock"></i> <?php _e('Document Login', 'lift-docs-system'); ?>
                         </a>
                         <a href="<?php echo home_url(); ?>" class="btn btn-secondary">
-                            🏠 <?php _e('Return Home', 'lift-docs-system'); ?>
+                            <i class="fas fa-home"></i> <?php _e('Return Home', 'lift-docs-system'); ?>
                         </a>
                     </div>
                     
@@ -1731,35 +1731,35 @@ class LIFT_Docs_Secure_Links {
      */
     private function get_file_icon($extension) {
         $icons = array(
-            'PDF' => '📄',
-            'DOC' => '📝',
-            'DOCX' => '📝',
-            'XLS' => '📊',
-            'XLSX' => '📊',
-            'PPT' => '📊',
-            'PPTX' => '📊',
-            'TXT' => '📄',
-            'RTF' => '📄',
-            'ZIP' => '🗜️',
-            'RAR' => '🗜️',
-            '7Z' => '🗜️',
-            'JPG' => '🖼️',
-            'JPEG' => '🖼️',
-            'PNG' => '🖼️',
-            'GIF' => '🖼️',
-            'MP4' => '🎥',
-            'AVI' => '🎥',
-            'MOV' => '🎥',
-            'MP3' => '🎵',
-            'WAV' => '🎵',
-            'CSV' => '📊',
-            'XML' => '📄',
-            'HTML' => '🌐',
-            'CSS' => '🎨',
-            'JS' => '⚙️'
+            'PDF' => '<i class="fas fa-file-pdf"></i>',
+            'DOC' => '<i class="fas fa-file-word"></i>',
+            'DOCX' => '<i class="fas fa-file-word"></i>',
+            'XLS' => '<i class="fas fa-file-excel"></i>',
+            'XLSX' => '<i class="fas fa-file-excel"></i>',
+            'PPT' => '<i class="fas fa-file-powerpoint"></i>',
+            'PPTX' => '<i class="fas fa-file-powerpoint"></i>',
+            'TXT' => '<i class="fas fa-file-alt"></i>',
+            'RTF' => '<i class="fas fa-file-alt"></i>',
+            'ZIP' => '<i class="fas fa-file-archive"></i>',
+            'RAR' => '<i class="fas fa-file-archive"></i>',
+            '7Z' => '<i class="fas fa-file-archive"></i>',
+            'JPG' => '<i class="fas fa-image"></i>',
+            'JPEG' => '<i class="fas fa-image"></i>',
+            'PNG' => '<i class="fas fa-image"></i>',
+            'GIF' => '<i class="fas fa-image"></i>',
+            'MP4' => '<i class="fas fa-video"></i>',
+            'AVI' => '<i class="fas fa-video"></i>',
+            'MOV' => '<i class="fas fa-video"></i>',
+            'MP3' => '<i class="fas fa-music"></i>',
+            'WAV' => '<i class="fas fa-music"></i>',
+            'CSV' => '<i class="fas fa-file-csv"></i>',
+            'XML' => '<i class="fas fa-file-code"></i>',
+            'HTML' => '<i class="fas fa-file-code"></i>',
+            'CSS' => '<i class="fas fa-file-code"></i>',
+            'JS' => '<i class="fas fa-file-code"></i>'
         );
         
-        return isset($icons[$extension]) ? $icons[$extension] : '📄';
+        return isset($icons[$extension]) ? $icons[$extension] : '<i class="fas fa-file"></i>';
     }
     
     /**
