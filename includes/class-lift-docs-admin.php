@@ -1479,7 +1479,7 @@ class LIFT_Docs_Admin {
                 if (filteredForms.length > 0) {
                     var html = '';
                     filteredForms.forEach(function(form) {
-                        html += '<div class="form-search-item" data-form-id="' + form.id + '" style="padding: 8px; border-bottom: 1px solid #eee; cursor: pointer;">';
+                        html += '<div class="form-search-item" data-form-id="' + form.id + '" style="padding: 8px; border-bottom: 1px solid #eee; cursor: pointer;" title="Click to select this form">';
                         html += '<div style="font-weight: 500; display: flex; justify-content: space-between; align-items: center;">';
                         html += '<span>' + form.name + '</span>';
                         html += '</div>';
@@ -1503,21 +1503,33 @@ class LIFT_Docs_Admin {
             });
             
             // Add form when clicked
-            $(document).on('click', '.form-search-item', function() {
+            $(document).on('click', '.form-search-item', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 var formId = parseInt($(this).data('form-id'));
-                var formData = allForms.find(function(f) { return f.id === formId; });
+                var formData = allForms.find(function(f) { return f.id == formId; });
                 
                 if (formData && !isFormSelected(formId)) {
-                    addForm(formId, formData.name, formData.description);
+                    selectedForms.push(formId);
+                    updateSelectedFormsDisplay();
+                    updateFormsCount();
                     $('#form-search-input').val('');
                     $('.forms-search-results').hide();
                 }
             });
             
             // Remove form when X is clicked
-            $(document).on('click', '.remove-form', function() {
+            $(document).on('click', '.remove-form', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 var formId = parseInt($(this).data('form-id'));
-                removeForm(formId);
+                selectedForms = selectedForms.filter(function(id) {
+                    return id != formId;
+                });
+                updateSelectedFormsDisplay();
+                updateFormsCount();
             });
             
             // Select all forms
@@ -1539,6 +1551,7 @@ class LIFT_Docs_Admin {
             });
             
             function addForm(formId, formName, formDescription) {
+                formId = parseInt(formId);
                 if (!isFormSelected(formId)) {
                     selectedForms.push(formId);
                     updateSelectedFormsDisplay();
@@ -1547,34 +1560,38 @@ class LIFT_Docs_Admin {
             }
             
             function removeForm(formId) {
+                formId = parseInt(formId);
                 selectedForms = selectedForms.filter(function(id) {
-                    return id !== formId;
+                    return parseInt(id) !== formId;
                 });
                 updateSelectedFormsDisplay();
                 updateFormsCount();
             }
             
             function isFormSelected(formId) {
-                return selectedForms.includes(formId);
+                return selectedForms.some(function(id) {
+                    return id == formId;
+                });
             }
             
             function updateSelectedFormsDisplay() {
                 var container = $('.selected-forms-list');
                 var noFormsMessage = $('.no-forms-selected');
                 
+                // Clear existing tags and hidden inputs
+                container.find('.selected-form-tag').remove();
+                
                 if (selectedForms.length === 0) {
-                    container.find('.selected-form-tag').remove();
                     noFormsMessage.show();
                 } else {
                     noFormsMessage.hide();
-                    container.find('.selected-form-tag').remove();
                     
                     selectedForms.forEach(function(formId) {
-                        var formData = allForms.find(function(f) { return f.id === formId; });
+                        var formData = allForms.find(function(f) { return f.id == formId; });
                         if (formData) {
                             var tagHtml = '<span class="selected-form-tag" data-form-id="' + formId + '" style="display: inline-block; background: #0073aa; color: #fff; padding: 4px 8px; margin: 2px; border-radius: 3px; font-size: 12px;">';
                             tagHtml += formData.name;
-                            tagHtml += '<span class="remove-form" data-form-id="' + formId + '" style="margin-left: 5px; cursor: pointer; font-weight: bold;">&times;</span>';
+                            tagHtml += '<span class="remove-form" data-form-id="' + formId + '" style="margin-left: 5px; cursor: pointer; font-weight: bold; user-select: none;" title="Remove this form">&times;</span>';
                             tagHtml += '<input type="hidden" name="lift_doc_assigned_forms[]" value="' + formId + '">';
                             tagHtml += '</span>';
                             container.append(tagHtml);
@@ -1590,12 +1607,25 @@ class LIFT_Docs_Admin {
         </script>
         
         <style>
+        .form-search-item {
+            transition: background-color 0.2s ease;
+        }
+        
         .form-search-item:hover {
-            background: #f0f0f1;
+            background: #f0f0f1 !important;
+        }
+        
+        .form-search-item:active {
+            background: #e0e0e0 !important;
+        }
+        
+        .remove-form {
+            transition: color 0.2s ease;
         }
         
         .remove-form:hover {
-            color: #dc3232;
+            color: #dc3232 !important;
+            transform: scale(1.2);
         }
         
         #form-search-input:focus {
@@ -1628,6 +1658,31 @@ class LIFT_Docs_Admin {
             padding: 8px;
             background: #f9f9f9;
             line-height: 1.4;
+        }
+        
+        .no-forms-selected {
+            color: #666;
+            font-style: italic;
+            display: block;
+        }
+        
+        .selected-form-tag {
+            display: inline-block;
+            background: #0073aa;
+            color: #fff;
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: default;
+        }
+        
+        .selected-form-tag .remove-form {
+            margin-left: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+        }
         }
         
         .no-forms-selected {
