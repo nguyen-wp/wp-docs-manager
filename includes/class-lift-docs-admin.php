@@ -1428,19 +1428,20 @@ class LIFT_Docs_Admin {
                 
                 <!-- Search and Add Forms -->
                 <div class="add-forms-container">
-                    <label for="form-search-input"><strong><?php _e('Search & Add Forms:', 'lift-docs-system'); ?></strong></label>
-                    <input type="text" id="form-search-input" placeholder="<?php _e('Type to search for forms...', 'lift-docs-system'); ?>" class="regular-text" autocomplete="off" />
-                    <div class="forms-search-results" style="display: none; border: 1px solid #ddd; border-top: none; border-radius: 0 0 3px 3px; max-height: 200px; overflow-y: auto; background: white; z-index: 1000; position: relative;">
+                    <label for="form-search-input"><strong><?php _e('Add Forms:', 'lift-docs-system'); ?></strong></label>
+                    <input type="text" id="form-search-input" placeholder="<?php _e('Search forms by name or description...', 'lift-docs-system'); ?>" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px;">
+                    
+                    <div class="forms-search-results" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 3px; background: #fff; display: none;">
                         <!-- Search results will be populated here -->
                     </div>
                 </div>
                 
                 <div style="margin-top: 10px;">
                     <button type="button" id="select-all-forms" class="button button-secondary" style="margin-right: 10px;">
-                        <i class="fas fa-check-square"></i> <?php _e('Select All', 'lift-docs-system'); ?>
+                        <?php _e('Select All', 'lift-docs-system'); ?>
                     </button>
                     <button type="button" id="clear-all-forms" class="button button-secondary">
-                        <i class="fas fa-times-circle"></i> <?php _e('Clear All', 'lift-docs-system'); ?>
+                        <?php _e('Clear All', 'lift-docs-system'); ?>
                     </button>
                 </div>
                 
@@ -1485,19 +1486,18 @@ class LIFT_Docs_Admin {
                 if (filteredForms.length > 0) {
                     var html = '';
                     filteredForms.forEach(function(form) {
-                        html += '<div class="form-search-item" data-form-id="' + form.id + '" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">';
-                        html += '<div>';
-                        html += '<strong>' + form.name + '</strong>';
-                        if (form.description) {
-                            html += '<br><small style="color: #666;">' + form.description + '</small>';
-                        }
+                        html += '<div class="form-search-item" data-form-id="' + form.id + '" style="padding: 8px; border-bottom: 1px solid #eee; cursor: pointer;">';
+                        html += '<div style="font-weight: 500; display: flex; justify-content: space-between; align-items: center;">';
+                        html += '<span>' + form.name + '</span>';
                         html += '</div>';
-                        html += '<i class="fas fa-plus-circle" style="color: #0073aa; font-size: 16px;"></i>';
+                        if (form.description) {
+                            html += '<div style="font-size: 12px; color: #666;">' + form.description + '</div>';
+                        }
                         html += '</div>';
                     });
                     results.html(html).show();
                 } else {
-                    results.html('<div style="padding: 10px; color: #666; font-style: italic;"><i class="fas fa-search"></i> ' + 
+                    results.html('<div style="padding: 10px; color: #666; font-style: italic;">' + 
                                 '<?php _e('No forms found or all forms already selected', 'lift-docs-system'); ?></div>').show();
                 }
             });
@@ -1579,10 +1579,9 @@ class LIFT_Docs_Admin {
                     selectedForms.forEach(function(formId) {
                         var formData = allForms.find(function(f) { return f.id === formId; });
                         if (formData) {
-                            var tagHtml = '<span class="selected-form-tag" style="display: inline-block; background: #0073aa; color: white; padding: 4px 8px; margin: 2px; border-radius: 12px; font-size: 11px; position: relative;">';
-                            tagHtml += '<i class="fas fa-file-alt" style="margin-right: 4px;"></i>';
-                            tagHtml += '<strong>' + formData.name + '</strong>';
-                            tagHtml += '<span class="remove-form" data-form-id="' + formId + '" style="margin-left: 6px; cursor: pointer; font-weight: bold; opacity: 0.8;" title="<?php _e('Remove form', 'lift-docs-system'); ?>">&times;</span>';
+                            var tagHtml = '<span class="selected-form-tag" data-form-id="' + formId + '" style="display: inline-block; background: #0073aa; color: #fff; padding: 4px 8px; margin: 2px; border-radius: 3px; font-size: 12px;">';
+                            tagHtml += formData.name;
+                            tagHtml += '<span class="remove-form" data-form-id="' + formId + '" style="margin-left: 5px; cursor: pointer; font-weight: bold;">&times;</span>';
                             tagHtml += '<input type="hidden" name="lift_doc_assigned_forms[]" value="' + formId + '">';
                             tagHtml += '</span>';
                             container.append(tagHtml);
@@ -1592,23 +1591,18 @@ class LIFT_Docs_Admin {
             }
             
             function updateFormsCount() {
-                $('#forms-count').html('<i class="fas fa-info-circle"></i> <?php _e('Total Forms:', 'lift-docs-system'); ?> ' + totalForms + ' | <strong><?php _e('Selected:', 'lift-docs-system'); ?> ' + selectedForms.length + '</strong>');
+                $('#forms-count').html('<?php _e('Total Forms:', 'lift-docs-system'); ?> ' + totalForms + ' | <?php _e('Selected:', 'lift-docs-system'); ?> ' + selectedForms.length);
             }
         });
         </script>
         
         <style>
         .form-search-item:hover {
-            background: #f0f8ff;
-        }
-        
-        .selected-form-tag {
-            /* Animation removed */
+            background: #f0f0f1;
         }
         
         .remove-form:hover {
-            opacity: 1;
-            color: #ff6b6b;
+            color: #dc3232;
         }
         
         #form-search-input:focus {
@@ -1618,16 +1612,12 @@ class LIFT_Docs_Admin {
         
         .forms-search-results {
             border: 1px solid #ddd;
-            border-top: none;
-            border-radius: 0 0 3px 3px;
+            border-radius: 3px;
             max-height: 200px;
             overflow-y: auto;
             background: white;
-            position: absolute;
-            left: 0;
-            right: 0;
+            position: relative;
             z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .add-forms-container {
@@ -1643,7 +1633,7 @@ class LIFT_Docs_Admin {
             border: 1px solid #ddd;
             border-radius: 3px;
             padding: 8px;
-            background: #f9f9fa;
+            background: #f9f9f9;
             line-height: 1.4;
         }
         
@@ -1651,20 +1641,6 @@ class LIFT_Docs_Admin {
             color: #666;
             font-style: italic;
             display: block;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .selected-form-tag {
-                display: block;
-                margin: 4px 0;
-            }
-            
-            .form-search-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
         }
         </style>
         <?php

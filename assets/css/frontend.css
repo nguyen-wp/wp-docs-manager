@@ -11,7 +11,7 @@
 .lift-document-meta {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
-    border-radius: 8px;
+    border-radius: 3px;
     padding: 1.5rem;
     margin: 1.5rem 0;
     font-size: 0.9em;
@@ -40,7 +40,7 @@
 .lift-document-actions {
     background: #fff;
     border: 1px solid #e9ecef;
-    border-radius: 8px;
+    border-radius: 3px;
     padding: 1.5rem;
     margin: 2rem 0;
     text-align: center;

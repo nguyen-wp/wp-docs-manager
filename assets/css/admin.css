@@ -1,11 +1,7 @@
 /**
- * Admin Styles for LIFT Docs System - NO ANIMATIONS
+ * Admin Styles for LIFT Docs System
  */
-/* Global animation disabling */
-*, *::before, *::after {
-    -webkit-
-    -webkit-
-}
+
 /* Dashboard Styles */
 .lift-docs-dashboard {
     display: grid;
@@ -21,7 +17,7 @@
 .lift-docs-stat-box {
     background: white;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 3px;
     padding: 20px;
     text-align: center;
     flex: 1;
@@ -41,16 +37,15 @@
 .lift-docs-quick-actions {
     background: #fff;
     border: 1px solid #e1e1e1;
-    border-radius: 8px;
+    border-radius: 3px;
     padding: 20px;
 }
 /* Secure Links Styles */
 .lift-docs-secure-links {
     background: #fff;
     border: 1px solid #e1e1e1;
-    border-radius: 8px;
+    border-radius: 3px;
     padding: 20px;
-    margin-top: 20px;
 }
 .lift-secure-link-generator {
     border: 1px solid #ddd;
@@ -114,10 +109,10 @@
 .security-status {
     display: inline-block;
     padding: 3px 8px;
-    border-radius: 12px;
+    border-radius: 3px;
     font-size: 11px;
     font-weight: 500;
-    text-
+    text-transform: uppercase;
 }
 .security-status.enabled {
     background: #d4edda;
@@ -627,8 +622,10 @@
     background: #fafafa;
     margin-bottom: 20px;
 }
+
+.file-input-row {
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 3px;
     background: white;
 }
 .file-input-row:hover {
