@@ -98,6 +98,7 @@ class LIFT_Docs_Admin {
             array($this, 'users_page')
         );
         
+      
         // LIFT Forms submenu
         add_submenu_page(
             'edit.php?post_type=lift_document',
@@ -125,6 +126,17 @@ class LIFT_Docs_Admin {
             'lift-forms-submissions',
             array($this, 'forms_submissions_page')
         );
+
+          add_submenu_page(
+            'edit.php?post_type=lift_document',
+            __('Settings', 'lift-docs-system'),
+            __('Settings', 'lift-docs-system'),
+            'manage_options',
+            'lift-docs-settings',
+            array($this, 'settings_page')
+        );
+        
+
     }
     
     /**
@@ -148,6 +160,40 @@ class LIFT_Docs_Admin {
                     <?php $this->display_documents_users(); ?>
                 </div>
             </div>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Settings page
+     */
+    public function settings_page() {
+        ?>
+        <div class="wrap">
+            <h1><?php _e('LIFT Docs Settings', 'lift-docs-system'); ?></h1>
+            
+            <?php
+            // Check if LIFT_Docs_Settings class exists
+            if (class_exists('LIFT_Docs_Settings')) {
+                $settings = LIFT_Docs_Settings::get_instance();
+                if (method_exists($settings, 'admin_page')) {
+                    $settings->admin_page();
+                } else {
+                    // Fallback if admin_page method doesn't exist
+                    ?>
+                    <div class="notice notice-info">
+                        <p><?php _e('Settings functionality is being loaded...', 'lift-docs-system'); ?></p>
+                    </div>
+                    <?php
+                }
+            } else {
+                ?>
+                <div class="notice notice-warning">
+                    <p><?php _e('Settings class not found. Please check if the settings module is properly loaded.', 'lift-docs-system'); ?></p>
+                </div>
+                <?php
+            }
+            ?>
         </div>
         <?php
     }
