@@ -89,14 +89,7 @@ class LIFT_Docs_Admin {
             'edit-tags.php?taxonomy=lift_doc_category&post_type=lift_document'
         );
         
-        add_submenu_page(
-            'edit.php?post_type=lift_document',
-            __('Document Users', 'lift-docs-system'),
-            __('Document Users', 'lift-docs-system'),
-            'manage_options',
-            'lift-docs-users',
-            array($this, 'users_page')
-        );
+     
         
       
         // LIFT Forms submenu
@@ -125,6 +118,15 @@ class LIFT_Docs_Admin {
             'manage_options',
             'lift-forms-submissions',
             array($this, 'forms_submissions_page')
+        );
+
+           add_submenu_page(
+            'edit.php?post_type=lift_document',
+            __('Document Users', 'lift-docs-system'),
+            __('Document Users', 'lift-docs-system'),
+            'manage_options',
+            'lift-docs-users',
+            array($this, 'users_page')
         );
 
           add_submenu_page(
