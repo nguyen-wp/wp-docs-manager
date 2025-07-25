@@ -170,34 +170,16 @@ class LIFT_Docs_Admin {
      * Settings page
      */
     public function settings_page() {
-        ?>
-        <div class="wrap">
-            <h1><?php _e('LIFT Docs Settings', 'lift-docs-system'); ?></h1>
-            
-            <?php
-            // Check if LIFT_Docs_Settings class exists
-            if (class_exists('LIFT_Docs_Settings')) {
-                $settings = LIFT_Docs_Settings::get_instance();
-                if (method_exists($settings, 'admin_page')) {
-                    $settings->admin_page();
-                } else {
-                    // Fallback if admin_page method doesn't exist
-                    ?>
-                    <div class="notice notice-info">
-                        <p><?php _e('Settings functionality is being loaded...', 'lift-docs-system'); ?></p>
-                    </div>
-                    <?php
-                }
+        if (class_exists('LIFT_Docs_Settings')) {
+            $settings = LIFT_Docs_Settings::get_instance();
+            if (method_exists($settings, 'settings_page')) {
+                $settings->settings_page();
             } else {
-                ?>
-                <div class="notice notice-warning">
-                    <p><?php _e('Settings class not found. Please check if the settings module is properly loaded.', 'lift-docs-system'); ?></p>
-                </div>
-                <?php
+                echo '<div class="wrap"><h1>Settings</h1><p>Settings page not available.</p></div>';
             }
-            ?>
-        </div>
-        <?php
+        } else {
+            echo '<div class="wrap"><h1>Settings</h1><p>Settings class not found.</p></div>';
+        }
     }
 
     /**
