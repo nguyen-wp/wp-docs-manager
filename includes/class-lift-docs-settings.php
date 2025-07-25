@@ -617,7 +617,7 @@ class LIFT_Docs_Settings {
                 switchToTab(targetTab);
                 
                 // Update URL without page reload
-                var newUrl = window.location.origin + window.location.pathname + '?page=lift-docs-settings&tab=' + targetTab;
+                var newUrl = window.location.origin + window.location.pathname + '?post_type=lift_document&page=lift-docs-settings&tab=' + targetTab;
                 window.history.pushState({tab: targetTab}, '', newUrl);
             });
             

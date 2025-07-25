@@ -113,5 +113,5 @@ echo "<li>✅ JavaScript tab switching</li>";
 echo "<li>✅ Validation và sanitization</li>";
 echo "</ul>";
 
-echo "<p><a href='" . admin_url('admin.php?page=lift-docs-settings') . "' class='button button-primary'>🔧 Mở Settings Page</a></p>";
+echo "<p><a href='" . admin_url('admin.php?post_type=lift_document&page=lift-docs-settings') . "' class='button button-primary'>🔧 Mở Settings Page</a></p>";
 ?>

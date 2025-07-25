@@ -98,7 +98,7 @@ if (is_admin()) {
         
     } else {
         echo "<p>⚠️ <strong>Not on LIFT Docs Settings page</strong></p>";
-        echo "<p>Go to: <a href='" . admin_url('admin.php?page=lift-docs-settings') . "'>LIFT Docs Settings</a></p>";
+        echo "<p>Go to: <a href='" . admin_url('admin.php?post_type=lift_document&page=lift-docs-settings') . "'>LIFT Docs Settings</a></p>";
     }
 } else {
     echo "<p>❌ Not in admin area</p>";
@@ -108,7 +108,7 @@ if (is_admin()) {
 echo "<h3>🔧 Recommendation:</h3>";
 echo "<p>If tabs are not showing, try:</p>";
 echo "<ol>";
-echo "<li>Go to: <a href='" . admin_url('admin.php?page=lift-docs-settings') . "' target='_blank'>LIFT Docs Settings Page</a></li>";
+echo "<li>Go to: <a href='" . admin_url('admin.php?post_type=lift_document&page=lift-docs-settings') . "' target='_blank'>LIFT Docs Settings Page</a></li>";
 echo "<li>Check browser console for JavaScript errors (F12)</li>";
 echo "<li>Check if tabs HTML is present but hidden (View Page Source)</li>";
 echo "<li>Clear any caching plugins</li>";

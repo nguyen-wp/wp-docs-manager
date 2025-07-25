@@ -57,5 +57,5 @@ if (class_exists('LIFT_Docs_Settings')) {
 
 echo "<hr>";
 echo "<p><strong>To access real settings page:</strong></p>";
-echo "<p><a href='" . admin_url('admin.php?page=lift-docs-settings') . "' class='button button-primary'>🔧 Go to LIFT Docs Settings</a></p>";
+echo "<p><a href='" . admin_url('admin.php?post_type=lift_document&page=lift-docs-settings') . "' class='button button-primary'>🔧 Go to LIFT Docs Settings</a></p>";
 ?>
