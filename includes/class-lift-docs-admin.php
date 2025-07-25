@@ -2241,40 +2241,41 @@ class LIFT_Docs_Admin {
         <div class="document-forms">
             <p><strong><?php _e('Assign Forms to Document', 'lift-docs-system'); ?></strong></p>
             <p class="description">
-                <?php _e('Select forms that users can access when viewing this document. Form links will appear on the document dashboard.', 'lift-docs-system'); ?>
+                <?php _e('Search and select forms that users can access when viewing this document. Selected forms will appear on the document dashboard.', 'lift-docs-system'); ?>
             </p>
             
             <?php if (empty($available_forms)): ?>
                 <p class="notice notice-warning inline">
                     <?php printf(
-                        __('No forms available. %sCreate forms%s first.', 'lift-docs-system'),
+                        __('No forms available. %sCreate forms%s first to assign them to this document.', 'lift-docs-system'),
                         '<a href="' . admin_url('admin.php?page=lift-forms-builder') . '">',
                         '</a>'
                     ); ?>
                 </p>
             <?php else: ?>
-                <div class="forms-list">
-                    <?php foreach ($available_forms as $form): ?>
-                        <label style="display: block; margin: 8px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;">
-                            <input type="checkbox" 
-                                   name="lift_doc_assigned_forms[]" 
-                                   value="<?php echo esc_attr($form->id); ?>"
-                                   <?php checked(in_array($form->id, $assigned_forms)); ?>
-                                   style="margin-right: 8px;">
-                            <strong><?php echo esc_html($form->name); ?></strong>
-                            <?php if ($form->description): ?>
-                                <br><small style="color: #666; margin-left: 20px;"><?php echo esc_html($form->description); ?></small>
-                            <?php endif; ?>
-                        </label>
-                    <?php endforeach; ?>
+                <!-- Selected Forms Display -->
+                <div class="selected-forms-container" style="margin-bottom: 15px;">
+                    <label><strong><?php _e('Selected Forms:', 'lift-docs-system'); ?></strong></label>
+                    <div class="selected-forms-list" style="min-height: 40px; border: 1px solid #ddd; border-radius: 3px; padding: 8px; background: #f9f9fa;">
+                        <span class="no-forms-selected" style="color: #666; font-style: italic;"><?php _e('No forms selected', 'lift-docs-system'); ?></span>
+                    </div>
                 </div>
                 
-                <div style="margin-top: 15px;">
+                <!-- Search and Add Forms -->
+                <div class="add-forms-container">
+                    <label for="form-search-input"><strong><?php _e('Search & Add Forms:', 'lift-docs-system'); ?></strong></label>
+                    <input type="text" id="form-search-input" placeholder="<?php _e('Type to search for forms...', 'lift-docs-system'); ?>" class="regular-text" autocomplete="off" />
+                    <div class="forms-search-results" style="display: none; border: 1px solid #ddd; border-top: none; border-radius: 0 0 3px 3px; max-height: 200px; overflow-y: auto; background: white; z-index: 1000; position: relative;">
+                        <!-- Search results will be populated here -->
+                    </div>
+                </div>
+                
+                <div style="margin-top: 10px;">
                     <button type="button" id="select-all-forms" class="button button-secondary" style="margin-right: 10px;">
-                        <?php _e('Select All', 'lift-docs-system'); ?>
+                        <i class="fas fa-check-square"></i> <?php _e('Select All', 'lift-docs-system'); ?>
                     </button>
                     <button type="button" id="clear-all-forms" class="button button-secondary">
-                        <?php _e('Clear All', 'lift-docs-system'); ?>
+                        <i class="fas fa-times-circle"></i> <?php _e('Clear All', 'lift-docs-system'); ?>
                     </button>
                 </div>
                 
@@ -2292,30 +2293,215 @@ class LIFT_Docs_Admin {
         
         <script>
         jQuery(document).ready(function($) {
+            var allForms = <?php echo json_encode($available_forms); ?>;
+            var totalForms = allForms.length;
+            var selectedForms = <?php echo json_encode($assigned_forms); ?>;
+            
+            // Initialize selected forms display
+            updateSelectedFormsDisplay();
+            updateFormsCount();
+            
+            // Search functionality
+            $('#form-search-input').on('input', function() {
+                var searchTerm = $(this).val().toLowerCase();
+                var results = $('.forms-search-results');
+                
+                if (searchTerm.length === 0) {
+                    results.hide();
+                    return;
+                }
+                
+                var filteredForms = allForms.filter(function(form) {
+                    return !isFormSelected(form.id) && 
+                           (form.name.toLowerCase().includes(searchTerm) || 
+                            (form.description && form.description.toLowerCase().includes(searchTerm)));
+                });
+                
+                if (filteredForms.length > 0) {
+                    var html = '';
+                    filteredForms.forEach(function(form) {
+                        html += '<div class="form-search-item" data-form-id="' + form.id + '" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">';
+                        html += '<div>';
+                        html += '<strong>' + form.name + '</strong>';
+                        if (form.description) {
+                            html += '<br><small style="color: #666;">' + form.description + '</small>';
+                        }
+                        html += '</div>';
+                        html += '<i class="fas fa-plus-circle" style="color: #0073aa; font-size: 16px;"></i>';
+                        html += '</div>';
+                    });
+                    results.html(html).show();
+                } else {
+                    results.html('<div style="padding: 10px; color: #666; font-style: italic;"><i class="fas fa-search"></i> ' + 
+                                '<?php _e('No forms found or all forms already selected', 'lift-docs-system'); ?></div>').show();
+                }
+            });
+            
+            // Hide search results when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.add-forms-container').length) {
+                    $('.forms-search-results').hide();
+                }
+            });
+            
+            // Add form when clicked
+            $(document).on('click', '.form-search-item', function() {
+                var formId = parseInt($(this).data('form-id'));
+                var formData = allForms.find(function(f) { return f.id === formId; });
+                
+                if (formData && !isFormSelected(formId)) {
+                    addForm(formId, formData.name, formData.description);
+                    $('#form-search-input').val('');
+                    $('.forms-search-results').hide();
+                }
+            });
+            
+            // Remove form when X is clicked
+            $(document).on('click', '.remove-form', function() {
+                var formId = parseInt($(this).data('form-id'));
+                removeForm(formId);
+            });
+            
             // Select all forms
             $('#select-all-forms').on('click', function() {
-                $('input[name="lift_doc_assigned_forms[]"]').prop('checked', true);
+                allForms.forEach(function(form) {
+                    if (!isFormSelected(form.id)) {
+                        addForm(form.id, form.name, form.description);
+                    }
+                });
+                updateSelectedFormsDisplay();
                 updateFormsCount();
             });
             
             // Clear all forms
             $('#clear-all-forms').on('click', function() {
-                $('input[name="lift_doc_assigned_forms[]"]').prop('checked', false);
+                selectedForms = [];
+                updateSelectedFormsDisplay();
                 updateFormsCount();
             });
             
-            // Update forms count when checkboxes change
-            $('input[name="lift_doc_assigned_forms[]"]').on('change', function() {
+            function addForm(formId, formName, formDescription) {
+                if (!isFormSelected(formId)) {
+                    selectedForms.push(formId);
+                    updateSelectedFormsDisplay();
+                    updateFormsCount();
+                }
+            }
+            
+            function removeForm(formId) {
+                selectedForms = selectedForms.filter(function(id) {
+                    return id !== formId;
+                });
+                updateSelectedFormsDisplay();
                 updateFormsCount();
-            });
+            }
+            
+            function isFormSelected(formId) {
+                return selectedForms.includes(formId);
+            }
+            
+            function updateSelectedFormsDisplay() {
+                var container = $('.selected-forms-list');
+                var noFormsMessage = $('.no-forms-selected');
+                
+                if (selectedForms.length === 0) {
+                    container.find('.selected-form-tag').remove();
+                    noFormsMessage.show();
+                } else {
+                    noFormsMessage.hide();
+                    container.find('.selected-form-tag').remove();
+                    
+                    selectedForms.forEach(function(formId) {
+                        var formData = allForms.find(function(f) { return f.id === formId; });
+                        if (formData) {
+                            var tagHtml = '<span class="selected-form-tag" style="display: inline-block; background: #0073aa; color: white; padding: 4px 8px; margin: 2px; border-radius: 12px; font-size: 11px; position: relative;">';
+                            tagHtml += '<i class="fas fa-file-alt" style="margin-right: 4px;"></i>';
+                            tagHtml += '<strong>' + formData.name + '</strong>';
+                            tagHtml += '<span class="remove-form" data-form-id="' + formId + '" style="margin-left: 6px; cursor: pointer; font-weight: bold; opacity: 0.8;" title="<?php _e('Remove form', 'lift-docs-system'); ?>">&times;</span>';
+                            tagHtml += '<input type="hidden" name="lift_doc_assigned_forms[]" value="' + formId + '">';
+                            tagHtml += '</span>';
+                            container.append(tagHtml);
+                        }
+                    });
+                }
+            }
             
             function updateFormsCount() {
-                var totalForms = $('input[name="lift_doc_assigned_forms[]"]').length;
-                var selectedForms = $('input[name="lift_doc_assigned_forms[]"]:checked').length;
-                $('#forms-count').text('<?php _e('Total Forms:', 'lift-docs-system'); ?> ' + totalForms + ' | <?php _e('Selected:', 'lift-docs-system'); ?> ' + selectedForms);
+                $('#forms-count').html('<i class="fas fa-info-circle"></i> <?php _e('Total Forms:', 'lift-docs-system'); ?> ' + totalForms + ' | <strong><?php _e('Selected:', 'lift-docs-system'); ?> ' + selectedForms.length + '</strong>');
             }
         });
         </script>
+        
+        <style>
+        .form-search-item:hover {
+            background: #f0f8ff;
+        }
+        
+        .selected-form-tag {
+            /* Animation removed */
+        }
+        
+        .remove-form:hover {
+            opacity: 1;
+            color: #ff6b6b;
+        }
+        
+        #form-search-input:focus {
+            border-color: #0073aa;
+            box-shadow: 0 0 0 1px #0073aa;
+        }
+        
+        .forms-search-results {
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 3px 3px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            position: absolute;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .add-forms-container {
+            position: relative;
+        }
+        
+        .selected-forms-container {
+            margin-bottom: 15px;
+        }
+        
+        .selected-forms-list {
+            min-height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 8px;
+            background: #f9f9fa;
+            line-height: 1.4;
+        }
+        
+        .no-forms-selected {
+            color: #666;
+            font-style: italic;
+            display: block;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .selected-form-tag {
+                display: block;
+                margin: 4px 0;
+            }
+            
+            .form-search-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+        </style>
         <?php
     }
     
