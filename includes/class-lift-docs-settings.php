@@ -386,7 +386,7 @@ class LIFT_Docs_Settings {
         $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
         
         // Ensure valid tab
-        $valid_tabs = array('general', 'security', 'display', 'interface');
+        $valid_tabs = array('general', 'security', 'display', 'interface', 'help');
         if (!in_array($active_tab, $valid_tabs)) {
             $active_tab = 'general';
         }
@@ -406,6 +406,9 @@ class LIFT_Docs_Settings {
                 </a>
                 <a href="#interface" class="nav-tab nav-tab-js <?php echo $active_tab == 'interface' ? 'nav-tab-active' : ''; ?>" data-tab="interface">
                    <?php _e('Interface', 'lift-docs-system'); ?>
+                </a>
+                <a href="#help" class="nav-tab nav-tab-js <?php echo $active_tab == 'help' ? 'nav-tab-active' : ''; ?>" data-tab="help">
+                   <?php _e('Help', 'lift-docs-system'); ?>
                 </a>
             </h2>
             
@@ -430,6 +433,11 @@ class LIFT_Docs_Settings {
                 <!-- Interface Tab Content -->
                 <div id="interface-tab" class="tab-content <?php echo $active_tab == 'interface' ? 'active' : ''; ?>">
                     <?php do_settings_sections('lift-docs-interface'); ?>
+                </div>
+                
+                <!-- Help Tab Content -->
+                <div id="help-tab" class="tab-content <?php echo $active_tab == 'help' ? 'active' : ''; ?>">
+                    <?php $this->display_help_content(); ?>
                 </div>
                 
                 <?php submit_button(); ?>
@@ -643,9 +651,7 @@ class LIFT_Docs_Settings {
      */
     public function general_section_callback() {
         echo '<p>' . __('Configure general settings for the LIFT Docs System.', 'lift-docs-system') . '</p>';
-        
-        // Show shortcode information
-        $this->display_shortcode_info();
+        echo '<p><em>' . __('For shortcode information and usage examples, please see the Help tab.', 'lift-docs-system') . '</em></p>';
     }
     
     /**
@@ -659,11 +665,126 @@ class LIFT_Docs_Settings {
      * Interface section callback
      */
     public function interface_section_callback() {
-        echo '<div style="background: #f9f9f9; padding: 20px; border-radius: 6px; border-left: 4px solid #1976d2; margin-bottom: 20px;">';
-        echo '<h3 style="margin-top: 0; color: #1976d2;">🎨 ' . __('Tùy chỉnh giao diện', 'lift-docs-system') . '</h3>';
-        echo '<p>' . __('Customize the appearance and branding of your document login page. These settings control how the login page looks to your users.', 'lift-docs-system') . '</p>';
-        echo '<p><strong>' . __('Applies to:', 'lift-docs-system') . '</strong> /document-login/, /document-dashboard/, secure document pages, and access denied pages.</p>';
-        echo '</div>';
+        echo '<p>' . __('Customize the appearance and branding of your document login page.', 'lift-docs-system') . '</p>';
+    }
+    
+    /**
+     * Help content display
+     */
+    public function display_help_content() {
+        $login_page_id = get_option('lift_docs_login_page_id');
+        $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
+        ?>
+        <div class="lift-docs-help-content">
+            
+            <!-- Shortcode Information -->
+            <div style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                <h3 style="color: #1976d2; margin-top: 0;">📋 Frontend Login & Dashboard Shortcodes</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                    <div>
+                        <h4 style="color: #1976d2; margin-bottom: 8px;">🔐 Login Form Shortcode:</h4>
+                        <code style="background: #fff; padding: 8px; border-radius: 3px; display: block; font-family: monospace;">[docs_login_form]</code>
+                        
+                        <p style="margin: 8px 0 0; font-size: 12px; color: #555;">
+                            <strong>Parameters:</strong><br>
+                            • <code>title</code> - Custom title<br>
+                            • <code>redirect_to</code> - Custom redirect URL<br>
+                            • <code>show_features</code> - Show features list (true/false)
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: #1976d2; margin-bottom: 8px;">� Dashboard Shortcode:</h4>
+                        <code style="background: #fff; padding: 8px; border-radius: 3px; display: block; font-family: monospace;">[docs_dashboard]</code>
+                        
+                        <p style="margin: 8px 0 0; font-size: 12px; color: #555;">
+                            <strong>Parameters:</strong><br>
+                            • <code>show_stats</code> - Show statistics (true/false)<br>
+                            • <code>show_search</code> - Show search box (true/false)<br>
+                            • <code>show_activity</code> - Show activity (true/false)<br>
+                            • <code>documents_per_page</code> - Documents per page (number)
+                        </p>
+                    </div>
+                </div>
+                
+                <?php if ($login_page_id || $dashboard_page_id): ?>
+                <div style="background: rgba(255, 255, 255, 0.7); padding: 12px; border-radius: 3px; margin-top: 15px;">
+                    <h4 style="color: #1976d2; margin-top: 0;">📄 Auto-created Pages:</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <?php if ($login_page_id && get_post($login_page_id)): ?>
+                        <li>
+                            <strong>Login Page:</strong> 
+                            <a href="<?php echo get_permalink($login_page_id); ?>" target="_blank">
+                                <?php echo get_the_title($login_page_id); ?>
+                            </a>
+                            <small>(<a href="<?php echo get_edit_post_link($login_page_id); ?>" target="_blank">Edit</a>)</small>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <?php if ($dashboard_page_id && get_post($dashboard_page_id)): ?>
+                        <li>
+                            <strong>Dashboard Page:</strong> 
+                            <a href="<?php echo get_permalink($dashboard_page_id); ?>" target="_blank">
+                                <?php echo get_the_title($dashboard_page_id); ?>
+                            </a>
+                            <small>(<a href="<?php echo get_edit_post_link($dashboard_page_id); ?>" target="_blank">Edit</a>)</small>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+                <?php endif; ?>
+                
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 3px; padding: 10px; margin-top: 15px;">
+                    <h4 style="color: #856404; margin-top: 0;">💡 Usage Examples:</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 12px;">
+                        <li><code>[docs_login_form title="Member Login" redirect_to="/dashboard"]</code></li>
+                        <li><code>[docs_dashboard show_stats="false" documents_per_page="6"]</code></li>
+                        <li><strong>Alternative URLs:</strong> <code>/document-login</code> & <code>/document-dashboard/</code></li>
+                    </ul>
+                </div>
+                
+                <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 3px; padding: 10px; margin-top: 15px;">
+                    <h4 style="color: #155724; margin-top: 0;">🔐 Login Methods Supported:</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #155724; font-size: 12px;">
+                        <li><strong>Username:</strong> WordPress username</li>
+                        <li><strong>Email:</strong> User email address</li>
+                        <li><strong>User Code:</strong> Unique 6-8 character code</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 3px; padding: 10px; margin-top: 15px;">
+                    <h4 style="color: #721c24; margin-top: 0;">🎨 Simple Login Design:</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #721c24; font-size: 12px;">
+                        <li><strong>Clean Interface:</strong> No theme header/footer on direct URL</li>
+                        <li><strong>Custom Logo:</strong> Upload logo in Interface tab settings</li>
+                        <li><strong>Color Themes:</strong> Customize colors in Interface tab</li>
+                        <li><strong>Responsive:</strong> Works perfectly on mobile and desktop</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Interface Customization Info -->
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 6px; border-left: 4px solid #1976d2; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; color: #1976d2;">🎨 Interface Customization Guide</h3>
+                <p>The Interface tab allows you to customize the appearance and branding of your document login page. These settings control how the login page looks to your users.</p>
+                <p><strong>Applies to:</strong> /document-login/, /document-dashboard/, secure document pages, and access denied pages.</p>
+                
+                <h4 style="color: #1976d2;">Available Customizations:</h4>
+                <ul>
+                    <li><strong>Logo Upload:</strong> Upload your organization's logo</li>
+                    <li><strong>Logo Width:</strong> Control logo size (50-500px)</li>
+                    <li><strong>Page Title:</strong> Custom title for login page</li>
+                    <li><strong>Page Description:</strong> Welcome message or instructions</li>
+                    <li><strong>Color Scheme:</strong> Background, form, button, input, and text colors</li>
+                    <li><strong>Alpha Transparency:</strong> All colors support transparency</li>
+                </ul>
+                
+                <p><strong>Tip:</strong> Use the Interface tab to match your brand colors and create a professional login experience for your users.</p>
+            </div>
+            
+        </div>
+        <?php
     }
     
     /**
