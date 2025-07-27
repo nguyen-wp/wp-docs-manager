@@ -14,9 +14,11 @@
         },
         
         init: function() {
+            console.log('LIFT Forms Builder: Initializing...');
             this.bindEvents();
             this.initDragDrop();
             this.loadExistingForm();
+            console.log('LIFT Forms Builder: Initialization complete');
         },
         
         bindEvents: function() {
@@ -37,6 +39,9 @@
             
             // Form field changes
             $(document).on('input change', '.settings-form input, .settings-form textarea, .settings-form select', this.updateFieldSettings.bind(this));
+            
+            // Option field changes - specific handler for option inputs
+            $(document).on('input change', '.option-item input', this.updateFieldOptions.bind(this));
             
             // Add/remove options
             $(document).on('click', '.add-option', this.addOption.bind(this));
@@ -109,6 +114,64 @@
                     formBuilder.showSortNotification();
                 }
             });
+            
+            // Make columns droppable for field layouts
+            this.initColumnDroppable();
+        },
+        
+        initColumnDroppable: function() {
+            // Initialize droppable for existing columns
+            $(document).on('mouseenter', '.column', function() {
+                if (!$(this).hasClass('ui-droppable')) {
+                    $(this).droppable({
+                        accept: '.field-item',
+                        tolerance: 'pointer',
+                        over: function() {
+                            $(this).addClass('drag-over');
+                        },
+                        out: function() {
+                            $(this).removeClass('drag-over');
+                        },
+                        drop: function(event, ui) {
+                            const fieldType = ui.draggable.data('type');
+                            const columnElement = $(this);
+                            columnElement.removeClass('drag-over');
+                            
+                            // Add field to this column
+                            formBuilder.addFieldToColumn(fieldType, columnElement);
+                        }
+                    });
+                }
+            });
+        },
+        
+        addFieldToColumn: function(type, columnElement) {
+            this.fieldCounter++;
+            const fieldId = 'field_' + this.fieldCounter;
+            const fieldName = type + '_' + this.fieldCounter;
+            
+            const fieldConfig = this.getFieldDefaults(type);
+            fieldConfig.id = fieldId;
+            fieldConfig.name = fieldName;
+            fieldConfig.type = type;
+            
+            // Create compact field for column
+            const fieldHtml = this.renderColumnField(fieldConfig);
+            columnElement.find('.column-placeholder').hide();
+            columnElement.append(fieldHtml);
+            
+            // Add to form data
+            this.formData.fields.push(fieldConfig);
+            this.updateFormData();
+        },
+        
+        renderColumnField: function(field) {
+            const preview = this.renderFieldPreview(field);
+            return `
+                <div class="column-field" data-field-id="${field.id}">
+                    <div class="field-preview">${preview}</div>
+                </div>
+            `;
         },
         
         addField: function(type) {
@@ -473,12 +536,26 @@
                     field.options.forEach((option, index) => {
                         settingsHtml += `
                             <div class="option-item">
-                                <input type="text" name="option_label_${index}" value="${option.label}" placeholder="Option label">
-                                <input type="text" name="option_value_${index}" value="${option.value}" placeholder="Option value">
+                                <input type="text" name="option_label_${index}" value="${option.label || ''}" placeholder="Option label">
+                                <input type="text" name="option_value_${index}" value="${option.value || option.label || ''}" placeholder="Option value">
                                 <button type="button" class="option-remove">Remove</button>
                             </div>
                         `;
                     });
+                } else {
+                    // Add default options if none exist
+                    settingsHtml += `
+                        <div class="option-item">
+                            <input type="text" name="option_label_0" value="Option 1" placeholder="Option label">
+                            <input type="text" name="option_value_0" value="option1" placeholder="Option value">
+                            <button type="button" class="option-remove">Remove</button>
+                        </div>
+                        <div class="option-item">
+                            <input type="text" name="option_label_1" value="Option 2" placeholder="Option label">
+                            <input type="text" name="option_value_1" value="option2" placeholder="Option value">
+                            <button type="button" class="option-remove">Remove</button>
+                        </div>
+                    `;
                 }
                 
                 settingsHtml += `
@@ -574,22 +651,43 @@
             }
             
             const options = [];
-            $('.option-item').each(function() {
+            const optionsList = $('.field-settings-panel.active .options-list');
+            
+            optionsList.find('.option-item').each(function() {
                 const label = $(this).find('input[name^="option_label_"]').val();
-                const value = $(this).find('input[name^="option_value_"]').val();
+                const value = $(this).find('input[name^="option_value_"]').val() || label;
                 
-                if (label && value) {
-                    options.push({ label: label, value: value });
+                if (label && label.trim() !== '') {
+                    options.push({ 
+                        label: label.trim(), 
+                        value: value.trim() || label.trim() 
+                    });
                 }
             });
             
             this.selectedField.options = options;
+            
+            // Update the field preview in the canvas
+            this.updateFieldPreview();
         },
         
         addOption: function(e) {
             e.preventDefault();
             const optionsList = $(e.target).siblings('.options-list');
+            if (optionsList.length === 0) {
+                // Try parent container approach
+                const optionsList2 = $(e.target).closest('.settings-group').find('.options-list');
+                if (optionsList2.length > 0) {
+                    this.addOptionToList(optionsList2);
+                }
+            } else {
+                this.addOptionToList(optionsList);
+            }
+        },
+        
+        addOptionToList: function(optionsList) {
             const index = optionsList.find('.option-item').length;
+            console.log('Adding option at index:', index);
             
             const optionHtml = `
                 <div class="option-item">
@@ -600,12 +698,28 @@
             `;
             
             optionsList.append(optionHtml);
+            console.log('Option added. Total options:', optionsList.find('.option-item').length);
+            
+            // Update field options after adding
+            this.updateFieldOptions();
         },
         
         removeOption: function(e) {
             e.preventDefault();
             $(e.target).closest('.option-item').remove();
             this.updateFieldOptions();
+        },
+        
+        updateFieldPreview: function() {
+            if (!this.selectedField) {
+                return;
+            }
+            
+            const fieldElement = $(`.canvas-field[data-field-id="${this.selectedField.id}"]`);
+            if (fieldElement.length > 0) {
+                const newPreview = this.renderFieldPreview(this.selectedField);
+                fieldElement.find('.field-preview').html(newPreview);
+            }
         },
         
         editField: function(e) {
