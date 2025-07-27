@@ -1,0 +1,160 @@
+/**
+ * LIFT Forms - Minimal Admin Styles
+ * Only styles for form builder header
+ */
+
+/* Form Builder Header */
+.lift-form-builder {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.form-builder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f9f9f9;
+}
+
+.form-basic-settings {
+    flex: 1;
+    max-width: 600px;
+}
+
+.setting-group {
+    margin-bottom: 15px;
+}
+
+.setting-group:last-child {
+    margin-bottom: 0;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.setting-group input[type="text"],
+.setting-group input[type="email"],
+.setting-group textarea {
+    width: 100%;
+    max-width: 500px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.setting-group input[type="text"]:focus,
+.setting-group input[type="email"]:focus,
+.setting-group textarea:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+    outline: none;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+
+.form-actions .button {
+    white-space: nowrap;
+}
+
+/* Form Builder Content Area */
+.form-builder-content {
+    padding: 40px 20px;
+    text-align: center;
+    background: #fafafa;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-builder-message {
+    max-width: 400px;
+}
+
+.empty-builder-message h3 {
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.empty-builder-message p {
+    color: #888;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .form-builder-header {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .form-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .setting-group input[type="text"],
+    .setting-group input[type="email"],
+    .setting-group textarea {
+        max-width: none;
+    }
+}
+
+/* WordPress Admin Integration */
+.wrap .lift-form-builder {
+    margin-top: 10px;
+}
+
+/* Hidden elements */
+#form-id {
+    display: none;
+}
+
+/* Button States */
+.form-actions .button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.form-actions .button-primary:disabled {
+    background: #ccc !important;
+    border-color: #ccc !important;
+    color: #fff !important;
+}
+
+/* Success/Error Messages */
+.lift-form-message {
+    margin: 15px 0;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.lift-form-message.success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.lift-form-message.error {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}

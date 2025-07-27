@@ -168,7 +168,7 @@ class LIFT_Forms {
     }
     
     /**
-     * Enqueue admin scripts
+     * Enqueue admin scripts - Minimal version
      */
     public function enqueue_admin_scripts($hook) {
         // Check if we're on any LIFT Forms admin page
@@ -186,81 +186,28 @@ class LIFT_Forms {
             return;
         }
         
-        // Enqueue jQuery first - ensure it's loaded
+        // Only enqueue jQuery for basic functionality
         wp_enqueue_script('jquery');
-        wp_enqueue_script('jquery-ui-core');
         
-        // Enqueue jQuery UI scripts with proper dependencies
-        wp_enqueue_script('jquery-ui-sortable', false, array('jquery', 'jquery-ui-core'));
-        wp_enqueue_script('jquery-ui-draggable', false, array('jquery', 'jquery-ui-core'));
-        wp_enqueue_script('jquery-ui-droppable', false, array('jquery', 'jquery-ui-core'));
+        // Minimal admin JavaScript
+        wp_enqueue_script(
+            'lift-forms-minimal-admin',
+            plugin_dir_url(__FILE__) . '../assets/js/minimal-admin.js',
+            array('jquery'),
+            '3.0.0',
+            true
+        );
         
-        // Enqueue jQuery UI CSS
-        wp_enqueue_style('jquery-ui-core');
-        wp_enqueue_style('jquery-ui-theme');
-        
-        // Add jQuery UI theme from CDN as fallback
+        // Basic admin styles only
         wp_enqueue_style(
-            'jquery-ui-theme-ui-lightness',
-            'https://code.jquery.com/ui/1.13.2/themes/ui-lightness/jquery-ui.css',
+            'lift-forms-minimal-admin',
+            plugin_dir_url(__FILE__) . '../assets/css/minimal-admin.css',
             array(),
-            '1.13.2'
+            '3.0.0'
         );
         
-        wp_enqueue_script(
-            'lift-forms-builder',
-            plugin_dir_url(__FILE__) . '../assets/js/forms-builder.js',
-            array('jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable'),
-            '1.1.0', // Enhanced sortable functionality
-            true
-        );
-        
-        // Enqueue enhanced forms builder for better error handling
-        wp_enqueue_script(
-            'lift-forms-builder-enhanced',
-            plugin_dir_url(__FILE__) . '../assets/js/forms-builder-enhanced.js',
-            array('lift-forms-builder'),
-            '1.0.0',
-            true
-        );
-        
-        // Enqueue form builder fix for field sync issues
-        wp_enqueue_script(
-            'lift-forms-builder-fix',
-            plugin_dir_url(__FILE__) . '../assets/js/forms-builder-fix.js',
-            array('lift-forms-builder-enhanced'),
-            '1.0.0',
-            true
-        );
-        
-        // Enqueue test tools in debug mode (disabled - working correctly)
-        // if (defined('WP_DEBUG') && WP_DEBUG) {
-        //     wp_enqueue_script(
-        //         'lift-forms-builder-test',
-        //         plugin_dir_url(__FILE__) . '../assets/js/forms-builder-test.js',
-        //         array('lift-forms-builder-fix'),
-        //         '1.0.0',
-        //         true
-        //     );
-        // }
-        
-        // Enqueue ultimate debugger (disabled - working correctly)
-        // wp_enqueue_script(
-        //     'lift-forms-builder-ultimate-debug',
-        //     plugin_dir_url(__FILE__) . '../assets/js/forms-builder-ultimate-debug.js',
-        //     array('lift-forms-builder-fix'),
-        //     '1.0.0',
-        //     true
-        // );
-        
-        wp_enqueue_style(
-            'lift-forms-admin',
-            plugin_dir_url(__FILE__) . '../assets/css/forms-admin.css',
-            array(),
-            '2.1.0' // Enhanced sortable functionality
-        );
-        
-        wp_localize_script('lift-forms-builder', 'liftForms', array(
+        // Minimal localization for AJAX
+        wp_localize_script('lift-forms-minimal-admin', 'liftForms', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('lift_forms_nonce'),
             'strings' => array(
@@ -411,7 +358,7 @@ class LIFT_Forms {
     }
     
     /**
-     * Form builder page
+     * Form builder page - Minimal version with header only
      */
     public function form_builder_page() {
         $form_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -450,123 +397,15 @@ class LIFT_Forms {
                     </div>
                 </div>
                 
+                <!-- Form Builder Content Area - Empty for now -->
                 <div class="form-builder-content">
-                    <!-- Field Palette -->
-                    <div class="field-palette">
-                        <h3><?php _e('Form Fields', 'lift-docs-system'); ?></h3>
-                        <div class="field-categories">
-                            <div class="field-category">
-                                <h4><?php _e('Basic Fields', 'lift-docs-system'); ?></h4>
-                                <div class="field-items">
-                                    <div class="field-item" data-type="text">
-                                        <span class="dashicons dashicons-edit"></span>
-                                        <span><?php _e('Text Input', 'lift-docs-system'); ?></span>
-                                    </div>
-                                    <div class="field-item" data-type="textarea">
-                                        <span class="dashicons dashicons-text-page"></span>
-                                        <span><?php _e('Textarea', 'lift-docs-system'); ?></span>
-                                    </div>
-                                    <div class="field-item" data-type="email">
-                                        <span class="dashicons dashicons-email-alt"></span>
-                                        <span><?php _e('Email', 'lift-docs-system'); ?></span>
-                                    </div>
-                                    <div class="field-item" data-type="number">
-                                        <span class="dashicons dashicons-calculator"></span>
-                                        <span><?php _e('Number', 'lift-docs-system'); ?></span>
-                                    </div>
-                                    <div class="field-item" data-type="date">
-                                        <span class="dashicons dashicons-calendar-alt"></span>
-                                        <span><?php _e('Date', 'lift-docs-system'); ?></span>
-                                    </div>
-                                    <div class="field-item" data-type="file">
-                                        <span class="dashicons dashicons-paperclip"></span>
-                                        <span><?php _e('File Upload', 'lift-docs-system'); ?></span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="field-category">
-                                <h4><?php _e('Choice Fields', 'lift-docs-system'); ?></h4>
-                                <div class="field-items">
-                                    <div class="field-item" data-type="select">
-                                        <span class="dashicons dashicons-menu-alt"></span>
-                                        <span><?php _e('Dropdown', 'lift-docs-system'); ?></span>
-                                    </div>
-                                    <div class="field-item" data-type="radio">
-                                        <span class="dashicons dashicons-marker"></span>
-                                        <span><?php _e('Radio Buttons', 'lift-docs-system'); ?></span>
-                                    </div>
-                                    <div class="field-item" data-type="checkbox">
-                                        <span class="dashicons dashicons-yes-alt"></span>
-                                        <span><?php _e('Checkboxes', 'lift-docs-system'); ?></span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="field-category">
-                                <h4><?php _e('Layout', 'lift-docs-system'); ?></h4>
-                                <div class="field-items">
-                                    <div class="field-item" data-type="section">
-                                        <span class="dashicons dashicons-grid-view"></span>
-                                        <span><?php _e('Section', 'lift-docs-system'); ?></span>
-                                    </div>
-                                    <div class="field-item" data-type="column">
-                                        <span class="dashicons dashicons-columns"></span>
-                                        <span><?php _e('Columns', 'lift-docs-system'); ?></span>
-                                    </div>
-                                    <div class="field-item" data-type="html">
-                                        <span class="dashicons dashicons-editor-code"></span>
-                                        <span><?php _e('HTML Block', 'lift-docs-system'); ?></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Form Canvas -->
-                    <div class="form-canvas">
-                        <div class="canvas-header">
-                            <h3><?php _e('Form Builder', 'lift-docs-system'); ?></h3>
-                            <div class="canvas-tools">
-                                <button type="button" id="clear-form" class="button">
-                                    <?php _e('Clear All', 'lift-docs-system'); ?>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="canvas-content" id="form-canvas">
-                            <div class="canvas-placeholder">
-                                <p><?php _e('Drag fields from the left panel to build your form', 'lift-docs-system'); ?></p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Field Settings Panel -->
-                    <div class="field-settings-panel" id="field-settings-panel">
-                        <div class="panel-header">
-                            <h3><?php _e('Field Settings', 'lift-docs-system'); ?></h3>
-                            <button type="button" class="panel-close">&times;</button>
-                        </div>
-                        <div class="panel-content" id="field-settings-content">
-                            <p><?php _e('Select a field to edit its properties', 'lift-docs-system'); ?></p>
-                        </div>
+                    <div class="empty-builder-message">
+                        <h3><?php _e('Form Builder', 'lift-docs-system'); ?></h3>
+                        <p><?php _e('Form builder content has been cleared. Ready for new implementation.', 'lift-docs-system'); ?></p>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Form Preview Modal -->
-        <div id="form-preview-modal" class="lift-modal" style="display: none;">
-            <div class="lift-modal-content">
-                <div class="lift-modal-header">
-                    <h2><?php _e('Form Preview', 'lift-docs-system'); ?></h2>
-                    <button type="button" class="lift-modal-close">&times;</button>
-                </div>
-                <div class="lift-modal-body">
-                    <div id="form-preview-content"></div>
-                </div>
-            </div>
-        </div>
-        <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
         <?php
     }
     
