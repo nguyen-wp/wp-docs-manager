@@ -271,7 +271,7 @@
             this.log('📊 Current Form Builder State:', state);
             
             if (window.liftFormBuilder) {
-                this.log('📋 FormData Details:', window.liftFormBuilder.formData);
+                this.log('FormData Details:', window.liftFormBuilder.formData);
                 
                 // Check canvas details
                 const canvasFields = [];
@@ -283,7 +283,7 @@
                         visible: $(this).is(':visible')
                     });
                 });
-                this.log('🎨 Canvas Fields Details:', canvasFields);
+                this.log('Canvas Fields Details:', canvasFields);
             }
         },
         

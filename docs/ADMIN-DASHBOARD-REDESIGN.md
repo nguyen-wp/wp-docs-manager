@@ -42,7 +42,7 @@
 - 📝 Document description (if available)
 - 🔗 View URL (clickable link)
 - 👥 Assigned Users (with names, emails, user codes)
-- 📋 Assigned Forms (form badges with descriptions)
+- Assigned Forms (form badges with descriptions)
 - 📁 Files (clickable file links)
 - 📅 Creation details (date, time, author)
 
@@ -132,10 +132,10 @@ add_action('wp_ajax_get_admin_document_details', array($this, 'ajax_get_admin_do
 - 🎯 **Better Navigation:** No need to visit multiple pages
 
 ### **For Content Managers:**
-- 📋 **User Assignments:** Easy to see who has access
-- 📋 **Form Management:** Quick view of assigned forms
-- 📋 **File Overview:** All document files visible
-- 📋 **Analytics:** Views and downloads at a glance
+- **User Assignments:** Easy to see who has access
+- **Form Management:** Quick view of assigned forms
+- **File Overview:** All document files visible
+- **Analytics:** Views and downloads at a glance
 
 ## 🚀 Technical Advantages
 

@@ -67,6 +67,23 @@ class LIFT_Docs_Settings {
             '1.0.0'
         );
         
+        // Enqueue enhanced settings styles
+        wp_enqueue_style(
+            'lift-docs-settings-enhanced',
+            plugin_dir_url(__FILE__) . '../assets/css/settings-enhanced.css',
+            array('lift-docs-admin-styles'),
+            '1.0.0'
+        );
+        
+        // Enqueue enhanced settings JavaScript
+        wp_enqueue_script(
+            'lift-docs-settings-enhanced',
+            plugin_dir_url(__FILE__) . '../assets/js/settings-enhanced.js',
+            array('jquery', 'wp-color-picker'),
+            '1.0.0',
+            true
+        );
+        
         // Force load media scripts
         wp_enqueue_script('media-upload');
         wp_enqueue_script('thickbox');
@@ -391,199 +408,121 @@ class LIFT_Docs_Settings {
             $active_tab = 'general';
         }
         ?>
-        <div class="wrap">
-            <h1><?php _e('LIFT Docs System Settings', 'lift-docs-system'); ?></h1>
-            
-            <h2 class="nav-tab-wrapper">
-                <a href="#general" class="nav-tab nav-tab-js <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>" data-tab="general">
-                   <?php _e('General', 'lift-docs-system'); ?>
-                </a>
-                <a href="#security" class="nav-tab nav-tab-js <?php echo $active_tab == 'security' ? 'nav-tab-active' : ''; ?>" data-tab="security">
-                   <?php _e('Security', 'lift-docs-system'); ?>
-                </a>
-                <a href="#display" class="nav-tab nav-tab-js <?php echo $active_tab == 'display' ? 'nav-tab-active' : ''; ?>" data-tab="display">
-                   <?php _e('Display', 'lift-docs-system'); ?>
-                </a>
-                <a href="#interface" class="nav-tab nav-tab-js <?php echo $active_tab == 'interface' ? 'nav-tab-active' : ''; ?>" data-tab="interface">
-                   <?php _e('Interface', 'lift-docs-system'); ?>
-                </a>
-                <a href="#help" class="nav-tab nav-tab-js <?php echo $active_tab == 'help' ? 'nav-tab-active' : ''; ?>" data-tab="help">
-                   <?php _e('Help', 'lift-docs-system'); ?>
-                </a>
-            </h2>
-            
-            <form method="post" action="options.php">
-                <?php settings_fields('lift_docs_settings_group'); ?>
+        <div class="lift-docs-settings-wrapper">
+            <div class="lift-docs-settings-container">
                 
-                <!-- General Tab Content -->
-                <div id="general-tab" class="tab-content <?php echo $active_tab == 'general' ? 'active' : ''; ?>">
-                    <?php do_settings_sections('lift-docs-general'); ?>
+                <!-- Enhanced Header -->
+                <div class="lift-settings-header">
+                    <h1><i class="fas fa-cogs"></i> <?php _e('LIFT Docs System Settings', 'lift-docs-system'); ?></h1>
+                    <p><?php _e('Configure your document management system to match your needs and branding', 'lift-docs-system'); ?></p>
                 </div>
                 
-                <!-- Security Tab Content -->
-                <div id="security-tab" class="tab-content <?php echo $active_tab == 'security' ? 'active' : ''; ?>">
-                    <?php do_settings_sections('lift-docs-security'); ?>
+                <!-- Enhanced Navigation Tabs -->
+                <div class="lift-nav-tab-wrapper">
+                    <a href="#general" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>" data-tab="general">
+                        <i class="fas fa-sliders-h"></i>
+                        <?php _e('General', 'lift-docs-system'); ?>
+                    </a>
+                    <a href="#security" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'security' ? 'nav-tab-active' : ''; ?>" data-tab="security">
+                        <i class="fas fa-shield-alt"></i>
+                        <?php _e('Security', 'lift-docs-system'); ?>
+                    </a>
+                    <a href="#display" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'display' ? 'nav-tab-active' : ''; ?>" data-tab="display">
+                        <i class="fas fa-paint-brush"></i>
+                        <?php _e('Display', 'lift-docs-system'); ?>
+                    </a>
+                    <a href="#interface" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'interface' ? 'nav-tab-active' : ''; ?>" data-tab="interface">
+                        <i class="fas fa-palette"></i>
+                        <?php _e('Interface', 'lift-docs-system'); ?>
+                    </a>
+                    <a href="#help" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'help' ? 'nav-tab-active' : ''; ?>" data-tab="help">
+                        <i class="fas fa-question-circle"></i>
+                        <?php _e('Help', 'lift-docs-system'); ?>
+                    </a>
                 </div>
                 
-                <!-- Display Tab Content -->
-                <div id="display-tab" class="tab-content <?php echo $active_tab == 'display' ? 'active' : ''; ?>">
-                    <?php do_settings_sections('lift-docs-display'); ?>
-                </div>
-                
-                <!-- Interface Tab Content -->
-                <div id="interface-tab" class="tab-content <?php echo $active_tab == 'interface' ? 'active' : ''; ?>">
-                    <?php do_settings_sections('lift-docs-interface'); ?>
-                </div>
-                
-                <!-- Help Tab Content -->
-                <div id="help-tab" class="tab-content <?php echo $active_tab == 'help' ? 'active' : ''; ?>">
-                    <?php $this->display_help_content(); ?>
-                </div>
-                
-                <?php submit_button(); ?>
-            </form>
+                <form method="post" action="options.php">
+                    <?php settings_fields('lift_docs_settings_group'); ?>
+                    
+                    <!-- General Tab Content -->
+                    <div id="general-tab" class="lift-tab-content <?php echo $active_tab == 'general' ? 'active' : ''; ?>">
+                        <div class="lift-section-header">
+                            <i class="fas fa-sliders-h"></i>
+                            <h3><?php _e('General Settings', 'lift-docs-system'); ?></h3>
+                        </div>
+                        <?php do_settings_sections('lift-docs-general'); ?>
+                    </div>
+                    
+                    <!-- Security Tab Content -->
+                    <div id="security-tab" class="lift-tab-content <?php echo $active_tab == 'security' ? 'active' : ''; ?>">
+                        <div class="lift-section-header">
+                            <i class="fas fa-shield-alt"></i>
+                            <h3><?php _e('Security & Access Control', 'lift-docs-system'); ?></h3>
+                        </div>
+                        
+                        <div class="lift-info-box">
+                            <div class="lift-info-box-content">
+                                <h4><?php _e('Security Notice', 'lift-docs-system'); ?></h4>
+                                <p><?php _e('These settings control who can access your documents and how they can access them. Changes to security settings take effect immediately.', 'lift-docs-system'); ?></p>
+                            </div>
+                        </div>
+                        
+                        <?php do_settings_sections('lift-docs-security'); ?>
+                    </div>
+                    
+                    <!-- Display Tab Content -->
+                    <div id="display-tab" class="lift-tab-content <?php echo $active_tab == 'display' ? 'active' : ''; ?>">
+                        <div class="lift-section-header">
+                            <i class="fas fa-paint-brush"></i>
+                            <h3><?php _e('Display & Layout Options', 'lift-docs-system'); ?></h3>
+                        </div>
+                        
+                        <div class="lift-info-box">
+                            <div class="lift-info-box-content">
+                                <h4><?php _e('Display Customization', 'lift-docs-system'); ?></h4>
+                                <p><?php _e('Control how documents are displayed to your users. These settings affect the frontend appearance of document pages.', 'lift-docs-system'); ?></p>
+                            </div>
+                        </div>
+                        
+                        <?php do_settings_sections('lift-docs-display'); ?>
+                    </div>
+                    
+                    <!-- Interface Tab Content -->
+                    <div id="interface-tab" class="lift-tab-content <?php echo $active_tab == 'interface' ? 'active' : ''; ?>">
+                        <div class="lift-section-header">
+                            <i class="fas fa-palette"></i>
+                            <h3><?php _e('Interface Customization', 'lift-docs-system'); ?></h3>
+                        </div>
+                        
+                        <div class="lift-info-box">
+                            <div class="lift-info-box-content">
+                                <h4><?php _e('Branding & Colors', 'lift-docs-system'); ?></h4>
+                                <p><?php _e('Customize the appearance and branding of your document login page and related interfaces.', 'lift-docs-system'); ?></p>
+                            </div>
+                        </div>
+                        
+                        <?php do_settings_sections('lift-docs-interface'); ?>
+                    </div>
+                    
+                    <!-- Help Tab Content -->
+                    <div id="help-tab" class="lift-tab-content <?php echo $active_tab == 'help' ? 'active' : ''; ?>">
+                        <div class="lift-section-header">
+                            <i class="fas fa-question-circle"></i>
+                            <h3><?php _e('Help & Documentation', 'lift-docs-system'); ?></h3>
+                        </div>
+                        <?php $this->display_help_content(); ?>
+                    </div>
+                    
+                    <div class="lift-settings-footer">
+                        <?php submit_button(__('Save Changes', 'lift-docs-system'), 'primary', 'submit', false, array('class' => 'lift-button lift-button-primary')); ?>
+                    </div>
+                </form>
+            </div>
         </div>
-        
-        <style>
-            .nav-tab-wrapper {
-                margin-bottom: 20px;
-                border-bottom: 1px solid #ccd0d4;
-            }
-            .nav-tab {
-                text-decoration: none;
-                border: 1px solid #ccd0d4;
-                border-bottom: none;
-                background: #f1f1f1;
-                color: #555;
-                padding: 10px 15px;
-                margin-right: 5px;
-                border-radius: 3px 3px 0 0;
-                transition: all 0.3s ease;
-                display: inline-block;
-                cursor: pointer;
-            }
-            .nav-tab:hover {
-                background: #e8e8e8;
-                color: #333;
-                text-decoration: none;
-            }
-            .nav-tab:focus {
-                outline: none;
-                box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, 0.8);
-            }
-            .nav-tab-active {
-                background: #fff;
-                border-bottom: 1px solid #fff;
-                color: #000;
-                position: relative;
-                top: 1px;
-                font-weight: 600;
-            }
-            .nav-tab-active:hover {
-                background: #fff;
-                color: #000;
-            }
-            
-            /* Tab Content Styling */
-            .tab-content {
-                display: none !important;
-                opacity: 0;
-                transform: translateY(10px);
-                transition: opacity 0.3s ease, transform 0.3s ease;
-            }
-            .tab-content.active {
-                display: block !important;
-                opacity: 1;
-                transform: translateY(0);
-            }
-            
-            .form-table {
-                margin-top: 20px;
-                background: #fff;
-                border: 1px solid #ccd0d4;
-                border-radius: 3px;
-                overflow: hidden;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            }
-            .form-table th {
-                width: 220px;
-                font-weight: 600;
-                background: #f9f9f9;
-                border-right: 1px solid #ccd0d4;
-                vertical-align: top;
-                padding: 20px;
-            }
-            .form-table td {
-                padding: 20px;
-                vertical-align: top;
-            }
-            .form-table tr {
-                border-bottom: 1px solid #eee;
-            }
-            .form-table tr:last-child {
-                border-bottom: none;
-            }
-            .description {
-                color: #666;
-                font-style: italic;
-                margin-top: 5px;
-                font-size: 13px;
-                line-height: 1.4;
-            }
-            
-            /* Better styling for form fields */
-            .regular-text, .small-text {
-                border: 1px solid #ddd;
-                border-radius: 3px;
-                padding: 8px 12px;
-                font-size: 14px;
-            }
-            
-            .regular-text:focus, .small-text:focus {
-                border-color: #5b9dd9;
-                box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
-                outline: none;
-            }
-            
-            /* Section headers */
-            h2 {
-                color: #333;
-                font-size: 18px;
-                margin-bottom: 10px;
-            }
-            
-            /* Button styling */
-            .button {
-                border-radius: 3px;
-                font-weight: 500;
-            }
-            
-            /* Loading state */
-            .nav-tab.loading {
-                opacity: 0.6;
-                pointer-events: none;
-            }
-            
-            /* Smooth fade transition for active content */
-            .tab-content.active {
-                animation: fadeInSmooth 0.3s ease-out;
-            }
-            
-            @keyframes fadeInSmooth {
-                from { 
-                    opacity: 0; 
-                    transform: translateY(10px); 
-                }
-                to { 
-                    opacity: 1; 
-                    transform: translateY(0); 
-                }
-            }
-        </style>
         
         <script>
         jQuery(document).ready(function($) {
-            console.log('LIFT Docs Settings: JavaScript tab functionality loaded');
+            console.log('LIFT Docs Settings: Enhanced JavaScript tab functionality loaded');
             
             // Get current tab from URL or default to general
             var urlParams = new URLSearchParams(window.location.search);
@@ -591,28 +530,38 @@ class LIFT_Docs_Settings {
             
             console.log('Current tab from URL:', currentTab);
             
-            // Function to switch to a specific tab
+            // Function to switch to a specific tab with enhanced animations
             function switchToTab(tabName) {
                 console.log('Switching to tab:', tabName);
                 
                 // Remove active class from all tabs and content
-                $('.nav-tab').removeClass('nav-tab-active');
-                $('.tab-content').removeClass('active').hide();
+                $('.lift-nav-tab').removeClass('nav-tab-active');
+                $('.lift-tab-content').removeClass('active').fadeOut(200);
+                
+                // Add loading state
+                $('.lift-nav-tab[data-tab="' + tabName + '"]').addClass('loading');
                 
                 // Add active class to target tab
-                $('.nav-tab-js[data-tab="' + tabName + '"]').addClass('nav-tab-active');
-                
-                // Show target content
-                var $targetContent = $('#' + tabName + '-tab');
-                $targetContent.show().addClass('active');
+                setTimeout(function() {
+                    $('.lift-nav-tab[data-tab="' + tabName + '"]').addClass('nav-tab-active').removeClass('loading');
+                    
+                    // Show target content with fade animation
+                    var $targetContent = $('#' + tabName + '-tab');
+                    $targetContent.fadeIn(300).addClass('active');
+                }, 100);
             }
             
-            // Handle tab switching
+            // Handle tab switching with enhanced UX
             $('.nav-tab-js').on('click', function(e) {
                 e.preventDefault();
                 
                 var $clickedTab = $(this);
                 var targetTab = $clickedTab.data('tab');
+                
+                // Don't switch if already active
+                if ($clickedTab.hasClass('nav-tab-active')) {
+                    return;
+                }
                 
                 switchToTab(targetTab);
                 
@@ -634,13 +583,59 @@ class LIFT_Docs_Settings {
             });
             
             // Initialize - hide all tabs first, then show the correct one
-            $('.tab-content').hide().removeClass('active');
-            $('.nav-tab').removeClass('nav-tab-active');
+            $('.lift-tab-content').hide().removeClass('active');
+            $('.lift-nav-tab').removeClass('nav-tab-active');
             
             // Switch to the current tab (from URL or default)
             switchToTab(currentTab);
             
-            console.log('LIFT Docs Settings: Tab initialization complete for tab:', currentTab);
+            // Add smooth hover effects
+            $('.lift-nav-tab').hover(
+                function() {
+                    if (!$(this).hasClass('nav-tab-active')) {
+                        $(this).stop().animate({opacity: 0.8}, 200);
+                    }
+                },
+                function() {
+                    if (!$(this).hasClass('nav-tab-active')) {
+                        $(this).stop().animate({opacity: 1}, 200);
+                    }
+                }
+            );
+            
+            // Enhanced form control interactions
+            $('.lift-form-control').on('focus', function() {
+                $(this).closest('.lift-form-table td').addClass('focused');
+            }).on('blur', function() {
+                $(this).closest('.lift-form-table td').removeClass('focused');
+            });
+            
+            // Enhanced checkbox interactions
+            $('.lift-checkbox').on('change', function() {
+                var $wrapper = $(this).closest('.lift-checkbox-wrapper');
+                if ($(this).is(':checked')) {
+                    $wrapper.addClass('checked');
+                } else {
+                    $wrapper.removeClass('checked');
+                }
+            });
+            
+            // Initialize checkbox states
+            $('.lift-checkbox:checked').each(function() {
+                $(this).closest('.lift-checkbox-wrapper').addClass('checked');
+            });
+            
+            // Add form validation feedback
+            $('form').on('submit', function() {
+                $('.lift-button-primary').addClass('lift-loading').prop('disabled', true);
+                
+                // Re-enable after 3 seconds as fallback
+                setTimeout(function() {
+                    $('.lift-button-primary').removeClass('lift-loading').prop('disabled', false);
+                }, 3000);
+            });
+            
+            console.log('LIFT Docs Settings: Enhanced tab initialization complete for tab:', currentTab);
         });
         </script>
         <?php
@@ -650,22 +645,58 @@ class LIFT_Docs_Settings {
      * General section callback
      */
     public function general_section_callback() {
+        echo '<div class="lift-card">';
+        echo '<div class="lift-card-header">';
+        echo '<i class="fas fa-info-circle"></i>';
+        echo '<h4>' . __('General Configuration', 'lift-docs-system') . '</h4>';
+        echo '</div>';
         echo '<p>' . __('Configure general settings for the LIFT Docs System.', 'lift-docs-system') . '</p>';
         echo '<p><em>' . __('For shortcode information and usage examples, please see the Help tab.', 'lift-docs-system') . '</em></p>';
+        echo '</div>';
+        
+        // Override WordPress form table classes
+        add_filter('admin_body_class', function($classes) {
+            return $classes . ' lift-enhanced-settings';
+        });
     }
     
     /**
-     * Login section callback
+     * Security section callback
      */
-    public function login_section_callback() {
-        echo '<p>' . __('Customize the appearance of the login page.', 'lift-docs-system') . '</p>';
+    public function security_section_callback() {
+        echo '<div class="lift-card">';
+        echo '<div class="lift-card-header">';
+        echo '<i class="fas fa-shield-alt"></i>';
+        echo '<h4>' . __('Security Configuration', 'lift-docs-system') . '</h4>';
+        echo '</div>';
+        echo '<p>' . __('Configure security and access control settings for document viewing and downloading.', 'lift-docs-system') . '</p>';
+        echo '</div>';
+    }
+    
+    /**
+     * Display section callback
+     */
+    public function display_section_callback() {
+        echo '<div class="lift-card">';
+        echo '<div class="lift-card-header">';
+        echo '<i class="fas fa-paint-brush"></i>';
+        echo '<h4>' . __('Display Configuration', 'lift-docs-system') . '</h4>';
+        echo '</div>';
+        echo '<p>' . __('Control how documents are displayed on the frontend. These settings affect the user experience when viewing documents.', 'lift-docs-system') . '</p>';
+        echo '</div>';
     }
     
     /**
      * Interface section callback
      */
     public function interface_section_callback() {
-        echo '<p>' . __('Customize the appearance and branding of your document login page.', 'lift-docs-system') . '</p>';
+        echo '<div class="lift-card">';
+        echo '<div class="lift-card-header">';
+        echo '<i class="fas fa-palette"></i>';
+        echo '<h4>' . __('Interface Customization', 'lift-docs-system') . '</h4>';
+        echo '</div>';
+        echo '<p>' . __('Customize the appearance and branding of your document login page and related interfaces.', 'lift-docs-system') . '</p>';
+        echo '</div>';
     }
     
     /**
@@ -679,11 +710,11 @@ class LIFT_Docs_Settings {
             
             <!-- Shortcode Information -->
             <div style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                <h3 style="color: #1976d2; margin-top: 0;">📋 Frontend Login & Dashboard Shortcodes</h3>
+                <h3 style="color: #1976d2; margin-top: 0;">Frontend Login & Dashboard Shortcodes</h3>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
                     <div>
-                        <h4 style="color: #1976d2; margin-bottom: 8px;">🔐 Login Form Shortcode:</h4>
+                        <h4 style="color: #1976d2; margin-bottom: 8px;">Login Form Shortcode:</h4>
                         <code style="background: #fff; padding: 8px; border-radius: 3px; display: block; font-family: monospace;">[docs_login_form]</code>
                         
                         <p style="margin: 8px 0 0; font-size: 12px; color: #555;">
@@ -734,39 +765,12 @@ class LIFT_Docs_Settings {
                     </ul>
                 </div>
                 <?php endif; ?>
-                
-                <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 3px; padding: 10px; margin-top: 15px;">
-                    <h4 style="color: #856404; margin-top: 0;">💡 Usage Examples:</h4>
-                    <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 12px;">
-                        <li><code>[docs_login_form title="Member Login" redirect_to="/dashboard"]</code></li>
-                        <li><code>[docs_dashboard show_stats="false" documents_per_page="6"]</code></li>
-                        <li><strong>Alternative URLs:</strong> <code>/document-login</code> & <code>/document-dashboard/</code></li>
-                    </ul>
-                </div>
-                
-                <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 3px; padding: 10px; margin-top: 15px;">
-                    <h4 style="color: #155724; margin-top: 0;">🔐 Login Methods Supported:</h4>
-                    <ul style="margin: 0; padding-left: 20px; color: #155724; font-size: 12px;">
-                        <li><strong>Username:</strong> WordPress username</li>
-                        <li><strong>Email:</strong> User email address</li>
-                        <li><strong>User Code:</strong> Unique 6-8 character code</li>
-                    </ul>
-                </div>
-                
-                <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 3px; padding: 10px; margin-top: 15px;">
-                    <h4 style="color: #721c24; margin-top: 0;">🎨 Simple Login Design:</h4>
-                    <ul style="margin: 0; padding-left: 20px; color: #721c24; font-size: 12px;">
-                        <li><strong>Clean Interface:</strong> No theme header/footer on direct URL</li>
-                        <li><strong>Custom Logo:</strong> Upload logo in Interface tab settings</li>
-                        <li><strong>Color Themes:</strong> Customize colors in Interface tab</li>
-                        <li><strong>Responsive:</strong> Works perfectly on mobile and desktop</li>
-                    </ul>
-                </div>
+               
             </div>
             
             <!-- Interface Customization Info -->
             <div style="background: #f9f9f9; padding: 20px; border-radius: 6px; border-left: 4px solid #1976d2; margin-bottom: 20px;">
-                <h3 style="margin-top: 0; color: #1976d2;">🎨 Interface Customization Guide</h3>
+                <h3 style="margin-top: 0; color: #1976d2;">Interface Customization Guide</h3>
                 <p>The Interface tab allows you to customize the appearance and branding of your document login page. These settings control how the login page looks to your users.</p>
                 <p><strong>Applies to:</strong> /document-login/, /document-dashboard/, secure document pages, and access denied pages.</p>
                 
@@ -1058,20 +1062,6 @@ class LIFT_Docs_Settings {
     }
     
     /**
-     * Display section callback
-     */
-    public function display_section_callback() {
-        echo '<p>' . __('Configure how documents are displayed on the frontend.', 'lift-docs-system') . '</p>';
-    }
-    
-    /**
-     * Security section callback
-     */
-    public function security_section_callback() {
-        echo '<p>' . __('Configure security and access control settings. <strong>Secure links are enabled by default for enhanced security.</strong>', 'lift-docs-system') . '</p>';
-    }
-    
-    /**
      * Checkbox field callback
      */
     public function checkbox_field_callback($args) {
@@ -1080,10 +1070,10 @@ class LIFT_Docs_Settings {
         $description = $args['description'] ?? '';
         $checked = isset($settings[$field]) && $settings[$field] ? 'checked' : '';
         
-        echo '<label>';
-        echo '<input type="checkbox" name="lift_docs_settings[' . $field . ']" value="1" ' . $checked . ' />';
-        echo ' ' . $description;
-        echo '</label>';
+        echo '<div class="lift-checkbox-wrapper">';
+        echo '<input type="checkbox" name="lift_docs_settings[' . $field . ']" value="1" ' . $checked . ' class="lift-checkbox" id="' . $field . '" />';
+        echo '<label for="' . $field . '" class="lift-checkbox-label">' . $description . '</label>';
+        echo '</div>';
     }
     
     /**
@@ -1100,10 +1090,10 @@ class LIFT_Docs_Settings {
         echo '<input type="number" name="lift_docs_settings[' . $field . ']" value="' . esc_attr($value) . '"';
         if ($min !== '') echo ' min="' . $min . '"';
         if ($max !== '') echo ' max="' . $max . '"';
-        echo ' class="small-text" />';
+        echo ' class="lift-form-control small" id="' . $field . '" />';
         
         if ($description) {
-            echo '<p class="description">' . $description . '</p>';
+            echo '<p class="lift-description">' . $description . '</p>';
         }
     }
     
@@ -1116,10 +1106,10 @@ class LIFT_Docs_Settings {
         $description = $args['description'] ?? '';
         $value = isset($settings[$field]) ? $settings[$field] : '';
         
-        echo '<input type="text" name="lift_docs_settings[' . $field . ']" value="' . esc_attr($value) . '" class="regular-text" />';
+        echo '<input type="text" name="lift_docs_settings[' . $field . ']" value="' . esc_attr($value) . '" class="lift-form-control" id="' . $field . '" />';
         
         if ($description) {
-            echo '<p class="description">' . $description . '</p>';
+            echo '<p class="lift-description">' . $description . '</p>';
         }
     }
     
@@ -1133,7 +1123,7 @@ class LIFT_Docs_Settings {
         $options = $args['options'] ?? array();
         $value = isset($settings[$field]) ? $settings[$field] : '';
         
-        echo '<select name="lift_docs_settings[' . $field . ']" class="regular-text">';
+        echo '<select name="lift_docs_settings[' . $field . ']" class="lift-form-control lift-form-select" id="' . $field . '">';
         foreach ($options as $option_value => $option_label) {
             $selected = selected($value, $option_value, false);
             echo '<option value="' . esc_attr($option_value) . '"' . $selected . '>' . esc_html($option_label) . '</option>';
@@ -1141,7 +1131,7 @@ class LIFT_Docs_Settings {
         echo '</select>';
         
         if (!empty($description)) {
-            echo '<p class="description">' . $description . '</p>';
+            echo '<p class="lift-description">' . $description . '</p>';
         }
     }
     
@@ -1506,11 +1496,11 @@ class LIFT_Docs_Settings {
         
         ?>
         <div class="lift-docs-shortcode-info" style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 15px; margin: 20px 0; border-radius: 4px;">
-            <h4 style="color: #1976d2; margin-top: 0;"><?php _e('📋 Frontend Login & Dashboard Shortcodes', 'lift-docs-system'); ?></h4>
+            <h4 style="color: #1976d2; margin-top: 0;"><?php _e('Frontend Login & Dashboard Shortcodes', 'lift-docs-system'); ?></h4>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
                 <div>
-                    <h5 style="color: #1976d2; margin-bottom: 8px;"><?php _e('🔐 Login Form Shortcode:', 'lift-docs-system'); ?></h5>
+                    <h5 style="color: #1976d2; margin-bottom: 8px;"><?php _e('Login Form Shortcode:', 'lift-docs-system'); ?></h5>
                     <code style="background: #fff; padding: 8px; border-radius: 3px; display: block; font-family: monospace;">[docs_login_form]</code>
                     
                     <p style="margin: 8px 0 0; font-size: 12px; color: #555;">
@@ -1572,7 +1562,7 @@ class LIFT_Docs_Settings {
             </div>
             
             <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 3px; padding: 10px; margin-top: 15px;">
-                <h5 style="color: #155724; margin-top: 0;"><?php _e('🔐 Login Methods Supported:', 'lift-docs-system'); ?></h5>
+                <h5 style="color: #155724; margin-top: 0;"><?php _e('Login Methods Supported:', 'lift-docs-system'); ?></h5>
                 <ul style="margin: 0; padding-left: 20px; color: #155724; font-size: 12px;">
                     <li><strong><?php _e('Username:', 'lift-docs-system'); ?></strong> <?php _e('WordPress username', 'lift-docs-system'); ?></li>
                     <li><strong><?php _e('Email:', 'lift-docs-system'); ?></strong> <?php _e('User email address', 'lift-docs-system'); ?></li>
@@ -1581,7 +1571,7 @@ class LIFT_Docs_Settings {
             </div>
             
             <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 3px; padding: 10px; margin-top: 15px;">
-                <h5 style="color: #721c24; margin-top: 0;"><?php _e('🎨 Simple Login Design:', 'lift-docs-system'); ?></h5>
+                <h5 style="color: #721c24; margin-top: 0;"><?php _e('Simple Login Design:', 'lift-docs-system'); ?></h5>
                 <ul style="margin: 0; padding-left: 20px; color: #721c24; font-size: 12px;">
                     <li><strong><?php _e('Clean Interface:', 'lift-docs-system'); ?></strong> <?php _e('No theme header/footer on direct URL', 'lift-docs-system'); ?></li>
                     <li><strong><?php _e('Custom Logo:', 'lift-docs-system'); ?></strong> <?php _e('Upload logo in Login Page Customization settings', 'lift-docs-system'); ?></li>

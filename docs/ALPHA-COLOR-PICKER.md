@@ -1,4 +1,4 @@
-# 🎨 Alpha Color Picker Implementation
+# Alpha Color Picker Implementation
 
 ## Overview
 The LIFT Docs System Settings now supports transparent colors through an enhanced color picker with alpha channel support.
@@ -109,7 +109,7 @@ Run `/test-alpha-color-picker.php` to verify functionality:
 - Input validation prevents injection attacks
 - WordPress sanitization functions used throughout
 
-## 🎨 Color Picker Features
+## Color Picker Features
 
 ### Alpha Slider
 - **Position**: Below main color picker
