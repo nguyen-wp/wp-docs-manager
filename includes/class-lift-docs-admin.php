@@ -487,21 +487,21 @@ class LIFT_Docs_Admin {
         );
         
         add_meta_box(
-            'lift-docs-assignments',
-            __('Document Access Assignment', 'lift-docs-system'),
-            array($this, 'document_assignments_meta_box'),
+            'lift-docs-forms',
+            __('Assigned Forms', 'lift-docs-system'),
+            array($this, 'document_forms_meta_box'),
             'lift_document',
             'side',
             'high'
         );
         
         add_meta_box(
-            'lift-docs-forms',
-            __('Assigned Forms', 'lift-docs-system'),
-            array($this, 'document_forms_meta_box'),
+            'lift-docs-assignments',
+            __('Document Access Assignment', 'lift-docs-system'),
+            array($this, 'document_assignments_meta_box'),
             'lift_document',
             'side',
-            'default'
+            'high'
         );
     }
     
