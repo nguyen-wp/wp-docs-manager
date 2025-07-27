@@ -200,6 +200,9 @@ class LIFT_Forms {
         // Only enqueue jQuery for basic functionality
         wp_enqueue_script('jquery');
         
+        // Enqueue Dashicons for admin interface
+        wp_enqueue_style('dashicons');
+        
         // Minimal admin JavaScript
         wp_enqueue_script(
             'lift-forms-minimal-admin',
@@ -422,9 +425,11 @@ class LIFT_Forms {
                     </div>
                     <div class="form-actions">
                         <button type="button" id="save-form" class="button button-primary">
+                            <span class="dashicons dashicons-yes-alt"></span>
                             <?php _e('Save Form', 'lift-docs-system'); ?>
                         </button>
                         <button type="button" id="preview-form" class="button">
+                            <span class="dashicons dashicons-visibility"></span>
                             <?php _e('Preview', 'lift-docs-system'); ?>
                         </button>
                     </div>
