@@ -12,32 +12,18 @@
     border: 1px solid #e1e5e9;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     margin-bottom: 20px;
 }
 
 .lift-enhanced-settings .form-table th,
 .lift-docs-settings-container .form-table th {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-right: 1px solid #e1e5e9;
-    border-bottom: 1px solid #e1e5e9;
+    background: #f8f9fa;
     padding: 20px;
     width: 280px;
     font-weight: 600;
     color: #495057;
     vertical-align: top;
     position: relative;
-}
-
-.lift-enhanced-settings .form-table th::before,
-.lift-docs-settings-container .form-table th::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: linear-gradient(135deg, #2271b1, #005caa);
 }
 
 .lift-enhanced-settings .form-table td,
@@ -74,13 +60,12 @@
     margin: 0 auto;
     padding: 20px;
     background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     border-radius: 8px;
     margin-top: 20px;
 }
 
 .lift-settings-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #2196f3;
     color: white;
     padding: 30px;
     border-radius: 8px 8px 0 0;
@@ -129,7 +114,6 @@
     position: sticky;
     top: 32px;
     z-index: 100;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .lift-nav-tab {
@@ -143,13 +127,12 @@
     color: #666;
     font-weight: 500;
     font-size: 14px;
-    border-radius: 6px 6px 0 0;
-    transition: all 0.2s ease;
     cursor: pointer;
     position: relative;
     min-width: 120px;
     justify-content: center;
     gap: 8px;
+    border-bottom: 3px solid transparent;
 }
 
 .lift-nav-tab:hover {
@@ -162,19 +145,11 @@
     background: #fff;
     color: #2271b1;
     font-weight: 600;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
     border-bottom: 3px solid #2271b1;
 }
-
-.lift-nav-tab.nav-tab-active::before {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #2271b1, #005caa);
-    border-radius: 3px 3px 0 0;
+.lift-nav-tab:focus {
+    outline: none;
+    box-shadow: none
 }
 
 .lift-nav-tab i {
@@ -193,7 +168,6 @@
     display: none;
     opacity: 0;
     transform: translateY(10px);
-    transition: all 0.3s ease;
     padding: 30px 0;
 }
 
@@ -201,18 +175,6 @@
     display: block;
     opacity: 1;
     transform: translateY(0);
-    animation: slideInUp 0.4s ease-out;
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* ===============================================
@@ -223,7 +185,6 @@
     border: 1px solid #e1e5e9;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     margin-bottom: 20px;
 }
 
@@ -274,7 +235,6 @@
     border: 2px solid #e1e5e9;
     border-radius: 6px;
     font-size: 14px;
-    transition: all 0.2s ease;
     background: #fff;
     font-family: inherit;
 }
@@ -282,7 +242,6 @@
 .lift-form-control:focus {
     outline: none;
     border-color: #2271b1;
-    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.1);
     background: #f8f9ff;
 }
 
@@ -324,7 +283,6 @@
     border-radius: 4px;
     position: relative;
     cursor: pointer;
-    transition: all 0.2s ease;
     background: #fff;
 }
 
@@ -346,7 +304,6 @@
 
 .lift-checkbox:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.1);
 }
 
 .lift-checkbox-label {
@@ -419,7 +376,6 @@
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
     text-decoration: none;
     position: relative;
     overflow: hidden;
@@ -428,12 +384,10 @@
 .lift-button-primary {
     background: linear-gradient(135deg, #2271b1 0%, #005caa 100%);
     color: white;
-    box-shadow: 0 2px 4px rgba(34, 113, 177, 0.3);
 }
 
 .lift-button-primary:hover {
     background: linear-gradient(135deg, #1e5d91 0%, #004a8a 100%);
-    box-shadow: 0 4px 8px rgba(34, 113, 177, 0.4);
     transform: translateY(-1px);
     color: white;
 }
@@ -453,7 +407,6 @@
 .lift-button-success {
     background: linear-gradient(135deg, #198754 0%, #146c43 100%);
     color: white;
-    box-shadow: 0 2px 4px rgba(25, 135, 84, 0.3);
 }
 
 .lift-button-success:hover {
@@ -476,13 +429,9 @@
     border-radius: 8px;
     padding: 24px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    transition: box-shadow 0.2s ease;
 }
 
-.lift-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
+
 
 .lift-card-header {
     display: flex;
@@ -607,7 +556,6 @@
     padding: 20px;
     text-align: center;
     background: #f8f9fa;
-    transition: all 0.2s ease;
     cursor: pointer;
 }
 
@@ -628,7 +576,6 @@
     border-radius: 6px;
     margin: 10px auto;
     display: block;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 /* ===============================================
@@ -643,7 +590,6 @@
 .lift-color-picker {
     border: 2px solid #e1e5e9;
     border-radius: 6px;
-    transition: border-color 0.2s ease;
 }
 
 .lift-color-picker:focus {
@@ -688,7 +634,7 @@
     }
     
     .lift-settings-header h1 {
-        font-size: 24px;
+        font-size: 24px; color: #fff;
     }
     
     .lift-nav-tab-wrapper {
@@ -734,7 +680,6 @@
 }
 
 /* ===============================================
-   LOADING & TRANSITION STATES
    =============================================== */
 .lift-loading {
     opacity: 0.6;
@@ -753,12 +698,6 @@
     border: 2px solid #e1e5e9;
     border-top: 2px solid #2271b1;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
 }
 
 /* ===============================================
@@ -779,57 +718,35 @@
 .lift-hidden { display: none; }
 .lift-visible { display: block; }
 
-/* Smooth transitions for all interactive elements */
-* {
-    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
+
 
 /* ===============================================
    FORM VALIDATION STATES
    =============================================== */
 .lift-form-control.lift-form-error {
     border-color: #dc3545;
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
     background: #fff5f5;
 }
 
 .lift-form-control.lift-form-warning {
     border-color: #ffc107;
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
     background: #fffdf0;
 }
 
 .lift-form-control.lift-form-valid {
     border-color: #28a745;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
     background: #f0fff4;
 }
 
 .lift-checkbox.lift-checkbox-animate {
     transform: scale(1.1);
-    animation: checkboxPulse 0.3s ease;
-}
-
-@keyframes checkboxPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
 }
 
 .lift-form-select.lift-select-changed {
     border-color: #2271b1;
-    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.1);
 }
 
-.lift-color-picker.lift-color-changed {
-    animation: colorPickerPulse 0.5s ease;
-}
 
-@keyframes colorPickerPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
 
 /* ===============================================
    ENHANCED NOTICES & FEEDBACK
@@ -837,19 +754,6 @@
 .lift-notice-enhanced {
     border-radius: 6px;
     border-left-width: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    animation: slideInFromTop 0.4s ease-out;
-}
-
-@keyframes slideInFromTop {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .lift-notice-enhanced i {
@@ -877,7 +781,6 @@
     height: 100%;
     background: linear-gradient(90deg, #2271b1, #005caa);
     width: 0%;
-    transition: width 0.3s ease;
 }
 
 /* ===============================================
@@ -890,7 +793,6 @@
 }
 
 .lift-interactive:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     cursor: pointer;
 }
 
@@ -935,6 +837,5 @@
 
 .lift-form-control-focused {
     border-color: #2271b1 !important;
-    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.1) !important;
     background: #f8f9ff !important;
 }

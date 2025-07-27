@@ -55,12 +55,12 @@ jQuery(document).ready(function($) {
             $('.lift-nav-tab[data-tab="' + tabName + '"]').addClass('loading');
             
             // Hide all tab content with fade out
-            $('.lift-tab-content').fadeOut(200, function() {
+            $('.lift-tab-content').fadeOut(0, function() {
                 // Add active class to target tab
                 $('.lift-nav-tab[data-tab="' + tabName + '"]').addClass('nav-tab-active').removeClass('loading');
                 
                 // Show target content with fade in
-                $('#' + tabName + '-tab').fadeIn(300).addClass('active');
+                $('#' + tabName + '-tab').fadeIn(0).addClass('active');
                 
                 // Trigger custom event for tab switch
                 $(document).trigger('liftTabSwitch', [tabName]);
@@ -109,12 +109,12 @@ jQuery(document).ready(function($) {
         $('.lift-nav-tab').hover(
             function() {
                 if (!$(this).hasClass('nav-tab-active')) {
-                    $(this).stop().animate({opacity: 0.8}, 200);
+                    $(this).stop().animate({opacity: 0.8}, 0);
                 }
             },
             function() {
                 if (!$(this).hasClass('nav-tab-active')) {
-                    $(this).stop().animate({opacity: 1}, 200);
+                    $(this).stop().animate({opacity: 1}, 0);
                 }
             }
         );

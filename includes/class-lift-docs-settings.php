@@ -149,32 +149,7 @@ class LIFT_Docs_Settings {
             'lift-docs-general'
         );
         
-        add_settings_field(
-            'documents_per_page',
-            __('Documents Per Page', 'lift-docs-system'),
-            array($this, 'number_field_callback'),
-            'lift-docs-general',
-            'lift_docs_general_section',
-            array('field' => 'documents_per_page', 'description' => __('Number of documents to display per page', 'lift-docs-system'), 'min' => 1, 'max' => 100)
-        );
-        
-        add_settings_field(
-            'enable_categories',
-            __('Enable Categories', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-general',
-            'lift_docs_general_section',
-            array('field' => 'enable_categories', 'description' => __('Enable document categories', 'lift-docs-system'))
-        );
-        
-        add_settings_field(
-            'enable_tags',
-            __('Enable Tags', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-general',
-            'lift_docs_general_section',
-            array('field' => 'enable_tags', 'description' => __('Enable document tags', 'lift-docs-system'))
-        );
+
         
         // Security Tab Settings
         add_settings_section(
@@ -212,23 +187,7 @@ class LIFT_Docs_Settings {
             'lift-docs-display'
         );
         
-        add_settings_field(
-            'layout_style',
-            __('Layout Style', 'lift-docs-system'),
-            array($this, 'select_field_callback'),
-            'lift-docs-display',
-            'lift_docs_display_section',
-            array(
-                'field' => 'layout_style',
-                'description' => __('Choose the layout style for document pages', 'lift-docs-system'),
-                'options' => array(
-                    'default' => __('Default', 'lift-docs-system'),
-                    'minimal' => __('Minimal', 'lift-docs-system'),
-                    'detailed' => __('Detailed', 'lift-docs-system')
-                )
-            )
-        );
-        
+
         add_settings_field(
             'show_document_header',
             __('Show Document Header', 'lift-docs-system'),
@@ -265,15 +224,7 @@ class LIFT_Docs_Settings {
             array('field' => 'show_download_button', 'description' => __('Display download button for documents', 'lift-docs-system'))
         );
         
-        add_settings_field(
-            'show_related_docs',
-            __('Show Related Documents', 'lift-docs-system'),
-            array($this, 'checkbox_field_callback'),
-            'lift-docs-display',
-            'lift_docs_display_section',
-            array('field' => 'show_related_docs', 'description' => __('Display related documents section', 'lift-docs-system'))
-        );
-        
+
         add_settings_field(
             'show_secure_access_notice',
             __('Show Secure Access Notice', 'lift-docs-system'),
@@ -460,13 +411,6 @@ class LIFT_Docs_Settings {
                             <h3><?php _e('Security & Access Control', 'lift-docs-system'); ?></h3>
                         </div>
                         
-                        <div class="lift-info-box">
-                            <div class="lift-info-box-content">
-                                <h4><?php _e('Security Notice', 'lift-docs-system'); ?></h4>
-                                <p><?php _e('These settings control who can access your documents and how they can access them. Changes to security settings take effect immediately.', 'lift-docs-system'); ?></p>
-                            </div>
-                        </div>
-                        
                         <?php do_settings_sections('lift-docs-security'); ?>
                     </div>
                     
@@ -477,13 +421,6 @@ class LIFT_Docs_Settings {
                             <h3><?php _e('Display & Layout Options', 'lift-docs-system'); ?></h3>
                         </div>
                         
-                        <div class="lift-info-box">
-                            <div class="lift-info-box-content">
-                                <h4><?php _e('Display Customization', 'lift-docs-system'); ?></h4>
-                                <p><?php _e('Control how documents are displayed to your users. These settings affect the frontend appearance of document pages.', 'lift-docs-system'); ?></p>
-                            </div>
-                        </div>
-                        
                         <?php do_settings_sections('lift-docs-display'); ?>
                     </div>
                     
@@ -492,13 +429,6 @@ class LIFT_Docs_Settings {
                         <div class="lift-section-header">
                             <i class="fas fa-palette"></i>
                             <h3><?php _e('Interface Customization', 'lift-docs-system'); ?></h3>
-                        </div>
-                        
-                        <div class="lift-info-box">
-                            <div class="lift-info-box-content">
-                                <h4><?php _e('Branding & Colors', 'lift-docs-system'); ?></h4>
-                                <p><?php _e('Customize the appearance and branding of your document login page and related interfaces.', 'lift-docs-system'); ?></p>
-                            </div>
                         </div>
                         
                         <?php do_settings_sections('lift-docs-interface'); ?>
@@ -645,58 +575,29 @@ class LIFT_Docs_Settings {
      * General section callback
      */
     public function general_section_callback() {
-        echo '<div class="lift-card">';
-        echo '<div class="lift-card-header">';
-        echo '<i class="fas fa-info-circle"></i>';
-        echo '<h4>' . __('General Configuration', 'lift-docs-system') . '</h4>';
-        echo '</div>';
         echo '<p>' . __('Configure general settings for the LIFT Docs System.', 'lift-docs-system') . '</p>';
         echo '<p><em>' . __('For shortcode information and usage examples, please see the Help tab.', 'lift-docs-system') . '</em></p>';
-        echo '</div>';
-        
-        // Override WordPress form table classes
-        add_filter('admin_body_class', function($classes) {
-            return $classes . ' lift-enhanced-settings';
-        });
     }
     
     /**
      * Security section callback
      */
     public function security_section_callback() {
-        echo '<div class="lift-card">';
-        echo '<div class="lift-card-header">';
-        echo '<i class="fas fa-shield-alt"></i>';
-        echo '<h4>' . __('Security Configuration', 'lift-docs-system') . '</h4>';
-        echo '</div>';
         echo '<p>' . __('Configure security and access control settings for document viewing and downloading.', 'lift-docs-system') . '</p>';
-        echo '</div>';
     }
     
     /**
      * Display section callback
      */
     public function display_section_callback() {
-        echo '<div class="lift-card">';
-        echo '<div class="lift-card-header">';
-        echo '<i class="fas fa-paint-brush"></i>';
-        echo '<h4>' . __('Display Configuration', 'lift-docs-system') . '</h4>';
-        echo '</div>';
         echo '<p>' . __('Control how documents are displayed on the frontend. These settings affect the user experience when viewing documents.', 'lift-docs-system') . '</p>';
-        echo '</div>';
     }
     
     /**
      * Interface section callback
      */
     public function interface_section_callback() {
-        echo '<div class="lift-card">';
-        echo '<div class="lift-card-header">';
-        echo '<i class="fas fa-palette"></i>';
-        echo '<h4>' . __('Interface Customization', 'lift-docs-system') . '</h4>';
-        echo '</div>';
         echo '<p>' . __('Customize the appearance and branding of your document login page and related interfaces.', 'lift-docs-system') . '</p>';
-        echo '</div>';
     }
     
     /**
@@ -709,7 +610,7 @@ class LIFT_Docs_Settings {
         <div class="lift-docs-help-content">
             
             <!-- Shortcode Information -->
-            <div style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <div style="background: #e3f2fd;  padding: 15px; margin: 20px 0; border-radius: 4px;">
                 <h3 style="color: #1976d2; margin-top: 0;">Frontend Login & Dashboard Shortcodes</h3>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
@@ -726,7 +627,7 @@ class LIFT_Docs_Settings {
                     </div>
                     
                     <div>
-                        <h4 style="color: #1976d2; margin-bottom: 8px;">� Dashboard Shortcode:</h4>
+                        <h4 style="color: #1976d2; margin-bottom: 8px;">Dashboard Shortcode:</h4>
                         <code style="background: #fff; padding: 8px; border-radius: 3px; display: block; font-family: monospace;">[docs_dashboard]</code>
                         
                         <p style="margin: 8px 0 0; font-size: 12px; color: #555;">
@@ -769,7 +670,7 @@ class LIFT_Docs_Settings {
             </div>
             
             <!-- Interface Customization Info -->
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 6px; border-left: 4px solid #1976d2; margin-bottom: 20px;">
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 6px;  margin-bottom: 20px;">
                 <h3 style="margin-top: 0; color: #1976d2;">Interface Customization Guide</h3>
                 <p>The Interface tab allows you to customize the appearance and branding of your document login page. These settings control how the login page looks to your users.</p>
                 <p><strong>Applies to:</strong> /document-login/, /document-dashboard/, secure document pages, and access denied pages.</p>
@@ -1150,34 +1051,17 @@ class LIFT_Docs_Settings {
         
         // Boolean fields - only keep essential ones
         $boolean_fields = array(
-            'enable_categories',
-            'enable_tags',
             'require_login_to_view',
             'require_login_to_download',
             'show_document_header',
             'show_document_description',
             'show_document_meta',
             'show_download_button',
-            'show_related_docs',
             'show_secure_access_notice'
         );
         
         foreach ($boolean_fields as $field) {
             $validated[$field] = isset($input[$field]) && $input[$field] ? true : false;
-        }
-        
-        // Number fields
-        if (isset($input['documents_per_page'])) {
-            $validated['documents_per_page'] = max(1, min(100, intval($input['documents_per_page'])));
-        }
-        
-        // Note: encryption_key field removed - now using permanent hash-based tokens
-        
-        // Layout style select field
-        if (isset($input['layout_style'])) {
-            $allowed_styles = array('default', 'minimal', 'detailed');
-            $layout_style = sanitize_text_field($input['layout_style']);
-            $validated['layout_style'] = in_array($layout_style, $allowed_styles) ? $layout_style : 'default';
         }
         
         // Force secure links to always be enabled
@@ -1495,7 +1379,7 @@ class LIFT_Docs_Settings {
         $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
         
         ?>
-        <div class="lift-docs-shortcode-info" style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <div class="lift-docs-shortcode-info" style="background: #e3f2fd;  padding: 15px; margin: 20px 0; border-radius: 4px;">
             <h4 style="color: #1976d2; margin-top: 0;"><?php _e('Frontend Login & Dashboard Shortcodes', 'lift-docs-system'); ?></h4>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
