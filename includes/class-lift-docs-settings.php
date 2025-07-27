@@ -397,49 +397,29 @@ class LIFT_Docs_Settings {
                     
                     <!-- General Tab Content -->
                     <div id="general-tab" class="lift-tab-content <?php echo $active_tab == 'general' ? 'active' : ''; ?>">
-                        <div class="lift-section-header">
-                            <i class="fas fa-sliders-h"></i>
-                            <h3><?php _e('General Settings', 'lift-docs-system'); ?></h3>
-                        </div>
                         <?php do_settings_sections('lift-docs-general'); ?>
                     </div>
                     
                     <!-- Security Tab Content -->
                     <div id="security-tab" class="lift-tab-content <?php echo $active_tab == 'security' ? 'active' : ''; ?>">
-                        <div class="lift-section-header">
-                            <i class="fas fa-shield-alt"></i>
-                            <h3><?php _e('Security & Access Control', 'lift-docs-system'); ?></h3>
-                        </div>
-                        
                         <?php do_settings_sections('lift-docs-security'); ?>
                     </div>
                     
                     <!-- Display Tab Content -->
                     <div id="display-tab" class="lift-tab-content <?php echo $active_tab == 'display' ? 'active' : ''; ?>">
-                        <div class="lift-section-header">
-                            <i class="fas fa-paint-brush"></i>
-                            <h3><?php _e('Display & Layout Options', 'lift-docs-system'); ?></h3>
-                        </div>
                         
                         <?php do_settings_sections('lift-docs-display'); ?>
                     </div>
                     
                     <!-- Interface Tab Content -->
                     <div id="interface-tab" class="lift-tab-content <?php echo $active_tab == 'interface' ? 'active' : ''; ?>">
-                        <div class="lift-section-header">
-                            <i class="fas fa-palette"></i>
-                            <h3><?php _e('Interface Customization', 'lift-docs-system'); ?></h3>
-                        </div>
                         
                         <?php do_settings_sections('lift-docs-interface'); ?>
                     </div>
                     
                     <!-- Help Tab Content -->
                     <div id="help-tab" class="lift-tab-content <?php echo $active_tab == 'help' ? 'active' : ''; ?>">
-                        <div class="lift-section-header">
-                            <i class="fas fa-question-circle"></i>
-                            <h3><?php _e('Help & Documentation', 'lift-docs-system'); ?></h3>
-                        </div>
+                       
                         <?php $this->display_help_content(); ?>
                     </div>
                     
