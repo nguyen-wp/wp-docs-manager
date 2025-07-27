@@ -198,11 +198,33 @@ class LIFT_Forms {
             true
         );
         
-        // Basic admin styles only
+        // Admin styles - include both main admin and forms admin CSS
+        wp_enqueue_style(
+            'lift-forms-admin',
+            plugin_dir_url(__FILE__) . '../assets/css/admin.css',
+            array(),
+            '3.0.0'
+        );
+        
+        wp_enqueue_style(
+            'lift-forms-forms-admin',
+            plugin_dir_url(__FILE__) . '../assets/css/forms-admin.css',
+            array('lift-forms-admin'),
+            '3.0.0'
+        );
+        
+        wp_enqueue_style(
+            'lift-forms-admin-modal',
+            plugin_dir_url(__FILE__) . '../assets/css/admin-modal.css',
+            array('lift-forms-forms-admin'),
+            '3.0.0'
+        );
+        
+        // Minimal admin styles for form builder header
         wp_enqueue_style(
             'lift-forms-minimal-admin',
             plugin_dir_url(__FILE__) . '../assets/css/minimal-admin.css',
-            array(),
+            array('lift-forms-admin-modal'),
             '3.0.0'
         );
         
