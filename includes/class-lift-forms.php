@@ -425,11 +425,9 @@ class LIFT_Forms {
                     </div>
                     <div class="form-actions">
                         <button type="button" id="save-form" class="button button-primary">
-                            <span class="dashicons dashicons-yes-alt"></span>
                             <?php _e('Save Form', 'lift-docs-system'); ?>
                         </button>
                         <button type="button" id="preview-form" class="button">
-                            <span class="dashicons dashicons-visibility"></span>
                             <?php _e('Preview', 'lift-docs-system'); ?>
                         </button>
                     </div>
