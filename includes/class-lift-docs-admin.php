@@ -531,7 +531,7 @@ class LIFT_Docs_Admin {
                     <div id="lift_doc_files_container">
                         <?php if (empty($file_urls)): ?>
                             <div class="file-input-row" data-index="0">
-                                <input type="url" name="lift_doc_file_urls[]" value="" class="file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
+                                <input type="url" name="lift_doc_file_urls[]" value="" class="regular-text file-url-input" placeholder="<?php _e('Enter file URL or click Upload', 'lift-docs-system'); ?>" />
                                 <button type="button" class="button button-primary button-large upload-file-button"><?php _e('Upload', 'lift-docs-system'); ?></button>
                                 <button type="button" class="button button-danger remove-file-button button-large" style="display: none;"><?php _e('<i class="fas fa-times"></i> Remove', 'lift-docs-system'); ?></button>
                                 <!-- <span class="file-size-display"></span> -->

@@ -3,7 +3,7 @@
  * Plugin Name: LIFT Docs System
  * Plugin URI: https://liftcreations.com
  * Description: A comprehensive document management system for WordPress with advanced features.
- * Version: 1.9.0
+ * Version: 3.7.2
  * Author: Nguyen Pham
  * Author URI: https://nguyenpham.pro
  * License: GPL v2 or later
