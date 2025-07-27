@@ -32,6 +32,11 @@ class LIFT_Forms {
         add_action('wp_ajax_nopriv_lift_forms_submit', array($this, 'ajax_submit_form'));
         add_action('wp_ajax_lift_forms_get_submission', array($this, 'ajax_get_submission'));
         
+        // BPMN.io form builder AJAX actions
+        add_action('wp_ajax_lift_form_builder_save', array($this, 'ajax_save_form_schema'));
+        add_action('wp_ajax_lift_form_builder_load', array($this, 'ajax_load_form_schema'));
+        add_action('wp_ajax_lift_form_builder_preview', array($this, 'ajax_preview_form'));
+        
         // Register shortcode
         add_shortcode('lift_form', array($this, 'render_form_shortcode'));
     }
@@ -242,6 +247,23 @@ class LIFT_Forms {
             '3.0.0'
         );
         
+        // BPMN.io form builder styles
+        wp_enqueue_style(
+            'lift-forms-form-builder-bpmn',
+            plugin_dir_url(__FILE__) . '../assets/css/form-builder-bpmn.css',
+            array('lift-forms-minimal-admin'),
+            '3.0.0'
+        );
+        
+        // Simple form builder JavaScript (no external dependencies)
+        wp_enqueue_script(
+            'lift-forms-form-builder-bpmn',
+            plugin_dir_url(__FILE__) . '../assets/js/form-builder-bpmn.js',
+            array('jquery'),
+            '3.0.0',
+            true
+        );
+        
         // Minimal localization for AJAX
         wp_localize_script('lift-forms-minimal-admin', 'liftForms', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
@@ -251,6 +273,21 @@ class LIFT_Forms {
                 'saving' => __('Saving...', 'lift-docs-system'),
                 'saved' => __('Form saved successfully!', 'lift-docs-system'),
                 'error' => __('An error occurred. Please try again.', 'lift-docs-system'),
+            )
+        ));
+        
+        // BPMN.io form builder localization
+        wp_localize_script('lift-forms-form-builder-bpmn', 'liftFormBuilder', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('lift_form_builder_nonce'),
+            'strings' => array(
+                'loading' => __('Loading form builder...', 'lift-docs-system'),
+                'error' => __('Error loading form builder', 'lift-docs-system'),
+                'saved' => __('Form saved successfully!', 'lift-docs-system'),
+                'preview' => __('Form Preview', 'lift-docs-system'),
+                'close' => __('Close', 'lift-docs-system'),
+                'saving' => __('Saving...', 'lift-docs-system'),
+                'confirmDelete' => __('Are you sure you want to delete this field?', 'lift-docs-system'),
             )
         ));
     }
@@ -433,11 +470,13 @@ class LIFT_Forms {
                     </div>
                 </div>
                 
-                <!-- Form Builder Content Area - Empty for now -->
+                <!-- Form Builder Content Area - BPMN.io Form Builder -->
                 <div class="form-builder-content">
-                    <div class="empty-builder-message">
-                        <h3><?php _e('Form Builder', 'lift-docs-system'); ?></h3>
-                        <p><?php _e('Form builder content has been cleared. Ready for new implementation.', 'lift-docs-system'); ?></p>
+                    <div id="form-builder-container">
+                        <div class="loading-message">
+                            <div class="spinner"></div>
+                            <p><?php _e('Loading form builder...', 'lift-docs-system'); ?></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1713,6 +1752,137 @@ class LIFT_Forms {
             }
         }
         return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    }
+    
+    /**
+     * AJAX: Save form schema for BPMN.io form builder
+     */
+    public function ajax_save_form_schema() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_form_builder_nonce')) {
+            wp_die(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        // Check permissions
+        if (!current_user_can('edit_lift_documents')) {
+            wp_die(__('Insufficient permissions', 'lift-docs-system'));
+        }
+        
+        $form_id = intval($_POST['form_id']);
+        $form_name = sanitize_text_field($_POST['form_name']);
+        $form_description = sanitize_textarea_field($_POST['form_description']);
+        $form_schema = wp_unslash($_POST['form_schema']); // JSON schema from BPMN.io
+        
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        
+        if ($form_id > 0) {
+            // Update existing form
+            $result = $wpdb->update(
+                $forms_table,
+                array(
+                    'name' => $form_name,
+                    'description' => $form_description,
+                    'form_data' => $form_schema,
+                    'updated_at' => current_time('mysql')
+                ),
+                array('id' => $form_id),
+                array('%s', '%s', '%s', '%s'),
+                array('%d')
+            );
+        } else {
+            // Create new form
+            $result = $wpdb->insert(
+                $forms_table,
+                array(
+                    'name' => $form_name,
+                    'description' => $form_description,
+                    'form_data' => $form_schema,
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql')
+                ),
+                array('%s', '%s', '%s', '%s', '%s')
+            );
+            
+            if ($result) {
+                $form_id = $wpdb->insert_id;
+            }
+        }
+        
+        if ($result !== false) {
+            wp_send_json_success(array(
+                'message' => __('Form saved successfully!', 'lift-docs-system'),
+                'form_id' => $form_id
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Error saving form', 'lift-docs-system')
+            ));
+        }
+    }
+    
+    /**
+     * AJAX: Load form schema for BPMN.io form builder
+     */
+    public function ajax_load_form_schema() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_form_builder_nonce')) {
+            wp_die(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        // Check permissions
+        if (!current_user_can('edit_lift_documents')) {
+            wp_die(__('Insufficient permissions', 'lift-docs-system'));
+        }
+        
+        $form_id = intval($_POST['form_id']);
+        
+        if ($form_id <= 0) {
+            wp_send_json_success(array(
+                'schema' => null,
+                'message' => __('No form schema to load', 'lift-docs-system')
+            ));
+            return;
+        }
+        
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        $form = $wpdb->get_row($wpdb->prepare("SELECT * FROM $forms_table WHERE id = %d", $form_id));
+        
+        if ($form) {
+            wp_send_json_success(array(
+                'schema' => $form->form_data,
+                'name' => $form->name,
+                'description' => $form->description
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Form not found', 'lift-docs-system')
+            ));
+        }
+    }
+    
+    /**
+     * AJAX: Preview form
+     */
+    public function ajax_preview_form() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_form_builder_nonce')) {
+            wp_die(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        // Check permissions
+        if (!current_user_can('edit_lift_documents')) {
+            wp_die(__('Insufficient permissions', 'lift-docs-system'));
+        }
+        
+        $form_schema = wp_unslash($_POST['form_schema']);
+        
+        // Return the schema for preview rendering in JavaScript
+        wp_send_json_success(array(
+            'schema' => $form_schema,
+            'message' => __('Form preview ready', 'lift-docs-system')
+        ));
     }
 }
 
