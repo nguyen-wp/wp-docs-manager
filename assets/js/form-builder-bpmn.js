@@ -299,9 +299,6 @@
 
         formSchema = defaultSchema;
         
-        // Bind events
-        bindModernFormBuilderEvents();
-
         console.log('Modern form builder created successfully');
     }
 
@@ -897,36 +894,39 @@
      * Bind modern form builder events
      */
     function bindModernFormBuilderEvents() {
+        // Unbind existing events to prevent duplicates
+        $(document).off('click.formbuilder dragstart.formbuilder dragend.formbuilder dragover.formbuilder dragleave.formbuilder drop.formbuilder');
+        
         // Palette group toggles
-        $(document).on('click', '.palette-group-header', function() {
+        $(document).on('click.formbuilder', '.palette-group-header', function() {
             $(this).toggleClass('collapsed');
             $(this).closest('.palette-group').toggleClass('collapsed');
         });
 
         // Drag and drop from palette
-        $(document).on('dragstart', '.palette-item', function(e) {
+        $(document).on('dragstart.formbuilder', '.palette-item', function(e) {
             const fieldType = $(this).data('type');
             e.originalEvent.dataTransfer.setData('text/plain', fieldType);
             $(this).addClass('dragging');
         });
 
-        $(document).on('dragend', '.palette-item', function() {
+        $(document).on('dragend.formbuilder', '.palette-item', function() {
             $(this).removeClass('dragging');
         });
 
         // Canvas drop zone
-        $(document).on('dragover', '#form-canvas', function(e) {
+        $(document).on('dragover.formbuilder', '#form-canvas', function(e) {
             e.preventDefault();
             $(this).addClass('drag-over');
         });
 
-        $(document).on('dragleave', '#form-canvas', function(e) {
+        $(document).on('dragleave.formbuilder', '#form-canvas', function(e) {
             if (!$(this).has(e.relatedTarget).length) {
                 $(this).removeClass('drag-over');
             }
         });
 
-        $(document).on('drop', '#form-canvas', function(e) {
+        $(document).on('drop.formbuilder', '#form-canvas', function(e) {
             e.preventDefault();
             $(this).removeClass('drag-over');
             
@@ -937,7 +937,7 @@
         });
 
         // Field selection and editing
-        $(document).on('click', '.canvas-form-field', function(e) {
+        $(document).on('click.formbuilder', '.canvas-form-field', function(e) {
             if ($(e.target).closest('.field-controls').length) return;
             
             $('.canvas-form-field').removeClass('selected');
@@ -949,13 +949,13 @@
         });
 
         // Field controls
-        $(document).on('click', '.edit-field', function(e) {
+        $(document).on('click.formbuilder', '.edit-field', function(e) {
             e.stopPropagation();
             const fieldItem = $(this).closest('.canvas-form-field');
             fieldItem.click();
         });
 
-        $(document).on('click', '.delete-field', function(e) {
+        $(document).on('click.formbuilder', '.delete-field', function(e) {
             e.stopPropagation();
             if (confirm('Are you sure you want to delete this field?')) {
                 const fieldItem = $(this).closest('.canvas-form-field');
@@ -976,7 +976,7 @@
         });
 
         // Properties panel
-        $(document).on('click', '#save-properties', function() {
+        $(document).on('click.formbuilder', '#save-properties', function() {
             const panel = $('#properties-panel');
             const index = panel.data('editing-index');
             
@@ -1006,7 +1006,7 @@
             }
         });
 
-        $(document).on('click', '#cancel-properties', function() {
+        $(document).on('click.formbuilder', '#cancel-properties', function() {
             $('.canvas-form-field').removeClass('selected');
             $('#properties-panel').html(`
                 <div class="properties-empty">
@@ -1018,7 +1018,7 @@
         });
 
         // Canvas actions
-        $(document).on('click', '#clear-canvas', function() {
+        $(document).on('click.formbuilder', '#clear-canvas', function() {
             if (confirm('Are you sure you want to clear all fields?')) {
                 formSchema.components = [];
                 renderCanvasFields(formSchema.components);
@@ -1032,7 +1032,7 @@
             }
         });
 
-        $(document).on('click', '#preview-canvas', function() {
+        $(document).on('click.formbuilder', '#preview-canvas', function() {
             previewForm();
         });
     }
