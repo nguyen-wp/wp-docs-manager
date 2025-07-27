@@ -70,9 +70,7 @@
 .field-category h4 {
     margin: 0 0 15px 0;
     font-size: 14px;
-    color: #666;
-    text-
-    font-weight: 600;
+    color: #666;font-weight: 600;
     letter-spacing: 0.5px;
 }
 .field-items {
@@ -220,9 +218,7 @@
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 11px;
-    font-weight: 600;
-    text-
-    letter-spacing: 0.5px;
+    font-weight: 600;letter-spacing: 0.5px;
 }
 .field-name {
     font-weight: 500;
@@ -536,7 +532,6 @@
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
-    text-
 }
 .status-active {
     background: #d4edda;
