@@ -985,7 +985,7 @@
             
             this.formData.fields = [];
             $('#form-canvas').empty();
-            $('#form-canvas').html('<div class="canvas-placeholder"><span class="dashicons dashicons-forms"></span><p>Drag fields from the left panel to build your form</p></div>');
+            $('#form-canvas').html('<div class="canvas-placeholder"><p>Drag fields from the left panel to build your form</p></div>');
             $('.canvas-placeholder').show();
             $('#form-canvas').removeClass('has-fields');
             this.closeSettingsPanel();
@@ -1105,7 +1105,6 @@
         showEmptyCanvas: function() {
             $('#form-canvas').html(`
                 <div class="canvas-placeholder">
-                    <span class="dashicons dashicons-forms"></span>
                     <p>Drag fields from the left panel to build your form</p>
                 </div>
             `);

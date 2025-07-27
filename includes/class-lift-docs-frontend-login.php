@@ -1379,7 +1379,6 @@ class LIFT_Docs_Frontend_Login {
                             }
                             ?>
                             <a href="<?php echo esc_url($form_url); ?>" class="<?php echo esc_attr($button_class); ?>" target="_blank">
-                                <span class="dashicons dashicons-forms"></span>
                                 <?php echo esc_html($button_text); ?>
                                 <?php if ($has_submitted): ?>
                                     <span class="dashicons dashicons-edit" style="margin-left: 5px;"></span>

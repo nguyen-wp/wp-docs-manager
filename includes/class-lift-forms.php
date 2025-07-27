@@ -347,9 +347,6 @@ class LIFT_Forms {
                 
                 <?php if (empty($forms)): ?>
                     <div class="lift-forms-empty">
-                        <div class="empty-icon">
-                            <span class="dashicons dashicons-forms"></span>
-                        </div>
                         <h2><?php _e('No Forms Yet', 'lift-docs-system'); ?></h2>
                         <p><?php _e('Create your first form to start collecting information from customers.', 'lift-docs-system'); ?></p>
                         <a href="<?php echo admin_url('admin.php?page=lift-forms-builder'); ?>" class="button button-primary button-large">
@@ -538,7 +535,6 @@ class LIFT_Forms {
                         </div>
                         <div class="canvas-content" id="form-canvas">
                             <div class="canvas-placeholder">
-                                <span class="dashicons dashicons-forms"></span>
                                 <p><?php _e('Drag fields from the left panel to build your form', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
@@ -658,7 +654,6 @@ class LIFT_Forms {
             
             <?php if (empty($submissions)): ?>
                 <div class="lift-empty-state">
-                    <span class="dashicons dashicons-email-alt"></span>
                     <h2><?php _e('No Submissions Yet', 'lift-docs-system'); ?></h2>
                     <p><?php _e('Form submissions will appear here once customers start filling out your forms.', 'lift-docs-system'); ?></p>
                 </div>
