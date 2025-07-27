@@ -437,7 +437,7 @@ class LIFT_Forms {
                         </div>
                         <div class="setting-group">
                             <label for="form-description"><?php _e('Description', 'lift-docs-system'); ?></label>
-                            <textarea id="form-description" placeholder="<?php _e('Enter form description...', 'lift-docs-system'); ?>"><?php echo $form ? esc_textarea($form->description) : ''; ?></textarea>
+                            <input id="form-description" placeholder="<?php _e('Enter form description...', 'lift-docs-system'); ?>" value="<?php echo $form ? esc_attr($form->description) : ''; ?>" type="text">
                         </div>
                     </div>
                     <div class="form-actions">

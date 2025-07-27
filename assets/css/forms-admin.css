@@ -8,10 +8,9 @@
 }
 .form-builder-header {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    flex-direction: column;
+    width: 100%;
     padding: 20px 0;
-    border-bottom: 1px solid #ddd;
     margin-bottom: 20px;
 }
 .form-basic-settings {
@@ -41,6 +40,7 @@
 .form-actions {
     display: flex;
     gap: 10px;
+    margin-top: 10px;
 }
 /* Builder Content Layout */
 .form-builder-content {
@@ -136,6 +136,7 @@
     padding: 20px;
     min-height: 500px;
     position: relative;
+    overflow-y: auto;
 }
 .canvas-placeholder {
     display: flex;
