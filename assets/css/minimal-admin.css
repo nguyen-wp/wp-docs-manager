@@ -13,15 +13,15 @@
     overflow: hidden;
 }
 
-/* Modern Form Builder Header */
+/* Clean Form Builder Header */
 .form-builder-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-bottom: none;
-    gap: 30px;
+    padding: 20px 24px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    gap: 24px;
 }
 
 .form-basic-settings {
@@ -39,11 +39,10 @@
 
 .setting-group label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 500;
-    color: #fff;
+    color: #495057;
     font-size: 14px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .setting-group input[type="text"],
@@ -51,134 +50,102 @@
 .setting-group textarea {
     width: 100%;
     max-width: none;
-    padding: 12px 16px;
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    background: rgba(255,255,255,0.95);
-    font-size: 15px;
-    font-weight: 500;
-    color: #2c3e50;
-    transition: all 0.3s ease;
+    padding: 10px 14px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 14px;
+    color: #495057;
+    transition: border-color 0.2s ease;
 }
 
 .setting-group input[type="text"]:focus,
 .setting-group input[type="email"]:focus,
 .setting-group textarea:focus {
-    border-color: rgba(255,255,255,0.8);
-    background: rgba(255,255,255,1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-color: #0073aa;
     outline: none;
-    transform: translateY(-1px);
+    box-shadow: 0 0 0 1px #0073aa;
 }
 
 .setting-group input[type="text"]::placeholder,
 .setting-group input[type="email"]::placeholder,
 .setting-group textarea::placeholder {
-    color: #7f8c8d;
-    opacity: 0.8;
+    color: #6c757d;
 }
 
-/* Modern Action Buttons */
+/* Simple Action Buttons */
 .form-actions {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
     flex-shrink: 0;
 }
 
 .form-actions .button {
     white-space: nowrap;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 4px;
     font-size: 14px;
-    border: none;
+    border: 1px solid #ccc;
     cursor: pointer;
-    transition: all 0.3s ease;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    transition: all 0.2s ease;
 }
 
 .form-actions .button-primary {
-    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    background: #0073aa;
     color: #fff;
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    border-color: #0073aa;
 }
 
 .form-actions .button-primary:hover {
-    background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
-    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
-    transform: translateY(-2px);
+    background: #005a87;
+    border-color: #005a87;
 }
 
 .form-actions .button:not(.button-primary) {
-    background: rgba(255,255,255,0.2);
-    color: #fff;
-    border: 2px solid rgba(255,255,255,0.3);
-    backdrop-filter: blur(10px);
+    background: #fff;
+    color: #2c3e50;
 }
 
 .form-actions .button:not(.button-primary):hover {
-    background: rgba(255,255,255,0.3);
-    border-color: rgba(255,255,255,0.5);
-    transform: translateY(-1px);
+    background: #f8f9fa;
+    border-color: #adb5bd;
 }
 
-/* Modern Form Builder Content Area */
+/* Simple Form Builder Content Area */
 .form-builder-content {
-    padding: 60px 40px;
+    padding: 40px 20px;
     text-align: center;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 400px;
+    background: #fff;
+    min-height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-}
-
-.form-builder-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
-    pointer-events: none;
 }
 
 .empty-builder-message {
-    max-width: 500px;
-    background: rgba(255,255,255,0.9);
-    padding: 40px;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
-    position: relative;
-    z-index: 1;
+    max-width: 400px;
+    padding: 30px 20px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background: #f8f9fa;
 }
 
 .empty-builder-message h3 {
-    color: #2c3e50;
-    margin-bottom: 15px;
-    font-size: 24px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #495057;
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: 600;
 }
 
 .empty-builder-message p {
-    color: #7f8c8d;
-    font-size: 16px;
-    line-height: 1.6;
+    color: #6c757d;
+    font-size: 14px;
+    line-height: 1.5;
     margin: 0;
 }
 
@@ -186,13 +153,13 @@
 @media (max-width: 768px) {
     .form-builder-header {
         flex-direction: column;
-        gap: 20px;
-        padding: 20px 24px;
+        gap: 16px;
+        padding: 16px 20px;
     }
     
     .form-basic-settings {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 12px;
     }
     
     .form-actions {
@@ -207,42 +174,26 @@
     }
     
     .empty-builder-message {
-        padding: 30px 20px;
-        margin: 0 20px;
+        padding: 20px 16px;
+        margin: 0 16px;
     }
     
     .empty-builder-message h3 {
-        font-size: 20px;
+        font-size: 16px;
     }
     
     .empty-builder-message p {
-        font-size: 14px;
+        font-size: 13px;
     }
 }
 
-/* Special Effects */
-.form-builder-header {
-    position: relative;
-    overflow: hidden;
-}
-
-.form-builder-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: 
-        radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
-    animation: float 20s ease-in-out infinite;
-    pointer-events: none;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-10px) rotate(180deg); }
+/* Button Icons */
+.form-actions .button .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    vertical-align: middle;
 }
 
 /* WordPress Admin Integration */
@@ -255,59 +206,10 @@
     display: none;
 }
 
-/* Enhanced Button States */
+/* Button States */
 .form-actions .button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-}
-
-.form-actions .button-primary:disabled {
-    background: #ccc !important;
-    border-color: #ccc !important;
-    color: #fff !important;
-}
-
-/* Button Icons */
-.form-actions .button .dashicons {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
-    margin-top: -2px;
-    vertical-align: middle;
-}
-
-.form-actions .button-primary .dashicons {
-    color: #fff;
-}
-
-.form-actions .button:not(.button-primary) .dashicons {
-    color: rgba(255,255,255,0.9);
-}
-
-/* Button Loading State */
-.form-actions .button.loading {
-    position: relative;
-    color: transparent !important;
-}
-
-.form-actions .button.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top: 2px solid #fff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* Success/Error Messages */
