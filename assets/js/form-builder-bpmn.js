@@ -37,6 +37,7 @@
 
         // Bind events
         bindModernFormBuilderEvents();
+        bindEvents();
     }
 
     /**
@@ -1413,7 +1414,7 @@
         },
         saveForm: saveForm,
         previewForm: previewForm,
-        addField: addNewField
+        addField: addNewCanvasField
     };
 
 })(jQuery);
