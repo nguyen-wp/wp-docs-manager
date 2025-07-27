@@ -1020,8 +1020,16 @@
         // Canvas actions
         $(document).on('click.formbuilder', '#clear-canvas', function() {
             if (confirm('Are you sure you want to clear all fields?')) {
+                // Clear form schema
                 formSchema.components = [];
-                renderCanvasFields(formSchema.components);
+                
+                // Force remove all canvas fields
+                const canvas = $('#form-canvas');
+                canvas.find('.canvas-form-field').remove();
+                canvas.removeClass('has-fields');
+                canvas.find('.canvas-drop-zone').show();
+                
+                // Clear properties panel
                 $('#properties-panel').html(`
                     <div class="properties-empty">
                         <span class="dashicons dashicons-admin-settings"></span>
@@ -1029,6 +1037,8 @@
                         <p>Select a component to edit its properties</p>
                     </div>
                 `);
+                
+                console.log('Canvas cleared successfully');
             }
         });
 
