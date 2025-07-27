@@ -52,6 +52,10 @@
             $(document).on('click', '.field-delete', this.deleteField.bind(this));
             $(document).on('click', '.field-duplicate', this.duplicateField.bind(this));
             
+            // Column field controls
+            $(document).on('click', '.column-field .field-edit', this.editColumnField.bind(this));
+            $(document).on('click', '.column-field .field-delete', this.deleteColumnField.bind(this));
+            
             // Field selection
             $(document).on('click', '.canvas-field', this.selectField.bind(this));
             
@@ -201,6 +205,122 @@
             
             // Update canvas sortable
             $('#form-canvas').sortable('refresh');
+            
+            // Initialize column droppables if this is a column field
+            if (type === 'column') {
+                setTimeout(() => {
+                    this.initColumnDroppables();
+                }, 100);
+            }
+        },
+        
+        initColumnDroppables: function() {
+            // Make columns droppable
+            $('.column').droppable({
+                accept: '.field-item',
+                tolerance: 'pointer',
+                drop: function(event, ui) {
+                    const fieldType = ui.draggable.data('type');
+                    const columnIndex = $(this).data('column');
+                    formBuilder.addFieldToColumn(fieldType, $(this));
+                    $(this).removeClass('drag-over');
+                },
+                over: function() {
+                    $(this).addClass('drag-over');
+                },
+                out: function() {
+                    $(this).removeClass('drag-over');
+                }
+            });
+        },
+        
+        addFieldToColumn: function(fieldType, columnElement) {
+            this.fieldCounter++;
+            const fieldId = 'field_' + this.fieldCounter;
+            const fieldName = fieldType + '_' + this.fieldCounter;
+            
+            const fieldConfig = this.getFieldDefaults(fieldType);
+            fieldConfig.id = fieldId;
+            fieldConfig.name = fieldName;
+            fieldConfig.type = fieldType;
+            
+            // Add to form data
+            this.formData.fields.push(fieldConfig);
+            
+            // Create column field HTML
+            const columnFieldHtml = this.renderColumnField(fieldConfig);
+            
+            // Add to column
+            columnElement.append(columnFieldHtml);
+            columnElement.addClass('has-fields');
+            
+            // Update form data
+            this.updateFormData();
+            
+            console.log('Field added to column:', fieldType, fieldId);
+        },
+        
+        editColumnField: function(e) {
+            e.stopPropagation();
+            const fieldElement = $(e.target).closest('.column-field');
+            const fieldId = fieldElement.data('field-id');
+            const field = this.getFieldById(fieldId);
+            
+            if (field) {
+                this.selectedField = field;
+                this.showFieldSettings(field);
+            }
+        },
+        
+        deleteColumnField: function(e) {
+            e.stopPropagation();
+            
+            if (!confirm('Are you sure you want to delete this field?')) {
+                return;
+            }
+            
+            const fieldElement = $(e.target).closest('.column-field');
+            const fieldId = fieldElement.data('field-id');
+            
+            // Remove from form data
+            this.formData.fields = this.formData.fields.filter(field => field.id !== fieldId);
+            
+            // Remove from DOM
+            fieldElement.remove();
+            
+            // Check if column is empty
+            const column = fieldElement.closest('.column');
+            if (column.find('.column-field').length === 0) {
+                column.removeClass('has-fields');
+            }
+            
+            // Close settings panel if this field was selected
+            if (this.selectedField && this.selectedField.id === fieldId) {
+                this.closeSettingsPanel();
+            }
+            
+            // Update form data
+            this.updateFormData();
+        },
+        
+        renderColumnField: function(field) {
+            const preview = this.renderFieldPreview(field);
+            
+            return `
+                <div class="column-field" data-field-id="${field.id}">
+                    <div class="field-controls">
+                        <button type="button" class="field-control-btn field-edit" title="Edit">
+                            <span class="dashicons dashicons-edit"></span>
+                        </button>
+                        <button type="button" class="field-control-btn delete field-delete" title="Delete">
+                            <span class="dashicons dashicons-trash"></span>
+                        </button>
+                    </div>
+                    <div class="field-preview">
+                        ${preview}
+                    </div>
+                </div>
+            `;
         },
         
         getFieldDefaults: function(type) {
@@ -640,6 +760,13 @@
             // Update field preview
             const previewHtml = this.renderFieldPreview(this.selectedField);
             fieldElement.find('.field-preview').html(previewHtml);
+            
+            // If this is a column field and columns setting changed, reinitialize droppables
+            if (this.selectedField.type === 'column' && settingName === 'columns') {
+                setTimeout(() => {
+                    this.initColumnDroppables();
+                }, 100);
+            }
             
             // Update form data
             this.updateFormData();
