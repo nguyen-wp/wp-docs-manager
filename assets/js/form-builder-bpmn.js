@@ -203,6 +203,31 @@
                             
                             <div class="palette-group">
                                 <div class="palette-group-header">
+                                    <span class="dashicons dashicons-columns palette-item-icon"></span>
+                                    Layout
+                                </div>
+                                <div class="palette-items">
+                                    <div class="palette-item" data-type="columns-2" draggable="true">
+                                        <span class="dashicons dashicons-columns palette-item-icon"></span>
+                                        2 Columns
+                                    </div>
+                                    <div class="palette-item" data-type="columns-3" draggable="true">
+                                        <span class="dashicons dashicons-columns palette-item-icon"></span>
+                                        3 Columns
+                                    </div>
+                                    <div class="palette-item" data-type="columns-4" draggable="true">
+                                        <span class="dashicons dashicons-columns palette-item-icon"></span>
+                                        4 Columns
+                                    </div>
+                                    <div class="palette-item" data-type="fieldset" draggable="true">
+                                        <span class="dashicons dashicons-editor-table palette-item-icon"></span>
+                                        Fieldset
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="palette-group">
+                                <div class="palette-group-header">
                                     <span class="dashicons dashicons-admin-tools palette-item-icon"></span>
                                     Advanced
                                 </div>
@@ -320,6 +345,9 @@
                 const fieldHTML = createCanvasFieldHTML(component, index);
                 canvas.append(fieldHTML);
             });
+            
+            // Re-initialize sortable after rendering
+            initSortableCanvas();
         } else {
             canvas.removeClass('has-fields');
             dropZone.show();
@@ -327,11 +355,148 @@
     }
 
     /**
+     * Initialize sortable for canvas fields
+     */
+    function initSortableCanvas() {
+        const canvas = $('#form-canvas');
+        
+        // Destroy existing sortable if exists
+        if (canvas.hasClass('ui-sortable')) {
+            canvas.sortable('destroy');
+        }
+        
+        // Check if jQuery UI sortable is available
+        if (typeof $.fn.sortable === 'function') {
+            canvas.sortable({
+                items: '.canvas-form-field',
+                handle: '.canvas-form-field', // Allow entire field to be draggable
+                placeholder: 'field-placeholder',
+                tolerance: 'pointer',
+                cursor: 'move',
+                opacity: 0.6,
+                start: function(event, ui) {
+                    ui.placeholder.height(ui.item.height());
+                    ui.placeholder.addClass('sortable-placeholder');
+                },
+                update: function(event, ui) {
+                    // Update the form schema order
+                    updateFieldOrder();
+                }
+            });
+            console.log('jQuery UI sortable initialized');
+        } else {
+            // Fallback to native HTML5 drag & drop
+            console.log('jQuery UI not available, using native drag & drop');
+            initNativeSortable();
+        }
+    }
+
+    /**
+     * Initialize native HTML5 drag & drop for sortable
+     */
+    function initNativeSortable() {
+        const canvas = document.getElementById('form-canvas');
+        let draggedElement = null;
+        let placeholder = null;
+
+        function createPlaceholder() {
+            const div = document.createElement('div');
+            div.className = 'field-placeholder sortable-placeholder';
+            div.style.height = '60px';
+            return div;
+        }
+
+        // Add dragstart event to existing fields
+        canvas.addEventListener('dragstart', function(e) {
+            if (e.target.classList.contains('canvas-form-field')) {
+                // This is field reordering, not palette drag
+                draggedElement = e.target;
+                e.target.style.opacity = '0.5';
+                placeholder = createPlaceholder();
+                e.stopPropagation(); // Prevent palette drag handler
+            }
+        });
+
+        canvas.addEventListener('dragend', function(e) {
+            if (e.target.classList.contains('canvas-form-field')) {
+                e.target.style.opacity = '';
+                if (placeholder && placeholder.parentNode) {
+                    placeholder.parentNode.removeChild(placeholder);
+                }
+                updateFieldOrder();
+            }
+        });
+
+        canvas.addEventListener('dragover', function(e) {
+            // Only handle if we're dragging a field for reordering
+            if (!draggedElement || !draggedElement.classList.contains('canvas-form-field')) return;
+            
+            e.preventDefault();
+
+            const afterElement = getDragAfterElement(canvas, e.clientY);
+            if (afterElement == null) {
+                canvas.appendChild(placeholder);
+            } else {
+                canvas.insertBefore(placeholder, afterElement);
+            }
+        });
+
+        // Make fields draggable
+        function makeDraggable() {
+            canvas.querySelectorAll('.canvas-form-field').forEach(field => {
+                field.draggable = true;
+            });
+        }
+
+        // Initial setup
+        makeDraggable();
+
+        // Re-setup when new fields are added
+        const observer = new MutationObserver(makeDraggable);
+        observer.observe(canvas, { childList: true });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.canvas-form-field:not(.ui-sortable-helper)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+    }
+
+    /**
+     * Update field order in schema after sorting
+     */
+    function updateFieldOrder() {
+        const newOrder = [];
+        $('#form-canvas .canvas-form-field').each(function(newIndex) {
+            const oldIndex = $(this).data('index');
+            if (typeof oldIndex !== 'undefined' && formSchema.components[oldIndex]) {
+                newOrder.push(formSchema.components[oldIndex]);
+                // Update the data-index attribute to reflect new position
+                $(this).data('index', newIndex);
+                $(this).attr('data-index', newIndex);
+            }
+        });
+        
+        formSchema.components = newOrder;
+        
+        console.log('Field order updated:', newOrder);
+    }
+
+    /**
      * Create HTML for canvas field
      */
     function createCanvasFieldHTML(component, index) {
         return `
-            <div class="canvas-form-field" data-index="${index}" data-type="${component.type}">
+            <div class="canvas-form-field" data-index="${index}" data-type="${component.type}" draggable="true">
                 <div class="field-controls">
                     <button type="button" class="field-control-btn edit-field" title="Edit">
                         <span class="dashicons dashicons-edit"></span>
@@ -561,6 +726,29 @@
             case 'button':
                 return `<button type="button" class="button" disabled style="margin-right: 8px;">${component.text || 'Click Me'}</button>`;
                 
+            // Layout - Columns
+            case 'columns-2':
+            case 'columns-3':
+            case 'columns-4':
+                const colCount = component.columns || 2;
+                const colWidth = Math.floor(100 / colCount);
+                let columnsHTML = '<div class="form-columns" style="display: flex; gap: 15px;">';
+                for (let i = 0; i < colCount; i++) {
+                    columnsHTML += `<div class="form-column" style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 60px; text-align: center; color: #666;">Column ${i + 1}<br><small>Drop fields here</small></div>`;
+                }
+                columnsHTML += '</div>';
+                return columnsHTML;
+                
+            case 'fieldset':
+                return `
+                    <fieldset style="border: 1px solid #ccc; padding: 15px; margin: 10px 0;">
+                        <legend style="padding: 0 10px; font-weight: 600;">${component.legend || 'Fieldset Legend'}</legend>
+                        <div style="border: 1px dashed #ccc; padding: 20px; text-align: center; color: #666;">
+                            Drop fields here
+                        </div>
+                    </fieldset>
+                `;
+                
             default:
                 return '<div style="color: #dc3545; border: 1px dashed #dc3545; padding: 8px;">Unknown field type: ' + component.type + '</div>';
         }
@@ -571,6 +759,19 @@
      */
     function showPropertiesPanel(component, index) {
         const panel = $('#properties-panel');
+        
+        // Validate component exists
+        if (!component) {
+            console.error('showPropertiesPanel: component is undefined or null');
+            panel.html(`
+                <div class="properties-empty">
+                    <span class="dashicons dashicons-warning"></span>
+                    <h4>Error</h4>
+                    <p>Component not found or is invalid.</p>
+                </div>
+            `);
+            return;
+        }
         
         const propertiesHTML = `
             <div class="property-section">
@@ -936,6 +1137,9 @@
             }
         });
 
+        // Initialize sortable for canvas fields
+        initSortableCanvas();
+
         // Field selection and editing
         $(document).on('click.formbuilder', '.canvas-form-field', function(e) {
             if ($(e.target).closest('.field-controls').length) return;
@@ -945,7 +1149,14 @@
             
             const index = $(this).data('index');
             const component = formSchema.components[index];
-            showPropertiesPanel(component, index);
+            
+            console.log('Field clicked - Index:', index, 'Component:', component);
+            
+            if (component) {
+                showPropertiesPanel(component, index);
+            } else {
+                console.error('Component not found at index:', index, 'Available components:', formSchema.components.length);
+            }
         });
 
         // Field controls
@@ -959,10 +1170,18 @@
             e.stopPropagation();
             if (confirm('Are you sure you want to delete this field?')) {
                 const fieldItem = $(this).closest('.canvas-form-field');
-                const index = fieldItem.data('index');
+                const index = parseInt(fieldItem.data('index'));
                 
-                formSchema.components.splice(index, 1);
-                renderCanvasFields(formSchema.components);
+                console.log('Deleting field at index:', index, 'Total components:', formSchema.components.length);
+                
+                // Validate index
+                if (index >= 0 && index < formSchema.components.length) {
+                    formSchema.components.splice(index, 1);
+                    console.log('Field deleted. Remaining components:', formSchema.components.length);
+                    renderCanvasFields(formSchema.components);
+                } else {
+                    console.error('Invalid index for deletion:', index);
+                }
                 
                 // Clear properties panel
                 $('#properties-panel').html(`
@@ -1084,11 +1303,17 @@
             image: { label: 'Image', key: `image_${Date.now()}`, src: '', alt: '', width: '', height: '' },
             video: { label: 'Video', key: `video_${Date.now()}`, src: '', width: '100%', height: '300px' },
             
+            // Layout
+            'columns-2': { label: '2 Columns', key: `columns_${Date.now()}`, type: 'columns-2', columns: 2, children: [[], []] },
+            'columns-3': { label: '3 Columns', key: `columns_${Date.now()}`, type: 'columns-3', columns: 3, children: [[], [], []] },
+            'columns-4': { label: '4 Columns', key: `columns_${Date.now()}`, type: 'columns-4', columns: 4, children: [[], [], [], []] },
+            fieldset: { label: 'Fieldset', key: `fieldset_${Date.now()}`, type: 'fieldset', legend: 'Fieldset Legend', children: [] },
+            
             // Advanced
             hidden: { label: 'Hidden Field', key: `hidden_${Date.now()}`, value: '' },
             rating: { label: 'Star Rating', key: `rating_${Date.now()}`, max: 5, icon: 'star' },
             signature: { label: 'Signature', key: `signature_${Date.now()}`, width: '400px', height: '200px' },
-            captcha: { label: 'Captcha', key: `captcha_${Date.now()}`, type: 'simple' },
+            captcha: { label: 'Captcha', key: `captcha_${Date.now()}`, captchaType: 'simple' },
             calculation: { label: 'Calculation', key: `calculation_${Date.now()}`, formula: '', fields: [] },
             
             // Actions

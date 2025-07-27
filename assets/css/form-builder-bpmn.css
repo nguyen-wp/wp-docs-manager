@@ -350,7 +350,7 @@
     margin-bottom: 10px;
     padding: 15px;
     position: relative;
-    cursor: pointer;
+    cursor: move; /* Show it's draggable */
 }
 
 .canvas-form-field:hover {
@@ -361,6 +361,59 @@
 .canvas-form-field.selected {
     border-color: #0073aa;
     box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.1);
+}
+
+/* Sortable placeholder */
+.sortable-placeholder {
+    background: #f0f8ff !important;
+    border: 2px dashed #0073aa !important;
+    margin-bottom: 10px !important;
+    visibility: visible !important;
+}
+
+.field-placeholder {
+    background: #f0f8ff;
+    border: 2px dashed #0073aa;
+    margin-bottom: 10px;
+    height: 60px;
+}
+
+/* Columns layout */
+.form-columns {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+}
+
+.form-column {
+    flex: 1;
+    border: 1px dashed #c3c4c7;
+    padding: 15px;
+    min-height: 80px;
+    background: #fafafa;
+    border-radius: 4px;
+    position: relative;
+}
+
+.form-column.drop-zone {
+    border-color: #0073aa;
+    background: #f0f8ff;
+}
+
+.form-column .column-header {
+    font-size: 11px;
+    color: #646970;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+/* Responsive columns */
+@media (max-width: 768px) {
+    .form-columns {
+        flex-direction: column;
+        gap: 10px;
+    }
 }
 
 .canvas-form-field .field-controls {
@@ -378,6 +431,48 @@
 .canvas-form-field.selected .field-controls {
     opacity: 1 !important;
     visibility: visible !important;
+}
+
+/* Resize handle for columns */
+.form-column {
+    position: relative;
+}
+
+.form-column::after {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: transparent;
+    cursor: col-resize;
+    border-right: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.form-column:hover::after {
+    border-right-color: #0073aa;
+}
+
+/* Drag handle for sortable */
+.canvas-form-field::before {
+    content: '⋮⋮';
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #c3c4c7;
+    font-size: 12px;
+    line-height: 1;
+    cursor: move;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.canvas-form-field:hover::before,
+.canvas-form-field.ui-sortable-helper::before {
+    opacity: 1;
 }
 
 .field-control-btn {
