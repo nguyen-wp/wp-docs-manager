@@ -174,11 +174,22 @@ class LIFT_Forms {
         // Check if we're on any LIFT Forms admin page
         $is_lift_forms_page = false;
         
+        // Debug: Log current hook and page
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Forms - Hook: ' . $hook);
+            error_log('LIFT Forms - Page: ' . ($_GET['page'] ?? 'not-set'));
+        }
+        
         if (strpos($hook, 'lift-forms') !== false) {
             $is_lift_forms_page = true;
         }
         
         if (isset($_GET['page']) && strpos($_GET['page'], 'lift-forms') !== false) {
+            $is_lift_forms_page = true;
+        }
+        
+        // Also check for LIFT document admin pages that contain forms
+        if (strpos($hook, 'lift_document') !== false) {
             $is_lift_forms_page = true;
         }
         
