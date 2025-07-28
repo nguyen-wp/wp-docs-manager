@@ -9,7 +9,7 @@
     let currentFormId = 0;
     let formData = [];
     let layoutData = {
-        type: 'simple', // 'simple' or 'advanced'
+        type: 'advanced', // Always use advanced layout with row/column structure
         rows: []
     };
 
@@ -53,20 +53,12 @@
      * Get form data in proper structure for saving
      */
     function getFormDataForSaving() {
-        if (layoutData.type === 'advanced' && $('#form-fields-list .form-row').length > 0) {
-            // Advanced layout with rows/columns
-            return {
-                type: 'advanced',
-                layout: buildLayoutStructure(),
-                fields: formData
-            };
-        } else {
-            // Simple layout - just fields
-            return {
-                type: 'simple',
-                fields: formData
-            };
-        }
+        // Always use advanced layout with rows/columns
+        return {
+            type: 'advanced',
+            layout: buildLayoutStructure(),
+            fields: formData
+        };
     }
 
     /**
@@ -142,62 +134,8 @@
             return;
         }
 
-        // Clear container and show form builder
-        container.html('<div id="form-builder-simple"></div>');
-
-        // Check if FormBuilder library is available
-        if (typeof FormBuilder === 'undefined') {
-            // Fallback to simple HTML form builder
-            createSimpleFormBuilder(existingData);
-            return;
-        }
-
-        // Initialize FormBuilder with custom configuration
-        try {
-            formBuilderInstance = $('#form-builder-simple').formBuilder({
-                formData: existingData,
-                showActionButtons: true,
-                controlOrder: [
-                    'text',
-                    'textarea', 
-                    'select',
-                    'radio-group',
-                    'checkbox-group',
-                    'checkbox',
-                    'date',
-                    'file',
-                    'number',
-                    'header',
-                    'paragraph',
-                    'button'
-                ],
-                typeUserDisabledAttrs: {
-                    'text': ['access'],
-                    'textarea': ['access'],
-                    'select': ['access'],
-                    'radio-group': ['access'],
-                    'checkbox-group': ['access'],
-                    'date': ['access'],
-                    'file': ['access'],
-                    'number': ['access']
-                },
-                typeUserAttrs: {
-                    text: {
-                        className: {
-                            label: 'CSS Class',
-                            value: 'form-control'
-                        }
-                    }
-                },
-                i18n: {
-                    locale: 'en-US',
-                    location: window.liftFormBuilder ? window.liftFormBuilder.pluginUrl + '/assets/js/i18n/' : ''
-                }
-            });
-
-        } catch (error) {
-            createSimpleFormBuilder(existingData);
-        }
+        // Always use simple HTML form builder with row/column structure
+        createSimpleFormBuilder(existingData);
     }
 
     /**
@@ -293,7 +231,7 @@
                     
                     <div class="form-fields-area">
                         <div id="form-fields-list">
-                            <div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>
+                            <div class="no-fields-message"><p>No rows added yet. Drag a row layout from the palette to get started.</p></div>
                         </div>
                     </div>
                 </div>
@@ -400,6 +338,11 @@
 
         container.html(builderHTML);
         
+        // Always ensure we have at least one row with one column
+        if (layoutData.rows.length === 0) {
+            createDefaultRow();
+        }
+        
         // Load existing data if any
         if (existingData && existingData.length > 0) {
             // Ensure each field has an ID
@@ -409,7 +352,14 @@
                 }
                 return field;
             });
-            renderFields();
+            
+            // If we have form data but no row structure, create default structure
+            if ($('#form-fields-list .form-row').length === 0) {
+                loadAdvancedLayout(layoutData);
+            }
+        } else {
+            // Create default row if no existing data
+            loadAdvancedLayout(layoutData);
         }
 
         // Store form data in global variable for minimal admin access
@@ -904,29 +854,14 @@
     }
 
     /**
-     * Update field order based on DOM order (including fields in columns) - Compact version
+     * Update field order based on DOM order (including fields in columns) - Advanced layout only
      */
     function updateFieldOrder() {
         const newOrder = [];
         
-        // Check if we have row structure
-        if ($('#form-fields-list .form-row').length > 0) {
-            // Get fields from all columns in order
-            $('#form-fields-list .form-row').each(function() {
-                $(this).find('.form-column .compact-field-item').each(function() {
-                    const fieldIdElements = $(this).find('[data-field-id]');
-                    if (fieldIdElements.length > 0) {
-                        const fieldId = fieldIdElements.first().data('field-id');
-                        const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
-                        if (field) {
-                            newOrder.push(field);
-                        }
-                    }
-                });
-            });
-        } else {
-            // Simple single column mode
-            $('#form-fields-list .compact-field-item').each(function() {
+        // Always use row structure - no simple layout support
+        $('#form-fields-list .form-row').each(function() {
+            $(this).find('.form-column .compact-field-item').each(function() {
                 const fieldIdElements = $(this).find('[data-field-id]');
                 if (fieldIdElements.length > 0) {
                     const fieldId = fieldIdElements.first().data('field-id');
@@ -936,7 +871,7 @@
                     }
                 }
             });
-        }
+        });
         
         formData = newOrder;
     }
@@ -945,23 +880,20 @@
      * Add new field
      */
     function addField(type) {
-        const field = createFieldData(type);
-        formData.push(field);
-        
-        // If we have row structure, don't use renderFields (user should drag to specific column)
-        if ($('#form-fields-list .form-row').length > 0) {
-            // Don't render, let user drag from palette
-            // Remove the field from formData since it's not placed yet
-            formData.pop();
-            alert('Please drag the field from the palette to a specific column in your form.');
+        // Always check if we have row structure - never allow direct field addition
+        if ($('#form-fields-list .form-row').length === 0) {
+            alert('Please add a row first before adding fields. Drag a row layout from the palette to get started.');
             return;
-        } else {
-            // Only render if we're in simple single-column mode
-            renderFields();
         }
         
-        // Auto-open edit modal for new field
-        editField(formData.length - 1);
+        // Check if we have any columns to drop fields into
+        if ($('#form-fields-list .form-column').length === 0) {
+            alert('Please add columns to your rows before adding fields. You need at least one column to place fields.');
+            return;
+        }
+        
+        // Don't create the field yet - user should drag from palette to specific column
+        alert('Please drag the field from the palette to a specific column in your form.');
     }
 
     /**
@@ -1174,9 +1106,15 @@
         // Update global variable for minimal admin access
         updateGlobalFormData();
         
-        // If no rows exist and no fields, fall back to simple view
-        if ($('#form-fields-list .form-row').length === 0 && formData.length === 0) {
-            $('#form-fields-list').html('<div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>');
+        // If no fields remain, show no fields message
+        if (formData.length === 0) {
+            // Keep the row structure but show placeholder message in empty columns
+            $('#form-fields-list .form-column').each(function() {
+                if ($(this).find('.compact-field-item, .form-field-item').length === 0) {
+                    $(this).removeClass('has-fields');
+                    $(this).find('.column-placeholder').show();
+                }
+            });
         }
     }
 
@@ -1193,40 +1131,8 @@
         // Update global variable for minimal admin access
         updateGlobalFormData();
         
-        // If fields are in row/column structure, don't use renderFields
-        if ($('#form-fields-list .form-row').length > 0) {
-            // Just update the data, the visual reordering should be handled by drag & drop
-        } else {
-            // Only use renderFields if we're in simple single-column mode
-            renderFields();
-        }
-    }
-
-    /**
-     * Render fields - Using compact layout
-     */
-    function renderFields() {
-        const container = $('#form-fields-list');
-        
-        if (formData.length === 0) {
-            container.html('<div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>');
-            return;
-        }
-
-        let html = '';
-        formData.forEach((field, index) => {
-            const fieldId = field.id || `field-${index}`;
-            // Use the compact field preview directly, no extra wrapper needed
-            html += generateFieldPreview(field);
-        });
-
-        container.html(html);
-        
-        // Update global variable for minimal admin access
-        updateGlobalFormData();
-        
-        // Trigger event to reinitialize sortable
-        $(document).trigger('fields-updated');
+        // Visual reordering is handled by drag & drop in advanced layout
+        // No need to re-render as we're always using row/column structure
     }
 
     /**
@@ -1731,13 +1637,6 @@
             });
             
             previewHTML += '</div>';
-        } else {
-            // Simple single column layout
-            previewHTML = '<div class="form-preview-container single-column">';
-            formData.forEach(field => {
-                previewHTML += generateFullFormPreview(field);
-            });
-            previewHTML += '</div>';
         }
         
         // Add submit button
@@ -1930,20 +1829,25 @@
                             formData = loadedData.fields || [];
                             loadAdvancedLayout(loadedData.layout);
                         } else if (Array.isArray(loadedData)) {
-                            // Old flat structure - convert to simple layout
+                            // Old flat structure - convert to advanced layout with default row
                             formData = loadedData;
-                            layoutData = { type: 'simple', rows: [] };
+                            createDefaultRow();
                             createFormBuilder(loadedData);
                         } else if (loadedData.fields) {
                             // Structure with fields property
                             formData = loadedData.fields || [];
-                            layoutData = loadedData.layout || { type: 'simple', rows: [] };
-                            if (layoutData.type === 'advanced') {
-                                loadAdvancedLayout(layoutData);
+                            
+                            // Always convert to advanced layout
+                            if (loadedData.layout && loadedData.layout.type === 'advanced') {
+                                layoutData = loadedData.layout;
                             } else {
-                                createFormBuilder(formData);
+                                // Convert simple layout to advanced
+                                createDefaultRow();
                             }
+                            loadAdvancedLayout(layoutData);
                         } else {
+                            // Create default structure
+                            createDefaultRow();
                             createFormBuilder(loadedData);
                         }
                         
@@ -1969,7 +1873,7 @@
         container.html(''); // Clear existing content
         
         if (!layout || !layout.rows || layout.rows.length === 0) {
-            container.html('<div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>');
+            container.html('<div class="no-fields-message"><p>No rows added yet. Drag a row layout from the palette to get started.</p></div>');
             return;
         }
         
@@ -2804,6 +2708,25 @@
                 });
             }, 3000);
         }
+    }
+
+    /**
+     * Create a default row with one column if no layout exists
+     */
+    function createDefaultRow() {
+        const rowId = 'row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        const columnId = 'col-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        
+        layoutData.rows = [{
+            id: rowId,
+            columns: [{
+                id: columnId,
+                width: '1',
+                fields: []
+            }]
+        }];
+        
+        layoutData.type = 'advanced';
     }
 
     // Expose debug function globally for testing
