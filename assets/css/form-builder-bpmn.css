@@ -373,19 +373,6 @@
     border-right-color: #d63638;
 }
 
-/* Column Background Colors */
-.form-column.bg-light {
-    background: #f8f9fa !important;
-}
-
-.form-column.bg-blue {
-    background: #e3f2fd !important;
-}
-
-.form-column.bg-green {
-    background: #e8f5e8 !important;
-}
-
 /* Row Controls - Cleaner Design */
 .row-controls {
     position: absolute;

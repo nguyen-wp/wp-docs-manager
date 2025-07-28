@@ -245,30 +245,23 @@
                         </div>
                         <div class="modal-body">
                             <div class="form-field">
-                                <label>Column Title</label>
-                                <input type="text" id="column-title" class="widefat" placeholder="Enter column title">
-                            </div>
-                            <div class="form-field">
                                 <label>Column Width</label>
                                 <select id="column-width" class="widefat">
                                     <option value="1">Auto</option>
-                                    <option value="0.25">25%</option>
-                                    <option value="0.5">50%</option>
-                                    <option value="0.75">75%</option>
+                                    <option value="0.16">16.67% (1/6)</option>
+                                    <option value="0.25">25% (1/4)</option>
+                                    <option value="0.33">33.33% (1/3)</option>
+                                    <option value="0.5">50% (1/2)</option>
+                                    <option value="0.66">66.67% (2/3)</option>
+                                    <option value="0.75">75% (3/4)</option>
+                                    <option value="0.83">83.33% (5/6)</option>
+                                    <option value="2">2x Width</option>
+                                    <option value="3">3x Width</option>
                                 </select>
                             </div>
                             <div class="form-field">
                                 <label>CSS Classes</label>
                                 <input type="text" id="column-classes" class="widefat" placeholder="custom-class another-class">
-                            </div>
-                            <div class="form-field">
-                                <label>Column Background</label>
-                                <select id="column-background" class="widefat">
-                                    <option value="">Default</option>
-                                    <option value="light">Light Gray</option>
-                                    <option value="blue">Light Blue</option>
-                                    <option value="green">Light Green</option>
-                                </select>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -952,9 +945,15 @@
                         <div class="column-actions">
                             <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
                                 <option value="1">Auto</option>
-                                <option value="0.5">50%</option>
-                                <option value="0.25">25%</option>
-                                <option value="0.75">75%</option>
+                                <option value="0.16">16.67% (1/6)</option>
+                                <option value="0.25">25% (1/4)</option>
+                                <option value="0.33">33.33% (1/3)</option>
+                                <option value="0.5">50% (1/2)</option>
+                                <option value="0.66">66.67% (2/3)</option>
+                                <option value="0.75">75% (3/4)</option>
+                                <option value="0.83">83.33% (5/6)</option>
+                                <option value="2">2x Width</option>
+                                <option value="3">3x Width</option>
                             </select>
                             <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
                                 <span class="dashicons dashicons-admin-generic"></span>
@@ -1107,9 +1106,15 @@
                     <div class="column-actions">
                         <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
                             <option value="1">Auto</option>
-                            <option value="0.5">50%</option>
-                            <option value="0.25">25%</option>
-                            <option value="0.75">75%</option>
+                            <option value="0.16">16.67% (1/6)</option>
+                            <option value="0.25">25% (1/4)</option>
+                            <option value="0.33">33.33% (1/3)</option>
+                            <option value="0.5">50% (1/2)</option>
+                            <option value="0.66">66.67% (2/3)</option>
+                            <option value="0.75">75% (3/4)</option>
+                            <option value="0.83">83.33% (5/6)</option>
+                            <option value="2">2x Width</option>
+                            <option value="3">3x Width</option>
                         </select>
                         <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
                             <span class="dashicons dashicons-admin-generic"></span>
@@ -1155,16 +1160,12 @@
         if (!column.length) return;
         
         // Get current column data
-        const currentTitle = column.find('.column-title').text();
         const currentFlex = column.css('flex') || '1';
         const currentClasses = column.attr('data-custom-classes') || '';
-        const currentBackground = column.attr('data-background') || '';
         
         // Populate modal fields
-        $('#column-title').val(currentTitle);
         $('#column-width').val(currentFlex);
         $('#column-classes').val(currentClasses);
-        $('#column-background').val(currentBackground);
         
         // Store current editing column ID
         $('#column-settings-modal').data('editing-column-id', columnId).show();
@@ -1177,13 +1178,8 @@
         if (!column.length) return;
         
         // Get form values
-        const title = $('#column-title').val() || 'Column';
         const width = $('#column-width').val();
         const classes = $('#column-classes').val();
-        const background = $('#column-background').val();
-        
-        // Update column title
-        column.find('.column-title').text(title);
         
         // Update column width
         column.css('flex', width);
@@ -1195,15 +1191,6 @@
             column.addClass(classes);
         } else {
             column.removeAttr('data-custom-classes');
-        }
-        
-        // Update background
-        column.removeAttr('data-background');
-        column.removeClass('bg-light bg-blue bg-green');
-        
-        if (background) {
-            column.attr('data-background', background);
-            column.addClass('bg-' + background);
         }
         
         // Close modal
