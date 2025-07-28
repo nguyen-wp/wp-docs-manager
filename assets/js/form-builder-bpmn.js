@@ -785,8 +785,8 @@
             draggedData = null;
         });
 
-        // Handle row dragging within canvas
-        $(document).on('dragstart', '.form-row[draggable="true"]', function(e) {
+        // Handle row dragging within canvas using event delegation
+        $(document).off('dragstart.rowDrag').on('dragstart.rowDrag', '.form-row[draggable="true"]', function(e) {
             draggedElement = this;
             draggedData = {
                 rowId: $(this).data('row-id'),
@@ -795,16 +795,17 @@
             
             $(this).addClass('drag-ghost');
             e.originalEvent.dataTransfer.effectAllowed = 'move';
+            e.originalEvent.dataTransfer.setData('text/html', '');
         });
 
-        $(document).on('dragend', '.form-row[draggable="true"]', function(e) {
+        $(document).off('dragend.rowDrag').on('dragend.rowDrag', '.form-row[draggable="true"]', function(e) {
             $(this).removeClass('drag-ghost');
             draggedElement = null;
             draggedData = null;
         });
 
-        // Handle field dragging within canvas
-        $(document).on('dragstart', '.form-field-item[draggable="true"]', function(e) {
+        // Handle field dragging within canvas using event delegation
+        $(document).off('dragstart.fieldDrag').on('dragstart.fieldDrag', '.form-field-item[draggable="true"]', function(e) {
             draggedElement = this;
             draggedData = {
                 fieldId: $(this).data('field-id'),
@@ -813,30 +814,34 @@
             
             $(this).addClass('drag-ghost');
             e.originalEvent.dataTransfer.effectAllowed = 'move';
+            e.originalEvent.dataTransfer.setData('text/html', '');
         });
 
-        $(document).on('dragend', '.form-field-item[draggable="true"]', function(e) {
+        $(document).off('dragend.fieldDrag').on('dragend.fieldDrag', '.form-field-item[draggable="true"]', function(e) {
             $(this).removeClass('drag-ghost');
             draggedElement = null;
             draggedData = null;
         });
 
-        // Make canvas droppable for rows
-        $('#form-fields-list').on('dragover', function(e) {
+        // Make canvas droppable for rows with better handling
+        $('#form-fields-list').off('dragover.rowDrop').on('dragover.rowDrop', function(e) {
             if (!draggedData) return;
             
             if (draggedData.type === 'row' || draggedData.source === 'canvas-row') {
                 e.preventDefault();
-                e.originalEvent.dataTransfer.dropEffect = 'copy';
+                e.originalEvent.dataTransfer.dropEffect = draggedData.source === 'canvas-row' ? 'move' : 'copy';
                 $(this).addClass('drag-over');
             }
         });
 
-        $('#form-fields-list').on('dragleave', function(e) {
-            $(this).removeClass('drag-over');
+        $('#form-fields-list').off('dragleave.rowDrop').on('dragleave.rowDrop', function(e) {
+            // Only remove drag-over if we're really leaving the container
+            if (!$.contains(this, e.relatedTarget) && e.relatedTarget !== this) {
+                $(this).removeClass('drag-over');
+            }
         });
 
-        $('#form-fields-list').on('drop', function(e) {
+        $('#form-fields-list').off('drop.rowDrop').on('drop.rowDrop', function(e) {
             if (!draggedData) return;
             
             e.preventDefault();
@@ -851,8 +856,8 @@
             }
         });
 
-        // Make columns droppable for fields
-        $(document).on('dragover', '.form-column', function(e) {
+        // Make columns droppable for fields using event delegation
+        $(document).off('dragover.columnDrop').on('dragover.columnDrop', '.form-column', function(e) {
             if (!draggedData) return;
             
             if (draggedData.source === 'palette' && draggedData.type !== 'row') {
@@ -866,11 +871,14 @@
             }
         });
 
-        $(document).on('dragleave', '.form-column', function(e) {
-            $(this).removeClass('drag-over');
+        $(document).off('dragleave.columnDrop').on('dragleave.columnDrop', '.form-column', function(e) {
+            // Only remove drag-over if we're really leaving the column
+            if (!$.contains(this, e.relatedTarget) && e.relatedTarget !== this) {
+                $(this).removeClass('drag-over');
+            }
         });
 
-        $(document).on('drop', '.form-column', function(e) {
+        $(document).off('drop.columnDrop').on('drop.columnDrop', '.form-column', function(e) {
             if (!draggedData) return;
             
             e.preventDefault();
@@ -1271,35 +1279,43 @@
 
     function moveRow(rowId, dropY) {
         const draggedRow = $(`.form-row[data-row-id="${rowId}"]`);
-        const allRows = $('#form-fields-list .form-row');
+        const allRows = $('#form-fields-list .form-row').not(draggedRow);
+        
+        if (allRows.length === 0) {
+            return; // No other rows to compare against
+        }
         
         let targetRow = null;
         let insertAfter = false;
+        let minDistance = Infinity;
         
+        // Find the closest row to the drop position
         allRows.each(function() {
             const row = $(this);
-            if (row.data('row-id') === rowId) return;
-            
             const rect = this.getBoundingClientRect();
-            const middle = rect.top + rect.height / 2;
+            const rowMiddle = rect.top + rect.height / 2;
+            const distance = Math.abs(dropY - rowMiddle);
             
-            if (dropY < middle) {
+            if (distance < minDistance) {
+                minDistance = distance;
                 targetRow = row;
-                insertAfter = false;
-                return false;
-            } else {
-                targetRow = row;
-                insertAfter = true;
+                insertAfter = dropY > rowMiddle;
             }
         });
         
-        if (targetRow) {
+        // Move the row to the new position
+        if (targetRow && targetRow.length) {
             if (insertAfter) {
                 targetRow.after(draggedRow);
             } else {
                 targetRow.before(draggedRow);
             }
+        } else {
+            // If no target found, append to the end
+            $('#form-fields-list').append(draggedRow);
         }
+        
+        console.log('Row moved:', rowId, 'after:', insertAfter ? targetRow.data('row-id') : 'before ' + targetRow.data('row-id'));
     }
 
     // Make functions globally accessible for onclick handlers
