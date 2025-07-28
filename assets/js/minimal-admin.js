@@ -15,7 +15,17 @@
         console.log('LIFT Forms - Minimal admin loaded');
         
         // Basic save form functionality
-        $('#save-form').on('click', function() {
+        $('#save-form').on('click', function(e) {
+            // Check if advanced form builder is active
+            if ($('#form-fields-list .form-row').length > 0 || 
+                (window.formBuilder && window.formBuilder.formData && 
+                 typeof window.formBuilder.formData === 'object' && 
+                 window.formBuilder.formData.type === 'advanced')) {
+                // Let the advanced form builder handle the save
+                console.log('Advanced form builder detected, skipping minimal admin save');
+                return;
+            }
+
             const formId = $('#form-id').val();
             const formName = $('#form-name').val().trim();
             const formDescription = $('#form-description').val().trim();

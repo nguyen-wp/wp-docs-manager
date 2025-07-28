@@ -978,7 +978,7 @@ class LIFT_Forms {
             wp_send_json_error(__('Form name is required', 'lift-docs-system'));
         }
         
-        // Validate fields data - but allow empty fields for initial save
+        // Validate fields data - handle new hierarchical structure
         if (empty($fields) || $fields === '[]' || $fields === 'null' || $fields === 'undefined') {
             // For new forms (no form_id), allow saving with empty fields initially
             if (empty($form_id)) {
@@ -988,12 +988,12 @@ class LIFT_Forms {
                 wp_send_json_error(__('Form must have at least one field', 'lift-docs-system'));
             }
         }
-        
+
         // Enhanced JSON cleaning and validation
         $fields = trim($fields);
         
         // Log the raw fields data for debugging
-        error_log('LIFT Forms - Raw fields data: ' . $fields);
+        error_log('LIFT Forms - Raw fields data: ' . substr($fields, 0, 200) . '...');
         error_log('LIFT Forms - Fields length: ' . strlen($fields));
         
         // Remove BOM if present
@@ -1016,7 +1016,7 @@ class LIFT_Forms {
             $fields = preg_replace('/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/', '$1"$2":', $fields);
         }
         
-        error_log('LIFT Forms - Cleaned fields data: ' . $fields);
+        error_log('LIFT Forms - Cleaned fields data: ' . substr($fields, 0, 200) . '...');
         
         // Test JSON validity with better error reporting
         $fields_array = json_decode($fields, true);
@@ -1048,7 +1048,37 @@ class LIFT_Forms {
         }
         
         if (empty($fields_array) || !is_array($fields_array)) {
-            wp_send_json_error(__('Fields data is empty or invalid', 'lift-docs-system'));
+            // For new forms, allow empty fields initially
+            if (empty($form_id) && (empty($fields_array) || $fields_array === [])) {
+                error_log('LIFT Forms - Empty fields allowed for new form');
+                $fields_array = []; // Ensure it's a proper empty array
+            } else {
+                wp_send_json_error(__('Fields data is empty or invalid', 'lift-docs-system'));
+            }
+        }
+
+        // Handle both old flat array structure and new hierarchical structure
+        if (!empty($fields_array)) {
+            $is_valid_data = false;
+            
+            if (isset($fields_array[0]) && is_array($fields_array[0])) {
+                // Old flat array structure - each element is a field
+                $is_valid_data = true;
+                error_log('LIFT Forms - Detected flat array structure');
+            } elseif (isset($fields_array['type'])) {
+                // New hierarchical structure with 'type' property
+                $is_valid_data = true;
+                error_log('LIFT Forms - Detected hierarchical structure: ' . $fields_array['type']);
+            } elseif (isset($fields_array['fields']) || isset($fields_array['layout'])) {
+                // New structure with fields/layout properties
+                $is_valid_data = true;
+                error_log('LIFT Forms - Detected new structure with fields/layout');
+            }
+
+            if (!$is_valid_data) {
+                error_log('LIFT Forms - Invalid fields structure: ' . print_r($fields_array, true));
+                wp_send_json_error(__('Fields data structure is invalid', 'lift-docs-system'));
+            }
         }
         
         global $wpdb;

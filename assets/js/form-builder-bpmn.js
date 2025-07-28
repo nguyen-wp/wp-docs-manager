@@ -8,6 +8,10 @@
     let formBuilderInstance = null;
     let currentFormId = 0;
     let formData = [];
+    let layoutData = {
+        type: 'simple', // 'simple' or 'advanced'
+        rows: []
+    };
 
     // Initialize when DOM is ready
     $(document).ready(function() {
@@ -34,10 +38,81 @@
      * Update global form data variables
      */
     function updateGlobalFormData() {
-        window.liftCurrentFormFields = formData;
+        // Prepare data for saving - include both flat fields and layout structure
+        const dataToSave = {
+            fields: formData,
+            layout: layoutData
+        };
+        
+        window.liftCurrentFormFields = dataToSave;
         if (window.formBuilder) {
-            window.formBuilder.formData = formData;
+            window.formBuilder.formData = dataToSave;
         }
+    }
+
+    /**
+     * Get form data in proper structure for saving
+     */
+    function getFormDataForSaving() {
+        if (layoutData.type === 'advanced' && $('#form-fields-list .form-row').length > 0) {
+            // Advanced layout with rows/columns
+            return {
+                type: 'advanced',
+                layout: buildLayoutStructure(),
+                fields: formData
+            };
+        } else {
+            // Simple layout - just fields
+            return {
+                type: 'simple',
+                fields: formData
+            };
+        }
+    }
+
+    /**
+     * Build layout structure from DOM
+     */
+    function buildLayoutStructure() {
+        const rows = [];
+        
+        $('#form-fields-list .form-row').each(function() {
+            const rowElement = $(this);
+            const rowId = rowElement.data('row-id');
+            const columns = [];
+            
+            rowElement.find('.form-column').each(function() {
+                const columnElement = $(this);
+                const columnId = columnElement.data('column-id');
+                const fields = [];
+                
+                // Get fields in this column
+                columnElement.find('.compact-field-item, .form-field-item').each(function() {
+                    const fieldElement = $(this);
+                    const fieldId = fieldElement.data('field-id') || fieldElement.find('[data-field-id]').data('field-id');
+                    
+                    if (fieldId) {
+                        const fieldData = formData.find(f => f.id === fieldId);
+                        if (fieldData) {
+                            fields.push(fieldData);
+                        }
+                    }
+                });
+                
+                columns.push({
+                    id: columnId,
+                    width: columnElement.css('flex') || '1',
+                    fields: fields
+                });
+            });
+            
+            rows.push({
+                id: rowId,
+                columns: columns
+            });
+        });
+        
+        return { rows: rows };
     }
 
     /**
@@ -1696,6 +1771,7 @@
         // Save form
         $(document).on('click', '#save-form', function(e) {
             e.preventDefault();
+            e.stopImmediatePropagation(); // Prevent other handlers from running
             saveForm();
         });
 
@@ -1724,8 +1800,8 @@
             // Store in global variable for minimal admin access
             updateGlobalFormData();
         } else {
-            // Simple form builder data
-            saveData = JSON.stringify(formData);
+            // Simple form builder data - use proper structure
+            saveData = getFormDataForSaving();
             
             // Store in global variable for minimal admin access  
             updateGlobalFormData();
@@ -1778,29 +1854,49 @@
             url: (window.liftFormBuilder && liftFormBuilder.ajaxurl) || ajaxurl || '/wp-admin/admin-ajax.php',
             type: 'POST',
             data: {
-                action: 'lift_load_form',
+                action: 'lift_forms_get',
                 nonce: (window.liftFormBuilder && liftFormBuilder.nonce) || '',
                 form_id: formId
             },
             success: function(response) {
-                if (response.success && response.data.form_data) {
+                if (response.success && response.data.form_fields) {
                     try {
-                        const loadedData = typeof response.data.form_data === 'string' 
-                            ? JSON.parse(response.data.form_data) 
-                            : response.data.form_data;
+                        const loadedData = typeof response.data.form_fields === 'string' 
+                            ? JSON.parse(response.data.form_fields) 
+                            : response.data.form_fields;
                         
-                        createFormBuilder(loadedData);
-                        
-                        // Update form title if available
-                        if (response.data.form_title) {
-                            $('#form-title').val(response.data.form_title);
+                        // Handle both old flat structure and new hierarchical structure
+                        if (loadedData.type === 'advanced' && loadedData.layout) {
+                            // New structure with layout
+                            layoutData = loadedData.layout || { type: 'advanced', rows: [] };
+                            formData = loadedData.fields || [];
+                            loadAdvancedLayout(loadedData.layout);
+                        } else if (Array.isArray(loadedData)) {
+                            // Old flat structure - convert to simple layout
+                            formData = loadedData;
+                            layoutData = { type: 'simple', rows: [] };
+                            createFormBuilder(loadedData);
+                        } else if (loadedData.fields) {
+                            // Structure with fields property
+                            formData = loadedData.fields || [];
+                            layoutData = loadedData.layout || { type: 'simple', rows: [] };
+                            if (layoutData.type === 'advanced') {
+                                loadAdvancedLayout(layoutData);
+                            } else {
+                                createFormBuilder(formData);
+                            }
+                        } else {
+                            createFormBuilder(loadedData);
                         }
                         
+                        updateGlobalFormData();
                         console.log('Form data loaded successfully');
                     } catch (error) {
                         console.error('Error parsing form data:', error);
                         createFormBuilder();
                     }
+                } else {
+                    createFormBuilder();
                 }
             },
             error: function(xhr, status, error) {
@@ -1808,6 +1904,95 @@
                 createFormBuilder();
             }
         });
+    }
+
+    /**
+     * Load advanced layout with rows and columns
+     */
+    function loadAdvancedLayout(layout) {
+        const container = $('#form-fields-list');
+        container.html(''); // Clear existing content
+        
+        if (!layout || !layout.rows || layout.rows.length === 0) {
+            container.html('<div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>');
+            return;
+        }
+        
+        layout.rows.forEach(row => {
+            if (!row.columns || row.columns.length === 0) return;
+            
+            // Create row HTML
+            let rowHTML = `<div class="form-row" data-row-id="${row.id}" draggable="true">`;
+            
+            // Add row drag handle
+            rowHTML += `
+                <div class="row-drag-handle" title="Drag to reorder row">
+                    ⋮⋮
+                </div>
+            `;
+            
+            // Add row controls
+            rowHTML += `
+                <div class="row-controls">
+                    <button type="button" class="row-control-btn" title="Add Column" onclick="addColumn('${row.id}')">
+                        <span class="dashicons dashicons-plus-alt"></span> Col
+                    </button>
+                    <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${row.id}')">
+                        <span class="dashicons dashicons-minus"></span> Col
+                    </button>
+                    <button type="button" class="row-control-btn add-row" title="Add Row Below">
+                        <span class="dashicons dashicons-plus-alt"></span> Row
+                    </button>
+                    <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
+                        <span class="dashicons dashicons-trash"></span>
+                    </button>
+                </div>
+            `;
+            
+            // Add columns
+            row.columns.forEach((column, columnIndex) => {
+                rowHTML += `
+                    <div class="form-column" data-column-id="${column.id}" style="flex: ${column.width || '1'}; position: relative;">
+                        <div class="column-header">
+                            <span class="column-title">Column ${columnIndex + 1}</span>
+                            <div class="column-actions">
+                                <select class="column-width-selector" onchange="changeColumnWidth('${column.id}', this.value)">
+                                    <option value="1">Auto</option>
+                                    <option value="0.16">16.67% (1/6)</option>
+                                    <option value="0.25">25% (1/4)</option>
+                                    <option value="0.33">33.33% (1/3)</option>
+                                    <option value="0.5">50% (1/2)</option>
+                                    <option value="0.66">66.67% (2/3)</option>
+                                    <option value="0.75">75% (3/4)</option>
+                                    <option value="0.83">83.33% (5/6)</option>
+                                    <option value="1">100%</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="column-content">
+                `;
+                
+                // Add fields to column
+                if (column.fields && column.fields.length > 0) {
+                    column.fields.forEach(field => {
+                        rowHTML += generateFieldPreview(field);
+                    });
+                    rowHTML += '</div>'; // Close column-content
+                } else {
+                    rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
+                }
+                
+                rowHTML += '</div>'; // Close form-column
+            });
+            
+            rowHTML += '</div>'; // Close form-row
+            container.append(rowHTML);
+        });
+        
+        // Initialize drag and drop and other events
+        bindRowEvents();
+        initColumnResize();
+        initDragAndDrop();
     }
 
     /**
@@ -2068,6 +2253,10 @@
         rowHTML += '</div>';
         container.append(rowHTML);
         
+        // Set layout type to advanced since we're adding rows
+        layoutData.type = 'advanced';
+        updateGlobalFormData();
+        
         // Bind row events
         bindRowEvents();
         initColumnResize();
@@ -2182,7 +2371,14 @@
         // Make the field draggable
         column.find('.compact-field-item').last().attr('draggable', 'true');
         
+        // Add to formData
         formData.push(fieldData);
+        
+        // Set layout type to advanced since we're using rows/columns
+        layoutData.type = 'advanced';
+        
+        // Update global data
+        updateGlobalFormData();
         
         // Auto-open edit modal for new field
         setTimeout(() => {
