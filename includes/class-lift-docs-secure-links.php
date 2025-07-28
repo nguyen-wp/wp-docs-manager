@@ -147,15 +147,14 @@ class LIFT_Docs_Secure_Links {
         $verification = LIFT_Docs_Settings::verify_secure_link(urldecode($token));
         
         if (!$verification || !isset($verification['document_id'])) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Token verification failed for token: ' . $token);
-                error_log('LIFT Docs Debug - Verification result: ' . print_r($verification, true));
-            }
+            $this->debug_log('Token verification failed for token: ' . $token);
+            $this->debug_log('Verification result: ' . print_r($verification, true));
             status_header(403);
             die('Invalid or expired download link. Please request a new download link.');
         }
         
         $document_id = $verification['document_id'];
+        $this->debug_log('Download request for document ID: ' . $document_id);
         
         // Check if document exists and is published
         $document = get_post($document_id);
@@ -197,6 +196,7 @@ class LIFT_Docs_Secure_Links {
         }
         
         // Track download
+        $this->debug_log("About to track download for document ID: " . $document_id);
         $this->track_document_download($document_id);
         
         // Serve file securely
