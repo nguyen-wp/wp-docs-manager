@@ -527,6 +527,7 @@ class LIFT_Docs_Frontend_Login {
             <meta charset="<?php bloginfo('charset'); ?>">
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title><?php _e('Document Login', 'lift-docs-system'); ?> - <?php bloginfo('name'); ?></title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
             <?php wp_head(); ?>
             <style>
                 /* Login page specific styles - Only apply to docs login page */
@@ -1063,7 +1064,7 @@ class LIFT_Docs_Frontend_Login {
                                        placeholder="<?php _e('Enter your password...', 'lift-docs-system'); ?>" 
                                        required autocomplete="current-password">
                                 <button type="button" class="toggle-password" tabindex="-1">
-                                    <span class="dashicons dashicons-visibility"></span>
+                                    <i class="fas fa-eye"></i>
                                 </button>
                             </div>
                         </div>
@@ -1079,7 +1080,7 @@ class LIFT_Docs_Frontend_Login {
                             <button type="submit" class="lift-login-btn">
                                 <span class="btn-text"><?php _e('Sign In', 'lift-docs-system'); ?></span>
                                 <span class="btn-spinner" style="display: none;">
-                                    <span class="spinner"></span>
+                                    <span class="spinner"></i>
                                     <?php _e('Signing in...', 'lift-docs-system'); ?>
                                 </span>
                             </button>
@@ -1134,7 +1135,7 @@ class LIFT_Docs_Frontend_Login {
                     </div>
                     <div class="dashboard-actions">
                         <button type="button" id="docs-logout-btn" class="logout-btn">
-                            <span class="dashicons dashicons-exit"></span>
+                            <i class="fas fa-sign-out-alt"></i>
                             <?php _e('Logout', 'lift-docs-system'); ?>
                         </button>
                     </div>
@@ -1146,7 +1147,7 @@ class LIFT_Docs_Frontend_Login {
                     <div class="dashboard-stats">
                         <div class="stat-item">
                             <div class="stat-icon">
-                                <span class="dashicons dashicons-media-document"></span>
+                                <i class="fas fa-file-alt"></i>
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo count($user_documents); ?></h3>
@@ -1156,7 +1157,7 @@ class LIFT_Docs_Frontend_Login {
                         
                         <div class="stat-item">
                             <div class="stat-icon">
-                                <span class="dashicons dashicons-download"></span>
+                                <i class="fas fa-download"></i>
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo $this->get_user_download_count($current_user->ID); ?></h3>
@@ -1166,7 +1167,7 @@ class LIFT_Docs_Frontend_Login {
                         
                         <div class="stat-item">
                             <div class="stat-icon">
-                                <span class="dashicons dashicons-visibility"></span>
+                                <i class="fas fa-eye"></i>
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo $this->get_user_view_count($current_user->ID); ?></h3>
@@ -1176,7 +1177,7 @@ class LIFT_Docs_Frontend_Login {
                         
                         <div class="stat-item">
                             <div class="stat-icon">
-                                <span class="dashicons dashicons-calendar-alt"></span>
+                                <i class="fas fa-calendar-alt"></i>
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo date_i18n('M d', strtotime($current_user->user_registered)); ?></h3>
@@ -1339,16 +1340,16 @@ class LIFT_Docs_Frontend_Login {
                 </div>
                 <div class="document-meta">
                     <span class="document-date">
-                        <span class="dashicons dashicons-calendar-alt"></span>
+                        <i class="fas fa-calendar-alt"></i>
                         <?php echo get_the_date('M j, Y', $document->ID); ?>
                     </span>
                     <span class="document-stats">
                         <span class="views">
-                            <span class="dashicons dashicons-visibility"></span>
+                            <i class="fas fa-eye"></i>
                             <?php echo $views ? $views : 0; ?>
                         </span>
                         <span class="downloads">
-                            <span class="dashicons dashicons-download"></span>
+                            <i class="fas fa-download"></i>
                             <?php echo $downloads ? $downloads : 0; ?>
                         </span>
                     </span>
@@ -1372,7 +1373,7 @@ class LIFT_Docs_Frontend_Login {
                             }
                             ?>
                             <a href="<?php echo esc_url($view_url); ?>" class="btn btn-primary" target="_blank">
-                                <span class="dashicons dashicons-visibility"></span>
+                                <i class="fas fa-eye"></i>
                                 <?php echo $view_text; ?>
                             </a>
                             <?php
@@ -1420,7 +1421,7 @@ class LIFT_Docs_Frontend_Login {
                                     <a href="<?php echo esc_url($form_url); ?>" class="<?php echo esc_attr($button_class); ?>" target="_blank">
                                         <?php echo esc_html($button_text); ?>
                                         <?php if ($has_submitted): ?>
-                                            <span class="dashicons dashicons-edit" style="margin-left: 5px;"></span>
+                                            <i class="fas fa-edit" style="margin-left: 5px;"></i>
                                         <?php endif; ?>
                                     </a>
                                     <?php
@@ -1627,6 +1628,9 @@ class LIFT_Docs_Frontend_Login {
         
         wp_enqueue_script('lift-docs-frontend-login', plugin_dir_url(__FILE__) . '../assets/js/frontend-login.js', array('jquery'), '1.0.0', true);
         wp_enqueue_style('lift-docs-frontend-login', plugin_dir_url(__FILE__) . '../assets/css/frontend-login.css', array(), '1.0.0');
+        
+        // Enqueue Font Awesome for icons
+        wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css', array(), '6.0.0');
         
         // Localize script
         wp_localize_script('lift-docs-frontend-login', 'liftDocsLogin', array(
@@ -1948,7 +1952,7 @@ class LIFT_Docs_Frontend_Login {
                                    placeholder="<?php _e('Enter your password...', 'lift-docs-system'); ?>" 
                                    required autocomplete="current-password">
                             <button type="button" class="toggle-password" tabindex="-1">
-                                <span class="dashicons dashicons-visibility"></span>
+                                <i class="fas fa-eye"></i>
                             </button>
                         </div>
                     </div>
@@ -1964,7 +1968,7 @@ class LIFT_Docs_Frontend_Login {
                         <button type="submit" class="lift-login-btn">
                             <span class="btn-text"><?php _e('Sign In', 'lift-docs-system'); ?></span>
                             <span class="btn-spinner" style="display: none;">
-                                <span class="spinner"></span>
+                                <span class="spinner"></i>
                                 <?php _e('Signing in...', 'lift-docs-system'); ?>
                             </span>
                         </button>
@@ -2036,7 +2040,7 @@ class LIFT_Docs_Frontend_Login {
                     </div>
                     <div class="dashboard-actions">
                         <button type="button" id="docs-logout-btn" class="logout-btn">
-                            <span class="dashicons dashicons-exit"></span>
+                            <i class="fas fa-sign-out-alt"></i>
                             <?php _e('Logout', 'lift-docs-system'); ?>
                         </button>
                     </div>
@@ -2049,7 +2053,7 @@ class LIFT_Docs_Frontend_Login {
                     <div class="dashboard-stats">
                         <div class="stat-item">
                             <div class="stat-icon">
-                                <span class="dashicons dashicons-media-document"></span>
+                                <i class="fas fa-file-alt"></i>
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo count($user_documents); ?></h3>
@@ -2059,7 +2063,7 @@ class LIFT_Docs_Frontend_Login {
                         
                         <div class="stat-item">
                             <div class="stat-icon">
-                                <span class="dashicons dashicons-download"></span>
+                                <i class="fas fa-download"></i>
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo $this->get_user_download_count($current_user->ID); ?></h3>
@@ -2069,7 +2073,7 @@ class LIFT_Docs_Frontend_Login {
                         
                         <div class="stat-item">
                             <div class="stat-icon">
-                                <span class="dashicons dashicons-visibility"></span>
+                                <i class="fas fa-eye"></i>
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo $this->get_user_view_count($current_user->ID); ?></h3>
@@ -2079,7 +2083,7 @@ class LIFT_Docs_Frontend_Login {
                         
                         <div class="stat-item">
                             <div class="stat-icon">
-                                <span class="dashicons dashicons-calendar-alt"></span>
+                                <i class="fas fa-calendar-alt"></i>
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo date_i18n('M d', strtotime($current_user->user_registered)); ?></h3>

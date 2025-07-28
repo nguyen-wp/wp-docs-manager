@@ -568,6 +568,10 @@
     flex: 1;
     justify-content: center;
 }
+
+.btn i {
+    font-size: 14px;
+}
 .btn-primary {
     background: #667eea;
     color: white;
