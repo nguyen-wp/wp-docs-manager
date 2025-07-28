@@ -28,6 +28,13 @@ define('LIFT_DOCS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('LIFT_DOCS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('LIFT_DOCS_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
+// Load the activator class immediately for activation hooks
+require_once plugin_dir_path(__FILE__) . 'includes/class-lift-docs-activator.php';
+
+// Register activation/deactivation hooks immediately
+register_activation_hook(__FILE__, array('LIFT_Docs_Activator', 'activate'));
+register_deactivation_hook(__FILE__, array('LIFT_Docs_Activator', 'deactivate'));
+
 /**
  * Main LIFT Docs System Class
  */
@@ -202,8 +209,6 @@ define('LIFT_DOCS_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
 // Load the activator class immediately for activation hooks
 require_once plugin_dir_path(__FILE__) . 'includes/class-lift-docs-activator.php';
-
-}
 
 // Initialize the plugin
 function lift_docs_system_init() {
