@@ -1021,7 +1021,7 @@
 
 /* Form builder messages */
 .lift-form-message {
-    padding: 12px 15px;
+    padding: 12px 15px !important;
     margin: 15px 0;
     border-radius: 4px;
     border-left: 4px solid;
@@ -1037,6 +1037,25 @@
     background: #ffeaea;
     border-left-color: #dc3232;
     color: #721c24;
+}
+
+/* Input validation states */
+.form-basic-settings input.error {
+    border-color: #dc3232 !important;
+    box-shadow: 0 0 0 1px #dc3232;
+    background-color: #ffeaea;
+}
+
+.form-basic-settings input.error:focus {
+    border-color: #dc3232 !important;
+    box-shadow: 0 0 0 2px rgba(220, 50, 50, 0.3);
+}
+
+/* Clear error state on input */
+.form-basic-settings input:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+    background-color: #fff;
 }
 
 @keyframes slideDown {

@@ -458,10 +458,19 @@ class LIFT_Forms {
                     <div class="form-basic-settings">
                         <input type="hidden" id="form-id" value="<?php echo $form ? $form->id : 0; ?>">
                         <div class="setting-group">
-                            <input type="text" id="form-name" value="<?php echo $form ? esc_attr($form->name) : ''; ?>" placeholder="<?php _e('Enter form name...', 'lift-docs-system'); ?>">
+                            <input type="text" 
+                                   id="form-name" 
+                                   value="<?php echo $form ? esc_attr($form->name) : ''; ?>" 
+                                   placeholder="<?php _e('Enter form name (minimum 3 characters)...', 'lift-docs-system'); ?>"
+                                   title="<?php _e('Form name must be at least 3 characters and contain only letters, numbers, spaces, and basic punctuation', 'lift-docs-system'); ?>"
+                                   maxlength="255">
                         </div>
                         <div class="setting-group">
-                            <input id="form-description" placeholder="<?php _e('Enter form description...', 'lift-docs-system'); ?>" value="<?php echo $form ? esc_attr($form->description) : ''; ?>" type="text">
+                            <input id="form-description" 
+                                   placeholder="<?php _e('Enter form description (optional)...', 'lift-docs-system'); ?>" 
+                                   value="<?php echo $form ? esc_attr($form->description) : ''; ?>" 
+                                   type="text"
+                                   title="<?php _e('Brief description of what this form is for', 'lift-docs-system'); ?>">
                         </div>
                         <div class="form-actions">
                             <button type="button" id="save-form" class="button button-primary">
@@ -978,8 +987,41 @@ class LIFT_Forms {
             $settings = '{}';
         }
         
+        // Enhanced form name validation
         if (empty($name)) {
             wp_send_json_error(__('Form name is required', 'lift-docs-system'));
+        }
+        
+        // Check minimum length
+        if (strlen($name) < 3) {
+            wp_send_json_error(__('Form name must be at least 3 characters long', 'lift-docs-system'));
+        }
+        
+        // Check maximum length
+        if (strlen($name) > 255) {
+            wp_send_json_error(__('Form name is too long (maximum 255 characters)', 'lift-docs-system'));
+        }
+        
+        // Check for valid characters
+        if (!preg_match('/^[a-zA-Z0-9\s\-_.()]+$/', $name)) {
+            wp_send_json_error(__('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation', 'lift-docs-system'));
+        }
+        
+        // Check for duplicate form names (excluding current form if editing)
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        
+        $duplicate_check_sql = "SELECT id FROM $forms_table WHERE name = %s";
+        $duplicate_params = array($name);
+        
+        if ($form_id) {
+            $duplicate_check_sql .= " AND id != %d";
+            $duplicate_params[] = $form_id;
+        }
+        
+        $existing_form = $wpdb->get_var($wpdb->prepare($duplicate_check_sql, $duplicate_params));
+        if ($existing_form) {
+            wp_send_json_error(__('A form with this name already exists. Please choose a different name', 'lift-docs-system'));
         }
         
         // Validate fields data - handle new hierarchical structure

@@ -1775,6 +1775,14 @@
             saveForm();
         });
 
+        // Clear error styling when user starts typing in form name
+        $(document).on('input', '#form-name', function() {
+            $(this).removeClass('error');
+            $('.lift-form-message.error').fadeOut(300, function() {
+                $(this).remove();
+            });
+        });
+
         // Auto-save every 30 seconds
         setInterval(function() {
             if (formData.length > 0) {
@@ -1787,7 +1795,34 @@
      * Save form data
      */
     function saveForm(silent = false) {
+        // Enhanced validation for form name (skip for silent saves like auto-save)
         if (!silent) {
+            const formName = $('#form-name').val().trim();
+            
+            if (!formName) {
+                showFormMessage('Please enter a form name before saving.', 'error');
+                $('#form-name').focus().addClass('error');
+                return;
+            }
+            
+            // Check minimum length
+            if (formName.length < 3) {
+                showFormMessage('Form name must be at least 3 characters long.', 'error');
+                $('#form-name').focus().addClass('error');
+                return;
+            }
+            
+            // Check for valid characters
+            const validNamePattern = /^[a-zA-Z0-9\s\-_.()]+$/;
+            if (!validNamePattern.test(formName)) {
+                showFormMessage('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation.', 'error');
+                $('#form-name').focus().addClass('error');
+                return;
+            }
+            
+            // Remove error styling if validation passes
+            $('#form-name').removeClass('error');
+            
             $('.lift-save-indicator').text('Saving...').show();
         }
 

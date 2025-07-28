@@ -42,11 +42,30 @@
             const formName = $('#form-name').val().trim();
             const formDescription = $('#form-description').val().trim();
             
+            // Enhanced validation for form name
             if (!formName) {
-                alert('Please enter a form name');
-                $('#form-name').focus();
+                showMessage('Please enter a form name before saving.', 'error');
+                $('#form-name').focus().addClass('error');
                 return;
             }
+            
+            // Check minimum length
+            if (formName.length < 3) {
+                showMessage('Form name must be at least 3 characters long.', 'error');
+                $('#form-name').focus().addClass('error');
+                return;
+            }
+            
+            // Check for valid characters (letters, numbers, spaces, basic punctuation)
+            const validNamePattern = /^[a-zA-Z0-9\s\-_.()]+$/;
+            if (!validNamePattern.test(formName)) {
+                showMessage('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation.', 'error');
+                $('#form-name').focus().addClass('error');
+                return;
+            }
+            
+            // Remove error styling if validation passes
+            $('#form-name').removeClass('error');
             
             const $saveBtn = $(this);
             const originalText = $saveBtn.text();
@@ -204,6 +223,14 @@
                 }, 3000);
             }
         }
+        
+        // Clear error styling when user starts typing
+        $('#form-name').on('input', function() {
+            $(this).removeClass('error');
+            $('.lift-form-message.error').fadeOut(300, function() {
+                $(this).remove();
+            });
+        });
         
         // Auto-save form name and description on change
         let saveTimeout;
