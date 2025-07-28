@@ -91,18 +91,6 @@ jQuery(document).ready(function($) {
             downloadDocument(documentId, fileUrl);
         });
         
-        $('.view-details-btn').on('click', function() {
-            var documentId = $(this).data('document-id');
-            showDocumentDetails(documentId);
-        });
-        
-        // Handle document links in activity
-        $('.document-link').on('click', function(e) {
-            e.preventDefault();
-            var documentId = $(this).data('document-id');
-            showDocumentDetails(documentId);
-        });
-        
         // Auto-refresh stats every 30 seconds
         setInterval(refreshDashboardStats, 30000);
     }
