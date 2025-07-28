@@ -5,7 +5,6 @@
 jQuery(document).ready(function($) {
     'use strict';
     
-    console.log('LIFT Docs Settings: Enhanced JavaScript loaded');
     
     // Initialize enhanced settings
     initEnhancedSettings();
@@ -37,7 +36,6 @@ jQuery(document).ready(function($) {
     }
     
     function initEnhancedTabs() {
-        console.log('Initializing enhanced tabs...');
         
         // Get current tab from URL or default to general
         var urlParams = new URLSearchParams(window.location.search);
@@ -45,7 +43,6 @@ jQuery(document).ready(function($) {
         
         // Function to switch to a specific tab with enhanced animations
         function switchToTab(tabName) {
-            console.log('Switching to tab:', tabName);
             
             // Remove active class from all tabs and content
             $('.lift-nav-tab').removeClass('nav-tab-active');
@@ -121,7 +118,6 @@ jQuery(document).ready(function($) {
     }
     
     function initEnhancedFormControls() {
-        console.log('Initializing enhanced form controls...');
         
         // Enhanced form control interactions
         $(document).off('focus blur', '.lift-form-control').on('focus', '.lift-form-control', function() {
@@ -168,7 +164,6 @@ jQuery(document).ready(function($) {
     }
     
     function initEnhancedMediaUploader() {
-        console.log('Initializing enhanced media uploader...');
         
         // Enhanced media upload button styling
         $('.button[id*="upload"]').each(function() {
@@ -184,7 +179,6 @@ jQuery(document).ready(function($) {
     }
     
     function initEnhancedColorPickers() {
-        console.log('Initializing enhanced color pickers...');
         
         // Enhance existing color pickers
         if (typeof $.fn.wpColorPicker !== 'undefined') {
@@ -205,7 +199,6 @@ jQuery(document).ready(function($) {
     }
     
     function initEnhancedTooltips() {
-        console.log('Initializing enhanced tooltips...');
         
         // Add enhanced tooltips to form labels
         $('.form-table th label').each(function() {
@@ -228,7 +221,6 @@ jQuery(document).ready(function($) {
     }
     
     function initEnhancedFormValidation() {
-        console.log('Initializing enhanced form validation...');
         
         // Real-time validation for number fields
         $(document).off('input', 'input[type="number"].lift-form-control').on('input', 'input[type="number"].lift-form-control', function() {
@@ -261,7 +253,6 @@ jQuery(document).ready(function($) {
     }
     
     function initEnhancedSaveFeedback() {
-        console.log('Initializing enhanced save feedback...');
         
         // Enhanced form submission feedback
         $('form').off('submit.liftEnhanced').on('submit.liftEnhanced', function() {
@@ -311,7 +302,6 @@ jQuery(document).ready(function($) {
     
     // Custom events for extensibility
     $(document).on('liftTabSwitch', function(event, tabName) {
-        console.log('Tab switched to:', tabName);
         
         // Trigger any tab-specific initializations
         switch(tabName) {
@@ -348,5 +338,4 @@ jQuery(document).ready(function($) {
     // Initialize help content on page load
     initHelpContent();
     
-    console.log('LIFT Docs Settings: Enhanced JavaScript initialization complete');
 });

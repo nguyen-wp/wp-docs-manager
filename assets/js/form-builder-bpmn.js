@@ -139,7 +139,6 @@
         const container = $('#form-builder-container');
         
         if (!container.length) {
-            console.error('Form builder container not found');
             return;
         }
 
@@ -197,7 +196,6 @@
             });
 
         } catch (error) {
-            console.error('FormBuilder initialization failed:', error);
             createSimpleFormBuilder(existingData);
         }
     }
@@ -728,7 +726,6 @@
                 },
                 update: function(event, ui) {
                     // Field order has changed
-                    console.log('Field order updated');
                 }
             });
 
@@ -838,7 +835,6 @@
                     // Move the field in the data array
                     moveFieldToPosition(data.index, dropIndex);
                 } catch (ex) {
-                    console.error('Error parsing drag data:', ex);
                 }
             }
         });
@@ -856,7 +852,6 @@
                     // Append field to this column
                     appendFieldToColumn(data.fieldId, $(this));
                 } catch (ex) {
-                    console.error('Error parsing drag data:', ex);
                 }
             }
         });
@@ -883,7 +878,6 @@
         const fieldIndex = formData.indexOf(field);
         if (fieldIndex > -1) {
             // For now, just log the action - you can implement column-specific logic here
-            console.log('Moving field to column:', field.label, $column);
             
             // Re-render to update positions
             renderFields();
@@ -945,7 +939,6 @@
         }
         
         formData = newOrder;
-        console.log('Field order updated:', formData.map(f => f.label));
     }
 
     /**
@@ -957,7 +950,6 @@
         
         // If we have row structure, don't use renderFields (user should drag to specific column)
         if ($('#form-fields-list .form-row').length > 0) {
-            console.log('Field created but not added to view. Please drag from palette to specific column.');
             // Don't render, let user drag from palette
             // Remove the field from formData since it's not placed yet
             formData.pop();
@@ -1204,7 +1196,6 @@
         // If fields are in row/column structure, don't use renderFields
         if ($('#form-fields-list .form-row').length > 0) {
             // Just update the data, the visual reordering should be handled by drag & drop
-            console.log('Field order updated in data, visual reordering should use drag & drop');
         } else {
             // Only use renderFields if we're in simple single-column mode
             renderFields();
@@ -1957,9 +1948,7 @@
                         }
                         
                         updateGlobalFormData();
-                        console.log('Form data loaded successfully');
                     } catch (error) {
-                        console.error('Error parsing form data:', error);
                         createFormBuilder();
                     }
                 } else {
@@ -1967,7 +1956,6 @@
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Load error:', error);
                 createFormBuilder();
             }
         });
@@ -2676,7 +2664,6 @@
             $('#form-fields-list').append(draggedRow);
         }
         
-        console.log('Row moved:', rowId, 'after:', insertAfter ? targetRow.data('row-id') : 'before ' + targetRow.data('row-id'));
     }
 
     // Make functions globally accessible for onclick handlers
@@ -2798,10 +2785,7 @@
      * Debug helper - log current form data
      */
     function debugFormData() {
-        console.log('Current formData:', formData);
-        console.log('Field count:', formData.length);
         formData.forEach((field, index) => {
-            console.log(`Field ${index}:`, {
                 id: field.id,
                 type: field.type,
                 label: field.label,

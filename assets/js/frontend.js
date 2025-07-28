@@ -331,7 +331,6 @@ jQuery(document).ready(function($) {
                 title: title,
                 url: url
             }).catch(function(error) {
-                console.log('Error sharing:', error);
             });
         } else {
             // Fallback to copy to clipboard
@@ -351,7 +350,6 @@ jQuery(document).ready(function($) {
         try {
             document.execCommand('copy');
         } catch (err) {
-            console.error('Failed to copy text: ', err);
         }
         
         document.body.removeChild(textArea);

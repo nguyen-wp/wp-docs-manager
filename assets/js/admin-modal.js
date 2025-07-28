@@ -6,7 +6,6 @@
     'use strict';
     
     $(document).ready(function() {
-        console.log('LIFT Docs Admin Modal: Loaded');
         
         // Handle details button click
         $(document).on('click', '.lift-details-btn', function(e) {
@@ -15,7 +14,6 @@
             var $button = $(this);
             var data = $button.data();
             
-            console.log('Opening modal with data:', data);
             
             // Populate modal with data
             populateModal(data);
@@ -56,7 +54,6 @@
                     navigator.clipboard.writeText(textToCopy).then(function() {
                         showCopyFeedback($button);
                     }).catch(function(err) {
-                        console.error('Clipboard API failed:', err);
                         fallbackCopy(textToCopy, $button);
                     });
                 } else {
@@ -91,7 +88,6 @@
                 
                 showCopyFeedback($button);
             } catch (err) {
-                console.error('Could not copy text: ', err);
                 
                 // Show error feedback
                 var originalText = $button.text();
@@ -113,7 +109,6 @@
          * Populate modal with document data
          */
         function populateModal(data) {
-            console.log('Populating modal with data:', data);
             
             // Set view URL and preview link
             $('#lift-view-url').val(data.viewUrl || '');
@@ -137,7 +132,6 @@
                     secureDownloadUrls = JSON.parse(data.secureDownloadUrls);
                 }
             } catch (e) {
-                console.error('Error parsing URLs:', e);
             }
             
             // Set view description

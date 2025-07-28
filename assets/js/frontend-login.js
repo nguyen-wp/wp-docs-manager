@@ -168,7 +168,6 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Login AJAX Error:', status, error);
                 showError(liftDocsLogin.strings.loginError);
                 resetLoginButton();
             }
