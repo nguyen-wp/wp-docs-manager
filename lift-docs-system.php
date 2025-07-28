@@ -202,14 +202,6 @@ class LIFT_Docs_System {
     }
 }
 
-define('LIFT_DOCS_VERSION', '1.9.0');
-define('LIFT_DOCS_PLUGIN_DIR', plugin_dir_path(__FILE__));
-define('LIFT_DOCS_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('LIFT_DOCS_PLUGIN_BASENAME', plugin_basename(__FILE__));
-
-// Load the activator class immediately for activation hooks
-require_once plugin_dir_path(__FILE__) . 'includes/class-lift-docs-activator.php';
-
 // Initialize the plugin
 function lift_docs_system_init() {
     return LIFT_Docs_System::get_instance();
