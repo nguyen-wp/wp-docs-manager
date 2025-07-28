@@ -21,8 +21,6 @@ class LIFT_Docs_Frontend_Login {
         add_action('wp_ajax_docs_login', array($this, 'handle_ajax_login'));
         add_action('wp_ajax_nopriv_docs_logout', array($this, 'handle_ajax_logout'));
         add_action('wp_ajax_docs_logout', array($this, 'handle_ajax_logout'));
-        add_action('wp_ajax_load_document_content', array($this, 'handle_ajax_load_document_content'));
-        add_action('wp_ajax_nopriv_load_document_content', array($this, 'handle_ajax_load_document_content'));
         
         // Register shortcodes for regular pages
         add_shortcode('docs_login_form', array($this, 'login_form_shortcode'));
@@ -1210,20 +1208,6 @@ class LIFT_Docs_Frontend_Login {
             </div>
         </div>
         
-        <!-- Document Modal -->
-        <div id="lift-document-modal" class="lift-modal" style="display: none;">
-            <div class="lift-modal-content">
-                <div class="lift-modal-header">
-                    <h2 id="modal-document-title"><?php _e('Document Details', 'lift-docs-system'); ?></h2>
-                    <button type="button" class="lift-modal-close">&times;</button>
-                </div>
-                <div class="lift-modal-body">
-                    <div id="modal-document-content"></div>
-                </div>
-            </div>
-        </div>
-        <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
-        
         <?php
         // Get theme footer
         get_footer();
@@ -1371,20 +1355,7 @@ class LIFT_Docs_Frontend_Login {
                 </div>
             </div>
             
-            <div class="document-card-content">
-                <?php if ($document->post_excerpt): ?>
-                    <p class="document-excerpt"><?php echo esc_html($document->post_excerpt); ?></p>
-                <?php endif; ?>
-                
-                <?php if (!empty($document->post_content)): ?>
-                    <div class="document-content-preview">
-                        <button type="button" class="btn btn-content-preview" data-document-id="<?php echo $document->ID; ?>">
-                            <span class="dashicons dashicons-text-page"></span>
-                            <?php _e('View Content', 'lift-docs-system'); ?>
-                        </button>
-                    </div>
-                <?php endif; ?>
-            </div>
+           
             
             <div class="document-card-actions">
                 <?php 
@@ -1533,37 +1504,6 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Handle AJAX load document content
      */
-    public function handle_ajax_load_document_content() {
-        // Check if user is logged in and has access
-        if (!is_user_logged_in() || !$this->user_has_docs_access()) {
-            wp_send_json_error(__('Access denied.', 'lift-docs-system'));
-        }
-        
-        $document_id = intval($_POST['document_id'] ?? 0);
-        
-        if (!$document_id) {
-            wp_send_json_error(__('Invalid document ID.', 'lift-docs-system'));
-        }
-        
-        // Check if user can view this document
-        if (!$this->user_can_view_document($document_id)) {
-            wp_send_json_error(__('You do not have permission to view this document.', 'lift-docs-system'));
-        }
-        
-        $document = get_post($document_id);
-        
-        if (!$document || $document->post_type !== 'lift_document') {
-            wp_send_json_error(__('Document not found.', 'lift-docs-system'));
-        }
-        
-        // Process the content (apply filters like do_shortcode, wpautop, etc.)
-        $content = apply_filters('the_content', $document->post_content);
-        
-        wp_send_json_success(array(
-            'title' => $document->post_title,
-            'content' => $content
-        ));
-    }
     
     /**
      * Find user by username, email, or user code
@@ -2172,20 +2112,6 @@ class LIFT_Docs_Frontend_Login {
                 </div>
             </div>
         </div>
-        
-        <!-- Document Modal -->
-        <div id="lift-document-modal" class="lift-modal" style="display: none;">
-            <div class="lift-modal-content">
-                <div class="lift-modal-header">
-                    <h3 id="modal-document-title"><?php _e('Document Details', 'lift-docs-system'); ?></h3>
-                    <button type="button" class="lift-modal-close">&times;</button>
-                </div>
-                <div class="lift-modal-body">
-                    <div id="modal-document-content"></div>
-                </div>
-            </div>
-        </div>
-        <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
         <?php
         return ob_get_clean();
     }
