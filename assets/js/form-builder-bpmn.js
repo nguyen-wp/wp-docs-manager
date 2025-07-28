@@ -1803,6 +1803,11 @@
             // Simple form builder data - use proper structure
             saveData = getFormDataForSaving();
             
+            // Debug logging
+            console.log('LIFT Forms - Saving data structure:', saveData);
+            console.log('LIFT Forms - Layout type:', layoutData.type);
+            console.log('LIFT Forms - Form data length:', formData.length);
+            
             // Store in global variable for minimal admin access  
             updateGlobalFormData();
         }
