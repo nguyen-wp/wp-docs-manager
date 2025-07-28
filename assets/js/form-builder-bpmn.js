@@ -266,6 +266,24 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Form Preview Modal -->
+                <div id="form-preview-modal" class="field-modal" style="display: none;">
+                    <div class="modal-content modal-large">
+                        <div class="modal-header">
+                            <h4>Form Preview</h4>
+                            <button type="button" class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="form-preview-content">
+                                <!-- Preview content will be inserted here -->
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="button" id="close-preview">Close Preview</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="copyright-type-buttons">
                 Copyright © LIFT Creations
@@ -366,6 +384,11 @@
 
         $(document).on('click', '#save-column-settings', function() {
             saveColumnSettings();
+        });
+
+        // Form preview modal events
+        $(document).on('click', '.modal-close, #close-preview', function() {
+            $('#form-preview-modal').hide();
         });
 
         // Clear form
@@ -1023,7 +1046,100 @@
     }
 
     /**
-     * Preview form
+     * Generate full form preview HTML with proper formatting
+     */
+    function generateFullFormPreview(field) {
+        const required = field.required ? ' <span style="color: red;">*</span>' : '';
+        
+        switch (field.type) {
+            case 'text':
+            case 'email':
+            case 'number':
+                return `
+                    <div class="form-group">
+                        <label for="${field.name}">${field.label}${required}</label>
+                        <input type="${field.type}" id="${field.name}" name="${field.name}" placeholder="${field.placeholder || ''}" class="form-control" />
+                    </div>
+                `;
+            
+            case 'textarea':
+                return `
+                    <div class="form-group">
+                        <label for="${field.name}">${field.label}${required}</label>
+                        <textarea id="${field.name}" name="${field.name}" placeholder="${field.placeholder || ''}" class="form-control" rows="4"></textarea>
+                    </div>
+                `;
+            
+            case 'select':
+                const selectOptions = field.options && field.options.length > 0 
+                    ? field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('') 
+                    : '<option value="">No options available</option>';
+                return `
+                    <div class="form-group">
+                        <label for="${field.name}">${field.label}${required}</label>
+                        <select id="${field.name}" name="${field.name}" class="form-control">
+                            <option value="">Choose an option...</option>
+                            ${selectOptions}
+                        </select>
+                    </div>
+                `;
+            
+            case 'radio':
+                const radioOptions = field.options && field.options.length > 0
+                    ? field.options.map((opt, i) => 
+                        `<div class="radio-option">
+                            <input type="radio" id="${field.name}_${i}" name="${field.name}" value="${opt}" />
+                            <label for="${field.name}_${i}">${opt}</label>
+                        </div>`
+                    ).join('')
+                    : '<div class="radio-option"><input type="radio" disabled /> <label>No options available</label></div>';
+                return `
+                    <div class="form-group">
+                        <label>${field.label}${required}</label>
+                        <div class="radio-group">
+                            ${radioOptions}
+                        </div>
+                    </div>
+                `;
+            
+            case 'checkbox':
+                return `
+                    <div class="form-group">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="${field.name}" name="${field.name}" value="1" />
+                            <label for="${field.name}">${field.label}${required}</label>
+                        </div>
+                    </div>
+                `;
+            
+            case 'date':
+                return `
+                    <div class="form-group">
+                        <label for="${field.name}">${field.label}${required}</label>
+                        <input type="date" id="${field.name}" name="${field.name}" class="form-control" />
+                    </div>
+                `;
+            
+            case 'file':
+                return `
+                    <div class="form-group">
+                        <label for="${field.name}">${field.label}${required}</label>
+                        <input type="file" id="${field.name}" name="${field.name}" class="form-control" />
+                    </div>
+                `;
+            
+            default:
+                return `
+                    <div class="form-group">
+                        <label>Unknown field type: ${field.type}</label>
+                        <input type="text" disabled class="form-control" value="Unsupported field type" />
+                    </div>
+                `;
+        }
+    }
+
+    /**
+     * Preview form - Updated to use modal with full formatting
      */
     function previewForm() {
         if (formData.length === 0) {
@@ -1031,32 +1147,68 @@
             return;
         }
 
-        let previewHTML = '<div class="form-preview"><h3>Form Preview</h3><form>';
+        let previewHTML = '';
         
-        formData.forEach(field => {
-            previewHTML += '<div class="form-group">' + generateFieldPreview(field).replace(/disabled/g, '') + '</div>';
-        });
+        // Check if we have row/column structure
+        if ($('#form-fields-list .form-row').length > 0) {
+            // Generate preview with row/column structure
+            previewHTML = '<div class="form-preview-container">';
+            
+            $('#form-fields-list .form-row').each(function() {
+                const rowElement = $(this);
+                const columns = rowElement.find('.form-column');
+                
+                if (columns.length > 0) {
+                    previewHTML += '<div class="preview-row">';
+                    
+                    columns.each(function() {
+                        const columnElement = $(this);
+                        const columnFields = [];
+                        
+                        // Get fields in this column
+                        columnElement.find('.compact-field-item, .form-field-item').each(function() {
+                            const fieldIdElements = $(this).find('[data-field-id]');
+                            if (fieldIdElements.length > 0) {
+                                const fieldId = fieldIdElements.first().data('field-id');
+                                const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
+                                if (field) {
+                                    columnFields.push(field);
+                                }
+                            }
+                        });
+                        
+                        // Calculate column width based on flex or data attributes
+                        const columnWidth = Math.floor(100 / columns.length);
+                        previewHTML += `<div class="preview-column" style="width: ${columnWidth}%; padding: 0 10px;">`;
+                        
+                        // Add fields in this column
+                        columnFields.forEach(field => {
+                            previewHTML += generateFullFormPreview(field);
+                        });
+                        
+                        previewHTML += '</div>';
+                    });
+                    
+                    previewHTML += '</div>';
+                }
+            });
+            
+            previewHTML += '</div>';
+        } else {
+            // Simple single column layout
+            previewHTML = '<div class="form-preview-container single-column">';
+            formData.forEach(field => {
+                previewHTML += generateFullFormPreview(field);
+            });
+            previewHTML += '</div>';
+        }
         
-        previewHTML += '<button type="submit" class="button button-primary">Submit</button></form></div>';
+        // Add submit button
+        previewHTML += '<div class="form-group submit-group"><button type="submit" class="btn btn-primary">Submit Form</button></div>';
         
-        // Open preview in new window
-        const previewWindow = window.open('', '_blank', 'width=600,height=400,scrollbars=yes');
-        previewWindow.document.write(`
-            <html>
-                <head>
-                    <title>Form Preview</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                        .form-group { margin-bottom: 15px; }
-                        label { display: block; margin-bottom: 5px; font-weight: bold; }
-                        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; }
-                        .button { padding: 10px 15px; background: #0073aa; color: white; border: none; cursor: pointer; }
-                    </style>
-                </head>
-                <body>${previewHTML}</body>
-            </html>
-        `);
-        previewWindow.document.close();
+        // Insert into modal and show
+        $('#form-preview-content').html(previewHTML);
+        $('#form-preview-modal').show();
     }
 
     /**
