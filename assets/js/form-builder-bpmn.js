@@ -1681,21 +1681,29 @@
         
         if (formBuilderInstance && typeof formBuilderInstance.formData === 'function') {
             // FormBuilder library data
-            saveData = formBuilderInstance.formData;
+            saveData = formBuilderInstance.formData();
+            
+            // Store in global variable for minimal admin access
+            window.liftCurrentFormFields = saveData;
         } else {
             // Simple form builder data
             saveData = JSON.stringify(formData);
+            
+            // Store in global variable for minimal admin access  
+            window.liftCurrentFormFields = formData;
         }
 
         $.ajax({
             url: (window.liftFormBuilder && liftFormBuilder.ajaxurl) || ajaxurl || '/wp-admin/admin-ajax.php',
             type: 'POST',
             data: {
-                action: 'lift_save_form',
+                action: 'lift_forms_save', // Use consistent action name
                 nonce: (window.liftFormBuilder && liftFormBuilder.nonce) || '',
                 form_id: currentFormId,
-                form_data: saveData,
-                form_title: $('#form-title').val() || 'Untitled Form'
+                name: $('#form-name').val() || 'Untitled Form',
+                description: $('#form-description').val() || '',
+                fields: typeof saveData === 'string' ? saveData : JSON.stringify(saveData),
+                settings: JSON.stringify({})
             },
             success: function(response) {
                 if (response.success) {
@@ -1704,7 +1712,7 @@
                         setTimeout(() => $('.lift-save-indicator').fadeOut(), 2000);
                     }
                     
-                    if (response.data.form_id && !currentFormId) {
+                    if (response.data && response.data.form_id && !currentFormId) {
                         currentFormId = response.data.form_id;
                         $('#form-id').val(currentFormId);
                     }
@@ -1712,7 +1720,7 @@
                     if (!silent) {
                         $('.lift-save-indicator').text('Save failed').addClass('error');
                     }
-                    console.error('Save failed:', response.data);
+                    console.error('Save failed:', response.data || response);
                 }
             },
             error: function(xhr, status, error) {

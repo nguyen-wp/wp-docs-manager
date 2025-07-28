@@ -31,7 +31,39 @@
             
             $saveBtn.text('Saving...').prop('disabled', true);
             
-            // Simple AJAX save with minimal data
+            // Get current form fields from form builder if available
+            let formFields = [];
+            
+            // Try to get fields from form builder instance
+            if (window.formBuilder && window.formBuilder.formData && window.formBuilder.formData.fields) {
+                formFields = window.formBuilder.formData.fields;
+            }
+            // Try to get from global variable if form builder sets it
+            else if (window.liftCurrentFormFields) {
+                formFields = window.liftCurrentFormFields;
+            }
+            // Try to get from canvas fields if they exist
+            else if ($('#form-canvas .canvas-field').length > 0) {
+                // Extract field data from canvas
+                $('#form-canvas .canvas-field').each(function() {
+                    const fieldElement = $(this);
+                    const fieldId = fieldElement.data('field-id');
+                    const fieldType = fieldElement.data('field-type');
+                    
+                    if (fieldId && fieldType) {
+                        const field = {
+                            id: fieldId,
+                            type: fieldType,
+                            name: fieldType + '_' + fieldId.replace('field_', ''),
+                            label: fieldElement.find('.field-name').text() || fieldType.charAt(0).toUpperCase() + fieldType.slice(1),
+                            required: false
+                        };
+                        formFields.push(field);
+                    }
+                });
+            }
+
+            // Simple AJAX save with actual form data
             $.ajax({
                 url: liftForms.ajaxurl,
                 type: 'POST',
@@ -41,7 +73,7 @@
                     form_id: formId,
                     name: formName,
                     description: formDescription,
-                    fields: JSON.stringify([]), // Empty fields for now
+                    fields: JSON.stringify(formFields),
                     settings: JSON.stringify({})
                 },
                 success: function(response) {
