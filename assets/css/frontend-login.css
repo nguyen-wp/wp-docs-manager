@@ -523,12 +523,15 @@
 }
 .document-card-actions {
     padding: 15px 20px 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .actions-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
+    width: 100%;
 }
 
 .view-actions h4,
@@ -546,6 +549,9 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
 }
 
 .btn {
