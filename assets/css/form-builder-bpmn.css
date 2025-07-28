@@ -598,7 +598,7 @@
     border-radius: 3px;
     border: 1px solid transparent;
     transition: all 0.2s ease;
-    margin-right: 8px;
+    margin-right: 0;
 }
 
 .field-drag-handle:hover {
