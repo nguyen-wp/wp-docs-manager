@@ -30,6 +30,7 @@ class LIFT_Docs_Frontend_Login {
         // Handle form display
         add_action('template_redirect', array($this, 'handle_form_display'));
         add_action('wp_loaded', array($this, 'check_dashboard_access'), 10);
+        add_action('init', array($this, 'check_admin_access'), 1);
         add_action('query_vars', array($this, 'add_query_vars'));
     }
     
@@ -61,6 +62,48 @@ class LIFT_Docs_Frontend_Login {
     public function add_query_vars($vars) {
         $vars[] = 'document_form';
         return $vars;
+    }
+    
+    /**
+     * Check admin access early - on init hook
+     */
+    public function check_admin_access() {
+        // Only handle for logged in users
+        if (!is_user_logged_in()) {
+            return;
+        }
+        
+        $current_user = wp_get_current_user();
+        
+        // Check if user has documents_user role but NOT admin capabilities
+        if (in_array('documents_user', $current_user->roles) && !current_user_can('manage_options')) {
+            // Check the current page being accessed
+            $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+            
+            // If accessing wp-admin pages
+            if (strpos($request_uri, '/wp-admin/') !== false) {
+                // Allow specific pages/endpoints
+                $allowed_patterns = array(
+                    '/wp-admin/admin-ajax.php',
+                    '/wp-admin/admin-post.php'
+                );
+                
+                $is_allowed = false;
+                foreach ($allowed_patterns as $pattern) {
+                    if (strpos($request_uri, $pattern) !== false) {
+                        $is_allowed = true;
+                        break;
+                    }
+                }
+                
+                // If not allowed, redirect to dashboard
+                if (!$is_allowed) {
+                    $dashboard_url = home_url('/document-dashboard/');
+                    wp_redirect($dashboard_url);
+                    exit;
+                }
+            }
+        }
     }
     
     /**
