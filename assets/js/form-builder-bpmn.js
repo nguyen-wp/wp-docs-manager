@@ -1643,11 +1643,15 @@
      * Bind save events
      */
     function bindEvents() {
+        console.log('=== bindEvents called ===');
+        console.log('Existing #save-form handlers:', $._data(document, 'events') ? ($._data(document, 'events').click || []).filter(h => h.selector === '#save-form').length : 0);
+        
         // Initialize drag and drop
         initDragAndDrop();
         
-        // Save form
+        // Save form - ensure we remove any existing handlers first
         $(document).off('click.form-builder', '#save-form').on('click.form-builder', '#save-form', function(e) {
+            console.log('=== Save button clicked ===');
             e.preventDefault();
             e.stopImmediatePropagation(); // Prevent other handlers from running
             saveForm();
@@ -1661,18 +1665,25 @@
             });
         });
 
-        // Auto-save every 30 seconds
-        setInterval(function() {
-            if (formData.length > 0) {
-                saveForm(true); // Silent save
-            }
-        }, 30000);
+        // Auto-save every 30 seconds - DISABLED for debugging
+        // setInterval(function() {
+        //     if (formData.length > 0) {
+        //         saveForm(true); // Silent save
+        //     }
+        // }, 30000);
+        
+        console.log('Auto-save disabled - forms will only save when Save button is clicked');
+        console.log('=== bindEvents completed ===');
     }
 
     /**
      * Save form data
      */
     function saveForm(silent = false) {
+        console.log('=== saveForm called ===');
+        console.log('Silent mode:', silent);
+        console.log('Call stack:', new Error().stack);
+        
         // Enhanced validation for form name (skip for silent saves like auto-save)
         if (!silent) {
             const formName = $('#form-name').val().trim();
@@ -1734,6 +1745,13 @@
                 description: $('#form-description').val() || '',
                 fields: typeof saveData === 'string' ? saveData : JSON.stringify(saveData),
                 settings: JSON.stringify({})
+            },
+            beforeSend: function() {
+                console.log('=== AJAX SAVE REQUEST STARTING ===');
+                console.log('Form ID:', currentFormId);
+                console.log('Form name:', $('#form-name').val());
+                console.log('Silent mode:', silent);
+                console.log('Save data length:', typeof saveData === 'string' ? saveData.length : JSON.stringify(saveData).length);
             },
             success: function(response) {
                 if (response.success) {
