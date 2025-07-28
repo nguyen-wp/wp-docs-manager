@@ -839,11 +839,7 @@ class LIFT_Docs_Frontend_Login {
                 
                 /* Spinner animation removed */
                 
-                /* Enhanced form messages */
-                .lift-form-messages {
-                    margin-top: 25px;
-                }
-                
+                /* Enhanced form messages - Login specific styles */
                 .login-error {
                     background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
                     color: #c62828;

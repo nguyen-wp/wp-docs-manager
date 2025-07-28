@@ -131,7 +131,7 @@
                 </div>
             `);
             
-            $('.form-builder-header').after(messageEl);
+            $('.lift-form-builder').before(messageEl);
             
             // Auto-hide success messages after 3 seconds
             if (type === 'success') {

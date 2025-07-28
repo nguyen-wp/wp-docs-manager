@@ -300,10 +300,7 @@
     border-top: 2px solid white;
     border-radius: 50%;
 }
-/* Form Messages */
-.lift-form-messages {
-    margin-top: 20px;
-}
+/* Form Messages - Error and Success Styles */
 .form-error {
     background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
     color: #c62828;
