@@ -1914,10 +1914,13 @@ class LIFT_Docs_Frontend_Login {
         </style>
         
         <div class="lift-docs-login-container shortcode-version">
+            <!-- Shortcode Logo Debug: <?php echo 'ID=' . $logo_id . ', URL=' . $logo_url . ', Time=' . time(); ?> -->
             <?php if ($logo_url): ?>
             <div class="lift-login-logo">
                 <img src="<?php echo esc_url($logo_url); ?>" alt="<?php bloginfo('name'); ?>">
             </div>
+            <?php else: ?>
+            <!-- No logo in shortcode: ID empty or URL failed -->
             <?php endif; ?>
             
             <div class="lift-docs-login-form-container">
