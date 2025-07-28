@@ -516,7 +516,7 @@ class LIFT_Docs_Admin {
                 echo '<span style="color: #135e96; font-weight: 500;">' . esc_html(implode(', ', $user_names)) . '</span>';
             }
             
-            echo '<br><small style="color: #666;">' . sprintf(__('%d of %d users', 'lift-docs-system'), $user_count, $total_document_users) . '</small>';
+            // echo '<br><small style="color: #666;">' . sprintf(__('%d of %d users', 'lift-docs-system'), $user_count, $total_document_users) . '</small>';
         }
     }
     
