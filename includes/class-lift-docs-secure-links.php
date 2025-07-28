@@ -76,9 +76,13 @@ class LIFT_Docs_Secure_Links {
             return;
         }
         
+        // Debug logging
+        $this->debug_log('handle_secure_access called');
+        
         $token = $_GET['lift_secure'] ?? '';
         
         if (empty($token)) {
+            $this->debug_log('Missing security token');
             $this->show_access_denied('Missing security token');
             return;
         }
@@ -107,6 +111,10 @@ class LIFT_Docs_Secure_Links {
             return;
         }
         
+        // Track document view BEFORE displaying content
+        $this->debug_log("About to track view for document ID: " . $document_id);
+        $this->track_document_view($document_id);
+        
         // Set secure access session
         session_start();
         $_SESSION['lift_secure_access_' . $document_id] = time();
@@ -125,16 +133,12 @@ class LIFT_Docs_Secure_Links {
         }
         
         // Debug logging
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Secure download handler called');
-        }
+        $this->debug_log('Secure download handler called');
         
         $token = $_GET['lift_secure'] ?? '';
         
         if (empty($token)) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Missing security token');
-            }
+            $this->debug_log('Missing security token');
             status_header(403);
             die('Missing security token');
         }
@@ -204,6 +208,9 @@ class LIFT_Docs_Secure_Links {
      * Display secure document content
      */
     private function display_secure_document($document) {
+        // Debug logging
+        $this->debug_log("display_secure_document called for document ID: " . $document->ID);
+        
         // Set global post data
         global $post;
         $post = $document;
@@ -220,9 +227,6 @@ class LIFT_Docs_Secure_Links {
         } else {
             $this->display_themed_secure_document($document, $settings);
         }
-        
-        // Track document view
-        $this->track_document_view($document->ID);
         
         wp_reset_postdata();
     }
@@ -1208,22 +1212,37 @@ class LIFT_Docs_Secure_Links {
     }
     
     /**
+     * Simple debug logging without WP_DEBUG requirement
+     */
+    private function debug_log($message) {
+        $log_file = WP_CONTENT_DIR . '/lift-docs-debug.log';
+        $timestamp = current_time('Y-m-d H:i:s');
+        $formatted_message = "[$timestamp] $message" . PHP_EOL;
+        file_put_contents($log_file, $formatted_message, FILE_APPEND | LOCK_EX);
+    }
+    
+    /**
      * Track document view
      */
     private function track_document_view($document_id) {
+        // Debug logging
+        $this->debug_log("track_document_view called for document ID: " . $document_id);
+        
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
         
         // Check if table exists
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
+            $this->debug_log("Analytics table not found: " . $table_name);
             return;
         }
         
         $user_id = get_current_user_id();
         $user_id = $user_id ? $user_id : null;
         
-        $wpdb->insert(
+        // Insert into analytics table
+        $result = $wpdb->insert(
             $table_name,
             array(
                 'document_id' => $document_id,
@@ -1236,29 +1255,43 @@ class LIFT_Docs_Secure_Links {
             array('%d', '%d', '%s', '%s', '%s', '%s')
         );
         
+        $this->debug_log("Analytics insert result: " . ($result ? 'success' : 'failed'));
+        if (!$result && $wpdb->last_error) {
+            $this->debug_log("Analytics insert error: " . $wpdb->last_error);
+        }
+        
         // Update view count using the correct meta key
-        $view_count = get_post_meta($document_id, '_lift_doc_views', true);
-        $view_count = $view_count ? intval($view_count) : 0;
-        update_post_meta($document_id, '_lift_doc_views', $view_count + 1);
+        $current_views = get_post_meta($document_id, '_lift_doc_views', true);
+        $view_count = $current_views ? intval($current_views) : 0;
+        $new_count = $view_count + 1;
+        
+        $meta_result = update_post_meta($document_id, '_lift_doc_views', $new_count);
+        
+        $this->debug_log("View count updated from $view_count to $new_count, meta update result: " . ($meta_result ? 'success' : 'failed'));
     }
     
     /**
      * Track document download
      */
     private function track_document_download($document_id) {
+        // Debug logging
+        $this->debug_log("track_document_download called for document ID: " . $document_id);
+        
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
         
         // Check if table exists
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
+            $this->debug_log("Analytics table not found: " . $table_name);
             return;
         }
         
         $user_id = get_current_user_id();
         $user_id = $user_id ? $user_id : null;
         
-        $wpdb->insert(
+        // Insert into analytics table
+        $result = $wpdb->insert(
             $table_name,
             array(
                 'document_id' => $document_id,
@@ -1271,10 +1304,19 @@ class LIFT_Docs_Secure_Links {
             array('%d', '%d', '%s', '%s', '%s', '%s')
         );
         
+        $this->debug_log("Analytics insert result: " . ($result ? 'success' : 'failed'));
+        if (!$result && $wpdb->last_error) {
+            $this->debug_log("Analytics insert error: " . $wpdb->last_error);
+        }
+        
         // Update download count using the correct meta key
-        $download_count = get_post_meta($document_id, '_lift_doc_downloads', true);
-        $download_count = $download_count ? intval($download_count) : 0;
-        update_post_meta($document_id, '_lift_doc_downloads', $download_count + 1);
+        $current_downloads = get_post_meta($document_id, '_lift_doc_downloads', true);
+        $download_count = $current_downloads ? intval($current_downloads) : 0;
+        $new_count = $download_count + 1;
+        
+        $meta_result = update_post_meta($document_id, '_lift_doc_downloads', $new_count);
+        
+        $this->debug_log("Download count updated from $download_count to $new_count, meta update result: " . ($meta_result ? 'success' : 'failed'));
     }
     
     /**
