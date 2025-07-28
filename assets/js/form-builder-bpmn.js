@@ -194,12 +194,7 @@
                     
                     <div class="form-fields-area">
                         <div id="form-fields-list">
-                            <div class="no-fields-message">
-                                <p>🚀 Drag row layouts here first, then add fields to columns!</p>
-                                <p>💡 Step 1: Drag a row layout from the left panel</p>
-                                <p>💡 Step 2: Customize columns if needed</p>
-                                <p>💡 Step 3: Drag form fields into columns</p>
-                            </div>
+                            <div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>
                         </div>
                     </div>
                 </div>
@@ -915,7 +910,6 @@
                         </div>
                     </div>
                     <div class="column-placeholder">
-                        🎯 Drop fields here
                     </div>
                     ${i < columns - 1 ? '<div class="column-resize-handle"></div>' : ''}
                 </div>
@@ -1073,7 +1067,6 @@
                     </div>
                 </div>
                 <div class="column-placeholder">
-                    🎯 Drop fields here
                 </div>
                 <div class="column-resize-handle"></div>
             </div>
