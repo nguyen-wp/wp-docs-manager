@@ -825,8 +825,8 @@
         if (fieldIndex > -1) {
             // For now, just log the action - you can implement column-specific logic here
             
-            // Re-render to update positions
-            renderFields();
+            // Field position is handled by drag & drop in the UI
+            // No need to re-render as we're using row/column structure
         }
     }
 
@@ -842,10 +842,8 @@
         // Insert at new position
         formData.splice(toIndex, 0, field);
         
-        // Re-render fields
-        renderFields();
-        
-        // Trigger update event
+        // Field position is handled by drag & drop in the UI
+        // Trigger update event for other components
         $(document).trigger('fields-updated');
     }
 
