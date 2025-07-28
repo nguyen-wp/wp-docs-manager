@@ -515,18 +515,18 @@ class LIFT_Docs_Frontend_Login {
             <title><?php _e('Document Login', 'lift-docs-system'); ?> - <?php bloginfo('name'); ?></title>
             <?php wp_head(); ?>
             <style>
-                /* Reset and hide all theme elements for standalone login page */
-                * {
+                /* Login page specific styles - Only apply to docs login page */
+                body.lift-docs-login-page {
                     box-sizing: border-box;
                 }
                 
-                html {
+                body.lift-docs-login-page html {
                     margin: 0 !important;
                     padding: 0 !important;
                     height: 100%;
                 }
                 
-                body {
+                body.lift-docs-login-page {
                     margin: 0 !important;
                     padding: 0 !important;
                     background-color: <?php echo esc_attr($bg_color); ?>;
@@ -541,28 +541,61 @@ class LIFT_Docs_Frontend_Login {
                     background: linear-gradient(135deg, <?php echo esc_attr($bg_color); ?> 0%, <?php echo esc_attr(adjustBrightness($bg_color, -10)); ?> 100%);
                 }
                 
-                /* Hide WordPress admin bar completely */
-                #wpadminbar {
+                /* Hide WordPress admin bar completely on login page */
+                body.lift-docs-login-page #wpadminbar {
                     display: none !important;
                     visibility: hidden !important;
                     height: 0 !important;
                     margin: 0 !important;
                 }
                 
-                /* Hide ALL theme elements aggressively */
-                body > *:not(.lift-simple-login-container),
-                header, footer, main, aside, section, article,
-                .header, .footer, .main, .content, .container, .wrapper,
-                nav, .nav, .navigation, .menu, .menubar,
-                .sidebar, .widget, .widget-area,
-                .site-header, .site-footer, .site-content, .site-main,
-                .page-header, .page-footer, .page-content,
-                .entry-header, .entry-footer, .entry-content,
-                .post-header, .post-footer, .post-content,
-                [class*="header"], [class*="footer"], [class*="nav"], 
-                [class*="menu"], [class*="sidebar"], [class*="widget"],
-                [id*="header"], [id*="footer"], [id*="nav"], 
-                [id*="menu"], [id*="sidebar"], [id*="widget"] {
+                /* Hide ALL theme elements aggressively - only on login page */
+                body.lift-docs-login-page > *:not(.lift-simple-login-container),
+                body.lift-docs-login-page header, 
+                body.lift-docs-login-page footer, 
+                body.lift-docs-login-page main, 
+                body.lift-docs-login-page aside, 
+                body.lift-docs-login-page section, 
+                body.lift-docs-login-page article,
+                body.lift-docs-login-page .header, 
+                body.lift-docs-login-page .footer, 
+                body.lift-docs-login-page .main, 
+                body.lift-docs-login-page .content, 
+                body.lift-docs-login-page .container, 
+                body.lift-docs-login-page .wrapper,
+                body.lift-docs-login-page nav, 
+                body.lift-docs-login-page .nav, 
+                body.lift-docs-login-page .navigation, 
+                body.lift-docs-login-page .menu, 
+                body.lift-docs-login-page .menubar,
+                body.lift-docs-login-page .sidebar, 
+                body.lift-docs-login-page .widget, 
+                body.lift-docs-login-page .widget-area,
+                body.lift-docs-login-page .site-header, 
+                body.lift-docs-login-page .site-footer, 
+                body.lift-docs-login-page .site-content, 
+                body.lift-docs-login-page .site-main,
+                body.lift-docs-login-page .page-header, 
+                body.lift-docs-login-page .page-footer, 
+                body.lift-docs-login-page .page-content,
+                body.lift-docs-login-page .entry-header, 
+                body.lift-docs-login-page .entry-footer, 
+                body.lift-docs-login-page .entry-content,
+                body.lift-docs-login-page .post-header, 
+                body.lift-docs-login-page .post-footer, 
+                body.lift-docs-login-page .post-content,
+                body.lift-docs-login-page [class*="header"], 
+                body.lift-docs-login-page [class*="footer"], 
+                body.lift-docs-login-page [class*="nav"], 
+                body.lift-docs-login-page [class*="menu"], 
+                body.lift-docs-login-page [class*="sidebar"], 
+                body.lift-docs-login-page [class*="widget"],
+                body.lift-docs-login-page [id*="header"], 
+                body.lift-docs-login-page [id*="footer"], 
+                body.lift-docs-login-page [id*="nav"], 
+                body.lift-docs-login-page [id*="menu"], 
+                body.lift-docs-login-page [id*="sidebar"], 
+                body.lift-docs-login-page [id*="widget"] {
                     display: none !important;
                     visibility: hidden !important;
                     position: absolute !important;
@@ -574,20 +607,32 @@ class LIFT_Docs_Frontend_Login {
                     padding: 0 !important;
                 }
                 
-                /* Hide other common theme elements */
-                .back-to-top, #back-to-top, .scroll-to-top,
-                [class*="back-to-top"], [id*="back-to-top"],
-                [class*="scroll-top"], [id*="scroll-top"],
-                .breadcrumb, .breadcrumbs, [class*="breadcrumb"],
-                .social, .social-links, [class*="social"],
-                .search-form, .searchform, [class*="search"],
-                .comments, .comment, [class*="comment"] {
+                /* Hide other common theme elements - only on login page */
+                body.lift-docs-login-page .back-to-top, 
+                body.lift-docs-login-page #back-to-top, 
+                body.lift-docs-login-page .scroll-to-top,
+                body.lift-docs-login-page [class*="back-to-top"], 
+                body.lift-docs-login-page [id*="back-to-top"],
+                body.lift-docs-login-page [class*="scroll-top"], 
+                body.lift-docs-login-page [id*="scroll-top"],
+                body.lift-docs-login-page .breadcrumb, 
+                body.lift-docs-login-page .breadcrumbs, 
+                body.lift-docs-login-page [class*="breadcrumb"],
+                body.lift-docs-login-page .social, 
+                body.lift-docs-login-page .social-links, 
+                body.lift-docs-login-page [class*="social"],
+                body.lift-docs-login-page .search-form, 
+                body.lift-docs-login-page .searchform, 
+                body.lift-docs-login-page [class*="search"],
+                body.lift-docs-login-page .comments, 
+                body.lift-docs-login-page .comment, 
+                body.lift-docs-login-page [class*="comment"] {
                     display: none !important;
                     visibility: hidden !important;
                 }
                 
-                /* Enhanced form container styling */
-                .lift-simple-login-container {
+                /* Enhanced form container styling - only on login page */
+                body.lift-docs-login-page .lift-simple-login-container {
                     width: 100%;
                     max-width: 420px;
                     margin: 20px;
@@ -595,13 +640,13 @@ class LIFT_Docs_Frontend_Login {
                     z-index: 9999;
                 }
                 
-                .lift-login-logo {
+                body.lift-docs-login-page .lift-login-logo {
                     text-align: center;
                     margin-bottom: 40px;
                     padding: 15px 0;
                 }
                 
-                .lift-login-logo img {
+                body.lift-docs-login-page .lift-login-logo img {
                     max-width: <?php echo esc_attr($logo_width); ?>;
                     height: auto;
                     border-radius: 12px;
@@ -609,11 +654,11 @@ class LIFT_Docs_Frontend_Login {
                     /* No animation */
                 }
                 
-                .lift-login-logo img:hover {
+                body.lift-docs-login-page .lift-login-logo img:hover {
                     /* No hover animation */
                 }
                 
-                .lift-login-form-wrapper {
+                body.lift-docs-login-page .lift-login-form-wrapper {
                     background: <?php echo esc_attr($form_bg); ?>;
                     padding: 50px 40px;
                     border-radius: 20px;
@@ -625,7 +670,7 @@ class LIFT_Docs_Frontend_Login {
                     overflow: hidden;
                 }
                 
-                .lift-login-form-wrapper::before {
+                body.lift-docs-login-page .lift-login-form-wrapper::before {
                     content: '';
                     position: absolute;
                     top: 0;
@@ -635,7 +680,7 @@ class LIFT_Docs_Frontend_Login {
                     background: linear-gradient(90deg, <?php echo esc_attr($btn_color); ?>, <?php echo esc_attr(adjustBrightness($btn_color, 20)); ?>);
                 }
                 
-                .lift-login-title {
+                body.lift-docs-login-page .lift-login-title {
                     text-align: center;
                     margin: 0 0 20px 0;
                     font-size: 32px;
@@ -644,7 +689,7 @@ class LIFT_Docs_Frontend_Login {
                     letter-spacing: -0.5px;
                 }
                 
-                .lift-login-description {
+                body.lift-docs-login-page .lift-login-description {
                     text-align: center;
                     margin-bottom: 35px;
                     color: <?php echo esc_attr($text_color); ?>;
@@ -654,13 +699,13 @@ class LIFT_Docs_Frontend_Login {
                     font-weight: 400;
                 }
                 
-                /* Enhanced form field styling */
-                .lift-form-group {
+                /* Enhanced form field styling - only on login page */
+                body.lift-docs-login-page .lift-form-group {
                     margin-bottom: 25px;
                     position: relative;
                 }
                 
-                .lift-form-group label {
+                body.lift-docs-login-page .lift-form-group label {
                     display: block;
                     margin-bottom: 10px;
                     font-weight: 600;
@@ -669,8 +714,8 @@ class LIFT_Docs_Frontend_Login {
                     letter-spacing: 0.3px;
                 }
                 
-                .lift-form-group input[type="text"],
-                .lift-form-group input[type="password"] {
+                body.lift-docs-login-page .lift-form-group input[type="text"],
+                body.lift-docs-login-page .lift-form-group input[type="password"] {
                     width: 100%;
                     padding: 16px 20px;
                     border: 2px solid <?php echo esc_attr($input_color); ?>;
@@ -969,7 +1014,7 @@ class LIFT_Docs_Frontend_Login {
                 }
             </style>
         </head>
-        <body>
+        <body class="lift-docs-login-page">
             <div class="lift-simple-login-container">
                 <!-- Logo Debug: <?php echo 'ID=' . $logo_id . ', URL=' . $logo_url . ', Time=' . time(); ?> -->
                 <?php if ($logo_url): ?>
