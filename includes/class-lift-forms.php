@@ -881,7 +881,8 @@ class LIFT_Forms {
      * AJAX get form
      */
     public function ajax_get_form() {
-        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_nonce')) {
+        $nonce = $_POST['nonce'] ?? '';
+        if (!wp_verify_nonce($nonce, 'lift_forms_nonce') && !wp_verify_nonce($nonce, 'lift_form_builder_nonce')) {
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
         
@@ -947,7 +948,8 @@ class LIFT_Forms {
      * AJAX save form
      */
     public function ajax_save_form() {
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'lift_forms_nonce')) {
+        $nonce = $_POST['nonce'] ?? '';
+        if (!wp_verify_nonce($nonce, 'lift_forms_nonce') && !wp_verify_nonce($nonce, 'lift_form_builder_nonce')) {
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
         
@@ -1112,7 +1114,8 @@ class LIFT_Forms {
      * AJAX delete form
      */
     public function ajax_delete_form() {
-        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_nonce')) {
+        $nonce = $_POST['nonce'] ?? '';
+        if (!wp_verify_nonce($nonce, 'lift_forms_nonce') && !wp_verify_nonce($nonce, 'lift_form_builder_nonce')) {
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
         
