@@ -318,6 +318,9 @@
             renderFields();
         }
 
+        // Store form data in global variable for minimal admin access
+        window.liftCurrentFormFields = formData;
+
         // Bind simple form builder events
         bindSimpleFormBuilderEvents();
         
