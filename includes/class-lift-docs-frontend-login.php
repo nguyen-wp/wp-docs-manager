@@ -190,6 +190,24 @@ class LIFT_Docs_Frontend_Login {
         $current_user = wp_get_current_user();
         $form_fields = json_decode($form->form_fields, true);
         
+        // Check document status - prevent form access if status restricts it
+        $document_status = get_post_meta($document->ID, '_lift_doc_status', true);
+        if (empty($document_status)) {
+            $document_status = 'pending';
+        }
+        
+        $is_form_disabled = in_array($document_status, array('processing', 'done', 'cancelled'));
+        $status_message = '';
+        
+        if ($is_form_disabled) {
+            $status_messages = array(
+                'processing' => __('This form is currently disabled - document is being processed', 'lift-docs-system'),
+                'done' => __('This form is currently disabled - document has been completed', 'lift-docs-system'),
+                'cancelled' => __('This form is currently disabled - document has been cancelled', 'lift-docs-system')
+            );
+            $status_message = $status_messages[$document_status];
+        }
+        
         // Parse existing form data if in edit mode
         $existing_data = array();
         if ($is_edit_mode && $existing_submission) {
@@ -300,12 +318,21 @@ class LIFT_Docs_Frontend_Login {
                             <br><small><?php printf(__('Originally submitted: %s', 'lift-docs-system'), date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($existing_submission->submitted_at))); ?></small>
                         </div>
                     <?php endif; ?>
+                    
+                    <?php if ($is_form_disabled): ?>
+                        <div class="status-disabled-notice" style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 4px; margin: 15px 0; color: #721c24;">
+                            <strong><i class="fas fa-exclamation-triangle"></i> <?php _e('Form Access Restricted', 'lift-docs-system'); ?></strong>
+                            <br><?php echo esc_html($status_message); ?>
+                            <br><small><?php printf(__('Document Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?></small>
+                        </div>
+                    <?php endif; ?>
+                    
                     <?php if ($form->description): ?>
                         <p><?php echo esc_html($form->description); ?></p>
                     <?php endif; ?>
                 </div>
                 
-                <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>">
+                <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" <?php if ($is_form_disabled): ?>style="opacity: 0.6; pointer-events: none;"<?php endif; ?>>
                     <input type="hidden" name="action" value="lift_forms_submit">
                     <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
                     <input type="hidden" name="document_id" value="<?php echo esc_attr($document->ID); ?>">
@@ -325,7 +352,7 @@ class LIFT_Docs_Frontend_Login {
                                     <?php endif; ?>
                                 </label>
                                 
-                                <?php $this->render_form_field($field, $existing_data); ?>
+                                <?php $this->render_form_field($field, $existing_data, $is_form_disabled); ?>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -336,8 +363,18 @@ class LIFT_Docs_Frontend_Login {
                         <a href="<?php echo home_url('/document-dashboard/'); ?>" class="btn btn-secondary">
                             <?php _e('Back to Dashboard', 'lift-docs-system'); ?>
                         </a>
-                        <button type="submit" class="btn btn-primary">
-                            <?php echo $is_edit_mode ? __('Update Submission', 'lift-docs-system') : __('Submit Form', 'lift-docs-system'); ?>
+                        <button type="submit" class="btn btn-primary" <?php if ($is_form_disabled): ?>disabled style="opacity: 0.5; cursor: not-allowed;"<?php endif; ?>>
+                            <?php 
+                            if ($is_form_disabled) {
+                                if ($document_status === 'cancelled') {
+                                    echo __('Form Cancelled', 'lift-docs-system');
+                                } else {
+                                    echo __('Form Disabled', 'lift-docs-system');
+                                }
+                            } else {
+                                echo $is_edit_mode ? __('Update Submission', 'lift-docs-system') : __('Submit Form', 'lift-docs-system');
+                            }
+                            ?>
                         </button>
                     </div>
                 </form>
@@ -347,6 +384,12 @@ class LIFT_Docs_Frontend_Login {
             jQuery(document).ready(function($) {
                 $('#document-form').on('submit', function(e) {
                     e.preventDefault();
+                    
+                    // Check if form is disabled
+                    <?php if ($is_form_disabled): ?>
+                    alert('<?php echo esc_js($status_message); ?>');
+                    return false;
+                    <?php endif; ?>
                     
                     var formData = $(this).serialize();
                     
@@ -380,10 +423,11 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Render form field
      */
-    private function render_form_field($field, $existing_data = array()) {
+    private function render_form_field($field, $existing_data = array(), $is_disabled = false) {
         $field_id = 'field_' . esc_attr($field['id']);
         $field_name = 'form_fields[' . esc_attr($field['id']) . ']';
         $required = isset($field['required']) && $field['required'] ? 'required' : '';
+        $disabled = $is_disabled ? 'disabled' : '';
         
         // Get existing value for this field
         $field_value = isset($existing_data[$field['id']]) ? $existing_data[$field['id']] : '';
@@ -398,7 +442,8 @@ class LIFT_Docs_Frontend_Login {
                        name="<?php echo $field_name; ?>" 
                        value="<?php echo esc_attr($field_value); ?>"
                        placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
-                       <?php echo $required; ?>>
+                       <?php echo $required; ?>
+                       <?php echo $disabled; ?>>
                 <?php
                 break;
                 
@@ -407,13 +452,14 @@ class LIFT_Docs_Frontend_Login {
                 <textarea id="<?php echo $field_id; ?>" 
                           name="<?php echo $field_name; ?>" 
                           placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
-                          <?php echo $required; ?>><?php echo esc_textarea($field_value); ?></textarea>
+                          <?php echo $required; ?>
+                          <?php echo $disabled; ?>><?php echo esc_textarea($field_value); ?></textarea>
                 <?php
                 break;
                 
             case 'select':
                 ?>
-                <select id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>" <?php echo $required; ?>>
+                <select id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>" <?php echo $required; ?> <?php echo $disabled; ?>>
                     <option value=""><?php _e('Please select...', 'lift-docs-system'); ?></option>
                     <?php if (isset($field['options']) && is_array($field['options'])): ?>
                         <?php foreach ($field['options'] as $option): ?>
@@ -1316,6 +1362,16 @@ class LIFT_Docs_Frontend_Login {
         $views = get_post_meta($document->ID, '_lift_doc_views', true);
         $downloads = get_post_meta($document->ID, '_lift_doc_downloads', true);
         
+        // Get document status
+        $document_status = get_post_meta($document->ID, '_lift_doc_status', true);
+        if (empty($document_status)) {
+            $document_status = 'pending';
+        }
+        
+        // Determine if editing/submitting is disabled based on status
+        $is_editing_disabled = in_array($document_status, array('processing', 'done'));
+        $is_cancelled = ($document_status === 'cancelled');
+        
         // Check if user has downloaded this document
         global $wpdb;
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
@@ -1328,15 +1384,27 @@ class LIFT_Docs_Frontend_Login {
         <div class="document-card" data-document-id="<?php echo $document->ID; ?>">
             <div class="document-card-header-meta">
                 <div class="document-header-info">
-                    <h3 class="document-title"><?php echo esc_html($document->post_title); ?></h3>
-                    <div class="document-badges">
-                        <?php if ($file_count > 1): ?>
-                            <span class="badge files-badge"><?php echo $file_count; ?> <?php _e('files', 'lift-docs-system'); ?></span>
-                        <?php endif; ?>
-                        <?php if ($user_downloaded): ?>
-                            <span class="badge downloaded-badge"><?php _e('Downloaded', 'lift-docs-system'); ?></span>
-                        <?php endif; ?>
-                    </div>
+                    <h3 class="document-title">
+                        <span><?php echo esc_html($document->post_title); ?></span>
+                            <?php
+                            // Add status badge
+                            $status_colors = array(
+                                'pending' => '#f39c12',
+                                'processing' => '#3498db',
+                                'done' => '#27ae60',
+                                'cancelled' => '#e74c3c'
+                            );
+                            $status_labels = array(
+                                'pending' => __('Pending', 'lift-docs-system'),
+                                'processing' => __('Processing', 'lift-docs-system'),
+                                'done' => __('Done', 'lift-docs-system'),
+                                'cancelled' => __('Cancelled', 'lift-docs-system')
+                            );
+                            ?>
+                            <span class="badge status-badge" style="background-color: <?php echo esc_attr($status_colors[$document_status]); ?>; color: white;">
+                                <?php echo esc_html($status_labels[$document_status]); ?>
+                            </span>
+                    </h3>
                 </div>
                 <div class="document-meta">
                     <span class="document-date">
@@ -1372,11 +1440,31 @@ class LIFT_Docs_Frontend_Login {
                             } else {
                                 $view_url = get_permalink($document->ID);
                             }
+                            
+                            $link_class = '';
+                            $link_style = '';
+                            if ($is_editing_disabled) {
+                                $link_class .= ' disabled-link';
+                                $link_style = 'pointer-events: none; opacity: 0.6; text-decoration: line-through;';
+                                $view_text .= ' (' . __('Read Only', 'lift-docs-system') . ')';
+                            } elseif ($is_cancelled) {
+                                $link_class .= ' cancelled-link';
+                                $link_style = 'pointer-events: none; opacity: 0.5; text-decoration: line-through; color: #e74c3c;';
+                                $view_text .= ' (' . __('Cancelled', 'lift-docs-system') . ')';
+                            }
                             ?>
-                            <a href="<?php echo esc_url($view_url); ?>" target="_blank">
+                            <a href="<?php echo esc_url($view_url); ?>" target="_blank" class="<?php echo esc_attr($link_class); ?>" style="<?php echo esc_attr($link_style); ?>">
                                 <i class="fas fa-file"></i>
-                                Document Files
+                                <?php echo esc_html($view_text); ?>
                             </a>
+                            <span>
+                                 <?php if ($file_count > 1): ?>
+                                <span class="badge files-badge"><?php echo $file_count; ?> <?php _e('files', 'lift-docs-system'); ?></span>
+                            <?php endif; ?>
+                            <?php if ($user_downloaded): ?>
+                                <span class="badge downloaded-badge"><?php _e('Downloaded', 'lift-docs-system'); ?></span>
+                            <?php endif; ?>
+                            </span>
                             <?php
                         }
                         ?>
@@ -1409,6 +1497,7 @@ class LIFT_Docs_Frontend_Login {
                                     $has_submitted = false;
                                     $button_text = $form->name;
                                     $button_class = 'btn btn-secondary';
+                                    $button_style = '';
                                     
                                     if ($current_user_id > 0) {
                                         $lift_forms = new LIFT_Forms();
@@ -1419,10 +1508,31 @@ class LIFT_Docs_Frontend_Login {
                                             $button_class = '';
                                         }
                                     }
+                                    
+                                    // Apply status-based restrictions
+                                    if ($is_editing_disabled) {
+                                        $button_class .= ' disabled-link';
+                                        $button_style = 'pointer-events: none; opacity: 0.6; cursor: not-allowed;';
+                                        if ($has_submitted) {
+                                            $button_text = sprintf(__('View %s', 'lift-docs-system'), $form->name) . ' (' . __('Read Only', 'lift-docs-system') . ')';
+                                        } else {
+                                            $button_text .= ' (' . __('Disabled', 'lift-docs-system') . ')';
+                                        }
+                                    } elseif ($is_cancelled) {
+                                        $button_class .= ' cancelled-link';
+                                        $button_style = 'pointer-events: none; opacity: 0.5; text-decoration: line-through; color: #e74c3c; cursor: not-allowed;';
+                                        $button_text .= ' (' . __('Cancelled', 'lift-docs-system') . ')';
+                                    }
                                     ?>
-                                    <a href="<?php echo esc_url($form_url); ?>" class="<?php echo esc_attr($button_class); ?>" target="_blank">
-                                        <?php if ($has_submitted): ?>
+                                    <a href="<?php echo esc_url($form_url); ?>" 
+                                       class="<?php echo esc_attr($button_class); ?>" 
+                                       style="<?php echo esc_attr($button_style); ?>"
+                                       target="_blank"
+                                       <?php if ($is_editing_disabled || $is_cancelled): ?>onclick="return false;"<?php endif; ?>>
+                                        <?php if ($has_submitted && !$is_editing_disabled && !$is_cancelled): ?>
                                             <i class="fas fa-edit"></i>
+                                        <?php elseif ($has_submitted && ($is_editing_disabled || $is_cancelled)): ?>
+                                            <i class="fas fa-eye"></i>
                                         <?php else: ?>
                                             <i class="fas fa-file-alt"></i>
                                         <?php endif; ?>

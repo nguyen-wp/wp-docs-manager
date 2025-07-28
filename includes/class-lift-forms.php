@@ -1227,6 +1227,21 @@ class LIFT_Forms {
                 wp_send_json_error(__('Access denied', 'lift-docs-system'));
             }
             
+            // Check document status - prevent submission/editing if status is processing, done, or cancelled
+            $document_status = get_post_meta($document_id, '_lift_doc_status', true);
+            if (empty($document_status)) {
+                $document_status = 'pending';
+            }
+            
+            if (in_array($document_status, array('processing', 'done', 'cancelled'))) {
+                $status_messages = array(
+                    'processing' => __('Cannot submit form - document is currently being processed', 'lift-docs-system'),
+                    'done' => __('Cannot submit form - document has been completed', 'lift-docs-system'),
+                    'cancelled' => __('Cannot submit form - document has been cancelled', 'lift-docs-system')
+                );
+                wp_send_json_error($status_messages[$document_status]);
+            }
+            
             // Verify form is assigned to document
             $assigned_forms = get_post_meta($document_id, '_lift_doc_assigned_forms', true);
             if (!is_array($assigned_forms) || !in_array($form_id, $assigned_forms)) {
