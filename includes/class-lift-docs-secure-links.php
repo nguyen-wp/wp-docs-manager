@@ -72,12 +72,20 @@ class LIFT_Docs_Secure_Links {
      * Handle secure access requests
      */
     public function handle_secure_access() {
-        if (!get_query_var('lift_secure_page')) {
+        $this->debug_log('handle_secure_access called, query_var: ' . get_query_var('lift_secure_page'));
+        $this->debug_log('Current URL: ' . ($_SERVER['REQUEST_URI'] ?? 'not set'));
+        
+        // Check both query var AND URL pattern for backwards compatibility
+        $is_secure_request = get_query_var('lift_secure_page') || 
+                            (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/lift-docs/secure/') !== false);
+        
+        if (!$is_secure_request) {
+            $this->debug_log('No secure access request detected, returning');
             return;
         }
         
         // Debug logging
-        $this->debug_log('handle_secure_access called');
+        $this->debug_log('Secure access request detected, proceeding...');
         
         $token = $_GET['lift_secure'] ?? '';
         
@@ -128,9 +136,20 @@ class LIFT_Docs_Secure_Links {
      * Handle secure download requests
      */
     public function handle_secure_download() {
-        if (!get_query_var('lift_download')) {
+        $this->debug_log('handle_secure_download called, query_var: ' . get_query_var('lift_download'));
+        $this->debug_log('Current URL: ' . ($_SERVER['REQUEST_URI'] ?? 'not set'));
+        $this->debug_log('GET parameters: ' . print_r($_GET, true));
+        
+        // Check both query var AND URL pattern for backwards compatibility
+        $is_download_request = get_query_var('lift_download') || 
+                              (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/lift-docs/download/') !== false);
+        
+        if (!$is_download_request) {
+            $this->debug_log('No download request detected, returning');
             return;
         }
+        
+        $this->debug_log('Download request detected, proceeding...');
         
         // Debug logging
         $this->debug_log('Secure download handler called');
