@@ -14,11 +14,6 @@
             var $button = $(this);
             var documentId = $button.data('document-id') || $button.data('post-id');
             
-            console.log('Button clicked, documentId:', documentId);
-            console.log('Button data:', $button.data());
-            console.log('Ajax URL:', liftDocsAdmin.ajaxUrl);
-            console.log('Nonce:', liftDocsAdmin.nonce);
-            
             if (!documentId) {
                 console.error('No document ID found');
                 return;
@@ -37,7 +32,6 @@
                     nonce: liftDocsAdmin.nonce
                 },
                 success: function(response) {
-                    console.log('AJAX Success:', response);
                     if (response.success) {
                         // Populate modal with detailed content
                         $('#lift-modal-body').html(response.data.content);
@@ -48,13 +42,11 @@
                         // Show modal
                         showModal();
                     } else {
-                        console.error('AJAX Error Response:', response.data);
                         alert(response.data || 'Error loading document details');
                         hideModal();
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('AJAX Error:', xhr, status, error);
                     alert('Error loading document details');
                     hideModal();
                 }

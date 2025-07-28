@@ -2747,29 +2747,20 @@ class LIFT_Docs_Admin {
      * Get admin document details for modal (AJAX handler)
      */
     public function ajax_get_admin_document_details() {
-        // Debug logging
-        error_log('AJAX get_admin_document_details called');
-        error_log('POST data: ' . print_r($_POST, true));
-        
         // Check nonce
         if (!wp_verify_nonce($_POST['nonce'], 'get_admin_document_details')) {
-            error_log('Nonce verification failed');
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
         
         // Check user permissions
         if (!current_user_can('manage_options') && !current_user_can('edit_lift_documents')) {
-            error_log('Permission check failed');
             wp_send_json_error(__('Access denied', 'lift-docs-system'));
         }
         
         $document_id = intval($_POST['document_id']);
-        error_log('Document ID: ' . $document_id);
-        
         $document = get_post($document_id);
         
         if (!$document || $document->post_type !== 'lift_document') {
-            error_log('Document not found or wrong type');
             wp_send_json_error(__('Document not found', 'lift-docs-system'));
         }
         
@@ -2849,125 +2840,130 @@ class LIFT_Docs_Admin {
         
         ob_start();
         ?>
-        <div class="modal-section">
-            <div class="modal-info-grid">
-                <div class="modal-stat">
-                    <div class="number"><?php echo $views ? $views : 0; ?></div>
-                    <div class="label"><?php _e('Views', 'lift-docs-system'); ?></div>
-                </div>
-                <div class="modal-stat">
-                    <div class="number"><?php echo $downloads ? $downloads : 0; ?></div>
-                    <div class="label"><?php _e('Downloads', 'lift-docs-system'); ?></div>
-                </div>
-                <div class="modal-stat">
-                    <div class="number"><?php echo count($assigned_users); ?></div>
-                    <div class="label"><?php _e('Assigned Users', 'lift-docs-system'); ?></div>
-                </div>
-                <div class="modal-stat">
-                    <div class="number"><?php echo count($file_urls); ?></div>
-                    <div class="label"><?php _e('Files', 'lift-docs-system'); ?></div>
-                </div>
-            </div>
-        </div>
-        
-        <?php if (!empty($document->post_content)): ?>
-        <div class="modal-section">
-            <h3><?php _e('Description', 'lift-docs-system'); ?></h3>
-            <div style="background: #f6f7f7; padding: 15px; border-radius: 6px; border: 1px solid #dcdcde;">
-                <p style="margin: 0; color: #1d2327; line-height: 1.6;">
-                    <?php echo esc_html(wp_trim_words($document->post_content, 50)); ?>
-                </p>
-            </div>
-        </div>
-        <?php endif; ?>
-        
-        <div class="modal-section">
-            <h3><?php _e('View URL', 'lift-docs-system'); ?></h3>
-            <div class="view-url-box">
-                <a href="<?php echo esc_url($view_url); ?>" target="_blank">
-                    <?php echo esc_html($view_url); ?>
-                </a>
-            </div>
-        </div>
-        
-        <?php if (!empty($user_details)): ?>
-        <div class="modal-section">
-            <h3><?php _e('View Documents', 'lift-docs-system'); ?> (<?php echo count($user_details); ?>)</h3>
-            <div class="assigned-users-grid">
-                <?php foreach ($user_details as $user_info): ?>
-                    <div class="user-item">
-                        <div class="user-info">
-                            <strong><?php echo esc_html($user_info['name']); ?></strong>
-                            <div class="user-email"><?php echo esc_html($user_info['email']); ?></div>
+        <div class="modal-body-grid">
+            <div class="modal-column-left">
+                <div class="modal-section">
+                    <div class="modal-info-grid">
+                        <div class="modal-stat">
+                            <div class="number"><?php echo $views ? $views : 0; ?></div>
+                            <div class="label"><?php _e('Views', 'lift-docs-system'); ?></div>
                         </div>
-                        <?php if (!empty($user_info['code'])): ?>
-                            <div class="user-code-badge">
-                                <?php echo esc_html($user_info['code']); ?>
-                            </div>
-                        <?php endif; ?>
+                        <div class="modal-stat">
+                            <div class="number"><?php echo $downloads ? $downloads : 0; ?></div>
+                            <div class="label"><?php _e('Downloads', 'lift-docs-system'); ?></div>
+                        </div>
+                        <div class="modal-stat">
+                            <div class="number"><?php echo count($assigned_users); ?></div>
+                            <div class="label"><?php _e('Users', 'lift-docs-system'); ?></div>
+                        </div>
+                        <div class="modal-stat">
+                            <div class="number"><?php echo count($file_urls); ?></div>
+                            <div class="label"><?php _e('Files', 'lift-docs-system'); ?></div>
+                        </div>
                     </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-        <?php endif; ?>
-        
-        <?php if (!empty($form_details)): ?>
-        <div class="modal-section">
-            <h3><?php _e('Forms', 'lift-docs-system'); ?> (<?php echo count($form_details); ?>)</h3>
-            <div class="assigned-forms-grid">
-                <?php foreach ($form_details as $form_info): ?>
-                    <div class="form-item">
-                        <div class="form-info">
-                            <strong><?php echo esc_html($form_info['name']); ?></strong>
-                            <?php if (!empty($form_info['description'])): ?>
-                                <div class="form-description"><?php echo esc_html($form_info['description']); ?></div>
-                            <?php endif; ?>
-                        </div>
-                        <?php if ($form_info['has_submission']): ?>
-                            <div class="form-actions">
-                                <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions&submission_id=' . $form_info['submission_id']); ?>" 
-                                   class="button button-small" target="_blank">
-                                    <?php _e('View Submission', 'lift-docs-system'); ?>
-                                </a>
-                                <div class="submission-date">
-                                    <?php echo date('M j, Y', strtotime($form_info['submitted_at'])); ?>
+                </div>
+
+                <?php if (!empty($document->post_content)): ?>
+                <div class="modal-section">
+                    <h3><?php _e('Description', 'lift-docs-system'); ?></h3>
+                    <div style="background: #f6f7f7; padding: 10px; border-radius: 4px; border: 1px solid #dcdcde; max-height: 80px; overflow-y: auto;">
+                        <p style="margin: 0; color: #1d2327; line-height: 1.4; font-size: 13px;">
+                            <?php echo esc_html(wp_trim_words($document->post_content, 30)); ?>
+                        </p>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <div class="modal-section">
+                    <h3><?php _e('View URL', 'lift-docs-system'); ?></h3>
+                    <div class="view-url-box">
+                        <a href="<?php echo esc_url($view_url); ?>" target="_blank">
+                            <?php echo esc_html($view_url); ?>
+                        </a>
+                    </div>
+                </div>
+
+                <?php if (!empty($file_urls)): ?>
+                <div class="modal-section">
+                    <h3><?php _e('Files', 'lift-docs-system'); ?> (<?php echo count($file_urls); ?>)</h3>
+                    <div class="files-grid">
+                        <?php foreach ($file_urls as $index => $file_url): ?>
+                            <?php if (!empty($file_url)): ?>
+                                <div class="file-item">
+                                    <a href="<?php echo esc_url($file_url); ?>" target="_blank">
+                                        <?php echo esc_html(basename($file_url)); ?>
+                                    </a>
                                 </div>
-                            </div>
-                        <?php else: ?>
-                            <div class="form-status">
-                                <span class="status-badge status-pending"><?php _e('No Submission', 'lift-docs-system'); ?></span>
-                            </div>
-                        <?php endif; ?>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
             </div>
-        </div>
-        <?php endif; ?>
-        
-        <?php if (!empty($file_urls)): ?>
-        <div class="modal-section">
-            <h3><?php _e('Files', 'lift-docs-system'); ?> (<?php echo count($file_urls); ?>)</h3>
-            <div class="files-grid">
-                <?php foreach ($file_urls as $index => $file_url): ?>
-                    <?php if (!empty($file_url)): ?>
-                        <div class="file-item">
-                            <a href="<?php echo esc_url($file_url); ?>" target="_blank">
-                                <?php echo esc_html(basename($file_url)); ?>
-                            </a>
-                        </div>
-                    <?php endif; ?>
-                <?php endforeach; ?>
+
+            <div class="modal-column-right">
+                <?php if (!empty($user_details)): ?>
+                <div class="modal-section">
+                    <h3><?php _e('View Documents', 'lift-docs-system'); ?> (<?php echo count($user_details); ?>)</h3>
+                    <div class="assigned-users-grid">
+                        <?php foreach ($user_details as $user_info): ?>
+                            <div class="user-item">
+                                <div class="user-info">
+                                    <strong><?php echo esc_html($user_info['name']); ?></strong>
+                                    <div class="user-email"><?php echo esc_html($user_info['email']); ?></div>
+                                </div>
+                                <?php if (!empty($user_info['code'])): ?>
+                                    <div class="user-code-badge">
+                                        <?php echo esc_html($user_info['code']); ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!empty($form_details)): ?>
+                <div class="modal-section">
+                    <h3><?php _e('Forms', 'lift-docs-system'); ?> (<?php echo count($form_details); ?>)</h3>
+                    <div class="assigned-forms-grid">
+                        <?php foreach ($form_details as $form_info): ?>
+                            <div class="form-item">
+                                <div class="form-info">
+                                    <strong><?php echo esc_html($form_info['name']); ?></strong>
+                                    <?php if (!empty($form_info['description'])): ?>
+                                        <div class="form-description"><?php echo esc_html(wp_trim_words($form_info['description'], 8)); ?></div>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if ($form_info['has_submission']): ?>
+                                    <div class="form-actions">
+                                        <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions&submission_id=' . $form_info['submission_id']); ?>" 
+                                           class="button button-small" target="_blank">
+                                            <?php _e('View', 'lift-docs-system'); ?>
+                                        </a>
+                                        <div class="submission-date">
+                                            <?php echo date('M j', strtotime($form_info['submitted_at'])); ?>
+                                        </div>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="form-status">
+                                        <span class="status-badge status-pending"><?php _e('No Submit', 'lift-docs-system'); ?></span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <div class="modal-section">
+                    <h3><?php _e('Created', 'lift-docs-system'); ?></h3>
+                    <p style="margin: 0; color: #646970; font-size: 12px;">
+                        <?php echo get_the_date('M j, Y g:i A', $document->ID); ?><br>
+                        <?php _e('by', 'lift-docs-system'); ?> <?php echo get_the_author_meta('display_name', $document->post_author); ?>
+                    </p>
+                </div>
             </div>
-        </div>
-        <?php endif; ?>
-        
-        <div class="modal-section">
-            <h3><?php _e('Created', 'lift-docs-system'); ?></h3>
-            <p style="margin: 0; color: #646970;">
-                <?php echo get_the_date('F j, Y g:i A', $document->ID); ?> 
-                <?php _e('by', 'lift-docs-system'); ?> 
-                <?php echo get_the_author_meta('display_name', $document->post_author); ?>
-            </p>
         </div>
         <?php
         $content = ob_get_clean();

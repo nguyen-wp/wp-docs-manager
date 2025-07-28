@@ -23,9 +23,9 @@
     background: #fff;
     border-radius: 6px;
     border: 1px solid #ddd;
-    max-width: 600px;
-    width: 90%;
-    max-height: 90%;
+    max-width: 900px;
+    width: 95%;
+    max-height: 95vh;
     overflow-y: auto;
     position: relative;
     z-index: 999999;
@@ -299,8 +299,8 @@
 /* Improved modal width for multiple files */
 /* Modal sections styling */
 .modal-section {
-    margin-bottom: 25px;
-    padding-bottom: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
     border-bottom: 1px solid #f0f0f0;
 }
 
@@ -310,36 +310,36 @@
 }
 
 .modal-section h3 {
-    margin: 0 0 15px 0;
-    font-size: 16px;
+    margin: 0 0 12px 0;
+    font-size: 15px;
     font-weight: 600;
     color: #1d2327;
 }
 
 .modal-info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
+    margin-bottom: 15px;
 }
 
 .modal-stat {
     text-align: center;
-    padding: 15px;
+    padding: 12px;
     background: #f8f9fa;
     border-radius: 6px;
     border: 1px solid #e9ecef;
 }
 
 .modal-stat .number {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
     color: #0073aa;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 .modal-stat .label {
-    font-size: 12px;
+    font-size: 11px;
     color: #666;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -348,15 +348,15 @@
 .view-url-box {
     background: #f6f7f7;
     border: 1px solid #dcdcde;
-    border-radius: 6px;
-    padding: 12px;
+    border-radius: 4px;
+    padding: 10px;
 }
 
 .view-url-box a {
     color: #0073aa;
     text-decoration: none;
     font-family: monospace;
-    font-size: 13px;
+    font-size: 12px;
     word-break: break-all;
 }
 
@@ -366,56 +366,60 @@
 
 .assigned-users-grid {
     display: grid;
-    gap: 12px;
+    gap: 8px;
+    max-height: 150px;
+    overflow-y: auto;
 }
 
 .assigned-users-grid .user-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px;
+    padding: 8px 10px;
     background: #f8f9fa;
     border: 1px solid #e9ecef;
-    border-radius: 6px;
+    border-radius: 4px;
 }
 
 .assigned-users-grid .user-info strong {
     display: block;
     color: #1d2327;
-    font-size: 14px;
-    margin-bottom: 2px;
+    font-size: 13px;
+    margin-bottom: 1px;
 }
 
 .assigned-users-grid .user-email {
-    font-size: 12px;
+    font-size: 11px;
     color: #646970;
 }
 
 .assigned-users-grid .user-code-badge {
     background: #0073aa;
     color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 10px;
+    font-size: 10px;
     font-weight: 500;
 }
 
 .files-grid {
     display: grid;
-    gap: 8px;
+    gap: 6px;
+    max-height: 120px;
+    overflow-y: auto;
 }
 
 .files-grid .file-item {
-    padding: 8px 12px;
+    padding: 6px 10px;
     background: #f8f9fa;
     border: 1px solid #e9ecef;
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
 .files-grid .file-item a {
     color: #0073aa;
     text-decoration: none;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .files-grid .file-item a:hover {
@@ -427,11 +431,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px;
+    padding: 8px 10px;
     border: 1px solid #e0e0e0;
-    border-radius: 6px;
+    border-radius: 4px;
     background: #fafafa;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .assigned-forms-grid .form-info {
@@ -441,12 +445,12 @@
 .assigned-forms-grid .form-info strong {
     display: block;
     color: #333;
-    font-size: 14px;
-    margin-bottom: 4px;
+    font-size: 13px;
+    margin-bottom: 2px;
 }
 
 .assigned-forms-grid .form-description {
-    font-size: 12px;
+    font-size: 11px;
     color: #666;
     font-style: italic;
 }
@@ -455,17 +459,18 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 4px;
+    gap: 3px;
 }
 
 .assigned-forms-grid .form-actions .button {
-    padding: 4px 12px;
-    font-size: 11px;
+    padding: 3px 8px;
+    font-size: 10px;
     height: auto;
+    line-height: 1.2;
 }
 
 .assigned-forms-grid .submission-date {
-    font-size: 11px;
+    font-size: 10px;
     color: #666;
     text-align: right;
 }
@@ -476,9 +481,9 @@
 }
 
 .assigned-forms-grid .status-badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 10px;
+    font-size: 10px;
     font-weight: 500;
 }
 
@@ -486,6 +491,74 @@
     background: #fff3cd;
     color: #856404;
     border: 1px solid #ffeaa7;
+}
+
+/* Add scrollable container for forms */
+.assigned-forms-grid {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+/* Modal body layout */
+.modal-body-grid {
+    display: block; /* Default single column for mobile */
+}
+
+.modal-column-left,
+.modal-column-right {
+    width: 100%;
+}
+
+/* Responsive improvements */
+@media (min-width: 768px) {
+    .lift-modal-content {
+        max-width: 1000px;
+    }
+    
+    /* Two column layout for larger screens */
+    .modal-body-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+    .lift-modal-content {
+        width: 98%;
+        max-height: 98vh;
+    }
+    
+    .modal-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .modal-stat {
+        padding: 8px;
+    }
+    
+    .modal-stat .number {
+        font-size: 16px;
+    }
+    
+    .modal-stat .label {
+        font-size: 10px;
+    }
+    
+    .assigned-forms-grid .form-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    
+    .assigned-forms-grid .form-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
 }
 
 @media (min-width: 768px) {
