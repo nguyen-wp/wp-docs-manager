@@ -1034,13 +1034,10 @@
     height: 60px;
     position: relative;
 }
-.ui-sortable-placeholder:before {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    color: #0073aa;
-    font-size: 14px;
-    font-weight: 600;
+.notice-error {
+    background: #ffeaea;
+    border-left-color: #dc3232;
+    color: #721c24;
 }
 .ui-draggable-helper {
     z-index: 1000;
