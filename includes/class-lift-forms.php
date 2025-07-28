@@ -452,21 +452,19 @@ class LIFT_Forms {
                     <div class="form-basic-settings">
                         <input type="hidden" id="form-id" value="<?php echo $form ? $form->id : 0; ?>">
                         <div class="setting-group">
-                            <label for="form-name"><?php _e('Form Name', 'lift-docs-system'); ?></label>
                             <input type="text" id="form-name" value="<?php echo $form ? esc_attr($form->name) : ''; ?>" placeholder="<?php _e('Enter form name...', 'lift-docs-system'); ?>">
                         </div>
                         <div class="setting-group">
-                            <label for="form-description"><?php _e('Description', 'lift-docs-system'); ?></label>
                             <input id="form-description" placeholder="<?php _e('Enter form description...', 'lift-docs-system'); ?>" value="<?php echo $form ? esc_attr($form->description) : ''; ?>" type="text">
                         </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="save-form" class="button button-primary">
-                            <?php _e('Save Form', 'lift-docs-system'); ?>
-                        </button>
-                        <button type="button" id="preview-form" class="button">
-                            <?php _e('Preview', 'lift-docs-system'); ?>
-                        </button>
+                        <div class="form-actions">
+                            <button type="button" id="save-form" class="button button-primary">
+                                <?php _e('Save Form', 'lift-docs-system'); ?>
+                            </button>
+                            <button type="button" id="preview-form" class="button">
+                                <?php _e('Preview', 'lift-docs-system'); ?>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 

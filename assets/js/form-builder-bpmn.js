@@ -185,7 +185,6 @@
                 
                 <div class="form-builder-canvas">
                     <div class="form-builder-header">
-                        <h3>Form Canvas</h3>
                         <div class="builder-actions">
                             <button type="button" class="button" id="preview-form">Preview</button>
                             <button type="button" class="button button-secondary" id="clear-form">Clear All</button>

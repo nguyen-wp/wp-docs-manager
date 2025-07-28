@@ -173,11 +173,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0;
+    margin-bottom: 15px;
     padding: 16px 20px;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: #fff;
     border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-sizing: border-box;
 }
 
 .form-builder-header h3 {
@@ -201,17 +201,8 @@
     color: #fff;
     border: 1px solid #2271b1;
     text-decoration: none;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-.builder-actions .button:hover {
-    background: #135e96;
-    border-color: #135e96;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
 
 .builder-actions .button-secondary {
     background: #f8fafc;
@@ -219,26 +210,18 @@
     border: 1px solid #cbd5e1;
 }
 
-.builder-actions .button-secondary:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
-    color: #475569;
-}
 
 /* Form Fields Area - Enhanced */
 .form-fields-area {
     flex: 1;
     padding: 20px;
-    background: #fafbfc;
+    background: #fff;
     overflow-y: auto;
 }
 
 #form-fields-list {
     min-height: 400px;
     background: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 #form-fields-list.multi-column-layout {
@@ -253,7 +236,7 @@
     border: 2px dashed #cbd5e1;
     border-radius: 12px;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    margin: 20px 0;
+    margin: 0 0;
 }
 
 .no-fields-message p {
