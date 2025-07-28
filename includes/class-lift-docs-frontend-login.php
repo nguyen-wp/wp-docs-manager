@@ -38,7 +38,10 @@ class LIFT_Docs_Frontend_Login {
      * Initialize
      */
     public function init() {
-        // Add rewrite rule for document forms
+        // Add rewrite rule for document forms with new URL structure
+        add_rewrite_rule('^document-form/([0-9]+)/([0-9]+)/?$', 'index.php?document_form=1&document_id=$matches[1]&form_id=$matches[2]', 'top');
+        
+        // Also keep the old rule for backward compatibility
         add_rewrite_rule('^document-form/?$', 'index.php?document_form=1', 'top');
         
         // Flush rewrite rules if needed
@@ -50,9 +53,10 @@ class LIFT_Docs_Frontend_Login {
      */
     private function maybe_flush_rewrite_rules() {
         $version = get_option('lift_docs_form_rewrite_version');
-        if ($version !== LIFT_DOCS_VERSION) {
+        // Update version to force flush for new URL structure
+        if ($version !== LIFT_DOCS_VERSION . '_v2') {
             flush_rewrite_rules();
-            update_option('lift_docs_form_rewrite_version', LIFT_DOCS_VERSION);
+            update_option('lift_docs_form_rewrite_version', LIFT_DOCS_VERSION . '_v2');
         }
     }
     
@@ -61,6 +65,8 @@ class LIFT_Docs_Frontend_Login {
      */
     public function add_query_vars($vars) {
         $vars[] = 'document_form';
+        $vars[] = 'document_id';
+        $vars[] = 'form_id';
         return $vars;
     }
     
@@ -174,8 +180,9 @@ class LIFT_Docs_Frontend_Login {
             exit;
         }
         
-        $document_id = intval($_GET['document_id'] ?? 0);
-        $form_id = intval($_GET['form_id'] ?? 0);
+        // Get document_id and form_id from query vars (URL segments) or fallback to $_GET
+        $document_id = intval(get_query_var('document_id', $_GET['document_id'] ?? 0));
+        $form_id = intval(get_query_var('form_id', $_GET['form_id'] ?? 0));
         
         if (!$document_id || !$form_id) {
             wp_die(__('Invalid parameters.', 'lift-docs-system'), __('Error', 'lift-docs-system'));
@@ -1560,6 +1567,13 @@ class LIFT_Docs_Frontend_Login {
     }
     
     /**
+     * Generate form URL with new structure
+     */
+    private function get_form_url($document_id, $form_id) {
+        return home_url('/document-form/' . $document_id . '/' . $form_id . '/');
+    }
+    
+    /**
      * Check if user can view document
      */
     private function user_can_view_document($document_id) {
@@ -1720,10 +1734,8 @@ class LIFT_Docs_Frontend_Login {
                                 ));
                                 
                                 if ($form) {
-                                    $form_url = add_query_arg(array(
-                                        'document_id' => $document->ID,
-                                        'form_id' => $form->id
-                                    ), home_url('/document-form/'));
+                                    // Use new URL structure: /document-form/document_id/form_id
+                                    $form_url = $this->get_form_url($document->ID, $form->id);
                                     
                                     // Check if user has already submitted this form for this document
                                     $has_submitted = false;
