@@ -117,11 +117,11 @@ class LIFT_Docs_Settings {
             array($this, 'validate_settings')
         );
         
-        // Register interface settings
-        register_setting('lift_docs_settings_interface', 'lift_docs_logo_upload');
-        register_setting('lift_docs_settings_interface', 'lift_docs_custom_logo_width'); 
-        register_setting('lift_docs_settings_interface', 'lift_docs_login_title');
-        register_setting('lift_docs_settings_interface', 'lift_docs_login_description');
+        // Register interface settings with the main group
+        register_setting('lift_docs_settings_group', 'lift_docs_logo_upload');
+        register_setting('lift_docs_settings_group', 'lift_docs_custom_logo_width'); 
+        register_setting('lift_docs_settings_group', 'lift_docs_login_title');
+        register_setting('lift_docs_settings_group', 'lift_docs_login_description');
         
         // Register login customization settings with validation
         register_setting('lift_docs_settings_group', 'lift_docs_login_logo');

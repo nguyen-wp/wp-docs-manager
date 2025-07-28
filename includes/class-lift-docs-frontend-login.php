@@ -471,6 +471,13 @@ class LIFT_Docs_Frontend_Login {
         $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
         $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
         
+        // Debug: Log logo values for troubleshooting
+        error_log('LIFT Docs Login Page Debug:');
+        error_log('- Interface logo ID: ' . $interface_logo_id);
+        error_log('- Main logo ID: ' . get_option('lift_docs_login_logo', ''));
+        error_log('- Final logo ID used: ' . $logo_id);
+        error_log('- Logo URL: ' . $logo_url);
+        
         // Use Interface tab title/description if set, otherwise use defaults
         $display_title = !empty($interface_title) ? $interface_title : __('Document Access Portal', 'lift-docs-system');
         $display_description = !empty($interface_description) ? $interface_description : __('Please log in to access your documents', 'lift-docs-system');
@@ -962,10 +969,13 @@ class LIFT_Docs_Frontend_Login {
         </head>
         <body>
             <div class="lift-simple-login-container">
+                <!-- Logo Debug: <?php echo 'ID=' . $logo_id . ', URL=' . $logo_url . ', Time=' . time(); ?> -->
                 <?php if ($logo_url): ?>
                 <div class="lift-login-logo">
                     <img src="<?php echo esc_url($logo_url); ?>" alt="<?php bloginfo('name'); ?>">
                 </div>
+                <?php else: ?>
+                <!-- No logo: ID empty or URL failed -->
                 <?php endif; ?>
                 
                 <div class="lift-login-form-wrapper">
