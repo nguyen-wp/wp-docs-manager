@@ -71,7 +71,6 @@
                     'date',
                     'file',
                     'number',
-                    'hidden',
                     'header',
                     'paragraph',
                     'button'
@@ -174,9 +173,6 @@
                                 </button>
                                 <button type="button" class="field-type-btn draggable" data-type="file" draggable="true">
                                     <span class="dashicons dashicons-upload"></span> File
-                                </button>
-                                <button type="button" class="field-type-btn draggable" data-type="hidden" draggable="true">
-                                    <span class="dashicons dashicons-hidden"></span> Hidden
                                 </button>
                             </div>
                         </div>
@@ -664,8 +660,7 @@
             email: 'Email Field',
             number: 'Number Field',
             date: 'Date Field',
-            file: 'File Upload',
-            hidden: 'Hidden Field'
+            file: 'File Upload'
         };
         return labels[type] || 'Field';
     }
@@ -887,13 +882,6 @@
                 return `
                     <label>${field.label}${required}</label>
                     <input type="file" disabled>
-                `;
-            
-            case 'hidden':
-                return `
-                    <div style="background: #f0f0f0; padding: 8px; border: 1px dashed #ccc;">
-                        Hidden Field: ${field.name}
-                    </div>
                 `;
             
             default:
