@@ -1185,9 +1185,6 @@ class LIFT_Docs_Frontend_Login {
                             </div>
                         <?php else: ?>
                             <div class="no-documents">
-                                <div class="no-documents-icon">
-                                    <span class="dashicons dashicons-portfolio"></span>
-                                </div>
                                 <h3><?php _e('No Documents Available', 'lift-docs-system'); ?></h3>
                                 <p><?php _e('You don\'t have access to any documents yet. Contact your administrator for access.', 'lift-docs-system'); ?></p>
                             </div>
@@ -2146,9 +2143,6 @@ class LIFT_Docs_Frontend_Login {
                             <?php endif; ?>
                         <?php else: ?>
                             <div class="no-documents">
-                                <div class="no-documents-icon">
-                                    <span class="dashicons dashicons-portfolio"></span>
-                                </div>
                                 <h4><?php _e('No Documents Available', 'lift-docs-system'); ?></h4>
                                 <p><?php _e('You don\'t have access to any documents yet. Contact your administrator for access.', 'lift-docs-system'); ?></p>
                             </div>

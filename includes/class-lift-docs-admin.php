@@ -203,7 +203,20 @@ class LIFT_Docs_Admin {
      * Check frontend access and handle redirects for logged-in restricted users
      */
     public function check_frontend_access() {
-        // Check if user is logged in
+        $current_url = $_SERVER['REQUEST_URI'] ?? '';
+        
+        // Check if user is logged in and trying to access document-login page
+        if (is_user_logged_in()) {
+            // Redirect logged-in users from document-login to document-dashboard
+            if (strpos($current_url, '/document-login/') !== false || 
+                (is_page() && get_post_field('post_name') === 'document-login')) {
+                $dashboard_url = home_url('/document-dashboard/');
+                wp_safe_redirect($dashboard_url);
+                exit;
+            }
+        }
+        
+        // Check if user is logged in for other restrictions
         if (!is_user_logged_in()) {
             return;
         }
@@ -222,8 +235,6 @@ class LIFT_Docs_Admin {
         }
         
         if ($has_blocked_role) {
-            $current_url = $_SERVER['REQUEST_URI'] ?? '';
-            
             // Check if trying to access wp-login.php via frontend
             if (strpos($current_url, '/wp-login.php') !== false) {
                 // If user is documents_user, redirect to Document Dashboard
