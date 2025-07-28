@@ -1260,6 +1260,93 @@
     margin-top: 15px;
 }
 
+/* Dynamic Options List */
+#field-options-list {
+    margin-bottom: 10px;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.option-item input {
+    flex: 1;
+    margin-right: 8px;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.option-item input:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: none;
+}
+
+.option-item .option-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.option-item .option-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fff;
+    color: #666;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.option-item .option-btn:hover {
+    background: #f0f0f1;
+    border-color: #999;
+}
+
+.option-item .option-btn.remove-option {
+    color: #d63638;
+    border-color: #d63638;
+}
+
+.option-item .option-btn.remove-option:hover {
+    background: #d63638;
+    color: #fff;
+}
+
+.option-item .option-btn.move-option {
+    color: #666;
+}
+
+.option-item .option-btn.move-option:hover {
+    background: #f0f0f1;
+    color: #333;
+}
+
+#add-option-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+}
+
+#add-option-btn .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
 /* WordPress Button Compatibility */
 .button {
     display: inline-block;

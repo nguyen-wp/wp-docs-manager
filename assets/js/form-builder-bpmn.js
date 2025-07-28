@@ -221,8 +221,13 @@
                                 </label>
                             </div>
                             <div class="form-field options-field" style="display: none;">
-                                <label>Options (one per line)</label>
-                                <textarea id="field-options" class="widefat" rows="4"></textarea>
+                                <label>Options</label>
+                                <div id="field-options-list">
+                                    <!-- Options will be dynamically added here -->
+                                </div>
+                                <button type="button" class="button" id="add-option-btn">
+                                    <span class="dashicons dashicons-plus-alt"></span> Add Option
+                                </button>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -375,6 +380,38 @@
 
         $(document).on('click', '#save-field', function() {
             saveFieldEdit();
+        });
+
+        // Option management events
+        $(document).on('click', '#add-option-btn', function() {
+            addOption();
+        });
+
+        $(document).on('click', '.remove-option', function() {
+            $(this).closest('.option-item').remove();
+            updateOptionIndices();
+        });
+
+        $(document).on('click', '.move-option-up', function() {
+            const optionItem = $(this).closest('.option-item');
+            const prevItem = optionItem.prev('.option-item');
+            if (prevItem.length) {
+                optionItem.insertBefore(prevItem);
+                updateOptionIndices();
+            }
+        });
+
+        $(document).on('click', '.move-option-down', function() {
+            const optionItem = $(this).closest('.option-item');
+            const nextItem = optionItem.next('.option-item');
+            if (nextItem.length) {
+                optionItem.insertAfter(nextItem);
+                updateOptionIndices();
+            }
+        });
+
+        $(document).on('input', '.option-input', function() {
+            // Auto-save option changes could be implemented here
         });
 
         // Column settings modal events
@@ -715,9 +752,10 @@
         $('#field-placeholder').val(field.placeholder);
         $('#field-required').prop('checked', field.required);
         
-        if (field.options && field.options.length > 0) {
-            $('#field-options').val(field.options.join('\n'));
+        // Show/hide options field based on field type
+        if (field.type === 'select' || field.type === 'radio') {
             $('.options-field').show();
+            populateOptionsField(field.options || []);
         } else {
             $('.options-field').hide();
         }
@@ -741,14 +779,89 @@
         field.placeholder = $('#field-placeholder').val();
         field.required = $('#field-required').is(':checked');
         
+        // Collect options from dynamic options list
         if ($('.options-field').is(':visible')) {
-            const optionsText = $('#field-options').val();
-            field.options = optionsText ? optionsText.split('\n').filter(opt => opt.trim()) : [];
+            field.options = collectOptionsFromField();
         }
 
         // Update field in-place without re-rendering entire structure
         updateFieldInPlace(field);
         $('#field-edit-modal').hide();
+    }
+
+    /**
+     * Populate options field with existing options
+     */
+    function populateOptionsField(options) {
+        const container = $('#field-options-list');
+        container.empty();
+        
+        if (options && options.length > 0) {
+            options.forEach((option, index) => {
+                addOptionItem(option, index);
+            });
+        } else {
+            // Add two default options
+            addOptionItem('Option 1', 0);
+            addOptionItem('Option 2', 1);
+        }
+    }
+
+    /**
+     * Add a new option item to the list
+     */
+    function addOption() {
+        const container = $('#field-options-list');
+        const index = container.find('.option-item').length;
+        addOptionItem(`Option ${index + 1}`, index);
+    }
+
+    /**
+     * Create and add an option item element
+     */
+    function addOptionItem(value, index) {
+        const container = $('#field-options-list');
+        const optionHTML = `
+            <div class="option-item" data-index="${index}">
+                <input type="text" class="option-input" value="${value}" placeholder="Enter option text">
+                <div class="option-actions">
+                    <button type="button" class="option-btn move-option-up" title="Move up">
+                        <span class="dashicons dashicons-arrow-up-alt2"></span>
+                    </button>
+                    <button type="button" class="option-btn move-option-down" title="Move down">
+                        <span class="dashicons dashicons-arrow-down-alt2"></span>
+                    </button>
+                    <button type="button" class="option-btn remove-option" title="Remove option">
+                        <span class="dashicons dashicons-trash"></span>
+                    </button>
+                </div>
+            </div>
+        `;
+        container.append(optionHTML);
+        updateOptionIndices();
+    }
+
+    /**
+     * Update option indices after reordering
+     */
+    function updateOptionIndices() {
+        $('#field-options-list .option-item').each(function(index) {
+            $(this).attr('data-index', index);
+        });
+    }
+
+    /**
+     * Collect options from the dynamic options field
+     */
+    function collectOptionsFromField() {
+        const options = [];
+        $('#field-options-list .option-input').each(function() {
+            const value = $(this).val().trim();
+            if (value) {
+                options.push(value);
+            }
+        });
+        return options;
     }
 
     /**
