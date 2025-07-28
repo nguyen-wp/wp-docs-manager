@@ -962,6 +962,9 @@
             field.options = collectOptionsFromField();
         }
 
+        // Update global variable for minimal admin access
+        window.liftCurrentFormFields = formData;
+
         // Update field in-place without re-rendering entire structure
         updateFieldInPlace(field);
         $('#field-edit-modal').hide();
@@ -1082,6 +1085,9 @@
         // Remove from data array
         formData.splice(index, 1);
         
+        // Update global variable for minimal admin access
+        window.liftCurrentFormFields = formData;
+        
         // If no rows exist and no fields, fall back to simple view
         if ($('#form-fields-list .form-row').length === 0 && formData.length === 0) {
             $('#form-fields-list').html('<div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>');
@@ -1097,6 +1103,9 @@
         } else if (direction === 'down' && index < formData.length - 1) {
             [formData[index], formData[index + 1]] = [formData[index + 1], formData[index]];
         }
+        
+        // Update global variable for minimal admin access
+        window.liftCurrentFormFields = formData;
         
         // If fields are in row/column structure, don't use renderFields
         if ($('#form-fields-list .form-row').length > 0) {
@@ -1127,6 +1136,9 @@
         });
 
         container.html(html);
+        
+        // Update global variable for minimal admin access
+        window.liftCurrentFormFields = formData;
         
         // Trigger event to reinitialize sortable
         $(document).trigger('fields-updated');
