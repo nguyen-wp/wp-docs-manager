@@ -211,20 +211,6 @@
                 </div>
             </div>
         `;
-                            </div>
-                            <div class="form-field options-field" style="display: none;">
-                                <label>Options (one per line)</label>
-                                <textarea id="field-options" class="widefat" rows="4"></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="button button-primary" id="save-field">Save Field</button>
-                            <button type="button" class="button" id="cancel-field">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
 
         container.html(builderHTML);
         
