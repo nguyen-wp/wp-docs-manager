@@ -26,6 +26,8 @@ class LIFT_Docs_Admin {
     private function init_hooks() {
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'init_admin'));
+        add_action('admin_init', array($this, 'block_restricted_admin_access')); // Block admin access 
+        add_action('template_redirect', array($this, 'check_frontend_access'), 1); // Check frontend redirects
         add_filter('manage_lift_document_posts_columns', array($this, 'set_custom_columns'));
         add_action('manage_lift_document_posts_custom_column', array($this, 'custom_column_content'), 10, 2);
         add_action('add_meta_boxes', array($this, 'add_meta_boxes'));
@@ -146,6 +148,96 @@ class LIFT_Docs_Admin {
      */
     public function init_admin() {
         // Additional admin initialization if needed
+    }
+    
+    /**
+     * Block admin access for documents_user and subscriber with smart redirect
+     */
+    public function block_restricted_admin_access() {
+        // Only run in admin area
+        if (!is_admin() || wp_doing_ajax()) {
+            return;
+        }
+        
+        // Check if user is logged in
+        if (!is_user_logged_in()) {
+            return;
+        }
+        
+        $current_user = wp_get_current_user();
+        $blocked_roles = array('documents_user', 'subscriber');
+        $user_roles = $current_user->roles;
+        
+        // Check if user has any of the blocked roles
+        $has_blocked_role = false;
+        foreach ($blocked_roles as $blocked_role) {
+            if (in_array($blocked_role, $user_roles)) {
+                $has_blocked_role = true;
+                break;
+            }
+        }
+        
+        if ($has_blocked_role) {
+            global $pagenow;
+            
+            // Allow admin-ajax.php and admin-post.php
+            if ($pagenow === 'admin-ajax.php' || $pagenow === 'admin-post.php') {
+                return;
+            }
+            
+            // Block all other admin pages including profile.php
+            // If user is documents_user, redirect to Document Dashboard instead of logging out
+            if (in_array('documents_user', $user_roles)) {
+                $dashboard_url = home_url('/document-dashboard/');
+                wp_safe_redirect($dashboard_url);
+                exit;
+            } else {
+                // For subscriber and other restricted roles, redirect to home
+                wp_safe_redirect(home_url());
+                exit;
+            }
+        }
+    }
+    
+    /**
+     * Check frontend access and handle redirects for logged-in restricted users
+     */
+    public function check_frontend_access() {
+        // Check if user is logged in
+        if (!is_user_logged_in()) {
+            return;
+        }
+        
+        $current_user = wp_get_current_user();
+        $blocked_roles = array('documents_user', 'subscriber');
+        $user_roles = $current_user->roles;
+        
+        // Check if user has any of the blocked roles
+        $has_blocked_role = false;
+        foreach ($blocked_roles as $blocked_role) {
+            if (in_array($blocked_role, $user_roles)) {
+                $has_blocked_role = true;
+                break;
+            }
+        }
+        
+        if ($has_blocked_role) {
+            $current_url = $_SERVER['REQUEST_URI'] ?? '';
+            
+            // Check if trying to access wp-login.php via frontend
+            if (strpos($current_url, '/wp-login.php') !== false) {
+                // If user is documents_user, redirect to Document Dashboard
+                if (in_array('documents_user', $user_roles)) {
+                    $dashboard_url = home_url('/document-dashboard/');
+                    wp_safe_redirect($dashboard_url);
+                    exit;
+                } else {
+                    // For other restricted roles, redirect to home
+                    wp_safe_redirect(home_url());
+                    exit;
+                }
+            }
+        }
     }
     
     /**
