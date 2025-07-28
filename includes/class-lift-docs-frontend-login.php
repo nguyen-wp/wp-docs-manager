@@ -1128,14 +1128,6 @@ class LIFT_Docs_Frontend_Login {
                     <div class="documents-section">
                         <div class="section-header">
                             <h2><?php _e('Your Document Library', 'lift-docs-system'); ?></h2>
-                            <div class="section-controls">
-                                <input type="text" id="docs-search" placeholder="<?php _e('Search documents...', 'lift-docs-system'); ?>">
-                                <select id="docs-filter">
-                                    <option value="all"><?php _e('All Documents', 'lift-docs-system'); ?></option>
-                                    <option value="recent"><?php _e('Recently Added', 'lift-docs-system'); ?></option>
-                                    <option value="downloaded"><?php _e('Downloaded', 'lift-docs-system'); ?></option>
-                                </select>
-                            </div>
                         </div>
                         
                         <?php if (!empty($user_documents)): ?>
@@ -2041,16 +2033,6 @@ class LIFT_Docs_Frontend_Login {
                     <div class="documents-section">
                         <div class="section-header">
                             <h3><?php _e('Your Document Library', 'lift-docs-system'); ?></h3>
-                            <?php if ($atts['show_search'] === 'true'): ?>
-                            <div class="section-controls">
-                                <input type="text" id="docs-search" placeholder="<?php _e('Search documents...', 'lift-docs-system'); ?>">
-                                <select id="docs-filter">
-                                    <option value="all"><?php _e('All Documents', 'lift-docs-system'); ?></option>
-                                    <option value="recent"><?php _e('Recently Added', 'lift-docs-system'); ?></option>
-                                    <option value="downloaded"><?php _e('Downloaded', 'lift-docs-system'); ?></option>
-                                </select>
-                            </div>
-                            <?php endif; ?>
                         </div>
                         
                         <?php if (!empty($user_documents)): ?>
