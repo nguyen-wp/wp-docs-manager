@@ -116,46 +116,76 @@
         const builderHTML = `
             <div class="modern-form-builder">
                 <div class="form-builder-palette">
-                    <div class="palette-header">
-                        <h3>Field Types</h3>
+                    <!-- Row Layouts Section -->
+                    <div class="palette-section">
+                        <div class="palette-header" data-section="rows">
+                            <h3>🏗️ Row Layouts</h3>
+                            <span class="palette-toggle">▼</span>
+                        </div>
+                        <div class="palette-content">
+                            <div class="row-layout-buttons">
+                                <button type="button" class="row-layout-btn draggable" data-type="row" data-columns="1" draggable="true">
+                                    <span class="dashicons dashicons-editor-justify"></span> Single Column Row
+                                </button>
+                                <button type="button" class="row-layout-btn draggable" data-type="row" data-columns="2" draggable="true">
+                                    <span class="dashicons dashicons-columns"></span> Two Column Row
+                                </button>
+                                <button type="button" class="row-layout-btn draggable" data-type="row" data-columns="3" draggable="true">
+                                    <span class="dashicons dashicons-grid-view"></span> Three Column Row
+                                </button>
+                                <button type="button" class="row-layout-btn draggable" data-type="row" data-columns="4" draggable="true">
+                                    <span class="dashicons dashicons-screenoptions"></span> Four Column Row
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="field-type-buttons">
-                        <button type="button" class="field-type-btn draggable" data-type="text" draggable="true">
-                            <span class="dashicons dashicons-editor-textcolor"></span> Text
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="textarea" draggable="true">
-                            <span class="dashicons dashicons-editor-paragraph"></span> Textarea
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="select" draggable="true">
-                            <span class="dashicons dashicons-menu-alt"></span> Select
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="radio" draggable="true">
-                            <span class="dashicons dashicons-marker"></span> Radio
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="checkbox" draggable="true">
-                            <span class="dashicons dashicons-yes"></span> Checkbox
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="email" draggable="true">
-                            <span class="dashicons dashicons-email"></span> Email
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="number" draggable="true">
-                            <span class="dashicons dashicons-calculator"></span> Number
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="date" draggable="true">
-                            <span class="dashicons dashicons-calendar-alt"></span> Date
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="file" draggable="true">
-                            <span class="dashicons dashicons-upload"></span> File
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="hidden" draggable="true">
-                            <span class="dashicons dashicons-hidden"></span> Hidden
-                        </button>
+                    
+                    <!-- Field Elements Section -->
+                    <div class="palette-section">
+                        <div class="palette-header" data-section="fields">
+                            <h3>📝 Form Fields</h3>
+                            <span class="palette-toggle">▼</span>
+                        </div>
+                        <div class="palette-content">
+                            <div class="field-type-buttons">
+                                <button type="button" class="field-type-btn draggable" data-type="text" draggable="true">
+                                    <span class="dashicons dashicons-editor-textcolor"></span> Text
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="textarea" draggable="true">
+                                    <span class="dashicons dashicons-editor-paragraph"></span> Textarea
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="select" draggable="true">
+                                    <span class="dashicons dashicons-menu-alt"></span> Select
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="radio" draggable="true">
+                                    <span class="dashicons dashicons-marker"></span> Radio
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="checkbox" draggable="true">
+                                    <span class="dashicons dashicons-yes"></span> Checkbox
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="email" draggable="true">
+                                    <span class="dashicons dashicons-email"></span> Email
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="number" draggable="true">
+                                    <span class="dashicons dashicons-calculator"></span> Number
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="date" draggable="true">
+                                    <span class="dashicons dashicons-calendar-alt"></span> Date
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="file" draggable="true">
+                                    <span class="dashicons dashicons-upload"></span> File
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="hidden" draggable="true">
+                                    <span class="dashicons dashicons-hidden"></span> Hidden
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="form-builder-canvas">
                     <div class="form-builder-header">
-                        <h3>Form Design</h3>
+                        <h3>🎨 Form Canvas</h3>
                         <div class="builder-actions">
                             <button type="button" class="button button-primary" id="add-field">Add Field</button>
                             <button type="button" class="button" id="preview-form">Preview</button>
@@ -163,27 +193,13 @@
                         </div>
                     </div>
                     
-                    <div class="layout-controls">
-                        <label>Layout:</label>
-                        <button type="button" class="column-btn active" data-columns="1">
-                            <span class="dashicons dashicons-editor-justify"></span> 1 Column
-                        </button>
-                        <button type="button" class="column-btn" data-columns="2">
-                            <span class="dashicons dashicons-columns"></span> 2 Columns
-                        </button>
-                        <button type="button" class="column-btn" data-columns="3">
-                            <span class="dashicons dashicons-grid-view"></span> 3 Columns
-                        </button>
-                        <button type="button" class="column-btn" data-columns="4">
-                            <span class="dashicons dashicons-screenoptions"></span> 4 Columns
-                        </button>
-                    </div>
-                    
                     <div class="form-fields-area">
                         <div id="form-fields-list">
                             <div class="no-fields-message">
-                                <p>Drag field types here or click "Add Field" to start building your form.</p>
-                                <p>Use layout controls above to create multi-column layouts.</p>
+                                <p>🚀 Drag row layouts here first, then add fields to columns!</p>
+                                <p>💡 Step 1: Drag a row layout from the left panel</p>
+                                <p>💡 Step 2: Customize columns if needed</p>
+                                <p>💡 Step 3: Drag form fields into columns</p>
                             </div>
                         </div>
                     </div>
@@ -570,9 +586,6 @@
         // Initialize drag and drop
         initDragAndDrop();
         
-        // Initialize column layout
-        initColumnLayout();
-        
         // Save form
         $(document).on('click', '#save-form', function(e) {
             e.preventDefault();
@@ -689,6 +702,29 @@
         let draggedElement = null;
         let draggedData = null;
 
+        // Initialize palette collapsible sections
+        initPaletteSections();
+
+        // Make row layout buttons draggable
+        $('.row-layout-btn.draggable').on('dragstart', function(e) {
+            draggedElement = this;
+            draggedData = {
+                type: 'row',
+                columns: parseInt($(this).data('columns')),
+                source: 'palette'
+            };
+            
+            $(this).addClass('drag-ghost');
+            e.originalEvent.dataTransfer.effectAllowed = 'copy';
+            e.originalEvent.dataTransfer.setData('text/html', '');
+        });
+
+        $('.row-layout-btn.draggable').on('dragend', function(e) {
+            $(this).removeClass('drag-ghost');
+            draggedElement = null;
+            draggedData = null;
+        });
+
         // Make field type buttons draggable
         $('.field-type-btn.draggable').on('dragstart', function(e) {
             draggedElement = this;
@@ -708,12 +744,30 @@
             draggedData = null;
         });
 
+        // Handle row dragging within canvas
+        $(document).on('dragstart', '.form-row[draggable="true"]', function(e) {
+            draggedElement = this;
+            draggedData = {
+                rowId: $(this).data('row-id'),
+                source: 'canvas-row'
+            };
+            
+            $(this).addClass('drag-ghost');
+            e.originalEvent.dataTransfer.effectAllowed = 'move';
+        });
+
+        $(document).on('dragend', '.form-row[draggable="true"]', function(e) {
+            $(this).removeClass('drag-ghost');
+            draggedElement = null;
+            draggedData = null;
+        });
+
         // Handle field dragging within canvas
         $(document).on('dragstart', '.form-field-item[draggable="true"]', function(e) {
             draggedElement = this;
             draggedData = {
                 fieldId: $(this).data('field-id'),
-                source: 'canvas'
+                source: 'canvas-field'
             };
             
             $(this).addClass('drag-ghost');
@@ -726,39 +780,15 @@
             draggedData = null;
         });
 
-        // Make columns droppable
-        $(document).on('dragover', '.form-column', function(e) {
-            e.preventDefault();
-            e.originalEvent.dataTransfer.dropEffect = 'copy';
-            $(this).addClass('drag-over');
-        });
-
-        $(document).on('dragleave', '.form-column', function(e) {
-            $(this).removeClass('drag-over');
-        });
-
-        $(document).on('drop', '.form-column', function(e) {
-            e.preventDefault();
-            $(this).removeClass('drag-over');
-            
-            if (!draggedData) return;
-
-            if (draggedData.source === 'palette') {
-                // Add new field to column
-                addFieldToColumn(draggedData.type, $(this));
-            } else if (draggedData.source === 'canvas') {
-                // Move existing field to column
-                moveFieldToColumn(draggedData.fieldId, $(this));
-            }
-        });
-
-        // Make form fields list droppable for single column layout
+        // Make canvas droppable for rows
         $('#form-fields-list').on('dragover', function(e) {
-            if (getCurrentLayout() !== 1) return;
+            if (!draggedData) return;
             
-            e.preventDefault();
-            e.originalEvent.dataTransfer.dropEffect = 'copy';
-            $(this).addClass('drag-over');
+            if (draggedData.type === 'row' || draggedData.source === 'canvas-row') {
+                e.preventDefault();
+                e.originalEvent.dataTransfer.dropEffect = 'copy';
+                $(this).addClass('drag-over');
+            }
         });
 
         $('#form-fields-list').on('dragleave', function(e) {
@@ -766,63 +796,95 @@
         });
 
         $('#form-fields-list').on('drop', function(e) {
-            if (getCurrentLayout() !== 1) return;
+            if (!draggedData) return;
             
             e.preventDefault();
             $(this).removeClass('drag-over');
             
-            if (!draggedData || draggedData.source !== 'palette') return;
+            if (draggedData.type === 'row' && draggedData.source === 'palette') {
+                // Add new row
+                addNewRow(draggedData.columns);
+            } else if (draggedData.source === 'canvas-row') {
+                // Move existing row (reorder)
+                moveRow(draggedData.rowId, e.originalEvent.clientY);
+            }
+        });
+
+        // Make columns droppable for fields
+        $(document).on('dragover', '.form-column', function(e) {
+            if (!draggedData) return;
             
-            addField(draggedData.type);
+            if (draggedData.source === 'palette' && draggedData.type !== 'row') {
+                e.preventDefault();
+                e.originalEvent.dataTransfer.dropEffect = 'copy';
+                $(this).addClass('drag-over');
+            } else if (draggedData.source === 'canvas-field') {
+                e.preventDefault();
+                e.originalEvent.dataTransfer.dropEffect = 'move';
+                $(this).addClass('drag-over');
+            }
+        });
+
+        $(document).on('dragleave', '.form-column', function(e) {
+            $(this).removeClass('drag-over');
+        });
+
+        $(document).on('drop', '.form-column', function(e) {
+            if (!draggedData) return;
+            
+            e.preventDefault();
+            $(this).removeClass('drag-over');
+            
+            if (draggedData.source === 'palette' && draggedData.type !== 'row') {
+                // Add new field to column
+                addFieldToColumn(draggedData.type, $(this));
+            } else if (draggedData.source === 'canvas-field') {
+                // Move existing field to column
+                moveFieldToColumn(draggedData.fieldId, $(this));
+            }
         });
     }
 
     /**
-     * Column Layout Management
+     * Initialize palette collapsible sections
      */
-    function initColumnLayout() {
-        // Column layout buttons
-        $('.column-btn').on('click', function() {
-            const columns = parseInt($(this).data('columns'));
-            setLayout(columns);
-            
-            $('.column-btn').removeClass('active');
-            $(this).addClass('active');
+    function initPaletteSections() {
+        $('.palette-header').on('click', function() {
+            const section = $(this).closest('.palette-section');
+            section.toggleClass('collapsed');
         });
     }
 
-    function setLayout(columns) {
-        const container = $('#form-fields-list');
-        
-        if (columns === 1) {
-            // Single column layout
-            container.removeClass('multi-column-layout');
-            if (container.find('.form-row').length > 0) {
-                // Convert multi-column to single column
-                convertToSingleColumn();
-            }
-        } else {
-            // Multi-column layout
-            container.addClass('multi-column-layout');
-            if (container.find('.form-row').length === 0) {
-                // Create first row
-                addNewRow(columns);
-            }
-        }
-    }
+    /**
+     * Column Layout Management - REMOVED
+     * Now using drag & drop row system
+     */
 
     function addNewRow(columns) {
         const container = $('#form-fields-list');
         container.find('.no-fields-message').hide();
         
         const rowId = 'row-' + Date.now();
-        let rowHTML = `<div class="form-row" data-row-id="${rowId}">`;
+        let rowHTML = `<div class="form-row" data-row-id="${rowId}" draggable="true">`;
+        
+        // Add row drag handle
+        rowHTML += `
+            <div class="row-drag-handle" title="Drag to reorder row">
+                ⋮⋮
+            </div>
+        `;
         
         // Add row controls
         rowHTML += `
             <div class="row-controls">
+                <button type="button" class="row-control-btn" title="Add Column" onclick="addColumn('${rowId}')">
+                    <span class="dashicons dashicons-plus-alt"></span> Col
+                </button>
+                <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${rowId}')">
+                    <span class="dashicons dashicons-minus"></span> Col
+                </button>
                 <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                    <span class="dashicons dashicons-plus-alt"></span>
+                    <span class="dashicons dashicons-plus-alt"></span> Row
                 </button>
                 <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
                     <span class="dashicons dashicons-trash"></span>
@@ -830,22 +892,33 @@
             </div>
         `;
         
-        // Add columns
+        // Add columns with resize handles
         for (let i = 0; i < columns; i++) {
             const columnId = `${rowId}-col-${i}`;
+            const flexBasis = Math.floor(100 / columns);
+            
             rowHTML += `
-                <div class="form-column" data-column-id="${columnId}">
+                <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                     <div class="column-header">
                         <span class="column-title">Column ${i + 1}</span>
                         <div class="column-actions">
-                            <button type="button" class="column-action-btn" title="Column Settings">
+                            <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
+                                <option value="1">Auto</option>
+                                <option value="0.5">50%</option>
+                                <option value="0.25">25%</option>
+                                <option value="0.75">75%</option>
+                                <option value="2">2x</option>
+                                <option value="3">3x</option>
+                            </select>
+                            <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
                                 <span class="dashicons dashicons-admin-generic"></span>
                             </button>
                         </div>
                     </div>
                     <div class="column-placeholder">
-                        Drop fields here
+                        🎯 Drop fields here
                     </div>
+                    ${i < columns - 1 ? '<div class="column-resize-handle"></div>' : ''}
                 </div>
             `;
         }
@@ -855,6 +928,7 @@
         
         // Bind row events
         bindRowEvents();
+        initColumnResize();
     }
 
     function bindRowEvents() {
@@ -967,6 +1041,154 @@
             container.find('.no-fields-message').show();
         }
     }
+
+    /**
+     * Column and Row Management Functions
+     */
+    function addColumn(rowId) {
+        const row = $(`.form-row[data-row-id="${rowId}"]`);
+        const currentColumns = row.find('.form-column').length;
+        
+        if (currentColumns >= 6) {
+            alert('Maximum 6 columns allowed per row');
+            return;
+        }
+        
+        const columnId = `${rowId}-col-${currentColumns}`;
+        const columnHTML = `
+            <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
+                <div class="column-header">
+                    <span class="column-title">Column ${currentColumns + 1}</span>
+                    <div class="column-actions">
+                        <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
+                            <option value="1">Auto</option>
+                            <option value="0.5">50%</option>
+                            <option value="0.25">25%</option>
+                            <option value="0.75">75%</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                        </select>
+                        <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
+                            <span class="dashicons dashicons-admin-generic"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="column-placeholder">
+                    🎯 Drop fields here
+                </div>
+                <div class="column-resize-handle"></div>
+            </div>
+        `;
+        
+        row.append(columnHTML);
+        initColumnResize();
+    }
+
+    function removeColumn(rowId) {
+        const row = $(`.form-row[data-row-id="${rowId}"]`);
+        const columns = row.find('.form-column');
+        
+        if (columns.length <= 1) {
+            alert('At least one column is required per row');
+            return;
+        }
+        
+        const lastColumn = columns.last();
+        if (lastColumn.find('.form-field-item').length > 0) {
+            if (!confirm('This column contains fields. Are you sure you want to remove it?')) {
+                return;
+            }
+        }
+        
+        lastColumn.remove();
+    }
+
+    function changeColumnWidth(columnId, flexValue) {
+        const column = $(`.form-column[data-column-id="${columnId}"]`);
+        column.css('flex', flexValue);
+    }
+
+    function openColumnSettings(columnId) {
+        // TODO: Implement column settings modal
+        console.log('Opening settings for column:', columnId);
+    }
+
+    function initColumnResize() {
+        $('.column-resize-handle').off('mousedown').on('mousedown', function(e) {
+            e.preventDefault();
+            
+            const handle = $(this);
+            const column = handle.parent();
+            const nextColumn = column.next('.form-column');
+            
+            if (!nextColumn.length) return;
+            
+            handle.addClass('resizing');
+            
+            const startX = e.pageX;
+            const startWidth = column.outerWidth();
+            const startNextWidth = nextColumn.outerWidth();
+            
+            $(document).on('mousemove.columnResize', function(e) {
+                const deltaX = e.pageX - startX;
+                const newWidth = startWidth + deltaX;
+                const newNextWidth = startNextWidth - deltaX;
+                
+                if (newWidth > 50 && newNextWidth > 50) {
+                    const totalWidth = newWidth + newNextWidth;
+                    const flex1 = newWidth / totalWidth * 2;
+                    const flex2 = newNextWidth / totalWidth * 2;
+                    
+                    column.css('flex', flex1);
+                    nextColumn.css('flex', flex2);
+                }
+            });
+            
+            $(document).on('mouseup.columnResize', function() {
+                $(document).off('mousemove.columnResize mouseup.columnResize');
+                handle.removeClass('resizing');
+            });
+        });
+    }
+
+    function moveRow(rowId, dropY) {
+        const draggedRow = $(`.form-row[data-row-id="${rowId}"]`);
+        const allRows = $('#form-fields-list .form-row');
+        
+        let targetRow = null;
+        let insertAfter = false;
+        
+        allRows.each(function() {
+            const row = $(this);
+            if (row.data('row-id') === rowId) return;
+            
+            const rect = this.getBoundingClientRect();
+            const middle = rect.top + rect.height / 2;
+            
+            if (dropY < middle) {
+                targetRow = row;
+                insertAfter = false;
+                return false;
+            } else {
+                targetRow = row;
+                insertAfter = true;
+            }
+        });
+        
+        if (targetRow) {
+            if (insertAfter) {
+                targetRow.after(draggedRow);
+            } else {
+                targetRow.before(draggedRow);
+            }
+        }
+    }
+
+    // Make functions globally accessible for onclick handlers
+    window.addColumn = addColumn;
+    window.removeColumn = removeColumn;
+    window.changeColumnWidth = changeColumnWidth;
+    window.openColumnSettings = openColumnSettings;
 
     /**
      * Create field data object

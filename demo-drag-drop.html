@@ -49,14 +49,25 @@
         </div>
         
         <div style="padding: 20px; border-top: 1px solid #ccd0d4; background: #f9f9f9;">
-            <h3>📋 Hướng dẫn sử dụng:</h3>
-            <ul>
-                <li><strong>Kéo thả từ Palette:</strong> Kéo các loại field từ panel bên trái vào canvas</li>
-                <li><strong>Chọn Layout:</strong> Sử dụng các nút "1 Column", "2 Columns", "3 Columns", "4 Columns"</li>
-                <li><strong>Kéo thả giữa các cột:</strong> Kéo field từ cột này sang cột khác</li>
-                <li><strong>Thêm/Xóa hàng:</strong> Hover vào hàng để thấy nút thêm/xóa</li>
-                <li><strong>Di chuyển field:</strong> Sử dụng icon drag (⋮⋮) để kéo field</li>
-            </ul>
+            <h3>📋 Hướng dẫn sử dụng mới:</h3>
+            <ol>
+                <li><strong>🏗️ Bước 1:</strong> Kéo "Row Layout" từ panel bên trái vào canvas để tạo hàng</li>
+                <li><strong>⚙️ Bước 2:</strong> Tuỳ chỉnh số cột bằng nút "+Col/-Col" khi hover vào hàng</li>
+                <li><strong>📝 Bước 3:</strong> Kéo "Form Fields" vào từng cột</li>
+                <li><strong>🔧 Tính năng nâng cao:</strong>
+                    <ul>
+                        <li>Kéo hàng để sắp xếp lại thứ tự (drag handle ở bên trái)</li>
+                        <li>Kéo field giữa các cột</li>
+                        <li>Thay đổi kích thước cột bằng dropdown</li>
+                        <li>Resize cột bằng cách kéo border</li>
+                        <li>Collapse/expand sections trong palette</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 15px; margin-top: 15px;">
+                <strong>💡 Mẹo:</strong> Logic mới này cho phép bạn tạo layout phức tạp hơn với mỗi hàng có thể có số cột khác nhau!
+            </div>
         </div>
     </div>
 
@@ -78,71 +89,87 @@
     <script>
         // Initialize when DOM ready
         $(document).ready(function() {
-            // Create the initial HTML structure
+            // Create the initial HTML structure với logic mới
             const builderHTML = `
                 <div class="modern-form-builder">
                     <div class="form-builder-palette">
-                        <div class="palette-header">
-                            <h3>Field Types</h3>
+                        <!-- Row Layouts Section -->
+                        <div class="palette-section">
+                            <div class="palette-header" data-section="rows">
+                                <h3>🏗️ Row Layouts</h3>
+                                <span class="palette-toggle">▼</span>
+                            </div>
+                            <div class="palette-content">
+                                <div class="row-layout-buttons">
+                                    <button type="button" class="row-layout-btn draggable" data-type="row" data-columns="1" draggable="true">
+                                        <span class="dashicons dashicons-editor-justify"></span> Single Column Row
+                                    </button>
+                                    <button type="button" class="row-layout-btn draggable" data-type="row" data-columns="2" draggable="true">
+                                        <span class="dashicons dashicons-columns"></span> Two Column Row
+                                    </button>
+                                    <button type="button" class="row-layout-btn draggable" data-type="row" data-columns="3" draggable="true">
+                                        <span class="dashicons dashicons-grid-view"></span> Three Column Row
+                                    </button>
+                                    <button type="button" class="row-layout-btn draggable" data-type="row" data-columns="4" draggable="true">
+                                        <span class="dashicons dashicons-screenoptions"></span> Four Column Row
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="field-type-buttons">
-                            <button type="button" class="field-type-btn draggable" data-type="text" draggable="true">
-                                <span class="dashicons dashicons-editor-textcolor"></span> Text
-                            </button>
-                            <button type="button" class="field-type-btn draggable" data-type="textarea" draggable="true">
-                                <span class="dashicons dashicons-editor-paragraph"></span> Textarea
-                            </button>
-                            <button type="button" class="field-type-btn draggable" data-type="select" draggable="true">
-                                <span class="dashicons dashicons-menu-alt"></span> Select
-                            </button>
-                            <button type="button" class="field-type-btn draggable" data-type="radio" draggable="true">
-                                <span class="dashicons dashicons-marker"></span> Radio
-                            </button>
-                            <button type="button" class="field-type-btn draggable" data-type="checkbox" draggable="true">
-                                <span class="dashicons dashicons-yes"></span> Checkbox
-                            </button>
-                            <button type="button" class="field-type-btn draggable" data-type="email" draggable="true">
-                                <span class="dashicons dashicons-email"></span> Email
-                            </button>
-                            <button type="button" class="field-type-btn draggable" data-type="number" draggable="true">
-                                <span class="dashicons dashicons-calculator"></span> Number
-                            </button>
-                            <button type="button" class="field-type-btn draggable" data-type="date" draggable="true">
-                                <span class="dashicons dashicons-calendar-alt"></span> Date
-                            </button>
+                        
+                        <!-- Field Elements Section -->
+                        <div class="palette-section">
+                            <div class="palette-header" data-section="fields">
+                                <h3>📝 Form Fields</h3>
+                                <span class="palette-toggle">▼</span>
+                            </div>
+                            <div class="palette-content">
+                                <div class="field-type-buttons">
+                                    <button type="button" class="field-type-btn draggable" data-type="text" draggable="true">
+                                        <span class="dashicons dashicons-editor-textcolor"></span> Text
+                                    </button>
+                                    <button type="button" class="field-type-btn draggable" data-type="textarea" draggable="true">
+                                        <span class="dashicons dashicons-editor-paragraph"></span> Textarea
+                                    </button>
+                                    <button type="button" class="field-type-btn draggable" data-type="select" draggable="true">
+                                        <span class="dashicons dashicons-menu-alt"></span> Select
+                                    </button>
+                                    <button type="button" class="field-type-btn draggable" data-type="radio" draggable="true">
+                                        <span class="dashicons dashicons-marker"></span> Radio
+                                    </button>
+                                    <button type="button" class="field-type-btn draggable" data-type="checkbox" draggable="true">
+                                        <span class="dashicons dashicons-yes"></span> Checkbox
+                                    </button>
+                                    <button type="button" class="field-type-btn draggable" data-type="email" draggable="true">
+                                        <span class="dashicons dashicons-email"></span> Email
+                                    </button>
+                                    <button type="button" class="field-type-btn draggable" data-type="number" draggable="true">
+                                        <span class="dashicons dashicons-calculator"></span> Number
+                                    </button>
+                                    <button type="button" class="field-type-btn draggable" data-type="date" draggable="true">
+                                        <span class="dashicons dashicons-calendar-alt"></span> Date
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="form-builder-canvas">
                         <div class="form-builder-header">
-                            <h3>Form Design</h3>
+                            <h3>🎨 Form Canvas</h3>
                             <div class="builder-actions">
                                 <button type="button" class="button button-primary" id="preview-form">Preview</button>
                                 <button type="button" class="button button-secondary" id="clear-form">Clear All</button>
                             </div>
                         </div>
                         
-                        <div class="layout-controls">
-                            <label>Layout:</label>
-                            <button type="button" class="column-btn active" data-columns="1">
-                                <span class="dashicons dashicons-editor-justify"></span> 1 Column
-                            </button>
-                            <button type="button" class="column-btn" data-columns="2">
-                                <span class="dashicons dashicons-columns"></span> 2 Columns
-                            </button>
-                            <button type="button" class="column-btn" data-columns="3">
-                                <span class="dashicons dashicons-grid-view"></span> 3 Columns
-                            </button>
-                            <button type="button" class="column-btn" data-columns="4">
-                                <span class="dashicons dashicons-screenoptions"></span> 4 Columns
-                            </button>
-                        </div>
-                        
                         <div class="form-fields-area">
                             <div id="form-fields-list">
                                 <div class="no-fields-message">
-                                    <p>🚀 Kéo các field từ panel bên trái vào đây để bắt đầu!</p>
-                                    <p>💡 Sử dụng Layout Controls ở trên để tạo layout nhiều cột.</p>
+                                    <p>🚀 Drag row layouts here first, then add fields to columns!</p>
+                                    <p>💡 Step 1: Drag a row layout from the left panel</p>
+                                    <p>💡 Step 2: Customize columns if needed</p>
+                                    <p>💡 Step 3: Drag form fields into columns</p>
                                 </div>
                             </div>
                         </div>
@@ -152,13 +179,14 @@
             
             $('#form-builder-container').html(builderHTML);
             
-            // Initialize drag and drop functionality manually
-            if (typeof window.initDragAndDrop !== 'undefined') {
-                window.initDragAndDrop();
-            }
-            if (typeof window.initColumnLayout !== 'undefined') {
-                window.initColumnLayout();
-            }
+            // Initialize the form builder manually since we're not using the full plugin
+            setTimeout(function() {
+                // Simulate the form builder initialization
+                if (typeof window.createSimpleFormBuilder !== 'undefined') {
+                    // The functions are already bound via the included JS file
+                    console.log('Form builder initialized successfully with new drag & drop logic!');
+                }
+            }, 100);
         });
     </script>
 </body>
