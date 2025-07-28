@@ -119,7 +119,7 @@
                     <!-- Row Layouts Section -->
                     <div class="palette-section">
                         <div class="palette-header" data-section="rows">
-                            <h3>🏗️ Row Layouts</h3>
+                            <h3>Row Layouts</h3>
                             <span class="palette-toggle">▼</span>
                         </div>
                         <div class="palette-content">
@@ -143,7 +143,7 @@
                     <!-- Field Elements Section -->
                     <div class="palette-section">
                         <div class="palette-header" data-section="fields">
-                            <h3>📝 Form Fields</h3>
+                            <h3>Form Fields</h3>
                             <span class="palette-toggle">▼</span>
                         </div>
                         <div class="palette-content">
@@ -181,6 +181,7 @@
                             </div>
                         </div>
                     </div>
+                    
                 </div>
                 
                 <div class="form-builder-canvas">
@@ -234,6 +235,51 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Column Settings Modal -->
+                <div id="column-settings-modal" class="field-modal" style="display: none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4>Column Settings</h4>
+                            <button type="button" class="modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-field">
+                                <label>Column Title</label>
+                                <input type="text" id="column-title" class="widefat" placeholder="Enter column title">
+                            </div>
+                            <div class="form-field">
+                                <label>Column Width</label>
+                                <select id="column-width" class="widefat">
+                                    <option value="1">Auto</option>
+                                    <option value="0.25">25%</option>
+                                    <option value="0.5">50%</option>
+                                    <option value="0.75">75%</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label>CSS Classes</label>
+                                <input type="text" id="column-classes" class="widefat" placeholder="custom-class another-class">
+                            </div>
+                            <div class="form-field">
+                                <label>Column Background</label>
+                                <select id="column-background" class="widefat">
+                                    <option value="">Default</option>
+                                    <option value="light">Light Gray</option>
+                                    <option value="blue">Light Blue</option>
+                                    <option value="green">Light Green</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="button button-primary" id="save-column-settings">Save Settings</button>
+                            <button type="button" class="button" id="cancel-column-settings">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright-type-buttons">
+                Copyright © LIFT Creations
             </div>
         `;
 
@@ -294,6 +340,15 @@
 
         $(document).on('click', '#save-field', function() {
             saveFieldEdit();
+        });
+
+        // Column settings modal events
+        $(document).on('click', '.modal-close, #cancel-column-settings', function() {
+            $('#column-settings-modal').hide();
+        });
+
+        $(document).on('click', '#save-column-settings', function() {
+            saveColumnSettings();
         });
 
         // Clear form
@@ -1096,8 +1151,63 @@
     }
 
     function openColumnSettings(columnId) {
-        // TODO: Implement column settings modal
-        console.log('Opening settings for column:', columnId);
+        const column = $(`.form-column[data-column-id="${columnId}"]`);
+        if (!column.length) return;
+        
+        // Get current column data
+        const currentTitle = column.find('.column-title').text();
+        const currentFlex = column.css('flex') || '1';
+        const currentClasses = column.attr('data-custom-classes') || '';
+        const currentBackground = column.attr('data-background') || '';
+        
+        // Populate modal fields
+        $('#column-title').val(currentTitle);
+        $('#column-width').val(currentFlex);
+        $('#column-classes').val(currentClasses);
+        $('#column-background').val(currentBackground);
+        
+        // Store current editing column ID
+        $('#column-settings-modal').data('editing-column-id', columnId).show();
+    }
+
+    function saveColumnSettings() {
+        const columnId = $('#column-settings-modal').data('editing-column-id');
+        const column = $(`.form-column[data-column-id="${columnId}"]`);
+        
+        if (!column.length) return;
+        
+        // Get form values
+        const title = $('#column-title').val() || 'Column';
+        const width = $('#column-width').val();
+        const classes = $('#column-classes').val();
+        const background = $('#column-background').val();
+        
+        // Update column title
+        column.find('.column-title').text(title);
+        
+        // Update column width
+        column.css('flex', width);
+        column.find('.column-width-selector').val(width);
+        
+        // Update custom classes
+        if (classes) {
+            column.attr('data-custom-classes', classes);
+            column.addClass(classes);
+        } else {
+            column.removeAttr('data-custom-classes');
+        }
+        
+        // Update background
+        column.removeAttr('data-background');
+        column.removeClass('bg-light bg-blue bg-green');
+        
+        if (background) {
+            column.attr('data-background', background);
+            column.addClass('bg-' + background);
+        }
+        
+        // Close modal
+        $('#column-settings-modal').hide();
     }
 
     function initColumnResize() {
