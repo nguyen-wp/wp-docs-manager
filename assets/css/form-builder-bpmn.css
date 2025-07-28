@@ -499,10 +499,12 @@
 /* Field drag handle */
 .field-drag-handle {
     cursor: grab;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 3px;
     color: #8c8f94;
     border-radius: 2px;
-    transition: all 0.2s ease;
 }
 
 .field-drag-handle:hover {
@@ -556,14 +558,11 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    margin-right: auto
 }
 
 .field-label {
-    flex: 1;
-    margin: 0 8px;
-    font-weight: 500;
-    color: #1e293b;
-    font-size: 12px;
+    display: none; /* Hide field label to save space */
 }
 
 .field-actions {
