@@ -26,12 +26,11 @@
         
         // Basic save form functionality
         $('#save-form').off('click.minimal-admin').on('click.minimal-admin', function(e) {
-            // Check if advanced form builder is active
+            // Check if form builder is active (always has row structure now)
             if ($('#form-fields-list .form-row').length > 0 || 
                 (window.formBuilder && window.formBuilder.formData && 
-                 typeof window.formBuilder.formData === 'object' && 
-                 window.formBuilder.formData.type === 'advanced')) {
-                // Let the advanced form builder handle the save
+                 typeof window.formBuilder.formData === 'object')) {
+                // Let the form builder handle the save
                 return;
             }
 

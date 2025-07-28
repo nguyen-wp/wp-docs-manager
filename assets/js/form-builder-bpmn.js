@@ -1,6 +1,6 @@
 /**
- * Simple Form Builder for WordPress
- * Using jQuery FormBuilder library for easy form creation
+ * Form Builder for WordPress
+ * Row/Column based form creation with drag & drop interface
  */
 (function($) {
     'use strict';
@@ -9,7 +9,6 @@
     let currentFormId = 0;
     let formData = [];
     let layoutData = {
-        type: 'advanced', // Always use advanced layout with row/column structure
         rows: []
     };
 
@@ -53,9 +52,7 @@
      * Get form data in proper structure for saving
      */
     function getFormDataForSaving() {
-        // Always use advanced layout with rows/columns
         return {
-            type: 'advanced',
             layout: buildLayoutStructure(),
             fields: formData
         };
@@ -117,7 +114,7 @@
         if (currentFormId > 0) {
             loadFormData(currentFormId);
         } else {
-            createFormBuilder();
+            createFormBuilderUI();
         }
 
         // Bind save events
@@ -134,14 +131,14 @@
             return;
         }
 
-        // Always use simple HTML form builder with row/column structure
-        createSimpleFormBuilder(existingData);
+        // Use HTML form builder with row/column structure
+        createFormBuilderUI(existingData);
     }
 
     /**
-     * Fallback Simple Form Builder (HTML based)
+     * Create Form Builder UI (HTML based)
      */
-    function createSimpleFormBuilder(existingData = []) {
+    function createFormBuilderUI(existingData = []) {
         const container = $('#form-builder-container');
         
         const builderHTML = `
@@ -355,24 +352,24 @@
             
             // If we have form data but no row structure, create default structure
             if ($('#form-fields-list .form-row').length === 0) {
-                loadAdvancedLayout(layoutData);
+                loadLayout(layoutData);
             }
         } else {
             // Create default row if no existing data
-            loadAdvancedLayout(layoutData);
+            loadLayout(layoutData);
         }
 
         // Store form data in global variable for minimal admin access
         updateGlobalFormData();
 
-        // Bind simple form builder events
-        bindSimpleFormBuilderEvents();
+        // Bind form builder events
+        bindFormBuilderEvents();
     }
 
     /**
-     * Bind events for simple form builder
+     * Bind events for form builder
      */
-    function bindSimpleFormBuilderEvents() {
+    function bindFormBuilderEvents() {
         // Field type buttons
         $(document).on('click', '.field-type-btn', function() {
             const fieldType = $(this).data('type');
@@ -854,12 +851,11 @@
     }
 
     /**
-     * Update field order based on DOM order (including fields in columns) - Advanced layout only
+     * Update field order based on DOM order
      */
     function updateFieldOrder() {
         const newOrder = [];
         
-        // Always use row structure - no simple layout support
         $('#form-fields-list .form-row').each(function() {
             $(this).find('.form-column .compact-field-item').each(function() {
                 const fieldIdElements = $(this).find('[data-field-id]');
@@ -1131,8 +1127,7 @@
         // Update global variable for minimal admin access
         updateGlobalFormData();
         
-        // Visual reordering is handled by drag & drop in advanced layout
-        // No need to re-render as we're always using row/column structure
+        // Visual reordering is handled by drag & drop
     }
 
     /**
@@ -1721,7 +1716,7 @@
             // Store in global variable for minimal admin access
             updateGlobalFormData();
         } else {
-            // Simple form builder data - use proper structure
+            // Form builder data - use proper structure
             saveData = getFormDataForSaving();
             
             // Debug logging
@@ -1822,53 +1817,52 @@
                             ? JSON.parse(response.data.form_fields) 
                             : response.data.form_fields;
                         
-                        // Handle both old flat structure and new hierarchical structure
-                        if (loadedData.type === 'advanced' && loadedData.layout) {
+                        // Handle different data structures
+                        if (loadedData.layout && loadedData.layout.rows) {
                             // New structure with layout
-                            layoutData = loadedData.layout || { type: 'advanced', rows: [] };
+                            layoutData = loadedData.layout;
                             formData = loadedData.fields || [];
-                            loadAdvancedLayout(loadedData.layout);
+                            loadLayout(loadedData.layout);
                         } else if (Array.isArray(loadedData)) {
-                            // Old flat structure - convert to advanced layout with default row
+                            // Old flat structure - convert to row/column layout
                             formData = loadedData;
                             createDefaultRow();
-                            createFormBuilder(loadedData);
+                            createFormBuilderUI(loadedData);
                         } else if (loadedData.fields) {
                             // Structure with fields property
                             formData = loadedData.fields || [];
                             
-                            // Always convert to advanced layout
-                            if (loadedData.layout && loadedData.layout.type === 'advanced') {
+                            // Use existing layout or create default
+                            if (loadedData.layout && loadedData.layout.rows) {
                                 layoutData = loadedData.layout;
                             } else {
-                                // Convert simple layout to advanced
                                 createDefaultRow();
                             }
-                            loadAdvancedLayout(layoutData);
+                            loadLayout(layoutData);
                         } else {
                             // Create default structure
                             createDefaultRow();
-                            createFormBuilder(loadedData);
+                            createFormBuilderUI(loadedData);
                         }
                         
                         updateGlobalFormData();
                     } catch (error) {
-                        createFormBuilder();
+                        createFormBuilderUI();
                     }
                 } else {
-                    createFormBuilder();
+                    createFormBuilderUI();
                 }
             },
             error: function(xhr, status, error) {
-                createFormBuilder();
+                createFormBuilderUI();
             }
         });
     }
 
     /**
-     * Load advanced layout with rows and columns
+     * Load layout with rows and columns
      */
-    function loadAdvancedLayout(layout) {
+    function loadLayout(layout) {
         const container = $('#form-fields-list');
         container.html(''); // Clear existing content
         
@@ -2212,8 +2206,6 @@
         rowHTML += '</div>';
         container.append(rowHTML);
         
-        // Set layout type to advanced since we're adding rows
-        layoutData.type = 'advanced';
         updateGlobalFormData();
         
         // Bind row events
@@ -2332,9 +2324,6 @@
         
         // Add to formData
         formData.push(fieldData);
-        
-        // Set layout type to advanced since we're using rows/columns
-        layoutData.type = 'advanced';
         
         // Update global data
         updateGlobalFormData();
@@ -2725,8 +2714,6 @@
                 fields: []
             }]
         }];
-        
-        layoutData.type = 'advanced';
     }
 
     // Expose debug function globally for testing
