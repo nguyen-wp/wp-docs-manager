@@ -1220,15 +1220,21 @@ class LIFT_Docs_Admin {
             'order' => 'ASC'
         ));
         
-        // Add user codes to the user objects for JavaScript
+        // Prepare user data for JavaScript to prevent undefined values
+        $users_for_js = array();
         foreach ($document_users as $user) {
-            $user->lift_docs_user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
+            $users_for_js[] = array(
+                'ID' => $user->ID,
+                'display_name' => $user->display_name,
+                'user_email' => $user->user_email,
+                'lift_docs_user_code' => get_user_meta($user->ID, 'lift_docs_user_code', true)
+            );
         }
-        
+
         ?>
         <div class="document-assignments">
             <p><strong><?php _e('Assign Document Access', 'lift-docs-system'); ?></strong></p>
-            
+
             <?php if (empty($document_users)): ?>
                 <p class="notice notice-warning inline">
                     <?php printf(
@@ -1262,9 +1268,7 @@ class LIFT_Docs_Admin {
                             <?php _e('No users selected (only Admin and Editor will have access)', 'lift-docs-system'); ?>
                         </span>
                     </div>
-                </div>
-                
-                <!-- Search and Add Users -->
+                </div>                <!-- Search and Add Users -->
                 <div class="add-users-container">
                     <label for="user-search-input"><strong><?php _e('Add Users:', 'lift-docs-system'); ?></strong></label>
                     <input type="text" id="user-search-input" placeholder="<?php _e('Search users by name, email, or user code...', 'lift-docs-system'); ?>" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px;">
@@ -1315,7 +1319,7 @@ class LIFT_Docs_Admin {
         
         <script>
         jQuery(document).ready(function($) {
-            var allUsers = <?php echo json_encode($document_users); ?>;
+            var allUsers = <?php echo json_encode($users_for_js); ?>;
             var totalUsers = allUsers.length;
             
             // Search functionality
