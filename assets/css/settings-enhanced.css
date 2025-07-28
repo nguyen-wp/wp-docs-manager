@@ -522,36 +522,6 @@
     margin-left: 40px;
 }
 
-.lift-success-box {
-    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
-    border: 1px solid #81c784;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    position: relative;
-}
-
-.lift-success-box::before {
-    content: '✓';
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 24px;
-    height: 24px;
-    background: #4caf50;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.lift-success-box-content {
-    margin-left: 40px;
-}
-
 /* ===============================================
    MEDIA UPLOADER
    =============================================== */
@@ -765,12 +735,12 @@
     margin-right: 8px;
     font-size: 16px;
 }
-
+/* 
 .lift-error-box {
     background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
     border-color: #dc3545;
     color: #721c24;
-}
+} */
 
 .lift-save-progress {
     position: fixed;

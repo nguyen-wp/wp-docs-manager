@@ -1829,15 +1829,28 @@
                     if (!silent) {
                         $('.lift-save-indicator').text('Saved').removeClass('error');
                         setTimeout(() => $('.lift-save-indicator').fadeOut(), 2000);
+                        
+                        // Show success message
+                        showFormMessage('Form saved successfully!', 'success');
                     }
                     
                     if (response.data && response.data.form_id && !currentFormId) {
                         currentFormId = response.data.form_id;
                         $('#form-id').val(currentFormId);
+                        
+                        // For new forms, redirect to edit page after showing message
+                        if (!silent) {
+                            showFormMessage('Form created successfully! Redirecting to edit page...', 'success');
+                            setTimeout(function() {
+                                const editUrl = window.location.pathname + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                window.location.href = editUrl;
+                            }, 1500);
+                        }
                     }
                 } else {
                     if (!silent) {
                         $('.lift-save-indicator').text('Save failed').addClass('error');
+                        showFormMessage(response.data || 'Error saving form', 'error');
                     }
                     console.error('Save failed:', response.data || response);
                 }
@@ -2746,6 +2759,31 @@
                 name: field.name
             });
         });
+    }
+
+    /**
+     * Show form message
+     */
+    function showFormMessage(message, type) {
+        // Remove any existing messages
+        $('.lift-form-message').remove();
+        
+        const messageEl = $(`
+            <div class="lift-form-message ${type}">
+                ${message}
+            </div>
+        `);
+        
+        $('.lift-form-builder').before(messageEl);
+        
+        // Auto-hide success messages after 3 seconds
+        if (type === 'success') {
+            setTimeout(function() {
+                messageEl.fadeOut(function() {
+                    messageEl.remove();
+                });
+            }, 3000);
+        }
     }
 
     // Expose debug function globally for testing

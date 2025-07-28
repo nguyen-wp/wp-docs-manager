@@ -14,6 +14,18 @@
         
         console.log('LIFT Forms - Minimal admin loaded');
         
+        // Auto-hide WordPress notices
+        $('.notice.is-dismissible').each(function() {
+            const notice = $(this);
+            if (notice.hasClass('notice-success')) {
+                setTimeout(function() {
+                    notice.fadeOut(500, function() {
+                        notice.remove();
+                    });
+                }, 5000);
+            }
+        });
+        
         // Basic save form functionality
         $('#save-form').on('click', function(e) {
             // Check if advanced form builder is active
@@ -90,11 +102,19 @@
                     if (response.success) {
                         if (!formId) {
                             $('#form-id').val(response.data.form_id);
-                            // Update URL if this is a new form
-                            const newUrl = window.location.href + '&id=' + response.data.form_id;
-                            window.history.replaceState({}, '', newUrl);
+                            
+                            // Show success message first
+                            showMessage('Form created successfully! Redirecting to edit page...', 'success');
+                            
+                            // Redirect to edit page after short delay
+                            setTimeout(function() {
+                                const editUrl = window.location.pathname + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                window.location.href = editUrl;
+                            }, 1500);
+                        } else {
+                            // For existing forms, just show success message
+                            showMessage('Form updated successfully!', 'success');
                         }
-                        showMessage('Form saved successfully!', 'success');
                     } else {
                         showMessage(response.data || 'Error saving form', 'error');
                     }

@@ -298,14 +298,12 @@ jQuery(document).ready(function($) {
             $('.notice.notice-success').each(function() {
                 if (!$(this).hasClass('lift-notice-enhanced')) {
                     $(this).addClass('lift-notice-enhanced lift-success-box');
-                    $(this).prepend('<i class="fas fa-check-circle"></i>');
                 }
             });
             
             $('.notice.notice-error').each(function() {
                 if (!$(this).hasClass('lift-notice-enhanced')) {
                     $(this).addClass('lift-notice-enhanced lift-error-box');
-                    $(this).prepend('<i class="fas fa-exclamation-triangle"></i>');
                 }
             });
         }, 500);

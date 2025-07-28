@@ -444,6 +444,11 @@ class LIFT_Forms {
             $form = $wpdb->get_row($wpdb->prepare("SELECT * FROM $forms_table WHERE id = %d", $form_id));
         }
         
+        // Show success message if form was just created
+        if (isset($_GET['created']) && $_GET['created'] == '1') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Form created successfully! You can now edit your form below.', 'lift-docs-system') . '</p></div>';
+        }
+        
         ?>
         <div class="wrap">
             <h1><?php echo $form ? __('Edit Form', 'lift-docs-system') : __('Create New Form', 'lift-docs-system'); ?></h1>
