@@ -809,7 +809,6 @@ class LIFT_Docs_Admin {
                 
             } else {
                 // Fallback if Media Library is not available
-                console.warn('WordPress Media Library not available. Using fallback file input.');
                 
                 // Add new file input
                 $('#add_file_button').click(function() {
@@ -888,7 +887,6 @@ class LIFT_Docs_Admin {
                             `);
                             
                             alert('<?php _e('Please upload this file to your media library first, then paste the URL here. Or drag and drop the file into the WordPress media uploader.', 'lift-docs-system'); ?>');
-                            console.log('File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
                         }
                         fileInput.remove();
                     });
@@ -2293,7 +2291,6 @@ class LIFT_Docs_Admin {
                     },
                     error: function(xhr, status, error) {
                         // Show detailed error message
-                        console.error('AJAX Error:', status, error, xhr.responseText);
                         var errorMessage = '<?php _e("Error generating User Code. Please try again.", "lift-docs-system"); ?> Status: ' + status;
                         alert(errorMessage);
                         $button.prop('disabled', false).text(originalText);
@@ -2665,7 +2662,6 @@ class LIFT_Docs_Admin {
                     },
                     error: function(xhr, status, error) {
                         // Show detailed error message
-                        console.error('AJAX Error:', status, error, xhr.responseText);
                         var errorMessage = '<?php _e("Error generating User Code. Please try again.", "lift-docs-system"); ?> Status: ' + status;
                         alert(errorMessage);
                         $button.prop('disabled', false).text(originalText);

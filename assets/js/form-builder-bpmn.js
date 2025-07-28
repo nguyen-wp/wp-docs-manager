@@ -2781,20 +2781,7 @@
         $('.form-row').removeClass('drop-before drop-after');
     }
 
-    /**
-     * Debug helper - log current form data
-     */
-    function debugFormData() {
-        formData.forEach((field, index) => {
-                id: field.id,
-                type: field.type,
-                label: field.label,
-                name: field.name
-            });
-        });
-    }
-
-    /**
+       /**
      * Show form message
      */
     function showFormMessage(message, type) {
@@ -2820,6 +2807,6 @@
     }
 
     // Expose debug function globally for testing
-    window.debugFormData = debugFormData;
+    // window.debugFormData = debugFormData;
 
 })(jQuery);

@@ -432,17 +432,14 @@ class LIFT_Docs_Settings {
         
         <script>
         jQuery(document).ready(function($) {
-            console.log('LIFT Docs Settings: Enhanced JavaScript tab functionality loaded');
             
             // Get current tab from URL or default to general
             var urlParams = new URLSearchParams(window.location.search);
             var currentTab = urlParams.get('tab') || 'general';
             
-            console.log('Current tab from URL:', currentTab);
             
             // Function to switch to a specific tab with enhanced animations
             function switchToTab(tabName) {
-                console.log('Switching to tab:', tabName);
                 
                 // Remove active class from all tabs and content
                 $('.lift-nav-tab').removeClass('nav-tab-active');
@@ -545,7 +542,6 @@ class LIFT_Docs_Settings {
                 }, 3000);
             });
             
-            console.log('LIFT Docs Settings: Enhanced tab initialization complete for tab:', currentTab);
         });
         </script>
         <?php
@@ -702,7 +698,6 @@ class LIFT_Docs_Settings {
         ?>
         <script type="text/javascript">
         jQuery(document).ready(function($) {
-            console.log('LIFT Docs Settings JS loaded');
             
             var mediaUploader;
             var interfaceMediaUploader;
@@ -755,7 +750,6 @@ class LIFT_Docs_Settings {
             // Logo upload - Main settings
             $(document).on('click', '#upload-logo-btn', function(e) {
                 e.preventDefault();
-                console.log('Upload logo button clicked');
                 
                 if (mediaUploader) {
                     mediaUploader.open();
@@ -771,7 +765,6 @@ class LIFT_Docs_Settings {
                 
                 mediaUploader.on('select', function() {
                     var attachment = mediaUploader.state().get('selection').first().toJSON();
-                    console.log('Logo selected:', attachment);
                     $('#lift_docs_login_logo').val(attachment.id);
                     $('#logo-preview-img').html('<img src="' + attachment.url + '" style="max-width: 200px; max-height: 100px; border: 1px solid #ddd; padding: 5px;">');
                     $('#remove-logo-btn').show();
@@ -783,7 +776,6 @@ class LIFT_Docs_Settings {
             // Logo remove - Main settings
             $(document).on('click', '#remove-logo-btn', function(e) {
                 e.preventDefault();
-                console.log('Remove logo button clicked');
                 $('#lift_docs_login_logo').val('');
                 $('#logo-preview-img').html('<div style="width: 200px; height: 100px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; color: #666;"><?php _e('No logo selected', 'lift-docs-system'); ?></div>');
                 $(this).hide();
@@ -792,7 +784,6 @@ class LIFT_Docs_Settings {
             // Interface tab media uploader
             $(document).on('click', '#interface-upload-logo-btn', function(e) {
                 e.preventDefault();
-                console.log('Interface upload logo button clicked');
                 
                 if (interfaceMediaUploader) {
                     interfaceMediaUploader.open();
@@ -808,7 +799,6 @@ class LIFT_Docs_Settings {
                 
                 interfaceMediaUploader.on('select', function() {
                     var attachment = interfaceMediaUploader.state().get('selection').first().toJSON();
-                    console.log('Interface logo selected:', attachment);
                     $('#lift_docs_logo_upload').val(attachment.id);
                     $('#interface-logo-preview').html('<img src="' + attachment.url + '" style="max-width: 300px; max-height: 150px; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">');
                     $('#interface-remove-logo-btn').show();
@@ -820,7 +810,6 @@ class LIFT_Docs_Settings {
             // Interface logo remove
             $(document).on('click', '#interface-remove-logo-btn', function(e) {
                 e.preventDefault();
-                console.log('Interface remove logo button clicked');
                 $('#lift_docs_logo_upload').val('');
                 $('#interface-logo-preview').html('<div style="width: 300px; height: 150px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; border-radius: 4px; background: #f9f9f9;"><span>📷 <?php _e('No logo uploaded', 'lift-docs-system'); ?></span></div>');
                 $(this).hide();

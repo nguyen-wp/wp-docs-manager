@@ -42,9 +42,6 @@ add_action('admin_footer', function() {
     if (isset($_GET['page']) && strpos($_GET['page'], 'lift-forms') !== false) {
         ?>
         <script>
-        console.log('LIFT Forms Debug Info:');
-        console.log('liftForms nonce:', typeof liftForms !== 'undefined' ? liftForms.nonce : 'NOT DEFINED');
-        console.log('liftFormBuilder nonce:', typeof liftFormBuilder !== 'undefined' ? liftFormBuilder.nonce : 'NOT DEFINED');
         
         // Test nonce validation
         if (typeof liftForms !== 'undefined' && liftForms.nonce) {
@@ -52,7 +49,6 @@ add_action('admin_footer', function() {
                 action: 'debug_nonce_check',
                 nonce: liftForms.nonce
             }, function(response) {
-                console.log('liftForms nonce test result:', response);
             });
         }
         
@@ -61,7 +57,6 @@ add_action('admin_footer', function() {
                 action: 'debug_nonce_check', 
                 nonce: liftFormBuilder.nonce
             }, function(response) {
-                console.log('liftFormBuilder nonce test result:', response);
             });
         }
         </script>
