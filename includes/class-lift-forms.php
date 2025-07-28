@@ -280,6 +280,7 @@ class LIFT_Forms {
         wp_localize_script('lift-forms-form-builder-bpmn', 'liftFormBuilder', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('lift_form_builder_nonce'),
+            'pluginUrl' => plugin_dir_url(__FILE__),
             'strings' => array(
                 'loading' => __('Loading form builder...', 'lift-docs-system'),
                 'error' => __('Error loading form builder', 'lift-docs-system'),
