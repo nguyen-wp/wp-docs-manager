@@ -76,9 +76,6 @@ class LIFT_Docs_System {
      * Load required files
      */
     private function load_dependencies() {
-        // Core files
-        require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-activator.php';
-        
         // Admin files
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-admin.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-post-types.php';
@@ -119,9 +116,6 @@ class LIFT_Docs_System {
      * Initialize hooks
      */
     private function init_hooks() {
-        register_activation_hook(__FILE__, array($this, 'activate'));
-        register_deactivation_hook(__FILE__, array($this, 'deactivate'));
-        
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         
@@ -190,23 +184,6 @@ class LIFT_Docs_System {
     }
     
     /**
-     * Plugin activation
-     */
-    public function activate() {
-        // Create tables if needed
-        $this->create_analytics_table();
-        
-        // Set default options
-        $this->set_default_options();
-        
-        // Create default pages for frontend login
-        $this->create_default_login_pages();
-        
-        // Flush rewrite rules
-        flush_rewrite_rules();
-    }
-    
-    /**
      * Maybe flush rewrite rules
      */
     public function maybe_flush_rewrite_rules() {
@@ -216,111 +193,16 @@ class LIFT_Docs_System {
             update_option('lift_docs_rewrite_version', LIFT_DOCS_VERSION);
         }
     }
-    
-    /**
-     * Plugin deactivation
-     */
-    public function deactivate() {
-        // Flush rewrite rules
-        flush_rewrite_rules();
-    }
-    
-    /**
-     * Create analytics table
-     */
-    private function create_analytics_table() {
-        global $wpdb;
-        
-        $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
-        $charset_collate = $wpdb->get_charset_collate();
-        
-        $sql = "CREATE TABLE $table_name (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            document_id bigint(20) NOT NULL,
-            user_id bigint(20) DEFAULT NULL,
-            action varchar(50) NOT NULL,
-            timestamp datetime DEFAULT CURRENT_TIMESTAMP,
-            ip_address varchar(45) DEFAULT NULL,
-            user_agent text DEFAULT NULL,
-            PRIMARY KEY (id),
-            KEY document_id (document_id),
-            KEY user_id (user_id),
-            KEY action (action),
-            KEY timestamp (timestamp)
-        ) $charset_collate;";
-        
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
-    }
-    
-    /**
-     * Create default login pages
-     */
-    private function create_default_login_pages() {
-        // Create login page
-        $login_page_id = get_option('lift_docs_login_page_id');
-        if (!$login_page_id || !get_post($login_page_id)) {
-            $login_page = array(
-                'post_title' => __('Document Login', 'lift-docs-system'),
-                'post_content' => '[docs_login_form]',
-                'post_status' => 'publish',
-                'post_type' => 'page',
-                'post_slug' => 'document-login'
-            );
-            
-            $login_page_id = wp_insert_post($login_page);
-            if ($login_page_id) {
-                update_option('lift_docs_login_page_id', $login_page_id);
-            }
-        }
-        
-        // Create dashboard page
-        $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
-        if (!$dashboard_page_id || !get_post($dashboard_page_id)) {
-            $dashboard_page = array(
-                'post_title' => __('Document Dashboard', 'lift-docs-system'),
-                'post_content' => '[docs_dashboard]',
-                'post_status' => 'publish',
-                'post_type' => 'page',
-                'post_slug' => 'document-dashboard'
-            );
-            
-            $dashboard_page_id = wp_insert_post($dashboard_page);
-            if ($dashboard_page_id) {
-                update_option('lift_docs_dashboard_page_id', $dashboard_page_id);
-            }
-        }
-        
-        // Set flag that pages have been created
-        update_option('lift_docs_default_pages_created', true);
-    }
-    
-    /**
-     * Set default options
-     */
-    private function set_default_options() {
-        $default_options = array(
-            'enable_analytics' => true,
-            'enable_comments' => true,
-            'documents_per_page' => 10,
-            'enable_search' => true,
-            'enable_categories' => true,
-            'enable_tags' => true,
-            // Security settings
-            'secure_link_expiry' => 0, // Never expire
-            // Global layout settings
-            'show_secure_access_notice' => true,
-            'show_document_header' => true,
-            'show_document_meta' => true,
-            'show_document_description' => true,
-            'show_download_button' => true,
-            'show_related_docs' => true,
-            'layout_style' => 'default'
-        );
-        
-        add_option('lift_docs_settings', $default_options);
-    }
+}
+
+define('LIFT_DOCS_VERSION', '1.9.0');
+define('LIFT_DOCS_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('LIFT_DOCS_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('LIFT_DOCS_PLUGIN_BASENAME', plugin_basename(__FILE__));
+
+// Load the activator class immediately for activation hooks
+require_once plugin_dir_path(__FILE__) . 'includes/class-lift-docs-activator.php';
+
 }
 
 // Initialize the plugin

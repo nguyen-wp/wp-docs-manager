@@ -24,6 +24,9 @@ class LIFT_Docs_Activator {
         
         // Set default options
         self::set_default_options();
+        
+        // Create default login pages
+        self::create_default_login_pages();
     }
     
     /**
@@ -111,6 +114,71 @@ class LIFT_Docs_Activator {
     }
     
     /**
+     * Create default login pages
+     */
+    private static function create_default_login_pages() {
+        // Create login page
+        $login_page_id = get_option('lift_docs_login_page_id');
+        if (!$login_page_id || !get_post($login_page_id)) {
+            $login_page = array(
+                'post_title' => __('Document Login', 'lift-docs-system'),
+                'post_content' => '[docs_login_form]',
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_name' => 'document-login'
+            );
+            
+            $login_page_id = wp_insert_post($login_page);
+            if ($login_page_id && !is_wp_error($login_page_id)) {
+                update_option('lift_docs_login_page_id', $login_page_id);
+                // Debug log
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('LIFT Docs Activator: Login page created with ID: ' . $login_page_id);
+                }
+            } else {
+                // Debug log for errors
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('LIFT Docs Activator: Failed to create login page. Error: ' . (is_wp_error($login_page_id) ? $login_page_id->get_error_message() : 'Unknown error'));
+                }
+            }
+        }
+        
+        // Create dashboard page
+        $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
+        if (!$dashboard_page_id || !get_post($dashboard_page_id)) {
+            $dashboard_page = array(
+                'post_title' => __('Document Dashboard', 'lift-docs-system'),
+                'post_content' => '[docs_dashboard]',
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_name' => 'document-dashboard'
+            );
+            
+            $dashboard_page_id = wp_insert_post($dashboard_page);
+            if ($dashboard_page_id && !is_wp_error($dashboard_page_id)) {
+                update_option('lift_docs_dashboard_page_id', $dashboard_page_id);
+                // Debug log
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('LIFT Docs Activator: Dashboard page created with ID: ' . $dashboard_page_id);
+                }
+            } else {
+                // Debug log for errors
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('LIFT Docs Activator: Failed to create dashboard page. Error: ' . (is_wp_error($dashboard_page_id) ? $dashboard_page_id->get_error_message() : 'Unknown error'));
+                }
+            }
+        }
+        
+        // Set flag that pages have been created
+        update_option('lift_docs_default_pages_created', true);
+        
+        // Debug log
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs Activator: Default pages creation process completed');
+        }
+    }
+    
+    /**
      * Remove custom roles
      */
     private static function remove_custom_roles() {
@@ -162,6 +230,20 @@ class LIFT_Docs_Activator {
         delete_option('lift_docs_settings');
         delete_option('lift_docs_layout_cleanup_done');
         delete_option('lift_docs_roles_created');
+        delete_option('lift_docs_default_pages_created');
+        
+        // Remove default pages
+        $login_page_id = get_option('lift_docs_login_page_id');
+        if ($login_page_id) {
+            wp_delete_post($login_page_id, true);
+            delete_option('lift_docs_login_page_id');
+        }
+        
+        $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
+        if ($dashboard_page_id) {
+            wp_delete_post($dashboard_page_id, true);
+            delete_option('lift_docs_dashboard_page_id');
+        }
     }
     
     /**
