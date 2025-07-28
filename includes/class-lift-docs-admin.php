@@ -1380,10 +1380,17 @@ class LIFT_Docs_Admin {
             
             // Select all users
             $('#select-all-users').on('click', function() {
+                console.log('Select All Users clicked. Total users:', allUsers.length);
+                console.log('Users data:', allUsers);
+                
                 allUsers.forEach(function(user) {
-                    if (!isUserSelected(user.ID)) {
+                    // Validate user object before processing
+                    if (user && user.ID && user.display_name && !isUserSelected(user.ID)) {
                         var userCode = user.lift_docs_user_code || '';
+                        console.log('Adding user:', user.ID, user.display_name, userCode);
                         addUser(user.ID, user.display_name, userCode);
+                    } else {
+                        console.log('Skipping user (already selected or invalid):', user);
                     }
                 });
                 updateSearchResults();
@@ -1398,6 +1405,12 @@ class LIFT_Docs_Admin {
             });
             
             function addUser(userId, userName, userCode) {
+                // Validate input parameters to prevent undefined values
+                if (!userId || !userName) {
+                    console.warn('addUser called with invalid parameters:', userId, userName, userCode);
+                    return;
+                }
+                
                 if (isUserSelected(userId)) {
                     return;
                 }
