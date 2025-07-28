@@ -763,327 +763,229 @@
         // Validate component exists
         if (!component) {
             console.error('showPropertiesPanel: component is undefined or null');
-            panel.html(`
-                <div class="properties-empty">
-                    <span class="dashicons dashicons-warning"></span>
-                    <h4>Error</h4>
-                    <p>Component not found or is invalid.</p>
-                </div>
-            `);
+            panel.html('<div class="properties-empty">' +
+                '<span class="dashicons dashicons-warning"></span>' +
+                '<h4>Error</h4>' +
+                '<p>Component not found or is invalid.</p>' +
+                '</div>');
             return;
         }
         
-        const propertiesHTML = `
-            <div class="property-section">
-                <h4>General</h4>
-                <div class="property-field">
-                    <label>Label</label>
-                    <input type="text" id="prop-label" value="${component.label || ''}" placeholder="Field label">
-                </div>
-                <div class="property-field">
-                    <label>Key</label>
-                    <input type="text" id="prop-key" value="${component.key || ''}" placeholder="field_key">
-                </div>
-                ${!['heading', 'text', 'html', 'separator', 'spacer', 'image', 'video', 'submit', 'reset', 'button'].includes(component.type) ? `
-                <div class="property-field">
-                    <label>Required</label>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="prop-required" ${component.required ? 'checked' : ''}>
-                        <label for="prop-required">This field is required</label>
-                    </div>
-                </div>
-                ` : ''}
-            </div>
+        let propertiesHTML = '';
+        
+        // General section
+        propertiesHTML += '<div class="property-section">' +
+            '<h4>General</h4>' +
+            '<div class="property-field">' +
+                '<label>Label</label>' +
+                '<input type="text" id="prop-label" value="' + (component.label || '') + '" placeholder="Field label">' +
+            '</div>' +
+            '<div class="property-field">' +
+                '<label>Key</label>' +
+                '<input type="text" id="prop-key" value="' + (component.key || '') + '" placeholder="field_key">' +
+            '</div>';
+        
+        // Required field checkbox for form fields
+        if (!['heading', 'text', 'html', 'separator', 'spacer', 'image', 'video', 'submit', 'reset', 'button', 'columns-2', 'columns-3', 'columns-4', 'fieldset'].includes(component.type)) {
+            propertiesHTML += '<div class="property-field">' +
+                '<label>Required</label>' +
+                '<div class="checkbox-group">' +
+                    '<input type="checkbox" id="prop-required" ' + (component.required ? 'checked' : '') + '>' +
+                    '<label for="prop-required">This field is required</label>' +
+                '</div>' +
+            '</div>';
+        }
+        
+        propertiesHTML += '</div>';
+        
+        // Input settings for text-like fields
+        if (['textfield', 'textarea', 'number', 'email', 'password', 'url', 'tel'].includes(component.type)) {
+            propertiesHTML += '<div class="property-section">' +
+                '<h4>Input Settings</h4>' +
+                '<div class="property-field">' +
+                    '<label>Placeholder</label>' +
+                    '<input type="text" id="prop-placeholder" value="' + (component.placeholder || '') + '" placeholder="Placeholder text">' +
+                '</div>';
             
-            ${['textfield', 'textarea', 'number', 'email', 'password', 'url', 'tel'].includes(component.type) ? `
-            <div class="property-section">
-                <h4>Input Settings</h4>
-                <div class="property-field">
-                    <label>Placeholder</label>
-                    <input type="text" id="prop-placeholder" value="${component.placeholder || ''}" placeholder="Placeholder text">
-                </div>
-                ${component.type === 'textfield' ? `
-                <div class="property-field">
-                    <label>Max Length</label>
-                    <input type="number" id="prop-maxlength" value="${component.maxlength || ''}" placeholder="Maximum characters">
-                </div>
-                ` : ''}
-                ${component.type === 'textarea' ? `
-                <div class="property-field">
-                    <label>Rows</label>
-                    <input type="number" id="prop-rows" value="${component.rows || 4}" min="2" max="20">
-                </div>
-                ` : ''}
-                ${component.type === 'number' ? `
-                <div class="property-field">
-                    <label>Min Value</label>
-                    <input type="number" id="prop-min" value="${component.min || ''}" placeholder="Minimum value">
-                </div>
-                <div class="property-field">
-                    <label>Max Value</label>
-                    <input type="number" id="prop-max" value="${component.max || ''}" placeholder="Maximum value">
-                </div>
-                ` : ''}
-            </div>
-            ` : ''}
+            if (component.type === 'textfield') {
+                propertiesHTML += '<div class="property-field">' +
+                    '<label>Max Length</label>' +
+                    '<input type="number" id="prop-maxlength" value="' + (component.maxlength || '') + '" placeholder="Maximum characters">' +
+                '</div>';
+            }
             
-            ${component.type === 'range' ? `
-            <div class="property-section">
-                <h4>Range Settings</h4>
-                <div class="property-field">
-                    <label>Min Value</label>
-                    <input type="number" id="prop-min" value="${component.min || 0}">
-                </div>
-                <div class="property-field">
-                    <label>Max Value</label>
-                    <input type="number" id="prop-max" value="${component.max || 100}">
-                </div>
-                <div class="property-field">
-                    <label>Step</label>
-                    <input type="number" id="prop-step" value="${component.step || 1}" min="0.1" step="0.1">
-                </div>
-            </div>
-            ` : ''}
+            if (component.type === 'textarea') {
+                propertiesHTML += '<div class="property-field">' +
+                    '<label>Rows</label>' +
+                    '<input type="number" id="prop-rows" value="' + (component.rows || 4) + '" min="1" max="20">' +
+                '</div>';
+            }
             
-            ${component.type === 'file' ? `
-            <div class="property-section">
-                <h4>File Settings</h4>
-                <div class="property-field">
-                    <label>Accept</label>
-                    <input type="text" id="prop-accept" value="${component.accept || '*'}" placeholder="e.g., .jpg,.png,.pdf">
-                </div>
-                <div class="property-field">
-                    <label>Multiple Files</label>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="prop-multiple" ${component.multiple ? 'checked' : ''}>
-                        <label for="prop-multiple">Allow multiple files</label>
-                    </div>
-                </div>
-            </div>
-            ` : ''}
+            if (component.type === 'number') {
+                propertiesHTML += '<div class="property-field">' +
+                    '<label>Min Value</label>' +
+                    '<input type="number" id="prop-min" value="' + (component.min || '') + '" placeholder="Minimum value">' +
+                '</div>' +
+                '<div class="property-field">' +
+                    '<label>Max Value</label>' +
+                    '<input type="number" id="prop-max" value="' + (component.max || '') + '" placeholder="Maximum value">' +
+                '</div>' +
+                '<div class="property-field">' +
+                    '<label>Step</label>' +
+                    '<input type="number" id="prop-step" value="' + (component.step || '') + '" placeholder="Step value" step="any">' +
+                '</div>';
+            }
             
-            ${['select', 'multiselect', 'radio', 'checkboxgroup'].includes(component.type) ? `
-            <div class="property-section">
-                <h4>Options</h4>
-                <div class="property-field">
-                    <label>Options (one per line)</label>
-                    <textarea id="prop-options" placeholder="Option 1\nOption 2\nOption 3">${(component.options || []).join('\n')}</textarea>
-                </div>
-                ${component.type === 'multiselect' ? `
-                <div class="property-field">
-                    <label>Size</label>
-                    <input type="number" id="prop-size" value="${component.size || 3}" min="2" max="10">
-                </div>
-                ` : ''}
-            </div>
-            ` : ''}
+            propertiesHTML += '</div>';
+        }
+        
+        // Range settings
+        if (component.type === 'range') {
+            propertiesHTML += '<div class="property-section">' +
+                '<h4>Range Settings</h4>' +
+                '<div class="property-field">' +
+                    '<label>Min Value</label>' +
+                    '<input type="number" id="prop-min" value="' + (component.min || 0) + '">' +
+                '</div>' +
+                '<div class="property-field">' +
+                    '<label>Max Value</label>' +
+                    '<input type="number" id="prop-max" value="' + (component.max || 100) + '">' +
+                '</div>' +
+                '<div class="property-field">' +
+                    '<label>Step</label>' +
+                    '<input type="number" id="prop-step" value="' + (component.step || 1) + '" min="0.1" step="0.1">' +
+                '</div>' +
+            '</div>';
+        }
+        
+        // File settings
+        if (component.type === 'file') {
+            propertiesHTML += '<div class="property-section">' +
+                '<h4>File Settings</h4>' +
+                '<div class="property-field">' +
+                    '<label>Accept</label>' +
+                    '<input type="text" id="prop-accept" value="' + (component.accept || '*') + '" placeholder="e.g., .jpg,.png,.pdf">' +
+                '</div>' +
+                '<div class="property-field">' +
+                    '<label>Multiple Files</label>' +
+                    '<div class="checkbox-group">' +
+                        '<input type="checkbox" id="prop-multiple" ' + (component.multiple ? 'checked' : '') + '>' +
+                        '<label for="prop-multiple">Allow multiple files</label>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }
+        
+        // Options for select/radio/checkbox fields
+        if (['select', 'multiselect', 'radio', 'checkboxgroup'].includes(component.type)) {
+            propertiesHTML += '<div class="property-section">' +
+                '<h4>Options</h4>' +
+                '<div class="property-field">' +
+                    '<label>Options (one per line)</label>' +
+                    '<textarea id="prop-options" rows="4" placeholder="Option 1\nOption 2\nOption 3">' + (component.options || []).join('\n') + '</textarea>' +
+                '</div>';
             
-            ${component.type === 'heading' ? `
-            <div class="property-section">
-                <h4>Heading Settings</h4>
-                <div class="property-field">
-                    <label>Text</label>
-                    <input type="text" id="prop-text" value="${component.text || ''}" placeholder="Heading text">
-                </div>
-                <div class="property-field">
-                    <label>Level</label>
-                    <select id="prop-level">
-                        <option value="h1" ${component.level === 'h1' ? 'selected' : ''}>H1</option>
-                        <option value="h2" ${component.level === 'h2' ? 'selected' : ''}>H2</option>
-                        <option value="h3" ${component.level === 'h3' ? 'selected' : ''}>H3</option>
-                        <option value="h4" ${component.level === 'h4' ? 'selected' : ''}>H4</option>
-                        <option value="h5" ${component.level === 'h5' ? 'selected' : ''}>H5</option>
-                        <option value="h6" ${component.level === 'h6' ? 'selected' : ''}>H6</option>
-                    </select>
-                </div>
-            </div>
-            ` : ''}
+            if (component.type === 'select') {
+                propertiesHTML += '<div class="property-field">' +
+                    '<label>Multiple Selection</label>' +
+                    '<div class="checkbox-group">' +
+                        '<input type="checkbox" id="prop-multiple" ' + (component.multiple ? 'checked' : '') + '>' +
+                        '<label for="prop-multiple">Allow multiple selection</label>' +
+                    '</div>' +
+                '</div>';
+            }
             
-            ${component.type === 'text' ? `
-            <div class="property-section">
-                <h4>Text Settings</h4>
-                <div class="property-field">
-                    <label>Content</label>
-                    <textarea id="prop-text" placeholder="Text content" rows="4">${component.text || ''}</textarea>
-                </div>
-                <div class="property-field">
-                    <label>HTML Mode</label>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="prop-html" ${component.html ? 'checked' : ''}>
-                        <label for="prop-html">Allow HTML content</label>
-                    </div>
-                </div>
-            </div>
-            ` : ''}
+            if (component.type === 'multiselect') {
+                propertiesHTML += '<div class="property-field">' +
+                    '<label>Size</label>' +
+                    '<input type="number" id="prop-size" value="' + (component.size || 3) + '" min="2" max="10">' +
+                '</div>';
+            }
             
-            ${component.type === 'html' ? `
-            <div class="property-section">
-                <h4>HTML Settings</h4>
-                <div class="property-field">
-                    <label>HTML Content</label>
-                    <textarea id="prop-html" placeholder="HTML content" rows="6">${component.html || ''}</textarea>
-                </div>
-            </div>
-            ` : ''}
+            propertiesHTML += '</div>';
+        }
+        
+        // Heading settings
+        if (component.type === 'heading') {
+            propertiesHTML += '<div class="property-section">' +
+                '<h4>Heading Settings</h4>' +
+                '<div class="property-field">' +
+                    '<label>Text</label>' +
+                    '<input type="text" id="prop-text" value="' + (component.text || '') + '" placeholder="Heading text">' +
+                '</div>' +
+                '<div class="property-field">' +
+                    '<label>Level</label>' +
+                    '<select id="prop-level">' +
+                        '<option value="h1"' + (component.level === 'h1' ? ' selected' : '') + '>H1</option>' +
+                        '<option value="h2"' + (component.level === 'h2' ? ' selected' : '') + '>H2</option>' +
+                        '<option value="h3"' + (component.level === 'h3' ? ' selected' : '') + '>H3</option>' +
+                        '<option value="h4"' + (component.level === 'h4' ? ' selected' : '') + '>H4</option>' +
+                        '<option value="h5"' + (component.level === 'h5' ? ' selected' : '') + '>H5</option>' +
+                        '<option value="h6"' + (component.level === 'h6' ? ' selected' : '') + '>H6</option>' +
+                    '</select>' +
+                '</div>' +
+            '</div>';
+        }
+        
+        // Text settings
+        if (component.type === 'text') {
+            propertiesHTML += '<div class="property-section">' +
+                '<h4>Text Settings</h4>' +
+                '<div class="property-field">' +
+                    '<label>Content</label>' +
+                    '<textarea id="prop-text" placeholder="Text content" rows="4">' + (component.text || '') + '</textarea>' +
+                '</div>' +
+                '<div class="property-field">' +
+                    '<label>HTML Mode</label>' +
+                    '<div class="checkbox-group">' +
+                        '<input type="checkbox" id="prop-html" ' + (component.html ? 'checked' : '') + '>' +
+                        '<label for="prop-html">Allow HTML content</label>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }
+        
+        // HTML settings
+        if (component.type === 'html') {
+            propertiesHTML += '<div class="property-section">' +
+                '<h4>HTML Settings</h4>' +
+                '<div class="property-field">' +
+                    '<label>HTML Content</label>' +
+                    '<textarea id="prop-html" placeholder="HTML content" rows="6">' + (component.html || '') + '</textarea>' +
+                '</div>' +
+            '</div>';
+        }
+        
+        // Button settings
+        if (['submit', 'reset', 'button'].includes(component.type)) {
+            propertiesHTML += '<div class="property-section">' +
+                '<h4>Button Settings</h4>' +
+                '<div class="property-field">' +
+                    '<label>Button Text</label>' +
+                    '<input type="text" id="prop-text" value="' + (component.text || '') + '" placeholder="Button text">' +
+                '</div>';
             
-            ${component.type === 'separator' ? `
-            <div class="property-section">
-                <h4>Separator Settings</h4>
-                <div class="property-field">
-                    <label>Style</label>
-                    <select id="prop-style">
-                        <option value="solid" ${component.style === 'solid' ? 'selected' : ''}>Solid</option>
-                        <option value="dashed" ${component.style === 'dashed' ? 'selected' : ''}>Dashed</option>
-                        <option value="dotted" ${component.style === 'dotted' ? 'selected' : ''}>Dotted</option>
-                    </select>
-                </div>
-            </div>
-            ` : ''}
+            if (component.type === 'submit') {
+                propertiesHTML += '<div class="property-field">' +
+                    '<label>Style</label>' +
+                    '<select id="prop-style">' +
+                        '<option value="primary"' + (component.style === 'primary' ? ' selected' : '') + '>Primary</option>' +
+                        '<option value="secondary"' + (component.style === 'secondary' ? ' selected' : '') + '>Secondary</option>' +
+                        '<option value="success"' + (component.style === 'success' ? ' selected' : '') + '>Success</option>' +
+                        '<option value="danger"' + (component.style === 'danger' ? ' selected' : '') + '>Danger</option>' +
+                    '</select>' +
+                '</div>';
+            }
             
-            ${component.type === 'spacer' ? `
-            <div class="property-section">
-                <h4>Spacer Settings</h4>
-                <div class="property-field">
-                    <label>Height</label>
-                    <input type="text" id="prop-height" value="${component.height || '20px'}" placeholder="e.g., 20px, 2rem">
-                </div>
-            </div>
-            ` : ''}
-            
-            ${component.type === 'image' ? `
-            <div class="property-section">
-                <h4>Image Settings</h4>
-                <div class="property-field">
-                    <label>Source URL</label>
-                    <input type="url" id="prop-src" value="${component.src || ''}" placeholder="https://example.com/image.jpg">
-                </div>
-                <div class="property-field">
-                    <label>Alt Text</label>
-                    <input type="text" id="prop-alt" value="${component.alt || ''}" placeholder="Image description">
-                </div>
-                <div class="property-field">
-                    <label>Width</label>
-                    <input type="text" id="prop-width" value="${component.width || ''}" placeholder="e.g., 100%, 300px">
-                </div>
-                <div class="property-field">
-                    <label>Height</label>
-                    <input type="text" id="prop-height" value="${component.height || ''}" placeholder="e.g., auto, 200px">
-                </div>
-            </div>
-            ` : ''}
-            
-            ${component.type === 'video' ? `
-            <div class="property-section">
-                <h4>Video Settings</h4>
-                <div class="property-field">
-                    <label>Source URL</label>
-                    <input type="url" id="prop-src" value="${component.src || ''}" placeholder="https://example.com/video.mp4">
-                </div>
-                <div class="property-field">
-                    <label>Width</label>
-                    <input type="text" id="prop-width" value="${component.width || '100%'}" placeholder="e.g., 100%, 640px">
-                </div>
-                <div class="property-field">
-                    <label>Height</label>
-                    <input type="text" id="prop-height" value="${component.height || '300px'}" placeholder="e.g., 300px, 50vh">
-                </div>
-            </div>
-            ` : ''}
-            
-            ${component.type === 'rating' ? `
-            <div class="property-section">
-                <h4>Rating Settings</h4>
-                <div class="property-field">
-                    <label>Max Rating</label>
-                    <input type="number" id="prop-max" value="${component.max || 5}" min="1" max="10">
-                </div>
-                <div class="property-field">
-                    <label>Icon</label>
-                    <select id="prop-icon">
-                        <option value="star" ${component.icon === 'star' ? 'selected' : ''}>Star ★</option>
-                        <option value="heart" ${component.icon === 'heart' ? 'selected' : ''}>Heart ♥</option>
-                        <option value="thumb" ${component.icon === 'thumb' ? 'selected' : ''}>Thumb 👍</option>
-                    </select>
-                </div>
-            </div>
-            ` : ''}
-            
-            ${component.type === 'signature' ? `
-            <div class="property-section">
-                <h4>Signature Settings</h4>
-                <div class="property-field">
-                    <label>Width</label>
-                    <input type="text" id="prop-width" value="${component.width || '400px'}" placeholder="e.g., 400px, 100%">
-                </div>
-                <div class="property-field">
-                    <label>Height</label>
-                    <input type="text" id="prop-height" value="${component.height || '200px'}" placeholder="e.g., 200px, 150px">
-                </div>
-            </div>
-            ` : ''}
-            
-            ${component.type === 'captcha' ? `
-            <div class="property-section">
-                <h4>Captcha Settings</h4>
-                <div class="property-field">
-                    <label>Type</label>
-                    <select id="prop-type">
-                        <option value="simple" ${component.type === 'simple' ? 'selected' : ''}>Simple Text</option>
-                        <option value="math" ${component.type === 'math' ? 'selected' : ''}>Math Problem</option>
-                        <option value="recaptcha" ${component.type === 'recaptcha' ? 'selected' : ''}>reCAPTCHA</option>
-                    </select>
-                </div>
-            </div>
-            ` : ''}
-            
-            ${component.type === 'calculation' ? `
-            <div class="property-section">
-                <h4>Calculation Settings</h4>
-                <div class="property-field">
-                    <label>Formula</label>
-                    <input type="text" id="prop-formula" value="${component.formula || ''}" placeholder="e.g., field1 + field2 * 0.1">
-                </div>
-                <div class="property-field">
-                    <label>Decimal Places</label>
-                    <input type="number" id="prop-decimals" value="${component.decimals || 2}" min="0" max="10">
-                </div>
-            </div>
-            ` : ''}
-            
-            ${['submit', 'reset', 'button'].includes(component.type) ? `
-            <div class="property-section">
-                <h4>Button Settings</h4>
-                <div class="property-field">
-                    <label>Button Text</label>
-                    <input type="text" id="prop-text" value="${component.text || ''}" placeholder="Button text">
-                </div>
-                <div class="property-field">
-                    <label>Style</label>
-                    <select id="prop-style">
-                        <option value="primary" ${component.style === 'primary' ? 'selected' : ''}>Primary</option>
-                        <option value="secondary" ${component.style === 'secondary' ? 'selected' : ''}>Secondary</option>
-                        <option value="success" ${component.style === 'success' ? 'selected' : ''}>Success</option>
-                        <option value="danger" ${component.style === 'danger' ? 'selected' : ''}>Danger</option>
-                    </select>
-                </div>
-                ${component.type === 'button' ? `
-                <div class="property-field">
-                    <label>Action</label>
-                    <select id="prop-action">
-                        <option value="custom" ${component.action === 'custom' ? 'selected' : ''}>Custom Action</option>
-                        <option value="calculate" ${component.action === 'calculate' ? 'selected' : ''}>Trigger Calculation</option>
-                        <option value="validate" ${component.action === 'validate' ? 'selected' : ''}>Validate Form</option>
-                    </select>
-                </div>
-                ` : ''}
-            </div>
-            ` : ''}
-            
-            <div class="property-section">
-                <button type="button" class="button button-primary" id="save-properties">Save Changes</button>
-                <button type="button" class="button" id="cancel-properties">Cancel</button>
-            </div>
-        `;
+            propertiesHTML += '</div>';
+        }
+        
+        // Actions section
+        propertiesHTML += '<div class="property-section">' +
+            '<h4>Actions</h4>' +
+            '<button type="button" id="update-properties" class="button-primary">Update Component</button>' +
+            '<button type="button" id="cancel-properties" class="button">Cancel</button>' +
+        '</div>';
         
         panel.html(propertiesHTML);
         
@@ -1184,41 +1086,85 @@
                 }
                 
                 // Clear properties panel
-                $('#properties-panel').html(`
-                    <div class="properties-empty">
-                        <span class="dashicons dashicons-admin-settings"></span>
-                        <h4>No Component Selected</h4>
-                        <p>Select a component to edit its properties</p>
-                    </div>
-                `);
+                $('#properties-panel').html('<div class="properties-empty">' +
+                    '<span class="dashicons dashicons-admin-settings"></span>' +
+                    '<h4>No Component Selected</h4>' +
+                    '<p>Select a component to edit its properties</p>' +
+                '</div>');
             }
         });
 
         // Properties panel
-        $(document).on('click.formbuilder', '#save-properties', function() {
+        $(document).on('click.formbuilder', '#update-properties', function() {
             const panel = $('#properties-panel');
             const index = panel.data('editing-index');
             
             if (index >= 0 && formSchema.components[index]) {
                 const component = formSchema.components[index];
                 
-                // Update component properties
+                // Update general properties
                 component.label = $('#prop-label').val();
                 component.key = $('#prop-key').val();
-                component.placeholder = $('#prop-placeholder').val();
-                component.maxlength = $('#prop-maxlength').val();
-                component.required = $('#prop-required').is(':checked');
-                component.text = $('#prop-text').val();
-                component.level = $('#prop-level').val();
+                if ($('#prop-required').length) {
+                    component.required = $('#prop-required').is(':checked');
+                }
                 
+                // Update input settings
+                if ($('#prop-placeholder').length) {
+                    component.placeholder = $('#prop-placeholder').val();
+                }
+                if ($('#prop-maxlength').length) {
+                    component.maxlength = $('#prop-maxlength').val();
+                }
+                if ($('#prop-rows').length) {
+                    component.rows = parseInt($('#prop-rows').val()) || 4;
+                }
+                if ($('#prop-min').length) {
+                    component.min = $('#prop-min').val();
+                }
+                if ($('#prop-max').length) {
+                    component.max = $('#prop-max').val();
+                }
+                if ($('#prop-step').length) {
+                    component.step = $('#prop-step').val();
+                }
+                
+                // Update file settings
+                if ($('#prop-accept').length) {
+                    component.accept = $('#prop-accept').val();
+                }
+                if ($('#prop-multiple').length) {
+                    component.multiple = $('#prop-multiple').is(':checked');
+                }
+                
+                // Update options for select/radio/checkbox
                 if ($('#prop-options').length) {
                     component.options = $('#prop-options').val().split('\n').filter(opt => opt.trim());
+                }
+                if ($('#prop-size').length) {
+                    component.size = parseInt($('#prop-size').val()) || 3;
+                }
+                
+                // Update text content
+                if ($('#prop-text').length) {
+                    component.text = $('#prop-text').val();
+                }
+                if ($('#prop-level').length) {
+                    component.level = $('#prop-level').val();
+                }
+                if ($('#prop-html').length) {
+                    component.html = $('#prop-html').val() || $('#prop-html').is(':checked');
+                }
+                
+                // Update button style
+                if ($('#prop-style').length) {
+                    component.style = $('#prop-style').val();
                 }
                 
                 // Re-render canvas
                 renderCanvasFields(formSchema.components);
                 
-                // Update properties panel
+                // Update properties panel to reflect changes
                 showPropertiesPanel(component, index);
                 
                 console.log('Component updated:', component);
@@ -1227,13 +1173,11 @@
 
         $(document).on('click.formbuilder', '#cancel-properties', function() {
             $('.canvas-form-field').removeClass('selected');
-            $('#properties-panel').html(`
-                <div class="properties-empty">
-                    <span class="dashicons dashicons-admin-settings"></span>
-                    <h4>No Component Selected</h4>
-                    <p>Select a component to edit its properties</p>
-                </div>
-            `);
+            $('#properties-panel').html('<div class="properties-empty">' +
+                '<span class="dashicons dashicons-admin-settings"></span>' +
+                '<h4>No Component Selected</h4>' +
+                '<p>Select a component to edit its properties</p>' +
+            '</div>');
         });
 
         // Canvas actions
@@ -1249,13 +1193,11 @@
                 canvas.find('.canvas-drop-zone').show();
                 
                 // Clear properties panel
-                $('#properties-panel').html(`
-                    <div class="properties-empty">
-                        <span class="dashicons dashicons-admin-settings"></span>
-                        <h4>No Component Selected</h4>
-                        <p>Select a component to edit its properties</p>
-                    </div>
-                `);
+                $('#properties-panel').html('<div class="properties-empty">' +
+                    '<span class="dashicons dashicons-admin-settings"></span>' +
+                    '<h4>No Component Selected</h4>' +
+                    '<p>Select a component to edit its properties</p>' +
+                '</div>');
                 
                 console.log('Canvas cleared successfully');
             }
@@ -1525,19 +1467,56 @@
         components.forEach((component, index) => {
             html += `<div class="form-field">`;
             
-            if (component.label) {
+            // Add label for most field types
+            if (component.label && !['heading', 'text', 'html', 'separator', 'spacer'].includes(component.type)) {
                 html += `<label for="field_${index}">${component.label}</label>`;
             }
             
             switch (component.type) {
+                // Input Fields
                 case 'textfield':
                     html += `<input type="text" id="field_${index}" name="${component.key}" placeholder="${component.placeholder || ''}" />`;
                     break;
                 case 'textarea':
-                    html += `<textarea id="field_${index}" name="${component.key}" placeholder="${component.placeholder || ''}"></textarea>`;
+                    html += `<textarea id="field_${index}" name="${component.key}" rows="${component.rows || 4}" placeholder="${component.placeholder || ''}"></textarea>`;
                     break;
+                case 'number':
+                    html += `<input type="number" id="field_${index}" name="${component.key}" placeholder="${component.placeholder || ''}" min="${component.min || ''}" max="${component.max || ''}" />`;
+                    break;
+                case 'email':
+                    html += `<input type="email" id="field_${index}" name="${component.key}" placeholder="${component.placeholder || ''}" />`;
+                    break;
+                case 'password':
+                    html += `<input type="password" id="field_${index}" name="${component.key}" placeholder="${component.placeholder || ''}" />`;
+                    break;
+                case 'url':
+                    html += `<input type="url" id="field_${index}" name="${component.key}" placeholder="${component.placeholder || ''}" />`;
+                    break;
+                case 'tel':
+                    html += `<input type="tel" id="field_${index}" name="${component.key}" placeholder="${component.placeholder || ''}" />`;
+                    break;
+                case 'date':
+                    html += `<input type="date" id="field_${index}" name="${component.key}" />`;
+                    break;
+                case 'time':
+                    html += `<input type="time" id="field_${index}" name="${component.key}" />`;
+                    break;
+                case 'datetime':
+                    html += `<input type="datetime-local" id="field_${index}" name="${component.key}" />`;
+                    break;
+                case 'file':
+                    html += `<input type="file" id="field_${index}" name="${component.key}" ${component.multiple ? 'multiple' : ''} ${component.accept ? `accept="${component.accept}"` : ''} />`;
+                    break;
+                case 'range':
+                    html += `<input type="range" id="field_${index}" name="${component.key}" min="${component.min || 0}" max="${component.max || 100}" step="${component.step || 1}" />`;
+                    break;
+                case 'color':
+                    html += `<input type="color" id="field_${index}" name="${component.key}" />`;
+                    break;
+                    
+                // Selection Fields
                 case 'select':
-                    html += `<select id="field_${index}" name="${component.key}">`;
+                    html += `<select id="field_${index}" name="${component.key}" ${component.multiple ? 'multiple' : ''}>`;
                     html += `<option value="">Select an option</option>`;
                     if (component.options) {
                         component.options.forEach(option => {
@@ -1546,17 +1525,115 @@
                     }
                     html += `</select>`;
                     break;
-                case 'checkbox':
-                    html += `<label><input type="checkbox" id="field_${index}" name="${component.key}" /> ${component.label}</label>`;
+                case 'radio':
+                    if (component.options) {
+                        component.options.forEach((option, i) => {
+                            html += `<label style="display: block; margin: 5px 0;"><input type="radio" name="${component.key}" value="${option}" /> ${option}</label>`;
+                        });
+                    }
                     break;
+                case 'checkbox':
+                    html += `<label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="field_${index}" name="${component.key}" /> ${component.label}</label>`;
+                    break;
+                case 'checkboxgroup':
+                    if (component.options) {
+                        component.options.forEach((option, i) => {
+                            html += `<label style="display: block; margin: 5px 0;"><input type="checkbox" name="${component.key}[]" value="${option}" /> ${option}</label>`;
+                        });
+                    }
+                    break;
+                case 'toggle':
+                    html += `<label class="toggle-label"><input type="checkbox" class="toggle-input" name="${component.key}" /><span class="toggle-slider"></span> ${component.label}</label>`;
+                    break;
+                    
+                // Content & Layout
+                case 'heading':
+                    const level = component.level || 'h3';
+                    html += `<${level}>${component.text || component.label}</${level}>`;
+                    break;
+                case 'text':
+                    html += `<div class="text-block">${component.text || ''}</div>`;
+                    break;
+                case 'html':
+                    html += `<div class="html-block">${component.html || ''}</div>`;
+                    break;
+                case 'separator':
+                    html += `<hr style="border-style: ${component.style || 'solid'};" />`;
+                    break;
+                case 'spacer':
+                    html += `<div style="height: ${component.height || '20px'};"></div>`;
+                    break;
+                case 'image':
+                    if (component.src) {
+                        html += `<img src="${component.src}" alt="${component.alt || ''}" ${component.width ? `width="${component.width}"` : ''} ${component.height ? `height="${component.height}"` : ''} />`;
+                    } else {
+                        html += `<div class="image-placeholder">Image placeholder</div>`;
+                    }
+                    break;
+                case 'video':
+                    if (component.src) {
+                        html += `<video controls width="${component.width || '100%'}" height="${component.height || '300px'}"><source src="${component.src}" /></video>`;
+                    } else {
+                        html += `<div class="video-placeholder">Video placeholder</div>`;
+                    }
+                    break;
+                    
+                // Layout
+                case 'columns-2':
+                case 'columns-3':
+                case 'columns-4':
+                    const colCount = component.columns || 2;
+                    html += `<div class="form-columns" style="display: flex; gap: 15px;">`;
+                    for (let i = 0; i < colCount; i++) {
+                        html += `<div class="form-column" style="flex: 1; border: 1px dashed #ccc; padding: 10px;">Column ${i + 1}</div>`;
+                    }
+                    html += `</div>`;
+                    break;
+                case 'fieldset':
+                    html += `<fieldset><legend>${component.legend || 'Fieldset'}</legend><div style="padding: 10px;">Fieldset content area</div></fieldset>`;
+                    break;
+                    
+                // Advanced
+                case 'hidden':
+                    html += `<input type="hidden" name="${component.key}" value="${component.value || ''}" />`;
+                    break;
+                case 'rating':
+                    const maxRating = component.max || 5;
+                    html += `<div class="rating-field">`;
+                    for (let i = 1; i <= maxRating; i++) {
+                        html += `<span class="star">★</span>`;
+                    }
+                    html += `</div>`;
+                    break;
+                case 'signature':
+                    html += `<div class="signature-field" style="border: 1px solid #ccc; width: ${component.width || '400px'}; height: ${component.height || '200px'}; display: flex; align-items: center; justify-content: center; background: #f9f9f9;">Signature Area</div>`;
+                    break;
+                case 'captcha':
+                    html += `<div class="captcha-field" style="border: 1px solid #ccc; padding: 20px; text-align: center; background: #f9f9f9;">CAPTCHA Placeholder</div>`;
+                    break;
+                case 'calculation':
+                    html += `<div class="calculation-field" style="background: #e7f3ff; padding: 10px; border: 1px solid #b3d9ff; color: #0066cc;">Calculation: ${component.formula || 'No formula set'}</div>`;
+                    break;
+                    
+                // Actions
+                case 'submit':
+                    html += `<button type="submit" class="button button-${component.style || 'primary'}">${component.text || 'Submit'}</button>`;
+                    break;
+                case 'reset':
+                    html += `<button type="reset" class="button">${component.text || 'Reset'}</button>`;
+                    break;
+                case 'button':
+                    html += `<button type="button" class="button">${component.text || 'Click Me'}</button>`;
+                    break;
+                    
                 default:
-                    html += `<div>Unknown field type: ${component.type}</div>`;
+                    html += `<div style="color: #dc3545; border: 1px dashed #dc3545; padding: 8px;">Unknown field type: ${component.type}</div>`;
             }
             
             html += `</div>`;
         });
         
-        html += '<div class="form-actions"><button type="submit" class="button button-primary">Submit</button></div>';
+        html += '<div class="form-actions"><button type="submit" class="button button-primary">Submit Form</button></div>';
         html += '</form>';
         
         return html;
