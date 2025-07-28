@@ -106,18 +106,27 @@
      * Initialize Form Builder
      */
     function initFormBuilder() {
+        console.log('=== initFormBuilder called ===');
+        
         // Get form ID if editing
         currentFormId = parseInt($('#form-id').val()) || 0;
+        console.log('Form ID from input:', $('#form-id').val());
+        console.log('Parsed currentFormId:', currentFormId);
+        console.log('Form ID input element exists:', $('#form-id').length > 0);
+        console.log('Form builder container exists:', $('#form-builder-container').length > 0);
         
         // Load existing form data if editing
         if (currentFormId > 0) {
+            console.log('Loading existing form data for ID:', currentFormId);
             loadFormData(currentFormId);
         } else {
+            console.log('No form ID, creating new form builder');
             createFormBuilderUI();
         }
 
         // Bind save events
         bindEvents();
+        console.log('=== initFormBuilder completed ===');
     }
 
     /**
@@ -1807,6 +1816,10 @@
      * Load form data
      */
     function loadFormData(formId) {
+        console.log('=== loadFormData called ===');
+        console.log('Loading form ID:', formId);
+        console.log('Form ID type:', typeof formId);
+        
         $.ajax({
             url: (window.liftFormBuilder && liftFormBuilder.ajaxurl) || ajaxurl || '/wp-admin/admin-ajax.php',
             type: 'POST',
@@ -1815,36 +1828,90 @@
                 nonce: (window.liftFormBuilder && liftFormBuilder.nonce) || '',
                 form_id: formId
             },
+            beforeSend: function() {
+                console.log('=== AJAX LOAD REQUEST STARTING ===');
+                console.log('AJAX URL:', (window.liftFormBuilder && liftFormBuilder.ajaxurl) || ajaxurl || '/wp-admin/admin-ajax.php');
+                console.log('Nonce:', (window.liftFormBuilder && liftFormBuilder.nonce) || '');
+            },
             success: function(response) {
+                console.log('=== AJAX LOAD SUCCESS ===');
+                console.log('Response:', response);
+                
                 if (response.success && response.data.form_fields) {
+                    console.log('Form fields found:', response.data.form_fields);
+                    console.log('Form fields type:', typeof response.data.form_fields);
+                    
                     try {
-                        const loadedData = typeof response.data.form_fields === 'string' 
-                            ? JSON.parse(response.data.form_fields) 
-                            : response.data.form_fields;
+                        let loadedData;
+                        
+                        if (typeof response.data.form_fields === 'string') {
+                            console.log('Attempting to parse JSON string...');
+                            loadedData = JSON.parse(response.data.form_fields);
+                            console.log('JSON parse successful!');
+                        } else {
+                            console.log('Data is already an object');
+                            loadedData = response.data.form_fields;
+                        }
+                        
+                        console.log('Parsed data:', loadedData);
+                        console.log('Layout exists:', !!loadedData.layout);
+                        console.log('Layout rows exist:', !!(loadedData.layout && loadedData.layout.rows));
+                        console.log('Layout rows length:', loadedData.layout && loadedData.layout.rows ? loadedData.layout.rows.length : 0);
+                        console.log('Fields exist:', !!loadedData.fields);
+                        console.log('Fields length:', loadedData.fields ? loadedData.fields.length : 0);
                         
                         // Handle different data structures
-                        if (loadedData.layout && loadedData.layout.rows) {
-                            // New structure with layout
+                        if (loadedData.layout && loadedData.layout.rows && loadedData.layout.rows.length > 0) {
+                            console.log('=== Using new structure with layout and rows ===');
+                            // New structure with layout and actual rows
                             layoutData = loadedData.layout;
                             formData = loadedData.fields || [];
+                            console.log('About to call loadLayout with:', layoutData);
                             loadLayout(loadedData.layout);
+                        } else if (loadedData.fields && loadedData.fields.length > 0) {
+                            console.log('=== Structure has fields but empty/missing layout - recreating layout ===');
+                            // Structure has fields but layout is empty/missing - recreate layout with fields
+                            formData = loadedData.fields || [];
+                            
+                            // Create default row structure and place fields in first column
+                            createDefaultRow();
+                            
+                            // Add fields to the first column
+                            setTimeout(() => {
+                                console.log('Adding fields to first column...');
+                                const firstColumn = $('#form-fields-list .form-column').first();
+                                if (firstColumn.length && formData.length > 0) {
+                                    console.log('Found first column, adding', formData.length, 'fields');
+                                    firstColumn.find('.column-placeholder').hide();
+                                    
+                                    formData.forEach(field => {
+                                        if (field && field.type) {
+                                            // Ensure field has ID
+                                            if (!field.id) {
+                                                field.id = 'field-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                                            }
+                                            const fieldHTML = generateFieldPreview(field);
+                                            firstColumn.append(fieldHTML);
+                                        }
+                                    });
+                                    firstColumn.addClass('has-fields');
+                                    
+                                    // Update layout data to reflect the actual structure
+                                    updateLayoutFromDOM();
+                                    console.log('Fields added to first column successfully');
+                                } else {
+                                    console.error('Could not find first column or no fields to add');
+                                }
+                            }, 100);
+                            
                         } else if (Array.isArray(loadedData)) {
+                            console.log('=== Using old flat structure ===');
                             // Old flat structure - convert to row/column layout
                             formData = loadedData;
                             createDefaultRow();
                             createFormBuilderUI(loadedData);
-                        } else if (loadedData.fields) {
-                            // Structure with fields property
-                            formData = loadedData.fields || [];
-                            
-                            // Use existing layout or create default
-                            if (loadedData.layout && loadedData.layout.rows) {
-                                layoutData = loadedData.layout;
-                            } else {
-                                createDefaultRow();
-                            }
-                            loadLayout(layoutData);
                         } else {
+                            console.log('=== Creating default structure ===');
                             // Create default structure
                             createDefaultRow();
                             createFormBuilderUI(loadedData);
@@ -1852,13 +1919,20 @@
                         
                         updateGlobalFormData();
                     } catch (error) {
+                        console.error('JSON PARSE ERROR:', error);
+                        console.error('Error message:', error.message);
+                        console.error('Error stack:', error.stack);
+                        console.error('Failed to parse form data:', response.data.form_fields);
+                        console.log('Creating default UI due to parse error...');
                         createFormBuilderUI();
                     }
                 } else {
+                    console.log('No form fields in response, creating empty form');
                     createFormBuilderUI();
                 }
             },
             error: function(xhr, status, error) {
+                console.error('AJAX error loading form data:', error);
                 createFormBuilderUI();
             }
         });
@@ -1868,16 +1942,29 @@
      * Load layout with rows and columns
      */
     function loadLayout(layout) {
+        console.log('=== loadLayout called ===');
+        console.log('Layout input:', layout);
+        
         const container = $('#form-fields-list');
         container.html(''); // Clear existing content
         
         if (!layout || !layout.rows || layout.rows.length === 0) {
+            console.log('No layout rows found, creating empty message');
             container.html('<div class="no-fields-message"><p>No rows added yet. Drag a row layout from the palette to get started.</p></div>');
             return;
         }
         
-        layout.rows.forEach(row => {
-            if (!row.columns || row.columns.length === 0) return;
+        console.log('Processing', layout.rows.length, 'rows');
+        
+        layout.rows.forEach((row, rowIndex) => {
+            console.log('Processing row', rowIndex, ':', row);
+            
+            if (!row.columns || row.columns.length === 0) {
+                console.log('Row has no columns, skipping');
+                return;
+            }
+            
+            console.log('Row has', row.columns.length, 'columns');
             
             // Create row HTML
             let rowHTML = `<div class="form-row" data-row-id="${row.id}" draggable="true">`;
@@ -1909,6 +1996,10 @@
             
             // Add columns
             row.columns.forEach((column, columnIndex) => {
+                console.log('Processing column', columnIndex, ':', column);
+                console.log('Column fields:', column.fields);
+                console.log('Column fields length:', column.fields ? column.fields.length : 0);
+                
                 rowHTML += `
                     <div class="form-column" data-column-id="${column.id}" style="flex: ${column.width || '1'}; position: relative;">
                         <div class="column-header">
@@ -1932,11 +2023,17 @@
                 
                 // Add fields to column
                 if (column.fields && column.fields.length > 0) {
-                    column.fields.forEach(field => {
-                        rowHTML += generateFieldPreview(field);
+                    console.log('Adding', column.fields.length, 'fields to column', columnIndex);
+                    column.fields.forEach((field, fieldIndex) => {
+                        console.log('Generating preview for field', fieldIndex, ':', field);
+                        const fieldHTML = generateFieldPreview(field);
+                        console.log('Generated field HTML:', fieldHTML);
+                        rowHTML += fieldHTML;
                     });
                     rowHTML += '</div>'; // Close column-content
+                    console.log('Column', columnIndex, 'has fields - no placeholder');
                 } else {
+                    console.log('Column', columnIndex, 'is empty - adding placeholder');
                     rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
                 }
                 
@@ -1944,13 +2041,44 @@
             });
             
             rowHTML += '</div>'; // Close form-row
+            console.log('Final row HTML length:', rowHTML.length);
+            console.log('Appending row to container...');
             container.append(rowHTML);
+            console.log('Row appended. Container children count:', container.children().length);
         });
         
+        console.log('All rows processed. Final container HTML length:', container.html().length);
+        console.log('Container children after all rows:', container.children().length);
+        console.log('Container content preview:', container.html().substring(0, 200) + '...');
+        
+        console.log('Layout rendering complete, calling event binding functions...');
+        
         // Initialize drag and drop and other events
-        bindRowEvents();
-        initColumnResize();
-        initDragAndDrop();
+        try {
+            console.log('Calling bindRowEvents...');
+            bindRowEvents();
+            console.log('bindRowEvents completed');
+        } catch (error) {
+            console.error('Error in bindRowEvents:', error);
+        }
+        
+        try {
+            console.log('Calling initColumnResize...');
+            initColumnResize();
+            console.log('initColumnResize completed');
+        } catch (error) {
+            console.error('Error in initColumnResize:', error);
+        }
+        
+        try {
+            console.log('Calling initDragAndDrop...');
+            initDragAndDrop();
+            console.log('initDragAndDrop completed');
+        } catch (error) {
+            console.error('Error in initDragAndDrop:', error);
+        }
+        
+        console.log('=== loadLayout completed ===');
     }
 
     /**
