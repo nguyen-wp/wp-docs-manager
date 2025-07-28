@@ -26,8 +26,7 @@
                 setFormData: function(data) {
                     formData = data;
                     updateGlobalFormData();
-                },
-                renderFields: renderFields
+                }
             };
         }
     });
