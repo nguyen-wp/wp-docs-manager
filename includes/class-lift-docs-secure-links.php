@@ -1228,7 +1228,7 @@ class LIFT_Docs_Secure_Links {
             array(
                 'document_id' => $document_id,
                 'user_id' => $user_id,
-                'action' => 'secure_view',
+                'action' => 'view',
                 'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
                 'timestamp' => current_time('mysql')
@@ -1236,10 +1236,10 @@ class LIFT_Docs_Secure_Links {
             array('%d', '%d', '%s', '%s', '%s', '%s')
         );
         
-        // Update view count
-        $view_count = get_post_meta($document_id, '_lift_doc_view_count', true);
+        // Update view count using the correct meta key
+        $view_count = get_post_meta($document_id, '_lift_doc_views', true);
         $view_count = $view_count ? intval($view_count) : 0;
-        update_post_meta($document_id, '_lift_doc_view_count', $view_count + 1);
+        update_post_meta($document_id, '_lift_doc_views', $view_count + 1);
     }
     
     /**
@@ -1263,7 +1263,7 @@ class LIFT_Docs_Secure_Links {
             array(
                 'document_id' => $document_id,
                 'user_id' => $user_id,
-                'action' => 'secure_download',
+                'action' => 'download',
                 'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
                 'timestamp' => current_time('mysql')
@@ -1271,10 +1271,10 @@ class LIFT_Docs_Secure_Links {
             array('%d', '%d', '%s', '%s', '%s', '%s')
         );
         
-        // Update download count
-        $download_count = get_post_meta($document_id, '_lift_doc_download_count', true);
+        // Update download count using the correct meta key
+        $download_count = get_post_meta($document_id, '_lift_doc_downloads', true);
         $download_count = $download_count ? intval($download_count) : 0;
-        update_post_meta($document_id, '_lift_doc_download_count', $download_count + 1);
+        update_post_meta($document_id, '_lift_doc_downloads', $download_count + 1);
     }
     
     /**
