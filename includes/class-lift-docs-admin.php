@@ -2979,32 +2979,7 @@ class LIFT_Docs_Admin {
                     </p>
                 </div>
 
-                <div class="modal-section">
-                    <h3><?php _e('Status', 'lift-docs-system'); ?></h3>
-                    <?php
-                    $status_options = array(
-                        'pending' => __('Pending', 'lift-docs-system'),
-                        'processing' => __('Processing', 'lift-docs-system'),
-                        'done' => __('Done', 'lift-docs-system'),
-                        'cancelled' => __('Cancelled', 'lift-docs-system')
-                    );
-                    
-                    $status_colors = array(
-                        'pending' => '#f39c12',
-                        'processing' => '#3498db',
-                        'done' => '#27ae60',
-                        'cancelled' => '#e74c3c'
-                    );
-                    ?>
-                    <select class="lift-status-dropdown" data-post-id="<?php echo esc_attr($document->ID); ?>" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #ddd; background-color: <?php echo esc_attr($status_colors[$current_status]); ?>; color: white; font-weight: 500; width: 100%; font-size: 13px;">
-                        <?php foreach ($status_options as $value => $label): ?>
-                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_status, $value); ?> data-color="<?php echo esc_attr($status_colors[$value]); ?>">
-                                <?php echo esc_html($label); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
+                
                 <div class="modal-section">
                     <h3><?php _e('View URL', 'lift-docs-system'); ?></h3>
                     <div class="view-url-box">
@@ -3013,6 +2988,7 @@ class LIFT_Docs_Admin {
                         </a>
                     </div>
                 </div>
+           
 
             </div>
             
@@ -3086,6 +3062,32 @@ class LIFT_Docs_Admin {
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <div class="modal-section">
+                    <h3><?php _e('Status', 'lift-docs-system'); ?></h3>
+                    <?php
+                    $status_options = array(
+                        'pending' => __('Pending', 'lift-docs-system'),
+                        'processing' => __('Processing', 'lift-docs-system'),
+                        'done' => __('Done', 'lift-docs-system'),
+                        'cancelled' => __('Cancelled', 'lift-docs-system')
+                    );
+                    
+                    $status_colors = array(
+                        'pending' => '#f39c12',
+                        'processing' => '#3498db',
+                        'done' => '#27ae60',
+                        'cancelled' => '#e74c3c'
+                    );
+                    ?>
+                    <select class="lift-status-dropdown" data-post-id="<?php echo esc_attr($document->ID); ?>" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #ddd; background-color: <?php echo esc_attr($status_colors[$current_status]); ?>; color: white; font-weight: 500; width: 100%; font-size: 13px;">
+                        <?php foreach ($status_options as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_status, $value); ?> data-color="<?php echo esc_attr($status_colors[$value]); ?>">
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
             </div>
         </div>
