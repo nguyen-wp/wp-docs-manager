@@ -374,9 +374,10 @@
 
         // Clear form
         $(document).on('click', '#clear-form', function() {
-            if (confirm('Are you sure you want to clear all fields?')) {
+            if (confirm('Are you sure you want to clear all fields and rows?')) {
                 formData = [];
-                renderFields();
+                // Clear entire container including rows
+                $('#form-fields-list').html('<div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>');
             }
         });
 
@@ -594,17 +595,34 @@
     }
 
     /**
-     * Update field order based on DOM order
+     * Update field order based on DOM order (including fields in columns)
      */
     function updateFieldOrder() {
         const newOrder = [];
-        $('#form-fields-list .form-field-item').each(function() {
-            const fieldId = $(this).data('field-id');
-            const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
-            if (field) {
-                newOrder.push(field);
-            }
-        });
+        
+        // Check if we have row structure
+        if ($('#form-fields-list .form-row').length > 0) {
+            // Get fields from all columns in order
+            $('#form-fields-list .form-row').each(function() {
+                $(this).find('.form-column .form-field-item').each(function() {
+                    const fieldId = $(this).data('field-id');
+                    const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
+                    if (field) {
+                        newOrder.push(field);
+                    }
+                });
+            });
+        } else {
+            // Simple single column mode
+            $('#form-fields-list .form-field-item').each(function() {
+                const fieldId = $(this).data('field-id');
+                const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
+                if (field) {
+                    newOrder.push(field);
+                }
+            });
+        }
+        
         formData = newOrder;
         console.log('Field order updated:', formData.map(f => f.label));
     }
@@ -614,9 +632,20 @@
      */
     function addField(type) {
         const field = createFieldData(type);
-        
         formData.push(field);
-        renderFields();
+        
+        // If we have row structure, don't use renderFields (user should drag to specific column)
+        if ($('#form-fields-list .form-row').length > 0) {
+            console.log('Field created but not added to view. Please drag from palette to specific column.');
+            // Don't render, let user drag from palette
+            // Remove the field from formData since it's not placed yet
+            formData.pop();
+            alert('Please drag the field from the palette to a specific column in your form.');
+            return;
+        } else {
+            // Only render if we're in simple single-column mode
+            renderFields();
+        }
         
         // Auto-open edit modal for new field
         editField(formData.length - 1);
@@ -685,17 +714,50 @@
             field.options = optionsText ? optionsText.split('\n').filter(opt => opt.trim()) : [];
         }
 
-        // Re-render and close modal
-        renderFields();
+        // Update field in-place without re-rendering entire structure
+        updateFieldInPlace(field);
         $('#field-edit-modal').hide();
+    }
+
+    /**
+     * Update field in place without destroying row structure
+     */
+    function updateFieldInPlace(field) {
+        const fieldElement = $(`.form-field-item[data-field-id="${field.id}"]`);
+        if (fieldElement.length) {
+            // Update field display
+            fieldElement.find('.field-label').text(field.label);
+            fieldElement.find('.field-type').text(field.type.toUpperCase());
+            fieldElement.find('.field-preview').html(generateFieldPreview(field));
+        }
     }
 
     /**
      * Delete field
      */
     function deleteField(index) {
+        const field = formData[index];
+        if (!field) return;
+        
+        // Remove from DOM first
+        const fieldElement = $(`.form-field-item[data-field-id="${field.id}"]`);
+        const parentColumn = fieldElement.closest('.form-column');
+        
+        fieldElement.remove();
+        
+        // Check if parent column is now empty
+        if (parentColumn.length && parentColumn.find('.form-field-item').length === 0) {
+            parentColumn.removeClass('has-fields');
+            parentColumn.find('.column-placeholder').show();
+        }
+        
+        // Remove from data array
         formData.splice(index, 1);
-        renderFields();
+        
+        // If no rows exist and no fields, fall back to simple view
+        if ($('#form-fields-list .form-row').length === 0 && formData.length === 0) {
+            $('#form-fields-list').html('<div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>');
+        }
     }
 
     /**
@@ -707,7 +769,15 @@
         } else if (direction === 'down' && index < formData.length - 1) {
             [formData[index], formData[index + 1]] = [formData[index + 1], formData[index]];
         }
-        renderFields();
+        
+        // If fields are in row/column structure, don't use renderFields
+        if ($('#form-fields-list .form-row').length > 0) {
+            // Just update the data, the visual reordering should be handled by drag & drop
+            console.log('Field order updated in data, visual reordering should use drag & drop');
+        } else {
+            // Only use renderFields if we're in simple single-column mode
+            renderFields();
+        }
     }
 
     /**
@@ -1349,6 +1419,14 @@
         column.find('.form-field-item').last().attr('draggable', 'true');
         
         formData.push(fieldData);
+        
+        // Auto-open edit modal for new field
+        setTimeout(() => {
+            const fieldIndex = formData.findIndex(f => f.id === fieldData.id);
+            if (fieldIndex !== -1) {
+                editField(fieldIndex);
+            }
+        }, 100);
     }
 
     function moveFieldToColumn(fieldId, targetColumn) {
