@@ -164,7 +164,7 @@ msgstr "Bảng điều khiển hệ thống LIFT Docs"
 msgid "Total Documents"
 msgstr "Tổng số tài liệu"
 
-msgid "Total Views"
+msgid "Views"
 msgstr "Tổng lượt xem"
 
 msgid "Quick Actions"

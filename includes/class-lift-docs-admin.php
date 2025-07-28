@@ -1878,7 +1878,7 @@ class LIFT_Docs_Admin {
     }
 
     /**
-     * Get total views
+     * Get Views
      */
     private function get_total_views() {
         global $wpdb;

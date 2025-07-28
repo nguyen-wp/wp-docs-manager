@@ -1089,7 +1089,7 @@ class LIFT_Docs_Frontend_Login {
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo count($user_documents); ?></h3>
-                                <p><?php _e('Available Documents', 'lift-docs-system'); ?></p>
+                                <p><?php _e('Documents', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
                         
@@ -1099,7 +1099,7 @@ class LIFT_Docs_Frontend_Login {
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo $this->get_user_download_count($current_user->ID); ?></h3>
-                                <p><?php _e('Total Downloads', 'lift-docs-system'); ?></p>
+                                <p><?php _e('Downloads', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
                         
@@ -1109,7 +1109,7 @@ class LIFT_Docs_Frontend_Login {
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo $this->get_user_view_count($current_user->ID); ?></h3>
-                                <p><?php _e('Total Views', 'lift-docs-system'); ?></p>
+                                <p><?php _e('Views', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
                         
@@ -1153,14 +1153,6 @@ class LIFT_Docs_Frontend_Login {
                                 <p><?php _e('You don\'t have access to any documents yet. Contact your administrator for access.', 'lift-docs-system'); ?></p>
                             </div>
                         <?php endif; ?>
-                    </div>
-                    
-                    <!-- Recent Activity -->
-                    <div class="activity-section">
-                        <h2><?php _e('Recent Activity', 'lift-docs-system'); ?></h2>
-                        <div class="activity-list">
-                            <?php $this->render_recent_activity($current_user->ID); ?>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1398,52 +1390,6 @@ class LIFT_Docs_Frontend_Login {
             </div>
         </div>
         <?php
-    }
-    
-    /**
-     * Render recent activity
-     */
-    private function render_recent_activity($user_id) {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
-        $activities = $wpdb->get_results($wpdb->prepare(
-            "SELECT * FROM $table_name 
-             WHERE user_id = %d 
-             ORDER BY timestamp DESC 
-             LIMIT 10",
-            $user_id
-        ));
-        
-        if (empty($activities)) {
-            echo '<p class="no-activity">' . __('No recent activity.', 'lift-docs-system') . '</p>';
-            return;
-        }
-        
-        foreach ($activities as $activity) {
-            $document = get_post($activity->document_id);
-            if (!$document) continue;
-            
-            $action_icon = $activity->action === 'view' ? 'visibility' : 'download';
-            $action_text = $activity->action === 'view' ? __('Viewed', 'lift-docs-system') : __('Downloaded', 'lift-docs-system');
-            
-            ?>
-            <div class="activity-item">
-                <div class="activity-icon">
-                    <span class="dashicons dashicons-<?php echo $action_icon; ?>"></span>
-                </div>
-                <div class="activity-content">
-                    <p class="activity-description">
-                        <strong><?php echo $action_text; ?></strong> 
-                        <a href="#" class="document-link" data-document-id="<?php echo $document->ID; ?>">
-                            <?php echo esc_html($document->post_title); ?>
-                        </a>
-                    </p>
-                    <span class="activity-time"><?php echo human_time_diff(strtotime($activity->timestamp), current_time('timestamp')); ?> <?php _e('ago', 'lift-docs-system'); ?></span>
-                </div>
-            </div>
-            <?php
-        }
     }
     
     /**
@@ -2055,7 +2001,7 @@ class LIFT_Docs_Frontend_Login {
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo count($user_documents); ?></h3>
-                                <p><?php _e('Available Documents', 'lift-docs-system'); ?></p>
+                                <p><?php _e('Documents', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
                         
@@ -2065,7 +2011,7 @@ class LIFT_Docs_Frontend_Login {
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo $this->get_user_download_count($current_user->ID); ?></h3>
-                                <p><?php _e('Total Downloads', 'lift-docs-system'); ?></p>
+                                <p><?php _e('Downloads', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
                         
@@ -2075,7 +2021,7 @@ class LIFT_Docs_Frontend_Login {
                             </div>
                             <div class="stat-content">
                                 <h3><?php echo $this->get_user_view_count($current_user->ID); ?></h3>
-                                <p><?php _e('Total Views', 'lift-docs-system'); ?></p>
+                                <p><?php _e('Views', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
                         
@@ -2134,16 +2080,6 @@ class LIFT_Docs_Frontend_Login {
                             </div>
                         <?php endif; ?>
                     </div>
-                    
-                    <?php if ($atts['show_activity'] === 'true'): ?>
-                    <!-- Recent Activity -->
-                    <div class="activity-section">
-                        <h3><?php _e('Recent Activity', 'lift-docs-system'); ?></h3>
-                        <div class="activity-list">
-                            <?php $this->render_recent_activity($current_user->ID); ?>
-                        </div>
-                    </div>
-                    <?php endif; ?>
                 </div>
             </div>
         </div>
