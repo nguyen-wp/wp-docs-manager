@@ -1131,7 +1131,7 @@ class LIFT_Docs_Frontend_Login {
                         </div>
                         
                         <?php if (!empty($user_documents)): ?>
-                            <div class="documents-grid" id="documents-grid">
+                            <div class="documents-list" id="documents-list">
                                 <?php foreach ($user_documents as $document): ?>
                                     <?php $this->render_document_card($document, $current_user->ID); ?>
                                 <?php endforeach; ?>
@@ -2036,7 +2036,7 @@ class LIFT_Docs_Frontend_Login {
                         </div>
                         
                         <?php if (!empty($user_documents)): ?>
-                            <div class="documents-grid" id="documents-grid">
+                            <div class="documents-list" id="documents-list">
                                 <?php 
                                 $documents_to_show = array_slice($user_documents, 0, intval($atts['documents_per_page']));
                                 foreach ($documents_to_show as $document): 
