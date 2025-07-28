@@ -554,6 +554,143 @@ jQuery(document).ready(function($) {
     $('[data-tooltip]').each(function() {
         $(this).addClass('lift-docs-tooltip');
     });
+    
+    // Document Content Modal functionality
+    initDocumentContentModal();
+    
+    /**
+     * Initialize document content modal
+     */
+    function initDocumentContentModal() {
+        // Handle content preview button click
+        $(document).on('click', '.btn-content-preview', function(e) {
+            e.preventDefault();
+            
+            var documentId = $(this).data('document-id');
+            var button = $(this);
+            
+            if (!documentId) {
+                alert('Invalid document ID');
+                return;
+            }
+            
+            // Show loading state
+            button.prop('disabled', true);
+            var originalText = button.html();
+            button.html('<span class="dashicons dashicons-update"></span> Loading...');
+            
+            // Load document content via AJAX
+            $.ajax({
+                url: lift_docs_ajax.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'load_document_content',
+                    document_id: documentId,
+                    nonce: lift_docs_ajax.nonce
+                },
+                success: function(response) {
+                    // Reset button state
+                    button.prop('disabled', false).html(originalText);
+                    
+                    if (response.success) {
+                        showDocumentContentModal(response.data.title, response.data.content);
+                    } else {
+                        alert('Error loading document content: ' + (response.data || 'Unknown error'));
+                    }
+                },
+                error: function() {
+                    // Reset button state
+                    button.prop('disabled', false).html(originalText);
+                    alert('Network error. Please try again.');
+                }
+            });
+        });
+        
+        // Handle modal close
+        $(document).on('click', '.lift-modal-close, .lift-modal-backdrop', function(e) {
+            e.preventDefault();
+            closeDocumentContentModal();
+        });
+        
+        // Handle ESC key to close modal
+        $(document).on('keydown', function(e) {
+            if (e.keyCode === 27) { // ESC key
+                closeDocumentContentModal();
+            }
+        });
+        
+        // Prevent modal content click from closing modal
+        $(document).on('click', '.lift-modal-content', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Handle modal click to close
+        $(document).on('click', '.lift-modal', function(e) {
+            if (e.target === this) {
+                closeDocumentContentModal();
+            }
+        });
+    }
+    
+    /**
+     * Show document content modal
+     */
+    function showDocumentContentModal(title, content) {
+        var modal = $('#lift-document-modal');
+        var backdrop = $('#lift-modal-backdrop');
+        
+        if (modal.length === 0) {
+            // Create modal if it doesn't exist
+            var modalHtml = '<div id="lift-document-modal" class="lift-modal" style="display: none;">' +
+                '<div class="lift-modal-content">' +
+                    '<div class="lift-modal-header">' +
+                        '<h2 id="modal-document-title">Document Content</h2>' +
+                        '<button type="button" class="lift-modal-close">&times;</button>' +
+                    '</div>' +
+                    '<div class="lift-modal-body">' +
+                        '<div id="modal-document-content"></div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+            
+            $('body').append(modalHtml);
+            modal = $('#lift-document-modal');
+        }
+        
+        if (backdrop.length === 0) {
+            $('body').append('<div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>');
+            backdrop = $('#lift-modal-backdrop');
+        }
+        
+        // Set content
+        $('#modal-document-title').text(title);
+        $('#modal-document-content').html(content);
+        
+        // Show modal with animation
+        $('body').addClass('modal-open');
+        backdrop.fadeIn(200);
+        modal.fadeIn(200);
+        
+        // Focus management for accessibility
+        modal.find('.lift-modal-close').focus();
+    }
+    
+    /**
+     * Close document content modal
+     */
+    function closeDocumentContentModal() {
+        var modal = $('#lift-document-modal');
+        var backdrop = $('#lift-modal-backdrop');
+        
+        if (modal.is(':visible')) {
+            modal.fadeOut(200);
+            backdrop.fadeOut(200);
+            $('body').removeClass('modal-open');
+            
+            // Return focus to the button that opened the modal
+            $('.btn-content-preview:focus').blur();
+        }
+    }
 });
 
 // Document ready end

@@ -21,6 +21,8 @@ class LIFT_Docs_Frontend_Login {
         add_action('wp_ajax_docs_login', array($this, 'handle_ajax_login'));
         add_action('wp_ajax_nopriv_docs_logout', array($this, 'handle_ajax_logout'));
         add_action('wp_ajax_docs_logout', array($this, 'handle_ajax_logout'));
+        add_action('wp_ajax_load_document_content', array($this, 'handle_ajax_load_document_content'));
+        add_action('wp_ajax_nopriv_load_document_content', array($this, 'handle_ajax_load_document_content'));
         
         // Register shortcodes for regular pages
         add_shortcode('docs_login_form', array($this, 'login_form_shortcode'));
@@ -1281,23 +1283,18 @@ class LIFT_Docs_Frontend_Login {
         
         ?>
         <div class="document-card" data-document-id="<?php echo $document->ID; ?>">
-            <div class="document-card-header">
-                <h3 class="document-title"><?php echo esc_html($document->post_title); ?></h3>
-                <div class="document-badges">
-                    <?php if ($file_count > 1): ?>
-                        <span class="badge files-badge"><?php echo $file_count; ?> <?php _e('files', 'lift-docs-system'); ?></span>
-                    <?php endif; ?>
-                    <?php if ($user_downloaded): ?>
-                        <span class="badge downloaded-badge"><?php _e('Downloaded', 'lift-docs-system'); ?></span>
-                    <?php endif; ?>
+            <div class="document-card-header-meta">
+                <div class="document-header-info">
+                    <h3 class="document-title"><?php echo esc_html($document->post_title); ?></h3>
+                    <div class="document-badges">
+                        <?php if ($file_count > 1): ?>
+                            <span class="badge files-badge"><?php echo $file_count; ?> <?php _e('files', 'lift-docs-system'); ?></span>
+                        <?php endif; ?>
+                        <?php if ($user_downloaded): ?>
+                            <span class="badge downloaded-badge"><?php _e('Downloaded', 'lift-docs-system'); ?></span>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="document-card-content">
-                <?php if ($document->post_excerpt): ?>
-                    <p class="document-excerpt"><?php echo esc_html($document->post_excerpt); ?></p>
-                <?php endif; ?>
-                
                 <div class="document-meta">
                     <span class="document-date">
                         <span class="dashicons dashicons-calendar-alt"></span>
@@ -1314,6 +1311,21 @@ class LIFT_Docs_Frontend_Login {
                         </span>
                     </span>
                 </div>
+            </div>
+            
+            <div class="document-card-content">
+                <?php if ($document->post_excerpt): ?>
+                    <p class="document-excerpt"><?php echo esc_html($document->post_excerpt); ?></p>
+                <?php endif; ?>
+                
+                <?php if (!empty($document->post_content)): ?>
+                    <div class="document-content-preview">
+                        <button type="button" class="btn btn-content-preview" data-document-id="<?php echo $document->ID; ?>">
+                            <span class="dashicons dashicons-text-page"></span>
+                            <?php _e('View Content', 'lift-docs-system'); ?>
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
             
             <div class="document-card-actions">
@@ -1457,6 +1469,41 @@ class LIFT_Docs_Frontend_Login {
         wp_send_json_success(array(
             'redirect_url' => $this->get_login_url(),
             'message' => __('You have been logged out successfully.', 'lift-docs-system')
+        ));
+    }
+    
+    /**
+     * Handle AJAX load document content
+     */
+    public function handle_ajax_load_document_content() {
+        // Check if user is logged in and has access
+        if (!is_user_logged_in() || !$this->user_has_docs_access()) {
+            wp_send_json_error(__('Access denied.', 'lift-docs-system'));
+        }
+        
+        $document_id = intval($_POST['document_id'] ?? 0);
+        
+        if (!$document_id) {
+            wp_send_json_error(__('Invalid document ID.', 'lift-docs-system'));
+        }
+        
+        // Check if user can view this document
+        if (!$this->user_can_view_document($document_id)) {
+            wp_send_json_error(__('You do not have permission to view this document.', 'lift-docs-system'));
+        }
+        
+        $document = get_post($document_id);
+        
+        if (!$document || $document->post_type !== 'lift_document') {
+            wp_send_json_error(__('Document not found.', 'lift-docs-system'));
+        }
+        
+        // Process the content (apply filters like do_shortcode, wpautop, etc.)
+        $content = apply_filters('the_content', $document->post_content);
+        
+        wp_send_json_success(array(
+            'title' => $document->post_title,
+            'content' => $content
         ));
     }
     
