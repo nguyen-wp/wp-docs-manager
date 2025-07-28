@@ -56,6 +56,7 @@ class LIFT_Docs_Admin {
         // AJAX handlers
         add_action('wp_ajax_generate_user_code', array($this, 'ajax_generate_user_code'));
         add_action('wp_ajax_get_admin_document_details', array($this, 'ajax_get_admin_document_details'));
+        add_action('wp_ajax_update_document_status', array($this, 'ajax_update_document_status'));
         
         // Add script for users list
         add_action('admin_footer', array($this, 'add_users_list_script'));
@@ -293,6 +294,7 @@ class LIFT_Docs_Admin {
         $new_columns['cb'] = $columns['cb'];
         $new_columns['title'] = $columns['title'];
         $new_columns['category'] = __('Category', 'lift-docs-system');
+        $new_columns['status'] = __('Status', 'lift-docs-system');
         $new_columns['assignments'] = __('Assigned Users', 'lift-docs-system');
         $new_columns['date'] = $columns['date'];
         $new_columns['document_details'] = __('Details', 'lift-docs-system');
@@ -318,6 +320,10 @@ class LIFT_Docs_Admin {
                 }
                 break;
                 
+            case 'status':
+                $this->render_status_column($post_id);
+                break;
+                
             case 'assignments':
                 $this->render_assignments_column($post_id);
                 break;
@@ -326,6 +332,40 @@ class LIFT_Docs_Admin {
                 $this->render_document_details_button($post_id);
                 break;
         }
+    }
+
+    /**
+     * Render status column with dropdown
+     */
+    private function render_status_column($post_id) {
+        $current_status = get_post_meta($post_id, '_lift_doc_status', true);
+        if (empty($current_status)) {
+            $current_status = 'pending';
+        }
+        
+        $status_options = array(
+            'pending' => __('Pending', 'lift-docs-system'),
+            'processing' => __('Processing', 'lift-docs-system'),
+            'done' => __('Done', 'lift-docs-system'),
+            'cancelled' => __('Cancelled', 'lift-docs-system')
+        );
+        
+        $status_colors = array(
+            'pending' => '#f39c12',
+            'processing' => '#3498db',
+            'done' => '#27ae60',
+            'cancelled' => '#e74c3c'
+        );
+        
+        ?>
+        <select class="lift-status-dropdown" data-post-id="<?php echo esc_attr($post_id); ?>" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; background-color: <?php echo esc_attr($status_colors[$current_status]); ?>; color: white; font-weight: 500;">
+            <?php foreach ($status_options as $value => $label): ?>
+                <option value="<?php echo esc_attr($value); ?>" <?php selected($current_status, $value); ?> data-color="<?php echo esc_attr($status_colors[$value]); ?>">
+                    <?php echo esc_html($label); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <?php
     }
 
     /**
@@ -2005,12 +2045,16 @@ class LIFT_Docs_Admin {
             return;
         }
         
+        // Enqueue admin styles for document list
+        wp_enqueue_style('lift-docs-admin', plugin_dir_url(__FILE__) . '../assets/css/admin.css', array(), '1.0.0');
+        
         wp_enqueue_script('lift-docs-admin-modal', plugin_dir_url(__FILE__) . '../assets/js/admin-modal.js', array('jquery'), '1.0.0', true);
         wp_enqueue_style('lift-docs-admin-modal', plugin_dir_url(__FILE__) . '../assets/css/admin-modal.css', array(), '1.0.0');
         
         wp_localize_script('lift-docs-admin-modal', 'liftDocsAdmin', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('get_admin_document_details'),
+            'statusNonce' => wp_create_nonce('update_document_status'),
             'strings' => array(
                 'documentDetails' => __('Document Details', 'lift-docs-system'),
                 'viewDetails' => __('Document Details', 'lift-docs-system'),
@@ -2025,9 +2069,66 @@ class LIFT_Docs_Admin {
                 'copied' => __('Copied!', 'lift-docs-system'),
                 'preview' => __('Preview', 'lift-docs-system'),
                 'viewOnline' => __('View Online', 'lift-docs-system'),
-                'close' => __('Close', 'lift-docs-system')
+                'close' => __('Close', 'lift-docs-system'),
+                'statusUpdated' => __('Status updated successfully', 'lift-docs-system'),
+                'statusUpdateError' => __('Error updating status', 'lift-docs-system')
             )
         ));
+        
+        // Add inline script for status dropdown functionality
+        wp_add_inline_script('lift-docs-admin-modal', '
+            jQuery(document).ready(function($) {
+                // Handle status dropdown change
+                $(document).on("change", ".lift-status-dropdown", function() {
+                    var $dropdown = $(this);
+                    var postId = $dropdown.data("post-id");
+                    var newStatus = $dropdown.val();
+                    var oldColor = $dropdown.css("background-color");
+                    var newColor = $dropdown.find("option:selected").data("color");
+                    
+                    // Update dropdown color immediately
+                    $dropdown.css("background-color", newColor);
+                    
+                    // Show loading state
+                    $dropdown.prop("disabled", true);
+                    
+                    $.ajax({
+                        url: liftDocsAdmin.ajaxUrl,
+                        type: "POST",
+                        data: {
+                            action: "update_document_status",
+                            document_id: postId,
+                            status: newStatus,
+                            nonce: liftDocsAdmin.statusNonce
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Show success message
+                                var successMsg = $("<div class=\"notice notice-success is-dismissible\" style=\"position: fixed; top: 32px; right: 20px; z-index: 9999; max-width: 300px;\"><p>" + liftDocsAdmin.strings.statusUpdated + "</p></div>");
+                                $("body").append(successMsg);
+                                
+                                // Auto-dismiss after 3 seconds
+                                setTimeout(function() {
+                                    successMsg.fadeOut().remove();
+                                }, 3000);
+                            } else {
+                                // Revert on error
+                                $dropdown.css("background-color", oldColor);
+                                alert(response.data || liftDocsAdmin.strings.statusUpdateError);
+                            }
+                        },
+                        error: function() {
+                            // Revert on error
+                            $dropdown.css("background-color", oldColor);
+                            alert(liftDocsAdmin.strings.statusUpdateError);
+                        },
+                        complete: function() {
+                            $dropdown.prop("disabled", false);
+                        }
+                    });
+                });
+            });
+        ');
     }
     
     /**
@@ -2774,6 +2875,12 @@ class LIFT_Docs_Admin {
         $views = get_post_meta($document->ID, '_lift_doc_views', true);
         $downloads = get_post_meta($document->ID, '_lift_doc_downloads', true);
         
+        // Get document status
+        $current_status = get_post_meta($document->ID, '_lift_doc_status', true);
+        if (empty($current_status)) {
+            $current_status = 'pending';
+        }
+        
         // Get file URLs
         $file_urls = get_post_meta($document->ID, '_lift_doc_file_urls', true);
         if (empty($file_urls)) {
@@ -2873,6 +2980,32 @@ class LIFT_Docs_Admin {
                 </div>
 
                 <div class="modal-section">
+                    <h3><?php _e('Status', 'lift-docs-system'); ?></h3>
+                    <?php
+                    $status_options = array(
+                        'pending' => __('Pending', 'lift-docs-system'),
+                        'processing' => __('Processing', 'lift-docs-system'),
+                        'done' => __('Done', 'lift-docs-system'),
+                        'cancelled' => __('Cancelled', 'lift-docs-system')
+                    );
+                    
+                    $status_colors = array(
+                        'pending' => '#f39c12',
+                        'processing' => '#3498db',
+                        'done' => '#27ae60',
+                        'cancelled' => '#e74c3c'
+                    );
+                    ?>
+                    <select class="lift-status-dropdown" data-post-id="<?php echo esc_attr($document->ID); ?>" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #ddd; background-color: <?php echo esc_attr($status_colors[$current_status]); ?>; color: white; font-weight: 500; width: 100%; font-size: 13px;">
+                        <?php foreach ($status_options as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($current_status, $value); ?> data-color="<?php echo esc_attr($status_colors[$value]); ?>">
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="modal-section">
                     <h3><?php _e('View URL', 'lift-docs-system'); ?></h3>
                     <div class="view-url-box">
                         <a href="<?php echo esc_url($view_url); ?>" target="_blank">
@@ -2961,6 +3094,59 @@ class LIFT_Docs_Admin {
         
         wp_send_json_success(array(
             'content' => $content
+        ));
+    }
+    
+    /**
+     * AJAX handler for updating document status
+     */
+    public function ajax_update_document_status() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'update_document_status')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        // Check user permissions
+        if (!current_user_can('manage_options') && !current_user_can('edit_lift_documents')) {
+            wp_send_json_error(__('Access denied', 'lift-docs-system'));
+        }
+        
+        $document_id = intval($_POST['document_id']);
+        $new_status = sanitize_text_field($_POST['status']);
+        
+        // Validate status
+        $valid_statuses = array('pending', 'processing', 'done', 'cancelled');
+        if (!in_array($new_status, $valid_statuses)) {
+            wp_send_json_error(__('Invalid status', 'lift-docs-system'));
+        }
+        
+        $document = get_post($document_id);
+        if (!$document || $document->post_type !== 'lift_document') {
+            wp_send_json_error(__('Document not found', 'lift-docs-system'));
+        }
+        
+        // Update status
+        update_post_meta($document_id, '_lift_doc_status', $new_status);
+        
+        // Get status label and color
+        $status_options = array(
+            'pending' => __('Pending', 'lift-docs-system'),
+            'processing' => __('Processing', 'lift-docs-system'),
+            'done' => __('Done', 'lift-docs-system'),
+            'cancelled' => __('Cancelled', 'lift-docs-system')
+        );
+        
+        $status_colors = array(
+            'pending' => '#f39c12',
+            'processing' => '#3498db',
+            'done' => '#27ae60',
+            'cancelled' => '#e74c3c'
+        );
+        
+        wp_send_json_success(array(
+            'status' => $new_status,
+            'label' => $status_options[$new_status],
+            'color' => $status_colors[$new_status]
         ));
     }
 }
