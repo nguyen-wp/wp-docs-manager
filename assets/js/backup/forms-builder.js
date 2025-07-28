@@ -105,7 +105,7 @@
                 opacity: 0.8,
                 distance: 5,
                 start: function(event, ui) {
-                    ui.placeholder.html('<div class="placeholder-content"><span class="dashicons dashicons-move"></span> Drop field here</div>');
+                    ui.placeholder.html('<div class="placeholder-content">Drop field here</div>');
                     $('#form-canvas').addClass('sorting-active');
                     ui.item.addClass('being-sorted');
                 },

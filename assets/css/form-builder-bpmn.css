@@ -607,7 +607,7 @@
 /* Sort placeholder */
 .field-sort-placeholder {
     height: 60px;
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    background: #135e96;
     border: 2px dashed #3b82f6;
     border-radius: 6px;
     margin-bottom: 8px;
@@ -615,24 +615,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
     color: #3b82f6;
     font-weight: 600;
     font-size: 12px;
 }
 
-.field-sort-placeholder::before {
-    content: "⬇ Drop field here ⬇";
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.05); }
-}
-
 .form-field-item.dragging {
     opacity: 0.7;
-    transform: scale(0.98) rotate(2deg);
     box-shadow: 0 8px 25px rgba(34, 113, 177, 0.3);
     border-color: #2271b1;
     z-index: 1000;
@@ -654,17 +644,14 @@
 .form-field-item.drag-target::before {
     background: linear-gradient(90deg, #22c55e, #4ade80);
     height: 4px;
-    top: -6px;
     box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
 }
 
 .form-field-item.drag-over::before {
-    content: "Drop field here";
     display: flex;
     align-items: center;
     justify-content: center;
     height: 30px;
-    top: -36px;
     background: rgba(34, 197, 94, 0.1);
     border: 2px dashed #22c55e;
     color: #22c55e;
