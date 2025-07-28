@@ -83,8 +83,17 @@ class LIFT_Docs_Frontend_Login {
             exit;
         }
         
-        // Handle dashboard redirect for non-logged users
+        // Handle login page redirect for logged-in users
         global $post;
+        if ($post && $post->post_name === 'document-login') {
+            if (is_user_logged_in() && $this->user_has_docs_access()) {
+                $dashboard_url = $this->get_dashboard_url();
+                wp_safe_redirect($dashboard_url);
+                exit;
+            }
+        }
+        
+        // Handle dashboard redirect for non-logged users
         if ($post && $post->post_name === 'document-dashboard') {
             if (!is_user_logged_in() || !$this->user_has_docs_access()) {
                 $login_url = $this->get_login_url();
@@ -462,6 +471,13 @@ class LIFT_Docs_Frontend_Login {
      * Display login page
      */
     private function display_login_page() {
+        // Check if user is already logged in - redirect to dashboard
+        if (is_user_logged_in() && $this->user_has_docs_access()) {
+            $dashboard_url = $this->get_dashboard_url();
+            wp_safe_redirect($dashboard_url);
+            exit;
+        }
+        
         // Get custom settings from Interface tab (prioritize new settings)
         $interface_logo_id = get_option('lift_docs_logo_upload', '');
         $interface_logo_width = get_option('lift_docs_custom_logo_width', '200');
@@ -1721,11 +1737,16 @@ class LIFT_Docs_Frontend_Login {
             'redirect_to' => '' // Custom redirect URL after login
         ), $atts);
         
-        // Check if user is already logged in
+        // Check if user is already logged in - redirect to dashboard
         if (is_user_logged_in() && $this->user_has_docs_access()) {
             $redirect_url = !empty($atts['redirect_to']) ? $atts['redirect_to'] : $this->get_dashboard_url();
-            return '<div class="docs-already-logged-in">
-                <p>' . sprintf(__('You are already logged in. <a href="%s">Go to Dashboard</a>', 'lift-docs-system'), $redirect_url) . '</p>
+            
+            // For shortcode, we can't redirect directly, so use JavaScript redirect
+            return '<script type="text/javascript">
+                window.location.href = "' . esc_js($redirect_url) . '";
+            </script>
+            <div class="docs-already-logged-in">
+                <p>' . sprintf(__('You are already logged in. Redirecting to <a href="%s">Dashboard</a>...', 'lift-docs-system'), $redirect_url) . '</p>
             </div>';
         }
         
