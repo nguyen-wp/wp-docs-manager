@@ -462,9 +462,6 @@ class LIFT_Forms {
                             <button type="button" id="save-form" class="button button-primary">
                                 <?php _e('Save Form', 'lift-docs-system'); ?>
                             </button>
-                            <button type="button" id="preview-form" class="button">
-                                <?php _e('Preview', 'lift-docs-system'); ?>
-                            </button>
                         </div>
                     </div>
                 </div>
