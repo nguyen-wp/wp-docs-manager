@@ -1207,16 +1207,12 @@ class LIFT_Docs_Secure_Links {
      * Track document view
      */
     private function track_document_view($document_id) {
-        // Debug logging
-        $this->debug_log("track_document_view called for document ID: " . $document_id);
-        
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
         
         // Check if table exists
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
-            $this->debug_log("Analytics table not found: " . $table_name);
             return;
         }
         
@@ -1237,35 +1233,24 @@ class LIFT_Docs_Secure_Links {
             array('%d', '%d', '%s', '%s', '%s', '%s')
         );
         
-        $this->debug_log("Analytics insert result: " . ($result ? 'success' : 'failed'));
-        if (!$result && $wpdb->last_error) {
-            $this->debug_log("Analytics insert error: " . $wpdb->last_error);
-        }
-        
         // Update view count using the correct meta key
         $current_views = get_post_meta($document_id, '_lift_doc_views', true);
         $view_count = $current_views ? intval($current_views) : 0;
         $new_count = $view_count + 1;
         
-        $meta_result = update_post_meta($document_id, '_lift_doc_views', $new_count);
-        
-        $this->debug_log("View count updated from $view_count to $new_count, meta update result: " . ($meta_result ? 'success' : 'failed'));
+        update_post_meta($document_id, '_lift_doc_views', $new_count);
     }
     
     /**
      * Track document download
      */
     private function track_document_download($document_id) {
-        // Debug logging
-        $this->debug_log("track_document_download called for document ID: " . $document_id);
-        
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
         
         // Check if table exists
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
-            $this->debug_log("Analytics table not found: " . $table_name);
             return;
         }
         
@@ -1273,7 +1258,7 @@ class LIFT_Docs_Secure_Links {
         $user_id = $user_id ? $user_id : null;
         
         // Insert into analytics table
-        $result = $wpdb->insert(
+        $wpdb->insert(
             $table_name,
             array(
                 'document_id' => $document_id,
@@ -1286,19 +1271,12 @@ class LIFT_Docs_Secure_Links {
             array('%d', '%d', '%s', '%s', '%s', '%s')
         );
         
-        $this->debug_log("Analytics insert result: " . ($result ? 'success' : 'failed'));
-        if (!$result && $wpdb->last_error) {
-            $this->debug_log("Analytics insert error: " . $wpdb->last_error);
-        }
-        
         // Update download count using the correct meta key
         $current_downloads = get_post_meta($document_id, '_lift_doc_downloads', true);
         $download_count = $current_downloads ? intval($current_downloads) : 0;
         $new_count = $download_count + 1;
         
-        $meta_result = update_post_meta($document_id, '_lift_doc_downloads', $new_count);
-        
-        $this->debug_log("Download count updated from $download_count to $new_count, meta update result: " . ($meta_result ? 'success' : 'failed'));
+        update_post_meta($document_id, '_lift_doc_downloads', $new_count);
     }
     
     /**
