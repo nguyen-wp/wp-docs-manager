@@ -174,6 +174,12 @@
                                 <button type="button" class="field-type-btn draggable" data-type="file" draggable="true">
                                     <span class="dashicons dashicons-upload"></span> File
                                 </button>
+                                <button type="button" class="field-type-btn draggable" data-type="header" draggable="true">
+                                    <span class="dashicons dashicons-heading"></span> Header
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="paragraph" draggable="true">
+                                    <span class="dashicons dashicons-text-page"></span> Paragraph
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -734,7 +740,9 @@
             email: 'Email Field',
             number: 'Number Field',
             date: 'Date Field',
-            file: 'File Upload'
+            file: 'File Upload',
+            header: 'Header',
+            paragraph: 'Paragraph'
         };
         return labels[type] || 'Field';
     }
@@ -751,6 +759,19 @@
         $('#field-name').val(field.name);
         $('#field-placeholder').val(field.placeholder);
         $('#field-required').prop('checked', field.required);
+        
+        // Show/hide form fields based on field type
+        if (field.type === 'header' || field.type === 'paragraph') {
+            // For header and paragraph, hide placeholder and required fields
+            $('#field-placeholder').closest('.form-field').hide();
+            $('#field-required').closest('.form-field').hide();
+            $('#field-name').closest('.form-field').hide();
+        } else {
+            // Show all fields for other types
+            $('#field-placeholder').closest('.form-field').show();
+            $('#field-required').closest('.form-field').show();
+            $('#field-name').closest('.form-field').show();
+        }
         
         // Show/hide options field based on field type
         if (field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') {
@@ -1162,6 +1183,54 @@
                     </div>
                 `;
             
+            case 'header':
+                return `
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <div class="field-compact-input header-preview">
+                                <span class="dashicons dashicons-heading"></span>
+                                <span class="field-name">${field.label}</span>
+                            </div>
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            
+            case 'paragraph':
+                return `
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <div class="field-compact-input paragraph-preview">
+                                <span class="dashicons dashicons-text-page"></span>
+                                <span class="field-name">${field.label}</span>
+                            </div>
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            
             default:
                 return `
                     <div class="compact-field-item">
@@ -1286,6 +1355,20 @@
                     <div class="form-group">
                         <label for="${field.name}">${field.label}${required}</label>
                         <input type="file" id="${field.name}" name="${field.name}" class="form-control" />
+                    </div>
+                `;
+            
+            case 'header':
+                return `
+                    <div class="form-group">
+                        <h3 class="form-header">${field.label}</h3>
+                    </div>
+                `;
+            
+            case 'paragraph':
+                return `
+                    <div class="form-group">
+                        <p class="form-paragraph">${field.label}</p>
                     </div>
                 `;
             
@@ -2108,13 +2191,20 @@
         const fieldData = {
             id: fieldId,
             type: fieldType,
-            label: getDefaultLabel(fieldType),
-            name: fieldType + '_' + Date.now(),
-            required: false,
-            placeholder: ''
+            label: getDefaultLabel(fieldType)
         };
 
         // Add type-specific properties
+        if (fieldType === 'header' || fieldType === 'paragraph') {
+            // Header and paragraph don't need name, placeholder, or required
+            fieldData.content = fieldData.label; // Use content instead of label for display
+        } else {
+            // Regular form fields
+            fieldData.name = fieldType + '_' + Date.now();
+            fieldData.required = false;
+            fieldData.placeholder = '';
+        }
+
         if (fieldType === 'select' || fieldType === 'radio' || fieldType === 'checkbox') {
             fieldData.options = ['Option 1', 'Option 2', 'Option 3'];
         }
