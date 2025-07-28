@@ -1362,6 +1362,7 @@ class LIFT_Docs_Frontend_Login {
                 <div class="actions-grid">
                     <!-- Cột 1: View Document Links -->
                     <div class="view-actions">
+                        <h4><i class="fas fa-file"></i> View Documents</h4>
                         <?php 
                         // Show View URL link
                         if ($this->user_can_view_document($document->ID)) {
@@ -1372,9 +1373,9 @@ class LIFT_Docs_Frontend_Login {
                                 $view_url = get_permalink($document->ID);
                             }
                             ?>
-                            <a href="<?php echo esc_url($view_url); ?>" class="btn btn-primary" target="_blank">
-                                <i class="fas fa-eye"></i>
-                                <?php echo $view_text; ?>
+                            <a href="<?php echo esc_url($view_url); ?>" target="_blank">
+                                <i class="fas fa-file"></i>
+                                Document Files
                             </a>
                             <?php
                         }
@@ -1383,6 +1384,7 @@ class LIFT_Docs_Frontend_Login {
                     
                     <!-- Cột 2: Form Links -->
                     <div class="form-actions">
+                        <h4><i class="fas fa-file-text"></i> Forms</h4>
                         <?php
                         // Show assigned form links
                         $assigned_forms = get_post_meta($document->ID, '_lift_doc_assigned_forms', true);
@@ -1414,15 +1416,17 @@ class LIFT_Docs_Frontend_Login {
                                         
                                         if ($has_submitted) {
                                             $button_text = sprintf(__('Edit %s', 'lift-docs-system'), $form->name);
-                                            $button_class = 'btn btn-primary';
+                                            $button_class = '';
                                         }
                                     }
                                     ?>
                                     <a href="<?php echo esc_url($form_url); ?>" class="<?php echo esc_attr($button_class); ?>" target="_blank">
-                                        <?php echo esc_html($button_text); ?>
                                         <?php if ($has_submitted): ?>
-                                            <i class="fas fa-edit" style="margin-left: 5px;"></i>
+                                            <i class="fas fa-edit"></i>
+                                        <?php else: ?>
+                                            <i class="fas fa-file-alt"></i>
                                         <?php endif; ?>
+                                        <?php echo esc_html($button_text); ?>
                                     </a>
                                     <?php
                                 }
