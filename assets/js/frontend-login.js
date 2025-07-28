@@ -103,18 +103,6 @@ jQuery(document).ready(function($) {
             showDocumentDetails(documentId);
         });
         
-        // Modal functionality
-        $('.lift-modal-close, #lift-modal-backdrop').on('click', function() {
-            closeModal();
-        });
-        
-        // Escape key to close modal
-        $(document).on('keyup', function(e) {
-            if (e.keyCode === 27) {
-                closeModal();
-            }
-        });
-        
         // Auto-refresh stats every 30 seconds
         setInterval(refreshDashboardStats, 30000);
     }
@@ -381,49 +369,6 @@ jQuery(document).ready(function($) {
         
         // Update UI to show downloaded status
         updateDocumentStatus(documentId, 'downloaded');
-    }
-    
-    /**
-     * Show Document Details
-     */
-    function showDocumentDetails(documentId) {
-        var $modal = $('#lift-document-modal');
-        var $backdrop = $('#lift-modal-backdrop');
-        
-        // Show loading
-        $('#modal-document-content').html('<div class="loading"><span class="spinner"></span> Loading...</div>');
-        $modal.show();
-        $backdrop.show();
-        
-        // AJAX request to get document details
-        $.ajax({
-            url: liftDocsLogin.ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'get_document_details',
-                document_id: documentId,
-                nonce: liftDocsLogin.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#modal-document-title').text(response.data.title);
-                    $('#modal-document-content').html(response.data.content);
-                } else {
-                    $('#modal-document-content').html('<div class="error">Failed to load document details.</div>');
-                }
-            },
-            error: function() {
-                $('#modal-document-content').html('<div class="error">Failed to load document details.</div>');
-            }
-        });
-    }
-    
-    /**
-     * Close Modal
-     */
-    function closeModal() {
-        $('#lift-document-modal').hide();
-        $('#lift-modal-backdrop').hide();
     }
     
     /**
