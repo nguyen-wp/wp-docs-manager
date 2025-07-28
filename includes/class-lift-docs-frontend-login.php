@@ -1431,7 +1431,7 @@ class LIFT_Docs_Frontend_Login {
                 <div class="actions-grid">
                     <!-- Cột 1: View Document Links -->
                     <div class="view-actions">
-                        <h4><i class="fas fa-file"></i> View Documents</h4>
+                        <!-- <h4><i class="fas fa-file"></i> Documents</h4> -->
                         <?php 
                         // Show View URL link
                         if ($this->user_can_view_document($document->ID)) {
@@ -1469,7 +1469,7 @@ class LIFT_Docs_Frontend_Login {
                     
                     <!-- Cột 2: Form Links -->
                     <div class="form-actions">
-                        <h4><i class="fas fa-file-text"></i> Forms</h4>
+                        <!-- <h4><i class="fas fa-file-text"></i> Forms</h4> -->
                         <?php
                         // Show assigned form links
                         $assigned_forms = get_post_meta($document->ID, '_lift_doc_assigned_forms', true);
@@ -1493,7 +1493,7 @@ class LIFT_Docs_Frontend_Login {
                                     // Check if user has already submitted this form for this document
                                     $has_submitted = false;
                                     $button_text = $form->name;
-                                    $button_class = 'btn btn-secondary';
+                                    $button_class = '';
                                     $button_style = '';
                                     
                                     if ($current_user_id > 0) {
@@ -1508,13 +1508,11 @@ class LIFT_Docs_Frontend_Login {
                                     
                                     // Apply status-based restrictions
                                     if ($is_forms_disabled && $document_status !== 'cancelled') {
-                                        // For processing/done: disable forms but allow view if submitted
-                                        $button_class .= ' disabled-link';
-                                        $button_style = 'pointer-events: none; opacity: 0.6; cursor: not-allowed;';
+                                        // For processing/done: allow opening form but it will be disabled inside
                                         if ($has_submitted) {
                                             $button_text = sprintf(__('View %s', 'lift-docs-system'), $form->name) . ' (' . __('Read Only', 'lift-docs-system') . ')';
                                         } else {
-                                            $button_text .= ' (' . __('Disabled', 'lift-docs-system') . ')';
+                                            $button_text .= ' (' . __('View Only', 'lift-docs-system') . ')';
                                         }
                                     } elseif ($is_cancelled) {
                                         // For cancelled: disable and cross out everything
@@ -1527,13 +1525,15 @@ class LIFT_Docs_Frontend_Login {
                                        class="<?php echo esc_attr($button_class); ?>" 
                                        style="<?php echo esc_attr($button_style); ?>"
                                        target="_blank"
-                                       <?php if ($is_forms_disabled): ?>onclick="return false;"<?php endif; ?>>
-                                        <?php if ($has_submitted && !$is_forms_disabled): ?>
-                                            <i class="fas fa-edit"></i>
-                                        <?php elseif ($has_submitted && $is_forms_disabled): ?>
-                                            <i class="fas fa-eye"></i>
+                                       <?php if ($is_cancelled): ?>onclick="return false;"<?php endif; ?>>
+                                        <?php if ($has_submitted && !$is_cancelled): ?>
+                                            <i class="fas fa-rectangle-list"></i>
+                                        <?php elseif (!$has_submitted && ($document_status === 'processing' || $document_status === 'done')): ?>
+                                            <i class="fas fa-rectangle-list"></i>
+                                        <?php elseif (!$has_submitted && !$is_cancelled): ?>
+                                            <i class="fas fa-rectangle-list"></i>
                                         <?php else: ?>
-                                            <i class="fas fa-file-alt"></i>
+                                            <i class="fas fa-rectangle-list"></i>
                                         <?php endif; ?>
                                         <?php echo esc_html($button_text); ?>
                                     </a>
