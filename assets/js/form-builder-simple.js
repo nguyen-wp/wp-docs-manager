@@ -114,76 +114,57 @@
         const container = $('#form-builder-container');
         
         const builderHTML = `
-            <div class="modern-form-builder">
-                <div class="form-builder-palette">
-                    <div class="palette-header">
-                        <h3>Field Types</h3>
-                    </div>
-                    <div class="field-type-buttons">
-                        <button type="button" class="field-type-btn draggable" data-type="text" draggable="true">
-                            <span class="dashicons dashicons-editor-textcolor"></span> Text
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="textarea" draggable="true">
-                            <span class="dashicons dashicons-editor-paragraph"></span> Textarea
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="select" draggable="true">
-                            <span class="dashicons dashicons-menu-alt"></span> Select
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="radio" draggable="true">
-                            <span class="dashicons dashicons-marker"></span> Radio
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="checkbox" draggable="true">
-                            <span class="dashicons dashicons-yes"></span> Checkbox
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="email" draggable="true">
-                            <span class="dashicons dashicons-email"></span> Email
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="number" draggable="true">
-                            <span class="dashicons dashicons-calculator"></span> Number
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="date" draggable="true">
-                            <span class="dashicons dashicons-calendar-alt"></span> Date
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="file" draggable="true">
-                            <span class="dashicons dashicons-upload"></span> File
-                        </button>
-                        <button type="button" class="field-type-btn draggable" data-type="hidden" draggable="true">
-                            <span class="dashicons dashicons-hidden"></span> Hidden
-                        </button>
+            <div class="simple-form-builder">
+                <div class="form-builder-header">
+                    <h3>Simple Form Builder</h3>
+                    <div class="builder-actions">
+                        <button type="button" class="button button-primary" id="add-field">Add Field</button>
+                        <button type="button" class="button" id="preview-form">Preview</button>
+                        <button type="button" class="button button-secondary" id="clear-form">Clear All</button>
                     </div>
                 </div>
                 
-                <div class="form-builder-canvas">
-                    <div class="form-builder-header">
-                        <h3>Form Design</h3>
-                        <div class="builder-actions">
-                            <button type="button" class="button button-primary" id="add-field">Add Field</button>
-                            <button type="button" class="button" id="preview-form">Preview</button>
-                            <button type="button" class="button button-secondary" id="clear-form">Clear All</button>
+                <div class="form-builder-content">
+                    <div class="field-types-panel">
+                        <h4>Field Types</h4>
+                        <div class="field-type-buttons">
+                            <button type="button" class="field-type-btn" data-type="text">
+                                <span class="dashicons dashicons-editor-textcolor"></span> Text
+                            </button>
+                            <button type="button" class="field-type-btn" data-type="textarea">
+                                <span class="dashicons dashicons-editor-paragraph"></span> Textarea
+                            </button>
+                            <button type="button" class="field-type-btn" data-type="select">
+                                <span class="dashicons dashicons-menu-alt"></span> Select
+                            </button>
+                            <button type="button" class="field-type-btn" data-type="radio">
+                                <span class="dashicons dashicons-marker"></span> Radio
+                            </button>
+                            <button type="button" class="field-type-btn" data-type="checkbox">
+                                <span class="dashicons dashicons-yes"></span> Checkbox
+                            </button>
+                            <button type="button" class="field-type-btn" data-type="email">
+                                <span class="dashicons dashicons-email"></span> Email
+                            </button>
+                            <button type="button" class="field-type-btn" data-type="number">
+                                <span class="dashicons dashicons-calculator"></span> Number
+                            </button>
+                            <button type="button" class="field-type-btn" data-type="date">
+                                <span class="dashicons dashicons-calendar-alt"></span> Date
+                            </button>
+                            <button type="button" class="field-type-btn" data-type="file">
+                                <span class="dashicons dashicons-upload"></span> File
+                            </button>
+                            <button type="button" class="field-type-btn" data-type="hidden">
+                                <span class="dashicons dashicons-hidden"></span> Hidden
+                            </button>
                         </div>
-                    </div>
-                    
-                    <div class="layout-controls">
-                        <label>Layout:</label>
-                        <button type="button" class="column-btn active" data-columns="1">
-                            <span class="dashicons dashicons-editor-justify"></span> 1 Column
-                        </button>
-                        <button type="button" class="column-btn" data-columns="2">
-                            <span class="dashicons dashicons-columns"></span> 2 Columns
-                        </button>
-                        <button type="button" class="column-btn" data-columns="3">
-                            <span class="dashicons dashicons-grid-view"></span> 3 Columns
-                        </button>
-                        <button type="button" class="column-btn" data-columns="4">
-                            <span class="dashicons dashicons-screenoptions"></span> 4 Columns
-                        </button>
                     </div>
                     
                     <div class="form-fields-area">
                         <div id="form-fields-list">
                             <div class="no-fields-message">
-                                <p>Drag field types here or click "Add Field" to start building your form.</p>
-                                <p>Use layout controls above to create multi-column layouts.</p>
+                                <p>No fields added yet. Click on field types to add them.</p>
                             </div>
                         </div>
                     </div>
@@ -423,11 +404,8 @@
         let html = '';
         formData.forEach((field, index) => {
             html += `
-                <div class="form-field-item" draggable="true" data-field-id="${field.id || index}">
+                <div class="form-field-item">
                     <div class="field-header">
-                        <span class="field-drag-handle" title="Drag to move">
-                            <span class="dashicons dashicons-move"></span>
-                        </span>
                         <span class="field-type">${field.type.toUpperCase()}</span>
                         <span class="field-label">${field.label}</span>
                         <div class="field-actions">
@@ -567,12 +545,6 @@
      * Bind save events
      */
     function bindEvents() {
-        // Initialize drag and drop
-        initDragAndDrop();
-        
-        // Initialize column layout
-        initColumnLayout();
-        
         // Save form
         $(document).on('click', '#save-form', function(e) {
             e.preventDefault();
@@ -673,6 +645,9 @@
                         console.error('Error parsing form data:', error);
                         createFormBuilder();
                     }
+                } else {
+                    console.error('Failed to load form data:', response.data);
+                    createFormBuilder();
                 }
             },
             error: function(xhr, status, error) {
@@ -680,342 +655,6 @@
                 createFormBuilder();
             }
         });
-    }
-
-    /**
-     * Initialize Drag and Drop functionality
-     */
-    function initDragAndDrop() {
-        let draggedElement = null;
-        let draggedData = null;
-
-        // Make field type buttons draggable
-        $('.field-type-btn.draggable').on('dragstart', function(e) {
-            draggedElement = this;
-            draggedData = {
-                type: $(this).data('type'),
-                source: 'palette'
-            };
-            
-            $(this).addClass('drag-ghost');
-            e.originalEvent.dataTransfer.effectAllowed = 'copy';
-            e.originalEvent.dataTransfer.setData('text/html', '');
-        });
-
-        $('.field-type-btn.draggable').on('dragend', function(e) {
-            $(this).removeClass('drag-ghost');
-            draggedElement = null;
-            draggedData = null;
-        });
-
-        // Handle field dragging within canvas
-        $(document).on('dragstart', '.form-field-item[draggable="true"]', function(e) {
-            draggedElement = this;
-            draggedData = {
-                fieldId: $(this).data('field-id'),
-                source: 'canvas'
-            };
-            
-            $(this).addClass('drag-ghost');
-            e.originalEvent.dataTransfer.effectAllowed = 'move';
-        });
-
-        $(document).on('dragend', '.form-field-item[draggable="true"]', function(e) {
-            $(this).removeClass('drag-ghost');
-            draggedElement = null;
-            draggedData = null;
-        });
-
-        // Make columns droppable
-        $(document).on('dragover', '.form-column', function(e) {
-            e.preventDefault();
-            e.originalEvent.dataTransfer.dropEffect = 'copy';
-            $(this).addClass('drag-over');
-        });
-
-        $(document).on('dragleave', '.form-column', function(e) {
-            $(this).removeClass('drag-over');
-        });
-
-        $(document).on('drop', '.form-column', function(e) {
-            e.preventDefault();
-            $(this).removeClass('drag-over');
-            
-            if (!draggedData) return;
-
-            if (draggedData.source === 'palette') {
-                // Add new field to column
-                addFieldToColumn(draggedData.type, $(this));
-            } else if (draggedData.source === 'canvas') {
-                // Move existing field to column
-                moveFieldToColumn(draggedData.fieldId, $(this));
-            }
-        });
-
-        // Make form fields list droppable for single column layout
-        $('#form-fields-list').on('dragover', function(e) {
-            if (getCurrentLayout() !== 1) return;
-            
-            e.preventDefault();
-            e.originalEvent.dataTransfer.dropEffect = 'copy';
-            $(this).addClass('drag-over');
-        });
-
-        $('#form-fields-list').on('dragleave', function(e) {
-            $(this).removeClass('drag-over');
-        });
-
-        $('#form-fields-list').on('drop', function(e) {
-            if (getCurrentLayout() !== 1) return;
-            
-            e.preventDefault();
-            $(this).removeClass('drag-over');
-            
-            if (!draggedData || draggedData.source !== 'palette') return;
-            
-            addField(draggedData.type);
-        });
-    }
-
-    /**
-     * Column Layout Management
-     */
-    function initColumnLayout() {
-        // Column layout buttons
-        $('.column-btn').on('click', function() {
-            const columns = parseInt($(this).data('columns'));
-            setLayout(columns);
-            
-            $('.column-btn').removeClass('active');
-            $(this).addClass('active');
-        });
-    }
-
-    function setLayout(columns) {
-        const container = $('#form-fields-list');
-        
-        if (columns === 1) {
-            // Single column layout
-            container.removeClass('multi-column-layout');
-            if (container.find('.form-row').length > 0) {
-                // Convert multi-column to single column
-                convertToSingleColumn();
-            }
-        } else {
-            // Multi-column layout
-            container.addClass('multi-column-layout');
-            if (container.find('.form-row').length === 0) {
-                // Create first row
-                addNewRow(columns);
-            }
-        }
-    }
-
-    function addNewRow(columns) {
-        const container = $('#form-fields-list');
-        container.find('.no-fields-message').hide();
-        
-        const rowId = 'row-' + Date.now();
-        let rowHTML = `<div class="form-row" data-row-id="${rowId}">`;
-        
-        // Add row controls
-        rowHTML += `
-            <div class="row-controls">
-                <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                    <span class="dashicons dashicons-plus-alt"></span>
-                </button>
-                <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
-                    <span class="dashicons dashicons-trash"></span>
-                </button>
-            </div>
-        `;
-        
-        // Add columns
-        for (let i = 0; i < columns; i++) {
-            const columnId = `${rowId}-col-${i}`;
-            rowHTML += `
-                <div class="form-column" data-column-id="${columnId}">
-                    <div class="column-header">
-                        <span class="column-title">Column ${i + 1}</span>
-                        <div class="column-actions">
-                            <button type="button" class="column-action-btn" title="Column Settings">
-                                <span class="dashicons dashicons-admin-generic"></span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="column-placeholder">
-                        Drop fields here
-                    </div>
-                </div>
-            `;
-        }
-        
-        rowHTML += '</div>';
-        container.append(rowHTML);
-        
-        // Bind row events
-        bindRowEvents();
-    }
-
-    function bindRowEvents() {
-        // Add row button
-        $(document).off('click', '.add-row').on('click', '.add-row', function() {
-            const currentRow = $(this).closest('.form-row');
-            const columns = currentRow.find('.form-column').length;
-            const newRowHTML = generateRowHTML(columns);
-            currentRow.after(newRowHTML);
-            bindRowEvents();
-        });
-
-        // Delete row button
-        $(document).off('click', '.delete-row').on('click', '.delete-row', function() {
-            if (confirm('Are you sure you want to delete this row and all its fields?')) {
-                $(this).closest('.form-row').remove();
-                
-                // Show no fields message if no rows left
-                if ($('#form-fields-list .form-row').length === 0) {
-                    $('#form-fields-list .no-fields-message').show();
-                }
-            }
-        });
-    }
-
-    function generateRowHTML(columns) {
-        const rowId = 'row-' + Date.now();
-        let rowHTML = `<div class="form-row" data-row-id="${rowId}">`;
-        
-        rowHTML += `
-            <div class="row-controls">
-                <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                    <span class="dashicons dashicons-plus-alt"></span>
-                </button>
-                <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
-                    <span class="dashicons dashicons-trash"></span>
-                </button>
-            </div>
-        `;
-        
-        for (let i = 0; i < columns; i++) {
-            const columnId = `${rowId}-col-${i}`;
-            rowHTML += `
-                <div class="form-column" data-column-id="${columnId}">
-                    <div class="column-header">
-                        <span class="column-title">Column ${i + 1}</span>
-                        <div class="column-actions">
-                            <button type="button" class="column-action-btn" title="Column Settings">
-                                <span class="dashicons dashicons-admin-generic"></span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="column-placeholder">
-                        Drop fields here
-                    </div>
-                </div>
-            `;
-        }
-        
-        return rowHTML + '</div>';
-    }
-
-    function getCurrentLayout() {
-        return parseInt($('.column-btn.active').data('columns')) || 1;
-    }
-
-    function addFieldToColumn(fieldType, column) {
-        const fieldData = createFieldData(fieldType);
-        const fieldHTML = generateFieldHTML(fieldData);
-        
-        column.find('.column-placeholder').hide();
-        column.addClass('has-fields');
-        column.append(fieldHTML);
-        
-        // Make the field draggable
-        column.find('.form-field-item').last().attr('draggable', 'true');
-        
-        formData.push(fieldData);
-    }
-
-    function moveFieldToColumn(fieldId, targetColumn) {
-        const fieldElement = $(`.form-field-item[data-field-id="${fieldId}"]`);
-        const sourceColumn = fieldElement.closest('.form-column');
-        
-        // Move field to target column
-        targetColumn.find('.column-placeholder').hide();
-        targetColumn.addClass('has-fields');
-        targetColumn.append(fieldElement);
-        
-        // Check if source column is empty
-        if (sourceColumn.length && sourceColumn.find('.form-field-item').length === 0) {
-            sourceColumn.removeClass('has-fields');
-            sourceColumn.find('.column-placeholder').show();
-        }
-    }
-
-    function convertToSingleColumn() {
-        const container = $('#form-fields-list');
-        const allFields = container.find('.form-field-item').detach();
-        
-        // Remove all rows
-        container.find('.form-row').remove();
-        
-        // Add fields back to single column
-        allFields.each(function() {
-            container.append(this);
-        });
-        
-        if (allFields.length === 0) {
-            container.find('.no-fields-message').show();
-        }
-    }
-
-    /**
-     * Create field data object
-     */
-    function createFieldData(fieldType) {
-        const fieldId = 'field-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        const fieldData = {
-            id: fieldId,
-            type: fieldType,
-            label: fieldType.charAt(0).toUpperCase() + fieldType.slice(1) + ' Field',
-            name: fieldType + '_' + Date.now(),
-            required: false,
-            placeholder: ''
-        };
-
-        // Add type-specific properties
-        if (fieldType === 'select' || fieldType === 'radio' || fieldType === 'checkbox') {
-            fieldData.options = ['Option 1', 'Option 2', 'Option 3'];
-        }
-
-        return fieldData;
-    }
-
-    /**
-     * Generate HTML for a single field
-     */
-    function generateFieldHTML(field) {
-        return `
-            <div class="form-field-item" draggable="true" data-field-id="${field.id}">
-                <div class="field-header">
-                    <span class="field-drag-handle" title="Drag to move">
-                        <span class="dashicons dashicons-move"></span>
-                    </span>
-                    <span class="field-type">${field.type.toUpperCase()}</span>
-                    <span class="field-label">${field.label}</span>
-                    <div class="field-actions">
-                        <button type="button" class="button-link edit-field-btn" data-field-id="${field.id}" title="Edit">
-                            <span class="dashicons dashicons-edit"></span>
-                        </button>
-                        <button type="button" class="button-link delete-field-btn" data-field-id="${field.id}" title="Delete">
-                            <span class="dashicons dashicons-trash"></span>
-                        </button>
-                    </div>
-                </div>
-                <div class="field-preview">
-                    ${generateFieldPreview(field)}
-                </div>
-            </div>
-        `;
     }
 
 })(jQuery);
