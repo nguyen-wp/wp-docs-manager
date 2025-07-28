@@ -27,7 +27,7 @@
         });
         
         // Basic save form functionality
-        $('#save-form').on('click', function(e) {
+        $('#save-form').off('click.minimal-admin').on('click.minimal-admin', function(e) {
             // Check if advanced form builder is active
             if ($('#form-fields-list .form-row').length > 0 || 
                 (window.formBuilder && window.formBuilder.formData && 
@@ -37,6 +37,10 @@
                 console.log('Advanced form builder detected, skipping minimal admin save');
                 return;
             }
+
+            console.log('Minimal admin handling save form click');
+            e.preventDefault();
+            e.stopImmediatePropagation();
 
             const formId = $('#form-id').val();
             const formName = $('#form-name').val().trim();
@@ -118,8 +122,11 @@
                     settings: JSON.stringify({})
                 },
                 success: function(response) {
+                    console.log('Minimal admin save response:', response);
+                    
                     if (response.success) {
                         if (!formId) {
+                            console.log('New form created with ID:', response.data.form_id);
                             $('#form-id').val(response.data.form_id);
                             
                             // Show success message first
@@ -127,14 +134,22 @@
                             
                             // Redirect to edit page after short delay
                             setTimeout(function() {
-                                const editUrl = window.location.pathname + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                console.log('Redirecting to edit page with form ID:', response.data.form_id);
+                                
+                                // Build the correct admin URL
+                                const adminUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+                                const editUrl = adminUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                
+                                console.log('Edit URL:', editUrl);
                                 window.location.href = editUrl;
                             }, 1500);
                         } else {
+                            console.log('Existing form updated');
                             // For existing forms, just show success message
                             showMessage('Form updated successfully!', 'success');
                         }
                     } else {
+                        console.error('Save failed:', response.data);
                         showMessage(response.data || 'Error saving form', 'error');
                     }
                 },

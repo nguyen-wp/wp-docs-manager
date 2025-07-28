@@ -1769,7 +1769,8 @@
         initDragAndDrop();
         
         // Save form
-        $(document).on('click', '#save-form', function(e) {
+        $(document).off('click.form-builder', '#save-form').on('click.form-builder', '#save-form', function(e) {
+            console.log('Form builder handling save form click');
             e.preventDefault();
             e.stopImmediatePropagation(); // Prevent other handlers from running
             saveForm();
@@ -1877,7 +1878,13 @@
                         if (!silent) {
                             showFormMessage('Form created successfully! Redirecting to edit page...', 'success');
                             setTimeout(function() {
-                                const editUrl = window.location.pathname + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                console.log('Form builder redirecting to edit page with form ID:', response.data.form_id);
+                                
+                                // Build the correct admin URL
+                                const adminUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+                                const editUrl = adminUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                
+                                console.log('Form builder edit URL:', editUrl);
                                 window.location.href = editUrl;
                             }, 1500);
                         }
