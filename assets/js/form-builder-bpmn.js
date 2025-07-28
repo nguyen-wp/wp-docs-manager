@@ -114,50 +114,53 @@
         const container = $('#form-builder-container');
         
         const builderHTML = `
-            <div class="simple-form-builder">
-                <div class="form-builder-header">
-                    <h3>Simple Form Builder</h3>
-                    <div class="builder-actions">
-                        <button type="button" class="button button-primary" id="add-field">Add Field</button>
-                        <button type="button" class="button" id="preview-form">Preview</button>
-                        <button type="button" class="button button-secondary" id="clear-form">Clear All</button>
+                    const builderHTML = `
+            <div class="modern-form-builder">
+                <div class="form-builder-palette">
+                    <div class="palette-header">
+                        <h3>Field Types</h3>
+                    </div>
+                    <div class="field-type-buttons">
+                        <button type="button" class="field-type-btn" data-type="text">
+                            <span class="dashicons dashicons-editor-textcolor"></span> Text
+                        </button>
+                        <button type="button" class="field-type-btn" data-type="textarea">
+                            <span class="dashicons dashicons-editor-paragraph"></span> Textarea
+                        </button>
+                        <button type="button" class="field-type-btn" data-type="select">
+                            <span class="dashicons dashicons-menu-alt"></span> Select
+                        </button>
+                        <button type="button" class="field-type-btn" data-type="radio">
+                            <span class="dashicons dashicons-marker"></span> Radio
+                        </button>
+                        <button type="button" class="field-type-btn" data-type="checkbox">
+                            <span class="dashicons dashicons-yes"></span> Checkbox
+                        </button>
+                        <button type="button" class="field-type-btn" data-type="email">
+                            <span class="dashicons dashicons-email"></span> Email
+                        </button>
+                        <button type="button" class="field-type-btn" data-type="number">
+                            <span class="dashicons dashicons-calculator"></span> Number
+                        </button>
+                        <button type="button" class="field-type-btn" data-type="date">
+                            <span class="dashicons dashicons-calendar-alt"></span> Date
+                        </button>
+                        <button type="button" class="field-type-btn" data-type="file">
+                            <span class="dashicons dashicons-upload"></span> File
+                        </button>
+                        <button type="button" class="field-type-btn" data-type="hidden">
+                            <span class="dashicons dashicons-hidden"></span> Hidden
+                        </button>
                     </div>
                 </div>
                 
-                <div class="form-builder-content">
-                    <div class="field-types-panel">
-                        <h4>Field Types</h4>
-                        <div class="field-type-buttons">
-                            <button type="button" class="field-type-btn" data-type="text">
-                                <span class="dashicons dashicons-editor-textcolor"></span> Text
-                            </button>
-                            <button type="button" class="field-type-btn" data-type="textarea">
-                                <span class="dashicons dashicons-editor-paragraph"></span> Textarea
-                            </button>
-                            <button type="button" class="field-type-btn" data-type="select">
-                                <span class="dashicons dashicons-menu-alt"></span> Select
-                            </button>
-                            <button type="button" class="field-type-btn" data-type="radio">
-                                <span class="dashicons dashicons-marker"></span> Radio
-                            </button>
-                            <button type="button" class="field-type-btn" data-type="checkbox">
-                                <span class="dashicons dashicons-yes"></span> Checkbox
-                            </button>
-                            <button type="button" class="field-type-btn" data-type="email">
-                                <span class="dashicons dashicons-email"></span> Email
-                            </button>
-                            <button type="button" class="field-type-btn" data-type="number">
-                                <span class="dashicons dashicons-calculator"></span> Number
-                            </button>
-                            <button type="button" class="field-type-btn" data-type="date">
-                                <span class="dashicons dashicons-calendar-alt"></span> Date
-                            </button>
-                            <button type="button" class="field-type-btn" data-type="file">
-                                <span class="dashicons dashicons-upload"></span> File
-                            </button>
-                            <button type="button" class="field-type-btn" data-type="hidden">
-                                <span class="dashicons dashicons-hidden"></span> Hidden
-                            </button>
+                <div class="form-builder-canvas">
+                    <div class="form-builder-header">
+                        <h3>Form Design</h3>
+                        <div class="builder-actions">
+                            <button type="button" class="button button-primary" id="add-field">Add Field</button>
+                            <button type="button" class="button" id="preview-form">Preview</button>
+                            <button type="button" class="button button-secondary" id="clear-form">Clear All</button>
                         </div>
                     </div>
                     
@@ -194,6 +197,20 @@
                                 <label>
                                     <input type="checkbox" id="field-required"> Required
                                 </label>
+                            </div>
+                            <div class="form-field options-field" style="display: none;">
+                                <label>Options (one per line)</label>
+                                <textarea id="field-options" class="widefat" rows="4"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="button button-primary" id="save-field">Save Field</button>
+                            <button type="button" class="button" id="cancel-field">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
                             </div>
                             <div class="form-field options-field" style="display: none;">
                                 <label>Options (one per line)</label>
