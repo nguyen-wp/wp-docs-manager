@@ -1026,6 +1026,7 @@
 
         $(document).off('dragend.rowDrag').on('dragend.rowDrag', '.form-row[draggable="true"]', function(e) {
             $(this).removeClass('drag-ghost');
+            clearRowDropIndicators();
             draggedElement = null;
             draggedData = null;
         });
@@ -1057,6 +1058,11 @@
                 e.preventDefault();
                 e.originalEvent.dataTransfer.dropEffect = draggedData.source === 'canvas-row' ? 'move' : 'copy';
                 $(this).addClass('drag-over');
+                
+                // Show drop indicator between rows for canvas-row dragging
+                if (draggedData.source === 'canvas-row') {
+                    showRowDropIndicator(e.originalEvent.clientY);
+                }
             }
         });
 
@@ -1064,6 +1070,7 @@
             // Only remove drag-over if we're really leaving the container
             if (!$.contains(this, e.relatedTarget) && e.relatedTarget !== this) {
                 $(this).removeClass('drag-over');
+                clearRowDropIndicators();
             }
         });
 
@@ -1072,6 +1079,7 @@
             
             e.preventDefault();
             $(this).removeClass('drag-over');
+            clearRowDropIndicators();
             
             if (draggedData.type === 'row' && draggedData.source === 'palette') {
                 // Add new row
@@ -1598,6 +1606,55 @@
                 </div>
             </div>
         `;
+    }
+
+    /**
+     * Show drop indicator between rows
+     */
+    function showRowDropIndicator(dropY) {
+        // Clear existing indicators
+        clearRowDropIndicators();
+        
+        if (!draggedData || draggedData.source !== 'canvas-row') return;
+        
+        const draggedRow = $(`.form-row[data-row-id="${draggedData.rowId}"]`);
+        const allRows = $('#form-fields-list .form-row').not(draggedRow);
+        
+        if (allRows.length === 0) return;
+        
+        let targetRow = null;
+        let insertAfter = false;
+        let minDistance = Infinity;
+        
+        // Find the closest row to the drop position
+        allRows.each(function() {
+            const row = $(this);
+            const rect = this.getBoundingClientRect();
+            const rowMiddle = rect.top + rect.height / 2;
+            const distance = Math.abs(dropY - rowMiddle);
+            
+            if (distance < minDistance) {
+                minDistance = distance;
+                targetRow = row;
+                insertAfter = dropY > rowMiddle;
+            }
+        });
+        
+        // Add visual indicator
+        if (targetRow && targetRow.length) {
+            if (insertAfter) {
+                targetRow.addClass('drop-after');
+            } else {
+                targetRow.addClass('drop-before');
+            }
+        }
+    }
+
+    /**
+     * Clear all row drop indicators
+     */
+    function clearRowDropIndicators() {
+        $('.form-row').removeClass('drop-before drop-after');
     }
 
 })(jQuery);
