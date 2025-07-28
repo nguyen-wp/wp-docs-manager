@@ -1369,7 +1369,8 @@ class LIFT_Docs_Frontend_Login {
         }
         
         // Determine if editing/submitting is disabled based on status
-        $is_editing_disabled = in_array($document_status, array('processing', 'done'));
+        $is_forms_disabled = in_array($document_status, array('processing', 'done', 'cancelled'));
+        $is_view_disabled = ($document_status === 'cancelled');
         $is_cancelled = ($document_status === 'cancelled');
         
         // Check if user has downloaded this document
@@ -1443,11 +1444,7 @@ class LIFT_Docs_Frontend_Login {
                             
                             $link_class = '';
                             $link_style = '';
-                            if ($is_editing_disabled) {
-                                $link_class .= ' disabled-link';
-                                $link_style = 'pointer-events: none; opacity: 0.6; text-decoration: line-through;';
-                                $view_text .= ' (' . __('Read Only', 'lift-docs-system') . ')';
-                            } elseif ($is_cancelled) {
+                            if ($is_view_disabled) {
                                 $link_class .= ' cancelled-link';
                                 $link_style = 'pointer-events: none; opacity: 0.5; text-decoration: line-through; color: #e74c3c;';
                                 $view_text .= ' (' . __('Cancelled', 'lift-docs-system') . ')';
@@ -1510,7 +1507,8 @@ class LIFT_Docs_Frontend_Login {
                                     }
                                     
                                     // Apply status-based restrictions
-                                    if ($is_editing_disabled) {
+                                    if ($is_forms_disabled && $document_status !== 'cancelled') {
+                                        // For processing/done: disable forms but allow view if submitted
                                         $button_class .= ' disabled-link';
                                         $button_style = 'pointer-events: none; opacity: 0.6; cursor: not-allowed;';
                                         if ($has_submitted) {
@@ -1519,6 +1517,7 @@ class LIFT_Docs_Frontend_Login {
                                             $button_text .= ' (' . __('Disabled', 'lift-docs-system') . ')';
                                         }
                                     } elseif ($is_cancelled) {
+                                        // For cancelled: disable and cross out everything
                                         $button_class .= ' cancelled-link';
                                         $button_style = 'pointer-events: none; opacity: 0.5; text-decoration: line-through; color: #e74c3c; cursor: not-allowed;';
                                         $button_text .= ' (' . __('Cancelled', 'lift-docs-system') . ')';
@@ -1528,10 +1527,10 @@ class LIFT_Docs_Frontend_Login {
                                        class="<?php echo esc_attr($button_class); ?>" 
                                        style="<?php echo esc_attr($button_style); ?>"
                                        target="_blank"
-                                       <?php if ($is_editing_disabled || $is_cancelled): ?>onclick="return false;"<?php endif; ?>>
-                                        <?php if ($has_submitted && !$is_editing_disabled && !$is_cancelled): ?>
+                                       <?php if ($is_forms_disabled): ?>onclick="return false;"<?php endif; ?>>
+                                        <?php if ($has_submitted && !$is_forms_disabled): ?>
                                             <i class="fas fa-edit"></i>
-                                        <?php elseif ($has_submitted && ($is_editing_disabled || $is_cancelled)): ?>
+                                        <?php elseif ($has_submitted && $is_forms_disabled): ?>
                                             <i class="fas fa-eye"></i>
                                         <?php else: ?>
                                             <i class="fas fa-file-alt"></i>

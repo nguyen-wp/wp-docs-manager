@@ -12,9 +12,10 @@ Implemented comprehensive status-based access control for document editing and f
 - Status colors: Pending (Orange), Processing (Blue), Done (Green), Cancelled (Red)
 
 #### View Documents Restrictions
-- **Processing/Done Status**: Links show "Read Only" and are visually styled as disabled
+
+- **Processing/Done Status**: Links work normally (full access to view documents)
 - **Cancelled Status**: Links are crossed out and disabled with "Cancelled" indicator
-- Applied CSS styling: `opacity: 0.6`, `text-decoration: line-through`, `pointer-events: none`
+- Applied CSS styling: `opacity: 0.5`, `text-decoration: line-through`, `pointer-events: none`
 
 #### Forms Restrictions
 - **Processing/Done Status**: 
@@ -82,8 +83,8 @@ Implemented comprehensive status-based access control for document editing and f
 | Status | View Documents | Forms | Form Submissions |
 |--------|---------------|-------|-----------------|
 | Pending | ✅ Full Access | ✅ Full Access | ✅ Allowed |
-| Processing | ⚠️ Read Only | ❌ Disabled | ❌ Blocked |
-| Done | ⚠️ Read Only | ❌ Disabled | ❌ Blocked |
+| Processing | ✅ Full Access | ❌ Disabled | ❌ Blocked |
+| Done | ✅ Full Access | ❌ Disabled | ❌ Blocked |
 | Cancelled | ❌ Crossed Out | ❌ Crossed Out | ❌ Blocked |
 
 ## Security Features
