@@ -184,7 +184,9 @@ jQuery(document).ready(function($) {
         if (typeof $.fn.wpColorPicker !== 'undefined') {
             $('.color-picker').each(function() {
                 if (!$(this).hasClass('wp-color-picker')) {
-                    $(this).addClass('lift-color-picker').wpColorPicker({
+                    var $input = $(this);
+                    
+                    $input.addClass('lift-color-picker').wpColorPicker({
                         change: function(event, ui) {
                             // Add change animation
                             $(this).addClass('lift-color-changed');
@@ -193,6 +195,26 @@ jQuery(document).ready(function($) {
                             }, 500);
                         }
                     });
+                    
+                    // Add Clear button after color picker is initialized
+                    setTimeout(function() {
+                        var $wrapper = $input.closest('.wp-picker-container');
+                        if ($wrapper.length && !$wrapper.find('.color-clear-btn').length) {
+                            var $clearBtn = $('<button type="button" class="button color-clear-btn" title="Clear Color">Clear</button>');
+                            $wrapper.append($clearBtn);
+                            
+                            // Handle clear button click
+                            $clearBtn.on('click', function(e) {
+                                e.preventDefault();
+                                $input.wpColorPicker('color', '').val('').trigger('change');
+                                // Add visual feedback
+                                $clearBtn.addClass('button-cleared');
+                                setTimeout(() => {
+                                    $clearBtn.removeClass('button-cleared');
+                                }, 200);
+                            });
+                        }
+                    }, 100);
                 }
             });
         }

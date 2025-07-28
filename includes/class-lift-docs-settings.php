@@ -832,45 +832,60 @@ class LIFT_Docs_Settings {
      * Login background color callback
      */
     public function login_bg_color_callback() {
-        $color = get_option('lift_docs_login_bg_color', '#f0f4f8');
-        echo '<input type="text" name="lift_docs_login_bg_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
-        echo '<p class="description">' . __('Background color for the login page (supports transparency)', 'lift-docs-system') . '</p>';
+        $color = get_option('lift_docs_login_bg_color', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_login_bg_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="">';
+        
+        echo '</div>';
+        echo '<p class="description">' . __('Background color for the login page (supports transparency). Leave empty for no background color.', 'lift-docs-system') . '</p>';
     }
     
     /**
      * Login form background callback
      */
     public function login_form_bg_callback() {
-        $color = get_option('lift_docs_login_form_bg', '#ffffff');
-        echo '<input type="text" name="lift_docs_login_form_bg" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
-        echo '<p class="description">' . __('Background color for the login form (supports transparency)', 'lift-docs-system') . '</p>';
+        $color = get_option('lift_docs_login_form_bg', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_login_form_bg" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="">';
+        
+        echo '</div>';
+        echo '<p class="description">' . __('Background color for the login form (supports transparency). Leave empty for no background color.', 'lift-docs-system') . '</p>';
     }
     
     /**
      * Login button color callback
      */
     public function login_btn_color_callback() {
-        $color = get_option('lift_docs_login_btn_color', '#1976d2');
-        echo '<input type="text" name="lift_docs_login_btn_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
-        echo '<p class="description">' . __('Primary button color (supports transparency)', 'lift-docs-system') . '</p>';
+        $color = get_option('lift_docs_login_btn_color', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_login_btn_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="">';
+        
+        echo '</div>';
+        echo '<p class="description">' . __('Primary button color (supports transparency). Leave empty for default theme color.', 'lift-docs-system') . '</p>';
     }
     
     /**
      * Login input color callback
      */
     public function login_input_color_callback() {
-        $color = get_option('lift_docs_login_input_color', '#e0e0e0');
-        echo '<input type="text" name="lift_docs_login_input_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
-        echo '<p class="description">' . __('Border color for input fields (supports transparency)', 'lift-docs-system') . '</p>';
+        $color = get_option('lift_docs_login_input_color', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_login_input_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="">';
+        
+        echo '</div>';
+        echo '<p class="description">' . __('Border color for input fields (supports transparency). Leave empty for default color.', 'lift-docs-system') . '</p>';
     }
     
     /**
      * Login text color callback
      */
     public function login_text_color_callback() {
-        $color = get_option('lift_docs_login_text_color', '#333333');
-        echo '<input type="text" name="lift_docs_login_text_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true">';
-        echo '<p class="description">' . __('Main text color (supports transparency)', 'lift-docs-system') . '</p>';
+        $color = get_option('lift_docs_login_text_color', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_login_text_color" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="">';
+        
+        echo '</div>';
+        echo '<p class="description">' . __('Main text color (supports transparency). Leave empty for default text color.', 'lift-docs-system') . '</p>';
     }
     
     /**
@@ -1043,9 +1058,15 @@ class LIFT_Docs_Settings {
     }
     
     /**
-     * Validate and sanitize color values (supports both hex and rgba)
+     * Validate and sanitize color values (supports both hex and rgba, allows empty values)
      */
-    private function validate_color($color, $default = '#ffffff') {
+    private function validate_color($color, $default = '', $allow_empty = true) {
+        // Allow empty values when explicitly allowed
+        if (empty($color) && $allow_empty) {
+            return '';
+        }
+        
+        // Use default if empty and not allowing empty
         if (empty($color)) {
             return $default;
         }
@@ -1081,43 +1102,43 @@ class LIFT_Docs_Settings {
             }
         }
         
-        // If validation fails, return default
-        return $default;
+        // If validation fails, return default or empty based on allow_empty setting
+        return $allow_empty ? '' : $default;
     }
     
     /**
-     * Validate background color
+     * Validate background color - allows empty values
      */
     public function validate_bg_color($input) {
-        return $this->validate_color($input, '#f0f4f8');
+        return $this->validate_color($input, '', true);
     }
     
     /**
-     * Validate form background color
+     * Validate form background color - allows empty values
      */
     public function validate_form_bg_color($input) {
-        return $this->validate_color($input, '#ffffff');
+        return $this->validate_color($input, '', true);
     }
     
     /**
-     * Validate button color
+     * Validate button color - allows empty values
      */
     public function validate_btn_color($input) {
-        return $this->validate_color($input, '#1976d2');
+        return $this->validate_color($input, '', true);
     }
     
     /**
-     * Validate input color
+     * Validate input color - allows empty values
      */
     public function validate_input_color($input) {
-        return $this->validate_color($input, '#e0e0e0');
+        return $this->validate_color($input, '', true);
     }
     
     /**
-     * Validate text color
+     * Validate text color - allows empty values
      */
     public function validate_text_color($input) {
-        return $this->validate_color($input, '#333333');
+        return $this->validate_color($input, '', true);
     }
     
     /**
