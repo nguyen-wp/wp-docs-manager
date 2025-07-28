@@ -280,7 +280,13 @@
         
         // Load existing data if any
         if (existingData && existingData.length > 0) {
-            formData = existingData;
+            // Ensure each field has an ID
+            formData = existingData.map(field => {
+                if (!field.id) {
+                    field.id = 'field-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                }
+                return field;
+            });
             renderFields();
         }
 
@@ -303,14 +309,36 @@
         // Edit field
         $(document).on('click', '.edit-field-btn', function() {
             const index = $(this).data('index');
-            editField(index);
+            const fieldId = $(this).data('field-id');
+            
+            if (index !== undefined) {
+                // Using index-based approach
+                editField(index);
+            } else if (fieldId !== undefined) {
+                // Using field-id based approach
+                const fieldIndex = formData.findIndex(f => (f.id || formData.indexOf(f)) == fieldId);
+                if (fieldIndex !== -1) {
+                    editField(fieldIndex);
+                }
+            }
         });
 
         // Delete field
         $(document).on('click', '.delete-field-btn', function() {
             const index = $(this).data('index');
+            const fieldId = $(this).data('field-id');
+            
             if (confirm('Are you sure you want to delete this field?')) {
-                deleteField(index);
+                if (index !== undefined) {
+                    // Using index-based approach
+                    deleteField(index);
+                } else if (fieldId !== undefined) {
+                    // Using field-id based approach
+                    const fieldIndex = formData.findIndex(f => (f.id || formData.indexOf(f)) == fieldId);
+                    if (fieldIndex !== -1) {
+                        deleteField(fieldIndex);
+                    }
+                }
             }
         });
 
@@ -585,15 +613,8 @@
      * Add new field
      */
     function addField(type) {
-        const field = {
-            type: type,
-            label: getDefaultLabel(type),
-            name: 'field_' + (formData.length + 1),
-            placeholder: '',
-            required: false,
-            options: type === 'select' || type === 'radio' ? ['Option 1', 'Option 2'] : []
-        };
-
+        const field = createFieldData(type);
+        
         formData.push(field);
         renderFields();
         
@@ -702,8 +723,9 @@
 
         let html = '';
         formData.forEach((field, index) => {
+            const fieldId = field.id || `field-${index}`;
             html += `
-                <div class="form-field-item" draggable="true" data-field-id="${field.id || index}">
+                <div class="form-field-item" draggable="true" data-field-id="${fieldId}">
                     <div class="field-header">
                         <span class="field-drag-handle" title="Drag to move">
                             <span class="dashicons dashicons-move"></span>
@@ -717,10 +739,10 @@
                             <button type="button" class="button-link move-down-btn" data-index="${index}" title="Move Down">
                                 <span class="dashicons dashicons-arrow-down-alt2"></span>
                             </button>
-                            <button type="button" class="button-link edit-field-btn" data-index="${index}" title="Edit">
+                            <button type="button" class="button-link edit-field-btn" data-field-id="${fieldId}" title="Edit">
                                 <span class="dashicons dashicons-edit"></span>
                             </button>
-                            <button type="button" class="button-link delete-field-btn" data-index="${index}" title="Delete">
+                            <button type="button" class="button-link delete-field-btn" data-field-id="${fieldId}" title="Delete">
                                 <span class="dashicons dashicons-trash"></span>
                             </button>
                         </div>
@@ -1566,7 +1588,7 @@
         const fieldData = {
             id: fieldId,
             type: fieldType,
-            label: fieldType.charAt(0).toUpperCase() + fieldType.slice(1) + ' Field',
+            label: getDefaultLabel(fieldType),
             name: fieldType + '_' + Date.now(),
             required: false,
             placeholder: ''
@@ -1656,5 +1678,24 @@
     function clearRowDropIndicators() {
         $('.form-row').removeClass('drop-before drop-after');
     }
+
+    /**
+     * Debug helper - log current form data
+     */
+    function debugFormData() {
+        console.log('Current formData:', formData);
+        console.log('Field count:', formData.length);
+        formData.forEach((field, index) => {
+            console.log(`Field ${index}:`, {
+                id: field.id,
+                type: field.type,
+                label: field.label,
+                name: field.name
+            });
+        });
+    }
+
+    // Expose debug function globally for testing
+    window.debugFormData = debugFormData;
 
 })(jQuery);
