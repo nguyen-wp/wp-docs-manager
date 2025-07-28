@@ -392,13 +392,13 @@
     }
 
     /**
-     * Initialize sortable functionality for form fields
+     * Initialize sortable functionality for form fields - Updated for compact layout
      */
     function initSortableFields() {
         // Check if jQuery UI sortable is available
         if (typeof $.fn.sortable !== 'undefined') {
             $('#form-fields-list').sortable({
-                items: '.form-field-item',
+                items: '.compact-field-item, .form-field-item',
                 handle: '.field-drag-handle',
                 placeholder: 'field-sort-placeholder',
                 forcePlaceholderSize: true,
@@ -423,7 +423,7 @@
 
             // Make columns sortable too
             $('.form-column').sortable({
-                items: '.form-field-item',
+                items: '.compact-field-item, .form-field-item',
                 handle: '.field-drag-handle',
                 placeholder: 'field-sort-placeholder',
                 forcePlaceholderSize: true,
@@ -455,35 +455,43 @@
     }
 
     /**
-     * Initialize native HTML5 drag and drop as fallback
+     * Initialize native HTML5 drag and drop as fallback - Updated for compact layout
      */
     function initNativeDragDrop() {
         let draggedElement = null;
 
         // Drag start
-        $(document).on('dragstart', '.form-field-item', function(e) {
+        $(document).on('dragstart', '.compact-field-item, .form-field-item', function(e) {
             draggedElement = this;
             $(this).addClass('being-dragged');
             
             // Store the field index and source container
             const index = Array.from(this.parentNode.children).indexOf(this);
             const sourceContainer = $(this).closest('#form-fields-list, .form-column').attr('class') || 'form-fields-list';
+            
+            // Find field ID from nested elements
+            let fieldId = $(this).data('field-id');
+            if (!fieldId) {
+                const fieldIdElement = $(this).find('[data-field-id]').first();
+                fieldId = fieldIdElement.data('field-id');
+            }
+            
             e.originalEvent.dataTransfer.setData('text/plain', JSON.stringify({
                 index: index,
                 sourceContainer: sourceContainer,
-                fieldId: $(this).data('field-id')
+                fieldId: fieldId
             }));
         });
 
         // Drag end
-        $(document).on('dragend', '.form-field-item', function(e) {
+        $(document).on('dragend', '.compact-field-item, .form-field-item', function(e) {
             $(this).removeClass('being-dragged');
-            $('.form-field-item, .form-column').removeClass('drag-over');
+            $('.compact-field-item, .form-field-item, .form-column').removeClass('drag-over');
             draggedElement = null;
         });
 
         // Drag over for field items
-        $(document).on('dragover', '.form-field-item', function(e) {
+        $(document).on('dragover', '.compact-field-item, .form-field-item', function(e) {
             e.preventDefault();
             if (this !== draggedElement) {
                 $(this).addClass('drag-over');
@@ -493,13 +501,13 @@
         // Drag over for columns
         $(document).on('dragover', '.form-column', function(e) {
             e.preventDefault();
-            if (!$(e.target).hasClass('form-field-item')) {
+            if (!$(e.target).hasClass('compact-field-item') && !$(e.target).hasClass('form-field-item')) {
                 $(this).addClass('drag-over');
             }
         });
 
         // Drag leave
-        $(document).on('dragleave', '.form-field-item, .form-column', function(e) {
+        $(document).on('dragleave', '.compact-field-item, .form-field-item, .form-column', function(e) {
             // Only remove drag-over if we're really leaving the element
             if (!$.contains(this, e.relatedTarget)) {
                 $(this).removeClass('drag-over');
@@ -507,7 +515,7 @@
         });
 
         // Drop on field items
-        $(document).on('drop', '.form-field-item', function(e) {
+        $(document).on('drop', '.compact-field-item, .form-field-item', function(e) {
             e.preventDefault();
             $(this).removeClass('drag-over');
             
@@ -530,7 +538,7 @@
             $(this).removeClass('drag-over');
             
             // Only handle drops directly on the column, not on field items within
-            if (!$(e.target).hasClass('form-field-item')) {
+            if (!$(e.target).hasClass('compact-field-item') && !$(e.target).hasClass('form-field-item')) {
                 try {
                     const data = JSON.parse(e.originalEvent.dataTransfer.getData('text/plain'));
                     
@@ -549,7 +557,7 @@
 
         $(document).on('drop', '#form-fields-list', function(e) {
             e.preventDefault();
-            $('.form-field-item, .form-column').removeClass('drag-over');
+            $('.compact-field-item, .form-field-item, .form-column').removeClass('drag-over');
         });
     }
 
@@ -591,7 +599,7 @@
     }
 
     /**
-     * Update field order based on DOM order (including fields in columns)
+     * Update field order based on DOM order (including fields in columns) - Compact version
      */
     function updateFieldOrder() {
         const newOrder = [];
@@ -600,21 +608,27 @@
         if ($('#form-fields-list .form-row').length > 0) {
             // Get fields from all columns in order
             $('#form-fields-list .form-row').each(function() {
-                $(this).find('.form-column .form-field-item').each(function() {
-                    const fieldId = $(this).data('field-id');
-                    const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
-                    if (field) {
-                        newOrder.push(field);
+                $(this).find('.form-column .compact-field-item').each(function() {
+                    const fieldIdElements = $(this).find('[data-field-id]');
+                    if (fieldIdElements.length > 0) {
+                        const fieldId = fieldIdElements.first().data('field-id');
+                        const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
+                        if (field) {
+                            newOrder.push(field);
+                        }
                     }
                 });
             });
         } else {
             // Simple single column mode
-            $('#form-fields-list .form-field-item').each(function() {
-                const fieldId = $(this).data('field-id');
-                const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
-                if (field) {
-                    newOrder.push(field);
+            $('#form-fields-list .compact-field-item').each(function() {
+                const fieldIdElements = $(this).find('[data-field-id]');
+                if (fieldIdElements.length > 0) {
+                    const fieldId = fieldIdElements.first().data('field-id');
+                    const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
+                    if (field) {
+                        newOrder.push(field);
+                    }
                 }
             });
         }
@@ -715,33 +729,38 @@
     }
 
     /**
-     * Update field in place without destroying row structure
+     * Update field in place without destroying row structure - Compact version
      */
     function updateFieldInPlace(field) {
-        const fieldElement = $(`.form-field-item[data-field-id="${field.id}"]`);
+        const fieldElement = $(`.compact-field-item`).filter(function() {
+            return $(this).find(`[data-field-id="${field.id}"]`).length > 0;
+        });
+        
         if (fieldElement.length) {
-            // Update field display
-            fieldElement.find('.field-label').text(field.label);
-            fieldElement.find('.field-type').text(field.type.toUpperCase());
-            fieldElement.find('.field-preview').html(generateFieldPreview(field));
+            // Replace the entire field element with updated version
+            const newFieldHTML = generateFieldPreview(field);
+            fieldElement.replaceWith(newFieldHTML);
         }
     }
 
     /**
-     * Delete field
+     * Delete field - Updated for compact layout
      */
     function deleteField(index) {
         const field = formData[index];
         if (!field) return;
         
-        // Remove from DOM first
-        const fieldElement = $(`.form-field-item[data-field-id="${field.id}"]`);
+        // Remove from DOM first - find by field ID in compact layout
+        const fieldElement = $(`.compact-field-item`).filter(function() {
+            return $(this).find(`[data-field-id="${field.id}"]`).length > 0;
+        });
+        
         const parentColumn = fieldElement.closest('.form-column');
         
         fieldElement.remove();
         
         // Check if parent column is now empty
-        if (parentColumn.length && parentColumn.find('.form-field-item').length === 0) {
+        if (parentColumn.length && parentColumn.find('.compact-field-item, .form-field-item').length === 0) {
             parentColumn.removeClass('has-fields');
             parentColumn.find('.column-placeholder').show();
         }
@@ -776,7 +795,7 @@
     }
 
     /**
-     * Render fields
+     * Render fields - Using compact layout
      */
     function renderFields() {
         const container = $('#form-fields-list');
@@ -789,34 +808,8 @@
         let html = '';
         formData.forEach((field, index) => {
             const fieldId = field.id || `field-${index}`;
-            html += `
-                <div class="form-field-item" draggable="true" data-field-id="${fieldId}">
-                    <div class="field-header">
-                        <span class="field-drag-handle" title="Drag to move">
-                            <span class="dashicons dashicons-move"></span>
-                        </span>
-                        <span class="field-type">${field.type.toUpperCase()}</span>
-                        <span class="field-label">${field.label}</span>
-                        <div class="field-actions">
-                            <button type="button" class="button-link move-up-btn" data-index="${index}" title="Move Up">
-                                <span class="dashicons dashicons-arrow-up-alt2"></span>
-                            </button>
-                            <button type="button" class="button-link move-down-btn" data-index="${index}" title="Move Down">
-                                <span class="dashicons dashicons-arrow-down-alt2"></span>
-                            </button>
-                            <button type="button" class="button-link edit-field-btn" data-field-id="${fieldId}" title="Edit">
-                                <span class="dashicons dashicons-edit"></span>
-                            </button>
-                            <button type="button" class="button-link delete-field-btn" data-field-id="${fieldId}" title="Delete">
-                                <span class="dashicons dashicons-trash"></span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="field-preview">
-                        ${generateFieldPreview(field)}
-                    </div>
-                </div>
-            `;
+            // Use the compact field preview directly, no extra wrapper needed
+            html += generateFieldPreview(field);
         });
 
         container.html(html);
@@ -826,66 +819,206 @@
     }
 
     /**
-     * Generate field preview HTML
+     * Generate field preview HTML - Compact version
      */
     function generateFieldPreview(field) {
         const required = field.required ? ' <span style="color: red;">*</span>' : '';
+        const fieldType = field.type.toUpperCase();
         
         switch (field.type) {
             case 'text':
             case 'email':
             case 'number':
                 return `
-                    <label>${field.label}${required}</label>
-                    <input type="${field.type}" placeholder="${field.placeholder}" disabled>
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <input type="${field.type}" placeholder="${field.placeholder || field.label}" disabled class="field-compact-input">
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                        ${required ? '<span class="required-indicator">Required</span>' : ''}
+                    </div>
                 `;
             
             case 'textarea':
                 return `
-                    <label>${field.label}${required}</label>
-                    <textarea placeholder="${field.placeholder}" disabled rows="3"></textarea>
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <textarea placeholder="${field.placeholder || field.label}" disabled class="field-compact-input" rows="2"></textarea>
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                        ${required ? '<span class="required-indicator">Required</span>' : ''}
+                    </div>
                 `;
             
             case 'select':
-                const selectOptions = field.options.map(opt => `<option>${opt}</option>`).join('');
+                const selectOptions = field.options && field.options.length > 0 
+                    ? field.options.map(opt => `<option>${opt}</option>`).join('') 
+                    : '<option>Option 1</option><option>Option 2</option>';
                 return `
-                    <label>${field.label}${required}</label>
-                    <select disabled>
-                        <option>Choose...</option>
-                        ${selectOptions}
-                    </select>
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <select disabled class="field-compact-input">
+                                <option>${field.label}</option>
+                                ${selectOptions}
+                            </select>
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                        ${required ? '<span class="required-indicator">Required</span>' : ''}
+                    </div>
                 `;
             
             case 'radio':
-                const radioOptions = field.options.map((opt, i) => 
-                    `<label><input type="radio" name="${field.name}" disabled> ${opt}</label>`
-                ).join('<br>');
+                const radioCount = field.options ? field.options.length : 3;
                 return `
-                    <label>${field.label}${required}</label><br>
-                    ${radioOptions}
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <div class="field-compact-input radio-preview">
+                                <span class="field-name">${field.label}</span>
+                                <span class="options-count">(${radioCount} options)</span>
+                            </div>
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                        ${required ? '<span class="required-indicator">Required</span>' : ''}
+                    </div>
                 `;
             
             case 'checkbox':
                 return `
-                    <label>
-                        <input type="checkbox" disabled> ${field.label}${required}
-                    </label>
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <div class="field-compact-input checkbox-preview">
+                                <input type="checkbox" disabled> <span class="field-name">${field.label}</span>
+                            </div>
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                        ${required ? '<span class="required-indicator">Required</span>' : ''}
+                    </div>
                 `;
             
             case 'date':
                 return `
-                    <label>${field.label}${required}</label>
-                    <input type="date" disabled>
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <input type="date" disabled class="field-compact-input" placeholder="${field.label}">
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                        ${required ? '<span class="required-indicator">Required</span>' : ''}
+                    </div>
                 `;
             
             case 'file':
                 return `
-                    <label>${field.label}${required}</label>
-                    <input type="file" disabled>
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <div class="field-compact-input file-preview">
+                                <span class="dashicons dashicons-upload"></span>
+                                <span class="field-name">${field.label}</span>
+                            </div>
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                        ${required ? '<span class="required-indicator">Required</span>' : ''}
+                    </div>
                 `;
             
             default:
-                return `<p>Unknown field type: ${field.type}</p>`;
+                return `
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">UNKNOWN</span>
+                            <div class="field-compact-input">
+                                <span class="field-name">Unknown field type: ${field.type}</span>
+                            </div>
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
         }
     }
 
@@ -1112,10 +1245,18 @@
         });
 
         // Handle field dragging within canvas using event delegation
-        $(document).off('dragstart.fieldDrag').on('dragstart.fieldDrag', '.form-field-item[draggable="true"]', function(e) {
+        $(document).off('dragstart.fieldDrag').on('dragstart.fieldDrag', '.form-field-item[draggable="true"], .compact-field-item[draggable="true"]', function(e) {
             draggedElement = this;
+            
+            // Find field ID from nested elements for compact layout
+            let fieldId = $(this).data('field-id');
+            if (!fieldId) {
+                const fieldIdElement = $(this).find('[data-field-id]').first();
+                fieldId = fieldIdElement.data('field-id');
+            }
+            
             draggedData = {
-                fieldId: $(this).data('field-id'),
+                fieldId: fieldId,
                 source: 'canvas-field'
             };
             
@@ -1124,7 +1265,7 @@
             e.originalEvent.dataTransfer.setData('text/html', '');
         });
 
-        $(document).off('dragend.fieldDrag').on('dragend.fieldDrag', '.form-field-item[draggable="true"]', function(e) {
+        $(document).off('dragend.fieldDrag').on('dragend.fieldDrag', '.form-field-item[draggable="true"], .compact-field-item[draggable="true"]', function(e) {
             $(this).removeClass('drag-ghost');
             draggedElement = null;
             draggedData = null;
@@ -1397,14 +1538,14 @@
 
     function addFieldToColumn(fieldType, column) {
         const fieldData = createFieldData(fieldType);
-        const fieldHTML = generateFieldHTML(fieldData);
+        const fieldHTML = generateFieldPreview(fieldData);
         
         column.find('.column-placeholder').hide();
         column.addClass('has-fields');
         column.append(fieldHTML);
         
         // Make the field draggable
-        column.find('.form-field-item').last().attr('draggable', 'true');
+        column.find('.compact-field-item').last().attr('draggable', 'true');
         
         formData.push(fieldData);
         

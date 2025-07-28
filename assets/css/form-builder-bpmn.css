@@ -644,6 +644,199 @@
     cursor: grab;
 }
 
+/* COMPACT FIELD LAYOUT - New Optimized Design */
+.compact-field-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    padding: 6px 8px;
+    transition: all 0.2s ease;
+    position: relative;
+    cursor: grab;
+}
+
+.compact-field-item:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 1px 4px rgba(59, 130, 246, 0.1);
+}
+
+.compact-field-item[draggable="true"]:hover {
+    border-color: #2271b1;
+    box-shadow: 0 2px 8px rgba(34, 113, 177, 0.15);
+}
+
+.field-compact-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 24px;
+}
+
+.field-type-badge {
+    background: #2271b1;
+    color: #fff;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 7px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+    flex-shrink: 0;
+    min-width: 28px;
+    text-align: center;
+}
+
+.field-compact-input {
+    flex: 1;
+    min-width: 0;
+    font-size: 11px;
+    padding: 2px 4px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    background: #f9f9f9;
+    color: #666;
+    height: 22px;
+    line-height: 1.2;
+}
+
+.field-compact-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.field-compact-input.radio-preview,
+.field-compact-input.checkbox-preview,
+.field-compact-input.file-preview {
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    height: auto;
+    min-height: 22px;
+}
+
+.field-compact-input textarea {
+    resize: none;
+    font-family: inherit;
+    min-height: 20px;
+    height: 20px;
+}
+
+.field-name {
+    font-weight: 500;
+    color: #333;
+    font-size: 10px;
+}
+
+.options-count {
+    color: #666;
+    font-size: 9px;
+    font-style: italic;
+}
+
+.field-compact-actions {
+    display: flex;
+    gap: 1px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.compact-field-item:hover .field-compact-actions {
+    opacity: 1;
+}
+
+.compact-btn {
+    padding: 2px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compact-btn:hover {
+    background: #f1f5f9;
+}
+
+.compact-btn .dashicons {
+    font-size: 10px;
+    width: 10px;
+    height: 10px;
+    color: #666;
+}
+
+.compact-btn.edit-field-btn:hover .dashicons {
+    color: #2271b1;
+}
+
+.compact-btn.delete-field-btn:hover .dashicons {
+    color: #dc2626;
+}
+
+.field-drag-handle {
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    color: #999;
+    flex-shrink: 0;
+}
+
+.field-drag-handle:hover {
+    color: #666;
+}
+
+.field-drag-handle .dashicons {
+    font-size: 8px;
+    width: 8px;
+    height: 8px;
+}
+
+.required-indicator {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    background: #dc2626;
+    color: white;
+    font-size: 7px;
+    padding: 1px 3px;
+    border-radius: 0 3px 0 3px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+/* Checkbox and radio specific styling */
+.checkbox-preview input[type="checkbox"] {
+    margin: 0 4px 0 0;
+    transform: scale(0.8);
+}
+
+/* Drag states for compact items */
+.compact-field-item.being-dragged {
+    opacity: 0.6;
+    transform: rotate(1deg) scale(0.98);
+    cursor: grabbing;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.compact-field-item.drag-over {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+    border-style: dashed;
+}
+
 /* Drag states */
 .form-field-item.being-dragged {
     opacity: 0.6;
@@ -678,11 +871,11 @@
 
 /* Sort placeholder */
 .field-sort-placeholder {
-    height: 60px;
+    height: 32px;
     background: #135e96;
     border: 2px dashed #3b82f6;
-    border-radius: 6px;
-    margin-bottom: 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
     position: relative;
     display: flex;
     align-items: center;
@@ -690,7 +883,11 @@
     text-align: center;
     color: #3b82f6;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 10px;
+}
+
+.field-sort-placeholder::before {
+    content: "📋 Thả field vào đây";
 }
 
 .form-field-item.dragging {
@@ -701,10 +898,11 @@
 }
 
 /* Drop zones for fields */
-.form-field-item::before {
+.form-field-item::before,
+.compact-field-item::before {
     content: "";
     position: absolute;
-    top: -4px;
+    top: -2px;
     left: 0;
     right: 0;
     height: 2px;
@@ -713,23 +911,26 @@
     z-index: 10;
 }
 
-.form-field-item.drag-target::before {
+.form-field-item.drag-target::before,
+.compact-field-item.drag-target::before {
     background: linear-gradient(90deg, #22c55e, #4ade80);
-    height: 4px;
-    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+    height: 3px;
+    box-shadow: 0 1px 4px rgba(34, 197, 94, 0.4);
 }
 
-.form-field-item.drag-over::before {
+.form-field-item.drag-over::before,
+.compact-field-item.drag-over::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 30px;
+    height: 20px;
     background: rgba(34, 197, 94, 0.1);
-    border: 2px dashed #22c55e;
+    border: 1px dashed #22c55e;
     color: #22c55e;
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 600;
-    border-radius: 4px;
+    border-radius: 2px;
+    content: "Thả vào đây";
 }
 
 /* Field Header - Unified */
