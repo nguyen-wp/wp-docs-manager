@@ -95,7 +95,7 @@
                 },
                 i18n: {
                     locale: 'en-US',
-                    location: window.liftAjax ? window.liftAjax.pluginUrl + '/assets/js/i18n/' : ''
+                    location: window.liftFormBuilder ? window.liftFormBuilder.pluginUrl + '/assets/js/i18n/' : ''
                 }
             });
 
@@ -179,6 +179,9 @@
                                 </button>
                                 <button type="button" class="field-type-btn draggable" data-type="paragraph" draggable="true">
                                     <span class="dashicons dashicons-text-page"></span> Paragraph
+                                </button>
+                                <button type="button" class="field-type-btn draggable" data-type="signature" draggable="true">
+                                    <span class="dashicons dashicons-edit"></span> Signature
                                 </button>
                             </div>
                         </div>
@@ -448,6 +451,29 @@
             previewForm();
         });
 
+        // Signature pad events
+        $(document).on('click', '.signature-clear', function() {
+            const canvasId = $(this).data('target');
+            clearSignature(canvasId);
+        });
+
+        $(document).on('click', '.signature-undo', function() {
+            const canvasId = $(this).data('target');
+            undoSignature(canvasId);
+        });
+
+        // Initialize signature pads when preview modal is shown
+        $(document).on('modal-shown', '#form-preview-modal', function() {
+            initSignaturePads();
+        });
+
+        // Initialize signature pads when preview is opened
+        $(document).on('click', '#preview-form', function() {
+            setTimeout(function() {
+                initSignaturePads();
+            }, 100);
+        });
+
         // Initialize sortable for form fields
         initSortableFields();
 
@@ -455,6 +481,128 @@
         $(document).on('fields-updated', function() {
             initSortableFields();
         });
+    }
+
+    /**
+     * Initialize signature pads
+     */
+    function initSignaturePads() {
+        $('.signature-canvas').each(function() {
+            const canvas = this;
+            const ctx = canvas.getContext('2d');
+            let drawing = false;
+            let strokes = [];
+            let currentStroke = [];
+
+            // Set canvas properties
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Touch and mouse events
+            $(canvas).off('mousedown touchstart').on('mousedown touchstart', function(e) {
+                e.preventDefault();
+                drawing = true;
+                currentStroke = [];
+                const pos = getMousePos(canvas, e);
+                currentStroke.push(pos);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            });
+
+            $(canvas).off('mousemove touchmove').on('mousemove touchmove', function(e) {
+                if (!drawing) return;
+                e.preventDefault();
+                const pos = getMousePos(canvas, e);
+                currentStroke.push(pos);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            });
+
+            $(canvas).off('mouseup touchend').on('mouseup touchend', function(e) {
+                if (!drawing) return;
+                e.preventDefault();
+                drawing = false;
+                strokes.push([...currentStroke]);
+                updateSignatureData(canvas);
+            });
+
+            // Store strokes data on canvas
+            canvas.signatureStrokes = strokes;
+        });
+    }
+
+    /**
+     * Get mouse position relative to canvas
+     */
+    function getMousePos(canvas, e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.type.includes('touch') ? e.originalEvent.touches[0].clientX : e.clientX;
+        const clientY = e.type.includes('touch') ? e.originalEvent.touches[0].clientY : e.clientY;
+        
+        return {
+            x: (clientX - rect.left) * (canvas.width / rect.width),
+            y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+    }
+
+    /**
+     * Clear signature
+     */
+    function clearSignature(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.signatureStrokes = [];
+            updateSignatureData(canvas);
+        }
+    }
+
+    /**
+     * Undo last stroke
+     */
+    function undoSignature(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        if (canvas && canvas.signatureStrokes && canvas.signatureStrokes.length > 0) {
+            canvas.signatureStrokes.pop();
+            redrawSignature(canvas);
+            updateSignatureData(canvas);
+        }
+    }
+
+    /**
+     * Redraw signature from strokes
+     */
+    function redrawSignature(canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (canvas.signatureStrokes) {
+            canvas.signatureStrokes.forEach(stroke => {
+                if (stroke.length > 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(stroke[0].x, stroke[0].y);
+                    stroke.forEach(point => {
+                        ctx.lineTo(point.x, point.y);
+                    });
+                    ctx.stroke();
+                }
+            });
+        }
+    }
+
+    /**
+     * Update signature data in hidden input
+     */
+    function updateSignatureData(canvas) {
+        const dataURL = canvas.toDataURL('image/png');
+        const fieldName = canvas.id.replace('_canvas', '');
+        const hiddenInput = document.getElementById(fieldName);
+        if (hiddenInput) {
+            hiddenInput.value = dataURL;
+        }
     }
 
     /**
@@ -742,7 +890,8 @@
             date: 'Date Field',
             file: 'File Upload',
             header: 'Header',
-            paragraph: 'Paragraph'
+            paragraph: 'Paragraph',
+            signature: 'Signature'
         };
         return labels[type] || 'Field';
     }
@@ -761,11 +910,16 @@
         $('#field-required').prop('checked', field.required);
         
         // Show/hide form fields based on field type
-        if (field.type === 'header' || field.type === 'paragraph') {
-            // For header and paragraph, hide placeholder and required fields
+        if (field.type === 'header' || field.type === 'paragraph' || field.type === 'signature') {
+            // For header, paragraph, and signature, hide placeholder and required fields
             $('#field-placeholder').closest('.form-field').hide();
             $('#field-required').closest('.form-field').hide();
-            $('#field-name').closest('.form-field').hide();
+            if (field.type === 'header' || field.type === 'paragraph') {
+                $('#field-name').closest('.form-field').hide();
+            } else {
+                // Signature still needs a name for form submission
+                $('#field-name').closest('.form-field').show();
+            }
         } else {
             // Show all fields for other types
             $('#field-placeholder').closest('.form-field').show();
@@ -1231,6 +1385,30 @@
                     </div>
                 `;
             
+            case 'signature':
+                return `
+                    <div class="compact-field-item">
+                        <div class="field-compact-header">
+                            <span class="field-drag-handle" title="Drag to move">
+                                <span class="dashicons dashicons-move"></span>
+                            </span>
+                            <span class="field-type-badge">${fieldType}</span>
+                            <div class="field-compact-input signature-preview">
+                                <span class="dashicons dashicons-edit"></span>
+                                <span class="field-name">${field.label}</span>
+                            </div>
+                            <div class="field-compact-actions">
+                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                    <span class="dashicons dashicons-edit"></span>
+                                </button>
+                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            
             default:
                 return `
                     <div class="compact-field-item">
@@ -1372,6 +1550,21 @@
                     </div>
                 `;
             
+            case 'signature':
+                return `
+                    <div class="form-group">
+                        <label for="${field.name}">${field.label}${required}</label>
+                        <div class="signature-pad-container">
+                            <canvas id="${field.name}_canvas" class="signature-canvas" width="400" height="150"></canvas>
+                            <div class="signature-controls">
+                                <button type="button" class="btn btn-secondary signature-clear" data-target="${field.name}_canvas">Clear</button>
+                                <button type="button" class="btn btn-secondary signature-undo" data-target="${field.name}_canvas">Undo</button>
+                            </div>
+                            <input type="hidden" id="${field.name}" name="${field.name}" class="signature-data" />
+                        </div>
+                    </div>
+                `;
+            
             default:
                 return `
                     <div class="form-group">
@@ -1495,11 +1688,11 @@
         }
 
         $.ajax({
-            url: liftAjax.ajaxurl,
+            url: (window.liftFormBuilder && liftFormBuilder.ajaxurl) || ajaxurl || '/wp-admin/admin-ajax.php',
             type: 'POST',
             data: {
                 action: 'lift_save_form',
-                nonce: liftAjax.nonce,
+                nonce: (window.liftFormBuilder && liftFormBuilder.nonce) || '',
                 form_id: currentFormId,
                 form_data: saveData,
                 form_title: $('#form-title').val() || 'Untitled Form'
@@ -1536,11 +1729,11 @@
      */
     function loadFormData(formId) {
         $.ajax({
-            url: liftAjax.ajaxurl,
+            url: (window.liftFormBuilder && liftFormBuilder.ajaxurl) || ajaxurl || '/wp-admin/admin-ajax.php',
             type: 'POST',
             data: {
                 action: 'lift_load_form',
-                nonce: liftAjax.nonce,
+                nonce: (window.liftFormBuilder && liftFormBuilder.nonce) || '',
                 form_id: formId
             },
             success: function(response) {
@@ -2198,6 +2391,9 @@
         if (fieldType === 'header' || fieldType === 'paragraph') {
             // Header and paragraph don't need name, placeholder, or required
             fieldData.content = fieldData.label; // Use content instead of label for display
+        } else if (fieldType === 'signature') {
+            // Signature needs a name but not placeholder or required
+            fieldData.name = fieldType + '_' + Date.now();
         } else {
             // Regular form fields
             fieldData.name = fieldType + '_' + Date.now();

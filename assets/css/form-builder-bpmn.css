@@ -710,7 +710,8 @@
 .field-compact-input.checkbox-preview,
 .field-compact-input.file-preview,
 .field-compact-input.header-preview,
-.field-compact-input.paragraph-preview {
+.field-compact-input.paragraph-preview,
+.field-compact-input.signature-preview {
     border: none;
     background: transparent;
     display: flex;
@@ -1670,6 +1671,58 @@
     color: #50575e;
     margin: 0 0 20px 0;
     padding: 0;
+}
+
+/* Signature Pad Styling for Form Preview */
+.form-preview-container .signature-pad-container {
+    border: 2px solid #8c8f94;
+    border-radius: 4px;
+    padding: 10px;
+    background: #fff;
+    margin-top: 5px;
+}
+
+.form-preview-container .signature-canvas {
+    display: block;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    cursor: crosshair;
+    background: #fff;
+    width: 100%;
+    max-width: 400px;
+    height: 150px;
+}
+
+.form-preview-container .signature-controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.form-preview-container .signature-controls .btn {
+    padding: 5px 15px;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    background: #f7f7f7;
+    color: #555;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-preview-container .signature-controls .btn:hover {
+    background: #e7e7e7;
+    border-color: #999;
+}
+
+.form-preview-container .signature-controls .signature-clear {
+    color: #d63638;
+    border-color: #d63638;
+}
+
+.form-preview-container .signature-controls .signature-clear:hover {
+    background: #d63638;
+    color: #fff;
 }
 
 .form-preview-container .btn {
