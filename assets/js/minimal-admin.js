@@ -12,8 +12,6 @@
             return;
         }
         
-        console.log('LIFT Forms - Minimal admin loaded');
-        
         // Auto-hide WordPress notices
         $('.notice.is-dismissible').each(function() {
             const notice = $(this);
@@ -34,11 +32,9 @@
                  typeof window.formBuilder.formData === 'object' && 
                  window.formBuilder.formData.type === 'advanced')) {
                 // Let the advanced form builder handle the save
-                console.log('Advanced form builder detected, skipping minimal admin save');
                 return;
             }
 
-            console.log('Minimal admin handling save form click');
             e.preventDefault();
             e.stopImmediatePropagation();
 
@@ -122,11 +118,8 @@
                     settings: JSON.stringify({})
                 },
                 success: function(response) {
-                    console.log('Minimal admin save response:', response);
-                    
                     if (response.success) {
                         if (!formId) {
-                            console.log('New form created with ID:', response.data.form_id);
                             $('#form-id').val(response.data.form_id);
                             
                             // Show success message first
@@ -134,22 +127,36 @@
                             
                             // Redirect to edit page after short delay
                             setTimeout(function() {
-                                console.log('Redirecting to edit page with form ID:', response.data.form_id);
+                                // Try multiple methods to build the correct URL
+                                let editUrl;
                                 
-                                // Build the correct admin URL
-                                const adminUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
-                                const editUrl = adminUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                // Method 1: Use current location with query string replacement
+                                if (window.location.search) {
+                                    // Replace existing query params
+                                    const url = new URL(window.location.href);
+                                    url.searchParams.set('page', 'lift-forms-builder');
+                                    url.searchParams.set('id', response.data.form_id);
+                                    url.searchParams.set('created', '1');
+                                    editUrl = url.href;
+                                } else {
+                                    // Method 2: Build from scratch
+                                    const baseUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+                                    editUrl = baseUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                }
                                 
-                                console.log('Edit URL:', editUrl);
-                                window.location.href = editUrl;
+                                // Try redirect, with fallback
+                                try {
+                                    window.location.href = editUrl;
+                                } catch (error) {
+                                    // Fallback: reload current page with form ID
+                                    window.location.reload();
+                                }
                             }, 1500);
                         } else {
-                            console.log('Existing form updated');
                             // For existing forms, just show success message
                             showMessage('Form updated successfully!', 'success');
                         }
                     } else {
-                        console.error('Save failed:', response.data);
                         showMessage(response.data || 'Error saving form', 'error');
                     }
                 },
@@ -253,7 +260,6 @@
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(function() {
                 // Could implement auto-save here if needed
-                console.log('Form data changed');
             }, 1000);
         });
     });

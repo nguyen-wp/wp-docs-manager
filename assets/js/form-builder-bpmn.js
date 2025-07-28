@@ -16,7 +16,6 @@
     // Initialize when DOM is ready
     $(document).ready(function() {
         if ($('#form-builder-container').length) {
-            console.log('Form builder container found, initializing...');
             initFormBuilder();
             
             // Expose form builder to global scope for minimal admin access
@@ -197,7 +196,6 @@
                 }
             });
 
-            console.log('FormBuilder initialized successfully');
         } catch (error) {
             console.error('FormBuilder initialization failed:', error);
             createSimpleFormBuilder(existingData);
@@ -421,8 +419,6 @@
 
         // Bind simple form builder events
         bindSimpleFormBuilderEvents();
-        
-        console.log('Simple form builder created successfully');
     }
 
     /**
@@ -1770,7 +1766,6 @@
         
         // Save form
         $(document).off('click.form-builder', '#save-form').on('click.form-builder', '#save-form', function(e) {
-            console.log('Form builder handling save form click');
             e.preventDefault();
             e.stopImmediatePropagation(); // Prevent other handlers from running
             saveForm();
@@ -1840,9 +1835,7 @@
             saveData = getFormDataForSaving();
             
             // Debug logging
-            console.log('LIFT Forms - Saving data structure:', saveData);
-            console.log('LIFT Forms - Layout type:', layoutData.type);
-            console.log('LIFT Forms - Form data length:', formData.length);
+            const dataToSave = getFormDataForSaving();
             
             // Store in global variable for minimal admin access  
             updateGlobalFormData();
@@ -1878,14 +1871,30 @@
                         if (!silent) {
                             showFormMessage('Form created successfully! Redirecting to edit page...', 'success');
                             setTimeout(function() {
-                                console.log('Form builder redirecting to edit page with form ID:', response.data.form_id);
+                                // Try multiple methods to build the correct URL
+                                let editUrl;
                                 
-                                // Build the correct admin URL
-                                const adminUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
-                                const editUrl = adminUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                // Method 1: Use current location with query string replacement
+                                if (window.location.search) {
+                                    // Replace existing query params
+                                    const url = new URL(window.location.href);
+                                    url.searchParams.set('page', 'lift-forms-builder');
+                                    url.searchParams.set('id', response.data.form_id);
+                                    url.searchParams.set('created', '1');
+                                    editUrl = url.href;
+                                } else {
+                                    // Method 2: Build from scratch
+                                    const baseUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+                                    editUrl = baseUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
+                                }
                                 
-                                console.log('Form builder edit URL:', editUrl);
-                                window.location.href = editUrl;
+                                // Try redirect, with fallback
+                                try {
+                                    window.location.href = editUrl;
+                                } catch (error) {
+                                    // Fallback: reload current page with form ID
+                                    window.location.reload();
+                                }
                             }, 1500);
                         }
                     }
@@ -1894,14 +1903,12 @@
                         $('.lift-save-indicator').text('Save failed').addClass('error');
                         showFormMessage(response.data || 'Error saving form', 'error');
                     }
-                    console.error('Save failed:', response.data || response);
                 }
             },
             error: function(xhr, status, error) {
                 if (!silent) {
                     $('.lift-save-indicator').text('Save failed').addClass('error');
                 }
-                console.error('Save error:', error);
             }
         });
     }
