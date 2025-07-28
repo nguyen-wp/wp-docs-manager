@@ -356,6 +356,229 @@
         $(document).on('click', '#preview-form', function() {
             previewForm();
         });
+
+        // Initialize sortable for form fields
+        initSortableFields();
+
+        // Re-initialize sortable after field updates
+        $(document).on('fields-updated', function() {
+            initSortableFields();
+        });
+    }
+
+    /**
+     * Initialize sortable functionality for form fields
+     */
+    function initSortableFields() {
+        // Check if jQuery UI sortable is available
+        if (typeof $.fn.sortable !== 'undefined') {
+            $('#form-fields-list').sortable({
+                items: '.form-field-item',
+                handle: '.field-drag-handle',
+                placeholder: 'field-sort-placeholder',
+                forcePlaceholderSize: true,
+                tolerance: 'pointer',
+                cursor: 'grabbing',
+                opacity: 0.8,
+                helper: 'clone',
+                connectWith: '.form-column', // Allow dragging between columns
+                start: function(event, ui) {
+                    ui.item.addClass('being-dragged');
+                    ui.placeholder.addClass('field-sort-placeholder');
+                },
+                stop: function(event, ui) {
+                    ui.item.removeClass('being-dragged');
+                    updateFieldOrder();
+                },
+                update: function(event, ui) {
+                    // Field order has changed
+                    console.log('Field order updated');
+                }
+            });
+
+            // Make columns sortable too
+            $('.form-column').sortable({
+                items: '.form-field-item',
+                handle: '.field-drag-handle',
+                placeholder: 'field-sort-placeholder',
+                forcePlaceholderSize: true,
+                tolerance: 'pointer',
+                cursor: 'grabbing',
+                opacity: 0.8,
+                helper: 'clone',
+                connectWith: '#form-fields-list, .form-column',
+                start: function(event, ui) {
+                    ui.item.addClass('being-dragged');
+                    ui.placeholder.addClass('field-sort-placeholder');
+                },
+                stop: function(event, ui) {
+                    ui.item.removeClass('being-dragged');
+                    $('.form-column').removeClass('drag-over');
+                    updateFieldOrder();
+                },
+                over: function(event, ui) {
+                    $(this).addClass('drag-over');
+                },
+                out: function(event, ui) {
+                    $(this).removeClass('drag-over');
+                }
+            });
+        } else {
+            // Fallback: Use native HTML5 drag and drop
+            initNativeDragDrop();
+        }
+    }
+
+    /**
+     * Initialize native HTML5 drag and drop as fallback
+     */
+    function initNativeDragDrop() {
+        let draggedElement = null;
+
+        // Drag start
+        $(document).on('dragstart', '.form-field-item', function(e) {
+            draggedElement = this;
+            $(this).addClass('being-dragged');
+            
+            // Store the field index and source container
+            const index = Array.from(this.parentNode.children).indexOf(this);
+            const sourceContainer = $(this).closest('#form-fields-list, .form-column').attr('class') || 'form-fields-list';
+            e.originalEvent.dataTransfer.setData('text/plain', JSON.stringify({
+                index: index,
+                sourceContainer: sourceContainer,
+                fieldId: $(this).data('field-id')
+            }));
+        });
+
+        // Drag end
+        $(document).on('dragend', '.form-field-item', function(e) {
+            $(this).removeClass('being-dragged');
+            $('.form-field-item, .form-column').removeClass('drag-over');
+            draggedElement = null;
+        });
+
+        // Drag over for field items
+        $(document).on('dragover', '.form-field-item', function(e) {
+            e.preventDefault();
+            if (this !== draggedElement) {
+                $(this).addClass('drag-over');
+            }
+        });
+
+        // Drag over for columns
+        $(document).on('dragover', '.form-column', function(e) {
+            e.preventDefault();
+            if (!$(e.target).hasClass('form-field-item')) {
+                $(this).addClass('drag-over');
+            }
+        });
+
+        // Drag leave
+        $(document).on('dragleave', '.form-field-item, .form-column', function(e) {
+            // Only remove drag-over if we're really leaving the element
+            if (!$.contains(this, e.relatedTarget)) {
+                $(this).removeClass('drag-over');
+            }
+        });
+
+        // Drop on field items
+        $(document).on('drop', '.form-field-item', function(e) {
+            e.preventDefault();
+            $(this).removeClass('drag-over');
+            
+            if (this !== draggedElement) {
+                try {
+                    const data = JSON.parse(e.originalEvent.dataTransfer.getData('text/plain'));
+                    const dropIndex = Array.from(this.parentNode.children).indexOf(this);
+                    
+                    // Move the field in the data array
+                    moveFieldToPosition(data.index, dropIndex);
+                } catch (ex) {
+                    console.error('Error parsing drag data:', ex);
+                }
+            }
+        });
+
+        // Drop on columns
+        $(document).on('drop', '.form-column', function(e) {
+            e.preventDefault();
+            $(this).removeClass('drag-over');
+            
+            // Only handle drops directly on the column, not on field items within
+            if (!$(e.target).hasClass('form-field-item')) {
+                try {
+                    const data = JSON.parse(e.originalEvent.dataTransfer.getData('text/plain'));
+                    
+                    // Append field to this column
+                    appendFieldToColumn(data.fieldId, $(this));
+                } catch (ex) {
+                    console.error('Error parsing drag data:', ex);
+                }
+            }
+        });
+
+        // Also handle dropping on the main container
+        $(document).on('dragover', '#form-fields-list', function(e) {
+            e.preventDefault();
+        });
+
+        $(document).on('drop', '#form-fields-list', function(e) {
+            e.preventDefault();
+            $('.form-field-item, .form-column').removeClass('drag-over');
+        });
+    }
+
+    /**
+     * Append field to specific column
+     */
+    function appendFieldToColumn(fieldId, $column) {
+        const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
+        if (!field) return;
+
+        // Remove field from current position
+        const fieldIndex = formData.indexOf(field);
+        if (fieldIndex > -1) {
+            // For now, just log the action - you can implement column-specific logic here
+            console.log('Moving field to column:', field.label, $column);
+            
+            // Re-render to update positions
+            renderFields();
+        }
+    }
+
+    /**
+     * Move field to a specific position
+     */
+    function moveFieldToPosition(fromIndex, toIndex) {
+        if (fromIndex === toIndex) return;
+        
+        // Remove field from old position
+        const field = formData.splice(fromIndex, 1)[0];
+        
+        // Insert at new position
+        formData.splice(toIndex, 0, field);
+        
+        // Re-render fields
+        renderFields();
+        
+        // Trigger update event
+        $(document).trigger('fields-updated');
+    }
+
+    /**
+     * Update field order based on DOM order
+     */
+    function updateFieldOrder() {
+        const newOrder = [];
+        $('#form-fields-list .form-field-item').each(function() {
+            const fieldId = $(this).data('field-id');
+            const field = formData.find(f => (f.id || formData.indexOf(f)) == fieldId);
+            if (field) {
+                newOrder.push(field);
+            }
+        });
+        formData = newOrder;
+        console.log('Field order updated:', formData.map(f => f.label));
     }
 
     /**
@@ -510,6 +733,9 @@
         });
 
         container.html(html);
+        
+        // Trigger event to reinitialize sortable
+        $(document).trigger('fields-updated');
     }
 
     /**
