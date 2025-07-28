@@ -982,7 +982,10 @@
             const columns = currentRow.find('.form-column').length;
             const newRowHTML = generateRowHTML(columns);
             currentRow.after(newRowHTML);
+            
+            // Re-bind events and initialize column resize for the new row
             bindRowEvents();
+            initColumnResize();
         });
 
         // Delete row button
@@ -1000,12 +1003,26 @@
 
     function generateRowHTML(columns) {
         const rowId = 'row-' + Date.now();
-        let rowHTML = `<div class="form-row" data-row-id="${rowId}">`;
+        let rowHTML = `<div class="form-row" data-row-id="${rowId}" draggable="true">`;
         
+        // Add row drag handle
+        rowHTML += `
+            <div class="row-drag-handle" title="Drag to reorder row">
+                ⋮⋮
+            </div>
+        `;
+        
+        // Add row controls with full functionality
         rowHTML += `
             <div class="row-controls">
+                <button type="button" class="row-control-btn" title="Add Column" onclick="addColumn('${rowId}')">
+                    <span class="dashicons dashicons-plus-alt"></span> Col
+                </button>
+                <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${rowId}')">
+                    <span class="dashicons dashicons-minus"></span> Col
+                </button>
                 <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                    <span class="dashicons dashicons-plus-alt"></span>
+                    <span class="dashicons dashicons-plus-alt"></span> Row
                 </button>
                 <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
                     <span class="dashicons dashicons-trash"></span>
@@ -1013,21 +1030,38 @@
             </div>
         `;
         
+        // Add columns with full functionality including width selector and settings
         for (let i = 0; i < columns; i++) {
             const columnId = `${rowId}-col-${i}`;
+            
             rowHTML += `
-                <div class="form-column" data-column-id="${columnId}">
+                <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                     <div class="column-header">
                         <span class="column-title">Column ${i + 1}</span>
                         <div class="column-actions">
-                            <button type="button" class="column-action-btn" title="Column Settings">
+                            <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
+                                <option value="col-auto">col-auto</option>
+                                <option value="col-1">col-1</option>
+                                <option value="col-2">col-2</option>
+                                <option value="col-3">col-3</option>
+                                <option value="col-4">col-4</option>
+                                <option value="col-5">col-5</option>
+                                <option value="col-6">col-6</option>
+                                <option value="col-7">col-7</option>
+                                <option value="col-8">col-8</option>
+                                <option value="col-9">col-9</option>
+                                <option value="col-10">col-10</option>
+                                <option value="col-11">col-11</option>
+                                <option value="col-12">col-12</option>
+                            </select>
+                            <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
                                 <span class="dashicons dashicons-admin-generic"></span>
                             </button>
                         </div>
                     </div>
                     <div class="column-placeholder">
-                        Drop fields here
                     </div>
+                    ${i < columns - 1 ? '<div class="column-resize-handle"></div>' : ''}
                 </div>
             `;
         }
