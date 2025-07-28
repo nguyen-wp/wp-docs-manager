@@ -1058,7 +1058,7 @@ class LIFT_Docs_Secure_Links {
                 <?php endif; ?>
                 
                 <div class="lift-access-denied-wrapper">
-                    <div class="error-icon"><i class="fas fa-lock" style="font-size: 4em; color: #dc3232;"></i></div>
+                    <div class="error-icon"><i class="fas fa-lock" style="font-size: 1.5em; color: #dc3232;"></i></div>
                     
                     <h1 class="error-title"><?php _e('Access Denied', 'lift-docs-system'); ?></h1>
                     
@@ -1075,15 +1075,6 @@ class LIFT_Docs_Secure_Links {
                         </a>
                     </div>
                     
-                    <div class="error-details">
-                        <h4><?php _e('Possible reasons:', 'lift-docs-system'); ?></h4>
-                        <ul>
-                            <li><?php _e('The secure link has expired', 'lift-docs-system'); ?></li>
-                            <li><?php _e('Invalid or corrupted security token', 'lift-docs-system'); ?></li>
-                            <li><?php _e('Document has been moved or deleted', 'lift-docs-system'); ?></li>
-                            <li><?php _e('You need to login with proper credentials', 'lift-docs-system'); ?></li>
-                        </ul>
-                    </div>
                 </div>
             </div>
             

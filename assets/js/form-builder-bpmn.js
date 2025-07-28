@@ -106,27 +106,18 @@
      * Initialize Form Builder
      */
     function initFormBuilder() {
-        console.log('=== initFormBuilder called ===');
-        
         // Get form ID if editing
         currentFormId = parseInt($('#form-id').val()) || 0;
-        console.log('Form ID from input:', $('#form-id').val());
-        console.log('Parsed currentFormId:', currentFormId);
-        console.log('Form ID input element exists:', $('#form-id').length > 0);
-        console.log('Form builder container exists:', $('#form-builder-container').length > 0);
         
         // Load existing form data if editing
         if (currentFormId > 0) {
-            console.log('Loading existing form data for ID:', currentFormId);
             loadFormData(currentFormId);
         } else {
-            console.log('No form ID, creating new form builder');
             createFormBuilderUI();
         }
 
         // Bind save events
         bindEvents();
-        console.log('=== initFormBuilder completed ===');
     }
 
     /**
@@ -1652,15 +1643,11 @@
      * Bind save events
      */
     function bindEvents() {
-        console.log('=== bindEvents called ===');
-        console.log('Existing #save-form handlers:', $._data(document, 'events') ? ($._data(document, 'events').click || []).filter(h => h.selector === '#save-form').length : 0);
-        
         // Initialize drag and drop
         initDragAndDrop();
         
         // Save form - ensure we remove any existing handlers first
         $(document).off('click.form-builder', '#save-form').on('click.form-builder', '#save-form', function(e) {
-            console.log('=== Save button clicked ===');
             e.preventDefault();
             e.stopImmediatePropagation(); // Prevent other handlers from running
             saveForm();
@@ -1680,19 +1667,12 @@
         //         saveForm(true); // Silent save
         //     }
         // }, 30000);
-        
-        console.log('Auto-save disabled - forms will only save when Save button is clicked');
-        console.log('=== bindEvents completed ===');
     }
 
     /**
      * Save form data
      */
     function saveForm(silent = false) {
-        console.log('=== saveForm called ===');
-        console.log('Silent mode:', silent);
-        console.log('Call stack:', new Error().stack);
-        
         // Enhanced validation for form name (skip for silent saves like auto-save)
         if (!silent) {
             const formName = $('#form-name').val().trim();
@@ -1755,13 +1735,6 @@
                 fields: typeof saveData === 'string' ? saveData : JSON.stringify(saveData),
                 settings: JSON.stringify({})
             },
-            beforeSend: function() {
-                console.log('=== AJAX SAVE REQUEST STARTING ===');
-                console.log('Form ID:', currentFormId);
-                console.log('Form name:', $('#form-name').val());
-                console.log('Silent mode:', silent);
-                console.log('Save data length:', typeof saveData === 'string' ? saveData.length : JSON.stringify(saveData).length);
-            },
             success: function(response) {
                 if (response.success) {
                     if (!silent) {
@@ -1784,13 +1757,10 @@
                                 const baseUrl = '/wp-admin/admin.php';
                                 const editUrl = baseUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
                                 
-                                console.log('Redirecting to:', editUrl);
-                                
                                 // Redirect to correct URL
                                 try {
                                     window.location.href = editUrl;
                                 } catch (error) {
-                                    console.error('Redirect failed:', error);
                                     // Fallback: reload current page with form ID
                                     window.location.reload();
                                 }
@@ -1816,10 +1786,6 @@
      * Load form data
      */
     function loadFormData(formId) {
-        console.log('=== loadFormData called ===');
-        console.log('Loading form ID:', formId);
-        console.log('Form ID type:', typeof formId);
-        
         $.ajax({
             url: (window.liftFormBuilder && liftFormBuilder.ajaxurl) || ajaxurl || '/wp-admin/admin-ajax.php',
             type: 'POST',
@@ -1828,65 +1794,32 @@
                 nonce: (window.liftFormBuilder && liftFormBuilder.nonce) || '',
                 form_id: formId
             },
-            beforeSend: function() {
-                console.log('=== AJAX LOAD REQUEST STARTING ===');
-                console.log('AJAX URL:', (window.liftFormBuilder && liftFormBuilder.ajaxurl) || ajaxurl || '/wp-admin/admin-ajax.php');
-                console.log('Nonce:', (window.liftFormBuilder && liftFormBuilder.nonce) || '');
-            },
             success: function(response) {
-                console.log('=== AJAX LOAD SUCCESS ===');
-                console.log('Response:', response);
                 
                 if (response.success && response.data.form_fields) {
-                    console.log('Form fields found:', response.data.form_fields);
-                    console.log('Form fields type:', typeof response.data.form_fields);
-                    
                     try {
                         let loadedData;
                         
                         if (typeof response.data.form_fields === 'string') {
-                            console.log('Attempting to parse JSON string...');
-                            console.log('Raw string length:', response.data.form_fields.length);
-                            console.log('Raw string preview:', response.data.form_fields.substring(0, 100) + '...');
-                            console.log('String starts with:', response.data.form_fields.charAt(0));
-                            console.log('String ends with:', response.data.form_fields.charAt(response.data.form_fields.length - 1));
-                            
                             // Try to clean the string first
                             let cleanString = response.data.form_fields.trim();
-                            console.log('Cleaned string length:', cleanString.length);
-                            console.log('Cleaned string starts with:', cleanString.charAt(0));
-                            console.log('Cleaned string ends with:', cleanString.charAt(cleanString.length - 1));
-                            
                             loadedData = JSON.parse(cleanString);
-                            console.log('JSON parse successful!');
                         } else {
-                            console.log('Data is already an object');
                             loadedData = response.data.form_fields;
                         }
                         
-                        console.log('Parsed data:', loadedData);
-                        console.log('Layout exists:', !!loadedData.layout);
-                        console.log('Layout rows exist:', !!(loadedData.layout && loadedData.layout.rows));
-                        console.log('Layout rows length:', loadedData.layout && loadedData.layout.rows ? loadedData.layout.rows.length : 0);
-                        console.log('Fields exist:', !!loadedData.fields);
-                        console.log('Fields length:', loadedData.fields ? loadedData.fields.length : 0);
-                        
                         // Handle different data structures
                         if (loadedData.layout && loadedData.layout.rows && loadedData.layout.rows.length > 0) {
-                            console.log('=== Using new structure with layout and rows ===');
                             // New structure with layout and actual rows
                             layoutData = loadedData.layout;
                             formData = loadedData.fields || [];
                             
                             // Create the form builder UI first, then load the layout
-                            console.log('Creating form builder UI first...');
                             createFormBuilderUI();
                             
-                            console.log('About to call loadLayout with:', layoutData);
                             loadLayout(loadedData.layout);
                         } else if (loadedData.fields && loadedData.fields.length > 0) {
-                            console.log('=== Structure has fields but empty/missing layout - recreating layout ===');
-                            // Structure has fields but layout is empty/missing - recreate layout with fields
+                            // Structure has fields but empty/missing layout - recreate layout with fields
                             formData = loadedData.fields || [];
                             
                             // Create default row structure and place fields in first column
@@ -1894,10 +1827,8 @@
                             
                             // Add fields to the first column
                             setTimeout(() => {
-                                console.log('Adding fields to first column...');
                                 const firstColumn = $('#form-fields-list .form-column').first();
                                 if (firstColumn.length && formData.length > 0) {
-                                    console.log('Found first column, adding', formData.length, 'fields');
                                     firstColumn.find('.column-placeholder').hide();
                                     
                                     formData.forEach(field => {
@@ -1914,20 +1845,17 @@
                                     
                                     // Update layout data to reflect the actual structure
                                     updateLayoutFromDOM();
-                                    console.log('Fields added to first column successfully');
                                 } else {
-                                    console.error('Could not find first column or no fields to add');
+                                    // Could not find first column or no fields to add
                                 }
                             }, 100);
                             
                         } else if (Array.isArray(loadedData)) {
-                            console.log('=== Using old flat structure ===');
                             // Old flat structure - convert to row/column layout
                             formData = loadedData;
                             createDefaultRow();
                             createFormBuilderUI(loadedData);
                         } else {
-                            console.log('=== Creating default structure ===');
                             // Create default structure
                             createDefaultRow();
                             createFormBuilderUI(loadedData);
@@ -1935,20 +1863,14 @@
                         
                         updateGlobalFormData();
                     } catch (error) {
-                        console.error('JSON PARSE ERROR:', error);
-                        console.error('Error message:', error.message);
-                        console.error('Error stack:', error.stack);
-                        console.error('Failed to parse form data:', response.data.form_fields);
-                        console.log('Creating default UI due to parse error...');
+                        // JSON parse error - create default UI
                         createFormBuilderUI();
                     }
                 } else {
-                    console.log('No form fields in response, creating empty form');
                     createFormBuilderUI();
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX error loading form data:', error);
                 createFormBuilderUI();
             }
         });
@@ -1958,40 +1880,18 @@
      * Load layout with rows and columns
      */
     function loadLayout(layout) {
-        console.log('=== loadLayout called ===');
-        console.log('Layout input:', layout);
-        
         const container = $('#form-fields-list');
-        console.log('Initial container selection:', container);
-        console.log('Initial container length:', container.length);
-        console.log('Initial container exists:', container && container.length > 0);
-        console.log('Initial container jQuery version:', $.fn.jquery);
-        console.log('Initial container element:', container[0]);
-        
         container.html(''); // Clear existing content
         
-        console.log('After clearing - container exists:', container && container.length > 0);
-        console.log('After clearing - container element:', container[0]);
-        
         if (!layout || !layout.rows || layout.rows.length === 0) {
-            console.log('No layout rows found, creating empty message');
             container.html('<div class="no-fields-message"><p>No rows added yet. Drag a row layout from the palette to get started.</p></div>');
             return;
         }
         
-        console.log('Processing', layout.rows.length, 'rows');
-        
         layout.rows.forEach((row, rowIndex) => {
-            console.log('Processing row', rowIndex, ':', row);
-            console.log('Before row processing - container exists:', container && container.length > 0);
-            console.log('Before row processing - container element:', container[0]);
-            
             if (!row.columns || row.columns.length === 0) {
-                console.log('Row has no columns, skipping');
                 return;
             }
-            
-            console.log('Row has', row.columns.length, 'columns');
             
             // Create row HTML
             let rowHTML = `<div class="form-row" data-row-id="${row.id}" draggable="true">`;
@@ -2023,12 +1923,6 @@
             
             // Add columns
             row.columns.forEach((column, columnIndex) => {
-                console.log('Processing column', columnIndex, ':', column);
-                console.log('Column fields:', column.fields);
-                console.log('Column fields length:', column.fields && Array.isArray(column.fields) ? column.fields.length : 0);
-                console.log('Column fields is array:', Array.isArray(column.fields));
-                console.log('Column fields type:', typeof column.fields);
-                
                 rowHTML += `
                     <div class="form-column" data-column-id="${column.id}" style="flex: ${column.width || '1'}; position: relative;">
                         <div class="column-header">
@@ -2052,21 +1946,14 @@
                 
                 // Add fields to column
                 if (column.fields && Array.isArray(column.fields) && column.fields.length > 0) {
-                    console.log('Adding', column.fields.length, 'fields to column', columnIndex);
                     column.fields.forEach((field, fieldIndex) => {
-                        console.log('Generating preview for field', fieldIndex, ':', field);
                         if (field && field.type) {
                             const fieldHTML = generateFieldPreview(field);
-                            console.log('Generated field HTML:', fieldHTML);
                             rowHTML += fieldHTML;
-                        } else {
-                            console.warn('Invalid field data:', field);
                         }
                     });
                     rowHTML += '</div>'; // Close column-content
-                    console.log('Column', columnIndex, 'has fields - no placeholder');
                 } else {
-                    console.log('Column', columnIndex, 'is empty - adding placeholder');
                     rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
                 }
                 
@@ -2074,177 +1961,40 @@
             });
             
             rowHTML += '</div>'; // Close form-row
-            console.log('Final row HTML length:', rowHTML.length);
-            console.log('Appending row to container...');
-            console.log('Before append - container exists:', container && container.length > 0);
-            console.log('Before append - container element:', container[0]);
-            console.log('Before append - container jQuery object:', container);
             
             // Try to re-select container if it's somehow lost
             let workingContainer = container;
             if (!workingContainer || workingContainer.length === 0) {
-                console.warn('Container lost, re-selecting...');
                 workingContainer = $('#form-fields-list');
-                console.log('Re-selected container:', workingContainer);
             }
             
             workingContainer.append(rowHTML);
-            
-            console.log('After append - original container exists:', container && container.length > 0);
-            console.log('After append - original container element:', container[0]);
-            console.log('After append - working container exists:', workingContainer && workingContainer.length > 0);
-            console.log('After append - working container element:', workingContainer[0]);
-            
-            // Check container again after append
-            const checkContainer = $('#form-fields-list');
-            console.log('Fresh selection after append:', checkContainer);
-            console.log('Fresh selection exists:', checkContainer && checkContainer.length > 0);
-            console.log('Fresh selection element:', checkContainer[0]);
-            
-            console.log('Container after append - exists:', container && container.length > 0);
-            console.log('Container children method exists:', container && typeof container.children === 'function');
-            if (container && typeof container.children === 'function') {
-                console.log('Row appended. Container children count:', container.children().length);
-            } else {
-                console.error('Container or children method is undefined after append');
-                console.log('Trying with fresh container selection...');
-                if (checkContainer && typeof checkContainer.children === 'function') {
-                    console.log('Fresh container children count:', checkContainer.children().length);
-                }
-            }
         });
         
-        
-        console.log('Container before final checks - exists:', container && container.length > 0);
-        console.log('Container before final checks - element:', container ? container[0] : 'undefined');
-        
-        // Use fresh container selection for final operations
-        const finalContainer = $('#form-fields-list');
-        console.log('Fresh container for final checks:', finalContainer);
-        console.log('Fresh container exists:', finalContainer && finalContainer.length > 0);
-        console.log('Fresh container element:', finalContainer[0]);
-        
-        // Safely handle container operations with proper error checking
+        // Initialize drag and drop and other events
         try {
-            if (finalContainer && typeof finalContainer.html === 'function') {
-                console.log('All rows processed. Final container HTML length:', finalContainer.html().length);
-            } else {
-                console.warn('Final container or html method unavailable for final check');
-            }
-        } catch (error) {
-            console.error('Error accessing finalContainer.html():', error);
-        }
-        
-        try {
-            if (finalContainer && typeof finalContainer.children === 'function') {
-                console.log('Container children after all rows:', finalContainer.children().length);
-            } else {
-                console.warn('Final container or children method unavailable for final check');
-            }
-        } catch (error) {
-            console.error('Error accessing finalContainer.children():', error);
-        }
-        
-        try {
-            if (container && typeof container.html === 'function') {
-                const htmlContent = container.html();
-                if (htmlContent && htmlContent.length > 0) {
-                    console.log('Container content preview:', htmlContent.substring(0, 200) + '...');
-                } else {
-                    console.log('Container HTML is empty');
-                }
-            } else {
-                console.warn('Container or html method unavailable for content preview');
-            }
-        } catch (error) {
-            console.error('Error accessing container content:', error);
-        }
-        
-        console.log('Container element exists:', container && container.length > 0);
-        
-        try {
-            if (container && typeof container.is === 'function') {
-                console.log('Container is visible:', container.is(':visible'));
-            } else {
-                console.warn('Container or is method unavailable');
-            }
-        } catch (error) {
-            console.error('Error checking container visibility:', error);
-        }
-        
-        try {
-            if (container && typeof container.css === 'function') {
-                console.log('Container display style:', container.css('display'));
-            } else {
-                console.warn('Container or css method unavailable');
-            }
-        } catch (error) {
-            console.error('Error accessing container CSS:', error);
-        }
-        
-        try {
-            if (container && typeof container.height === 'function') {
-                console.log('Container height:', container.height());
-            } else {
-                console.warn('Container or height method unavailable');
-            }
-        } catch (error) {
-            console.error('Error accessing container height:', error);
-        }
-        
-        try {
-            if (container && typeof container.width === 'function') {
-                console.log('Container width:', container.width());
-            } else {
-                console.warn('Container or width method unavailable');
-            }
-        } catch (error) {
-            console.error('Error accessing container width:', error);
-        }
-        
-        console.log('Layout rendering complete, calling event binding functions...');
-        
-        // Initialize drag and drop and other events with comprehensive error handling
-        try {
-            console.log('Calling bindRowEvents...');
             if (typeof bindRowEvents === 'function') {
                 bindRowEvents();
-                console.log('bindRowEvents completed');
-            } else {
-                console.warn('bindRowEvents function not available');
             }
         } catch (error) {
-            console.error('Error in bindRowEvents:', error);
-            console.error('bindRowEvents error stack:', error.stack);
+            // Error in bindRowEvents
         }
         
         try {
-            console.log('Calling initColumnResize...');
             if (typeof initColumnResize === 'function') {
                 initColumnResize();
-                console.log('initColumnResize completed');
-            } else {
-                console.warn('initColumnResize function not available');
             }
         } catch (error) {
-            console.error('Error in initColumnResize:', error);
-            console.error('initColumnResize error stack:', error.stack);
+            // Error in initColumnResize
         }
         
         try {
-            console.log('Calling initDragAndDrop...');
             if (typeof initDragAndDrop === 'function') {
                 initDragAndDrop();
-                console.log('initDragAndDrop completed');
-            } else {
-                console.warn('initDragAndDrop function not available');
             }
         } catch (error) {
-            console.error('Error in initDragAndDrop:', error);
-            console.error('initDragAndDrop error stack:', error.stack);
+            // Error in initDragAndDrop
         }
-        
-        console.log('=== loadLayout completed ===');
     }
 
     /**
