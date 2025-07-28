@@ -523,9 +523,31 @@
 }
 .document-card-actions {
     padding: 15px 20px 20px;
-    display: flex;
-    gap: 10px;
 }
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.view-actions h4,
+.form-actions h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.view-actions,
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .btn {
     padding: 8px 16px;
     border: none;
@@ -681,8 +703,14 @@
     .documents-grid {
         grid-template-columns: 1fr;
     }
-    .document-card-actions {
-        flex-direction: column;
+    .actions-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    .view-actions h4,
+    .form-actions h4 {
+        font-size: 13px;
+        margin-bottom: 8px;
     }
     .btn {
         flex: none;

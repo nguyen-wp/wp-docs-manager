@@ -1358,68 +1358,78 @@ class LIFT_Docs_Frontend_Login {
            
             
             <div class="document-card-actions">
-                <?php 
-                // Show View URL link
-                if ($this->user_can_view_document($document->ID)) {
-                    $view_text = __('View Document', 'lift-docs-system');
-                    if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
-                        $view_url = LIFT_Docs_Settings::generate_secure_link($document->ID);
-                    } else {
-                        $view_url = get_permalink($document->ID);
-                    }
-                    ?>
-                    <a href="<?php echo esc_url($view_url); ?>" class="btn btn-primary" target="_blank">
-                        <span class="dashicons dashicons-visibility"></span>
-                        <?php echo $view_text; ?>
-                    </a>
-                    <?php
-                }
-                
-                // Show assigned form links
-                $assigned_forms = get_post_meta($document->ID, '_lift_doc_assigned_forms', true);
-                if (!empty($assigned_forms) && is_array($assigned_forms)) {
-                    global $wpdb;
-                    $forms_table = $wpdb->prefix . 'lift_forms';
-                    $current_user_id = get_current_user_id();
-                    
-                    foreach ($assigned_forms as $form_id) {
-                        $form = $wpdb->get_row($wpdb->prepare(
-                            "SELECT id, name FROM $forms_table WHERE id = %d AND status = 'active'",
-                            $form_id
-                        ));
-                        
-                        if ($form) {
-                            $form_url = add_query_arg(array(
-                                'document_id' => $document->ID,
-                                'form_id' => $form->id
-                            ), home_url('/document-form/'));
-                            
-                            // Check if user has already submitted this form for this document
-                            $has_submitted = false;
-                            $button_text = $form->name;
-                            $button_class = 'btn btn-secondary';
-                            
-                            if ($current_user_id > 0) {
-                                $lift_forms = new LIFT_Forms();
-                                $has_submitted = $lift_forms->user_has_submitted_form($current_user_id, $form->id, $document->ID);
-                                
-                                if ($has_submitted) {
-                                    $button_text = sprintf(__('Edit %s', 'lift-docs-system'), $form->name);
-                                    $button_class = 'btn btn-primary';
-                                }
+                <div class="actions-grid">
+                    <!-- Cột 1: View Document Links -->
+                    <div class="view-actions">
+                        <?php 
+                        // Show View URL link
+                        if ($this->user_can_view_document($document->ID)) {
+                            $view_text = __('View Document', 'lift-docs-system');
+                            if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+                                $view_url = LIFT_Docs_Settings::generate_secure_link($document->ID);
+                            } else {
+                                $view_url = get_permalink($document->ID);
                             }
                             ?>
-                            <a href="<?php echo esc_url($form_url); ?>" class="<?php echo esc_attr($button_class); ?>" target="_blank">
-                                <?php echo esc_html($button_text); ?>
-                                <?php if ($has_submitted): ?>
-                                    <span class="dashicons dashicons-edit" style="margin-left: 5px;"></span>
-                                <?php endif; ?>
+                            <a href="<?php echo esc_url($view_url); ?>" class="btn btn-primary" target="_blank">
+                                <span class="dashicons dashicons-visibility"></span>
+                                <?php echo $view_text; ?>
                             </a>
                             <?php
                         }
-                    }
-                }
-                ?>
+                        ?>
+                    </div>
+                    
+                    <!-- Cột 2: Form Links -->
+                    <div class="form-actions">
+                        <?php
+                        // Show assigned form links
+                        $assigned_forms = get_post_meta($document->ID, '_lift_doc_assigned_forms', true);
+                        if (!empty($assigned_forms) && is_array($assigned_forms)) {
+                            global $wpdb;
+                            $forms_table = $wpdb->prefix . 'lift_forms';
+                            $current_user_id = get_current_user_id();
+                            
+                            foreach ($assigned_forms as $form_id) {
+                                $form = $wpdb->get_row($wpdb->prepare(
+                                    "SELECT id, name FROM $forms_table WHERE id = %d AND status = 'active'",
+                                    $form_id
+                                ));
+                                
+                                if ($form) {
+                                    $form_url = add_query_arg(array(
+                                        'document_id' => $document->ID,
+                                        'form_id' => $form->id
+                                    ), home_url('/document-form/'));
+                                    
+                                    // Check if user has already submitted this form for this document
+                                    $has_submitted = false;
+                                    $button_text = $form->name;
+                                    $button_class = 'btn btn-secondary';
+                                    
+                                    if ($current_user_id > 0) {
+                                        $lift_forms = new LIFT_Forms();
+                                        $has_submitted = $lift_forms->user_has_submitted_form($current_user_id, $form->id, $document->ID);
+                                        
+                                        if ($has_submitted) {
+                                            $button_text = sprintf(__('Edit %s', 'lift-docs-system'), $form->name);
+                                            $button_class = 'btn btn-primary';
+                                        }
+                                    }
+                                    ?>
+                                    <a href="<?php echo esc_url($form_url); ?>" class="<?php echo esc_attr($button_class); ?>" target="_blank">
+                                        <?php echo esc_html($button_text); ?>
+                                        <?php if ($has_submitted): ?>
+                                            <span class="dashicons dashicons-edit" style="margin-left: 5px;"></span>
+                                        <?php endif; ?>
+                                    </a>
+                                    <?php
+                                }
+                            }
+                        }
+                        ?>
+                    </div>
+                </div>
             </div>
         </div>
         <?php
