@@ -978,9 +978,15 @@ class LIFT_Forms {
             wp_send_json_error(__('Form name is required', 'lift-docs-system'));
         }
         
-        // Validate fields data
+        // Validate fields data - but allow empty fields for initial save
         if (empty($fields) || $fields === '[]' || $fields === 'null' || $fields === 'undefined') {
-            wp_send_json_error(__('Form must have at least one field', 'lift-docs-system'));
+            // For new forms (no form_id), allow saving with empty fields initially
+            if (empty($form_id)) {
+                error_log('LIFT Forms - Saving new form with empty fields initially allowed');
+                $fields = '[]'; // Ensure it's a valid empty array
+            } else {
+                wp_send_json_error(__('Form must have at least one field', 'lift-docs-system'));
+            }
         }
         
         // Enhanced JSON cleaning and validation

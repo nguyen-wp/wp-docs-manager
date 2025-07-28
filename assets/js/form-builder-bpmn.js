@@ -14,8 +14,31 @@
         if ($('#form-builder-container').length) {
             console.log('Form builder container found, initializing...');
             initFormBuilder();
+            
+            // Expose form builder to global scope for minimal admin access
+            window.formBuilder = {
+                formData: formData,
+                getFormData: function() {
+                    return formData;
+                },
+                setFormData: function(data) {
+                    formData = data;
+                    updateGlobalFormData();
+                },
+                renderFields: renderFields
+            };
         }
     });
+    
+    /**
+     * Update global form data variables
+     */
+    function updateGlobalFormData() {
+        window.liftCurrentFormFields = formData;
+        if (window.formBuilder) {
+            window.formBuilder.formData = formData;
+        }
+    }
 
     /**
      * Initialize Form Builder
@@ -319,7 +342,7 @@
         }
 
         // Store form data in global variable for minimal admin access
-        window.liftCurrentFormFields = formData;
+        updateGlobalFormData();
 
         // Bind simple form builder events
         bindSimpleFormBuilderEvents();
@@ -963,7 +986,7 @@
         }
 
         // Update global variable for minimal admin access
-        window.liftCurrentFormFields = formData;
+        updateGlobalFormData();
 
         // Update field in-place without re-rendering entire structure
         updateFieldInPlace(field);
@@ -1086,7 +1109,7 @@
         formData.splice(index, 1);
         
         // Update global variable for minimal admin access
-        window.liftCurrentFormFields = formData;
+        updateGlobalFormData();
         
         // If no rows exist and no fields, fall back to simple view
         if ($('#form-fields-list .form-row').length === 0 && formData.length === 0) {
@@ -1105,7 +1128,7 @@
         }
         
         // Update global variable for minimal admin access
-        window.liftCurrentFormFields = formData;
+        updateGlobalFormData();
         
         // If fields are in row/column structure, don't use renderFields
         if ($('#form-fields-list .form-row').length > 0) {
@@ -1138,7 +1161,7 @@
         container.html(html);
         
         // Update global variable for minimal admin access
-        window.liftCurrentFormFields = formData;
+        updateGlobalFormData();
         
         // Trigger event to reinitialize sortable
         $(document).trigger('fields-updated');
@@ -1699,13 +1722,13 @@
             saveData = formBuilderInstance.formData();
             
             // Store in global variable for minimal admin access
-            window.liftCurrentFormFields = saveData;
+            updateGlobalFormData();
         } else {
             // Simple form builder data
             saveData = JSON.stringify(formData);
             
             // Store in global variable for minimal admin access  
-            window.liftCurrentFormFields = formData;
+            updateGlobalFormData();
         }
 
         $.ajax({

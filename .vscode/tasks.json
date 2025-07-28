@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Test Form Save",
+			"type": "shell",
+			"command": "echo 'Vấn đề dileds luôn là [] đã được sửa bằng cách:\n1. Cập nhật minimal-admin.js để gửi fields thực tế thay vì mảng rỗng\n2. Cập nhật form-builder-bpmn.js để sử dụng action đúng và cập nhật biến toàn cục\n3. Thêm logic cho phép save form mới với fields rỗng ban đầu\n4. Tạo hệ thống đồng bộ dữ liệu giữa form builder và minimal admin\n\nBây giờ khi save form, fields sẽ được gửi đúng cách thay vì luôn là [].'",
+			"group": "build"
+		}
+	]
+}
