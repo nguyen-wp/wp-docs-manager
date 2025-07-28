@@ -28,7 +28,6 @@ class LIFT_Docs_Frontend {
         add_action('wp_head', array($this, 'add_document_meta'));
         add_shortcode('lift_document_search', array($this, 'document_search_shortcode'));
         add_shortcode('lift_document_categories', array($this, 'document_categories_shortcode'));
-        add_shortcode('lift_document_download', array($this, 'document_download_shortcode'));
         add_action('init', array($this, 'handle_document_download'));
         add_action('init', array($this, 'handle_document_view_online'));
         add_filter('document_class', array($this, 'add_document_classes'));
