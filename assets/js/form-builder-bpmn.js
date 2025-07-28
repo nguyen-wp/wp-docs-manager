@@ -900,8 +900,6 @@
                                 <option value="0.5">50%</option>
                                 <option value="0.25">25%</option>
                                 <option value="0.75">75%</option>
-                                <option value="2">2x</option>
-                                <option value="3">3x</option>
                             </select>
                             <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
                                 <span class="dashicons dashicons-admin-generic"></span>
@@ -1057,8 +1055,6 @@
                             <option value="0.5">50%</option>
                             <option value="0.25">25%</option>
                             <option value="0.75">75%</option>
-                            <option value="2">2x</option>
-                            <option value="3">3x</option>
                         </select>
                         <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
                             <span class="dashicons dashicons-admin-generic"></span>
