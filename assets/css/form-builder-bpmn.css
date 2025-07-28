@@ -1620,6 +1620,29 @@
     cursor: pointer;
 }
 
+.form-preview-container .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-preview-container .checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-preview-container .checkbox-option input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.form-preview-container .checkbox-option label {
+    margin: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
 .form-preview-container .submit-group {
     text-align: center;
     padding-top: 20px;

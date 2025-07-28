@@ -753,7 +753,7 @@
         $('#field-required').prop('checked', field.required);
         
         // Show/hide options field based on field type
-        if (field.type === 'select' || field.type === 'radio') {
+        if (field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') {
             $('.options-field').show();
             populateOptionsField(field.options || []);
         } else {
@@ -1063,28 +1063,57 @@
                 `;
             
             case 'checkbox':
-                return `
-                    <div class="compact-field-item">
-                        <div class="field-compact-header">
-                            <span class="field-drag-handle" title="Drag to move">
-                                <span class="dashicons dashicons-move"></span>
-                            </span>
-                            <span class="field-type-badge">${fieldType}</span>
-                            <div class="field-compact-input checkbox-preview">
-                                <input type="checkbox" disabled> <span class="field-name">${field.label}</span>
+                const checkboxCount = field.options ? field.options.length : 1;
+                if (field.options && field.options.length > 0) {
+                    // Multiple checkboxes (checkbox group)
+                    return `
+                        <div class="compact-field-item">
+                            <div class="field-compact-header">
+                                <span class="field-drag-handle" title="Drag to move">
+                                    <span class="dashicons dashicons-move"></span>
+                                </span>
+                                <span class="field-type-badge">${fieldType}</span>
+                                <div class="field-compact-input checkbox-preview">
+                                    <span class="field-name">${field.label}</span>
+                                    <span class="options-count">(${checkboxCount} options)</span>
+                                </div>
+                                <div class="field-compact-actions">
+                                    <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                        <span class="dashicons dashicons-edit"></span>
+                                    </button>
+                                    <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                        <span class="dashicons dashicons-trash"></span>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="field-compact-actions">
-                                <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
-                                    <span class="dashicons dashicons-edit"></span>
-                                </button>
-                                <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
-                                    <span class="dashicons dashicons-trash"></span>
-                                </button>
-                            </div>
+                            ${required ? '<span class="required-indicator">Required</span>' : ''}
                         </div>
-                        ${required ? '<span class="required-indicator">Required</span>' : ''}
-                    </div>
-                `;
+                    `;
+                } else {
+                    // Single checkbox
+                    return `
+                        <div class="compact-field-item">
+                            <div class="field-compact-header">
+                                <span class="field-drag-handle" title="Drag to move">
+                                    <span class="dashicons dashicons-move"></span>
+                                </span>
+                                <span class="field-type-badge">${fieldType}</span>
+                                <div class="field-compact-input checkbox-preview">
+                                    <input type="checkbox" disabled> <span class="field-name">${field.label}</span>
+                                </div>
+                                <div class="field-compact-actions">
+                                    <button type="button" class="compact-btn edit-field-btn" data-field-id="${field.id}" title="Edit">
+                                        <span class="dashicons dashicons-edit"></span>
+                                    </button>
+                                    <button type="button" class="compact-btn delete-field-btn" data-field-id="${field.id}" title="Delete">
+                                        <span class="dashicons dashicons-trash"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            ${required ? '<span class="required-indicator">Required</span>' : ''}
+                        </div>
+                    `;
+                }
             
             case 'date':
                 return `
@@ -1216,14 +1245,33 @@
                 `;
             
             case 'checkbox':
-                return `
-                    <div class="form-group">
-                        <div class="checkbox-wrapper">
-                            <input type="checkbox" id="${field.name}" name="${field.name}" value="1" />
-                            <label for="${field.name}">${field.label}${required}</label>
+                if (field.options && field.options.length > 0) {
+                    // Multiple checkboxes (checkbox group)
+                    const checkboxOptions = field.options.map((opt, i) => 
+                        `<div class="checkbox-option">
+                            <input type="checkbox" id="${field.name}_${i}" name="${field.name}[]" value="${opt}" />
+                            <label for="${field.name}_${i}">${opt}</label>
+                        </div>`
+                    ).join('');
+                    return `
+                        <div class="form-group">
+                            <label>${field.label}${required}</label>
+                            <div class="checkbox-group">
+                                ${checkboxOptions}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    // Single checkbox
+                    return `
+                        <div class="form-group">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="${field.name}" name="${field.name}" value="1" />
+                                <label for="${field.name}">${field.label}${required}</label>
+                            </div>
+                        </div>
+                    `;
+                }
             
             case 'date':
                 return `
