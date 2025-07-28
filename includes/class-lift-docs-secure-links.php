@@ -72,25 +72,17 @@ class LIFT_Docs_Secure_Links {
      * Handle secure access requests
      */
     public function handle_secure_access() {
-        $this->debug_log('handle_secure_access called, query_var: ' . get_query_var('lift_secure_page'));
-        $this->debug_log('Current URL: ' . ($_SERVER['REQUEST_URI'] ?? 'not set'));
-        
         // Check both query var AND URL pattern for backwards compatibility
         $is_secure_request = get_query_var('lift_secure_page') || 
                             (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/lift-docs/secure/') !== false);
         
         if (!$is_secure_request) {
-            $this->debug_log('No secure access request detected, returning');
             return;
         }
-        
-        // Debug logging
-        $this->debug_log('Secure access request detected, proceeding...');
         
         $token = $_GET['lift_secure'] ?? '';
         
         if (empty($token)) {
-            $this->debug_log('Missing security token');
             $this->show_access_denied('Missing security token');
             return;
         }
@@ -120,7 +112,6 @@ class LIFT_Docs_Secure_Links {
         }
         
         // Track document view BEFORE displaying content
-        $this->debug_log("About to track view for document ID: " . $document_id);
         $this->track_document_view($document_id);
         
         // Set secure access session
@@ -136,28 +127,17 @@ class LIFT_Docs_Secure_Links {
      * Handle secure download requests
      */
     public function handle_secure_download() {
-        $this->debug_log('handle_secure_download called, query_var: ' . get_query_var('lift_download'));
-        $this->debug_log('Current URL: ' . ($_SERVER['REQUEST_URI'] ?? 'not set'));
-        $this->debug_log('GET parameters: ' . print_r($_GET, true));
-        
         // Check both query var AND URL pattern for backwards compatibility
         $is_download_request = get_query_var('lift_download') || 
                               (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/lift-docs/download/') !== false);
         
         if (!$is_download_request) {
-            $this->debug_log('No download request detected, returning');
             return;
         }
-        
-        $this->debug_log('Download request detected, proceeding...');
-        
-        // Debug logging
-        $this->debug_log('Secure download handler called');
         
         $token = $_GET['lift_secure'] ?? '';
         
         if (empty($token)) {
-            $this->debug_log('Missing security token');
             status_header(403);
             die('Missing security token');
         }
@@ -166,14 +146,11 @@ class LIFT_Docs_Secure_Links {
         $verification = LIFT_Docs_Settings::verify_secure_link(urldecode($token));
         
         if (!$verification || !isset($verification['document_id'])) {
-            $this->debug_log('Token verification failed for token: ' . $token);
-            $this->debug_log('Verification result: ' . print_r($verification, true));
             status_header(403);
             die('Invalid or expired download link. Please request a new download link.');
         }
         
         $document_id = $verification['document_id'];
-        $this->debug_log('Download request for document ID: ' . $document_id);
         
         // Check if document exists and is published
         $document = get_post($document_id);
@@ -215,7 +192,6 @@ class LIFT_Docs_Secure_Links {
         }
         
         // Track download
-        $this->debug_log("About to track download for document ID: " . $document_id);
         $this->track_document_download($document_id);
         
         // Serve file securely
@@ -227,9 +203,6 @@ class LIFT_Docs_Secure_Links {
      * Display secure document content
      */
     private function display_secure_document($document) {
-        // Debug logging
-        $this->debug_log("display_secure_document called for document ID: " . $document->ID);
-        
         // Set global post data
         global $post;
         $post = $document;
@@ -1228,16 +1201,6 @@ class LIFT_Docs_Secure_Links {
      */
     public static function get_secure_link_with_expiry($document_id, $expiry_hours) {
         return LIFT_Docs_Settings::generate_secure_link($document_id, $expiry_hours);
-    }
-    
-    /**
-     * Simple debug logging without WP_DEBUG requirement
-     */
-    private function debug_log($message) {
-        $log_file = WP_CONTENT_DIR . '/lift-docs-debug.log';
-        $timestamp = current_time('Y-m-d H:i:s');
-        $formatted_message = "[$timestamp] $message" . PHP_EOL;
-        file_put_contents($log_file, $formatted_message, FILE_APPEND | LOCK_EX);
     }
     
     /**

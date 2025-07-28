@@ -453,8 +453,6 @@ class LIFT_Docs_Admin {
             }
         }
         
-        $shortcode = '[lift_document_download id="' . $post_id . '"]';
-        
         $views = get_post_meta($post_id, '_lift_doc_views', true);
         $downloads = get_post_meta($post_id, '_lift_doc_downloads', true);
         
@@ -466,7 +464,6 @@ class LIFT_Docs_Admin {
                 data-download-urls="<?php echo esc_attr(json_encode($download_urls)); ?>"
                 data-online-view-urls="<?php echo esc_attr(json_encode($online_view_urls)); ?>"
                 data-secure-download-urls="<?php echo esc_attr(json_encode($secure_download_urls)); ?>"
-                data-shortcode="<?php echo esc_attr($shortcode); ?>"
                 data-views="<?php echo esc_attr($views ? number_format($views) : '0'); ?>"
                 data-downloads="<?php echo esc_attr($downloads ? number_format($downloads) : '0'); ?>"
                 data-can-view="<?php echo esc_attr($can_view ? 'true' : 'false'); ?>"
