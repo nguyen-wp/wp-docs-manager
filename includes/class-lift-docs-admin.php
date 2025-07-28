@@ -2863,16 +2863,14 @@ class LIFT_Docs_Admin {
                     </div>
                 </div>
 
-                <?php if (!empty($document->post_content)): ?>
+               
                 <div class="modal-section">
-                    <h3><?php _e('Description', 'lift-docs-system'); ?></h3>
-                    <div style="background: #f6f7f7; padding: 10px; border-radius: 4px; border: 1px solid #dcdcde; max-height: 80px; overflow-y: auto;">
-                        <p style="margin: 0; color: #1d2327; line-height: 1.4; font-size: 13px;">
-                            <?php echo esc_html(wp_trim_words($document->post_content, 30)); ?>
-                        </p>
-                    </div>
+                    <h3><?php _e('Created', 'lift-docs-system'); ?></h3>
+                    <p style="margin: 0; color: #646970; font-size: 12px;">
+                        <?php echo get_the_date('M j, Y g:i A', $document->ID); ?> - 
+                        <?php _e('by', 'lift-docs-system'); ?> <?php echo get_the_author_meta('display_name', $document->post_author); ?>
+                    </p>
                 </div>
-                <?php endif; ?>
 
                 <div class="modal-section">
                     <h3><?php _e('View URL', 'lift-docs-system'); ?></h3>
@@ -2883,6 +2881,9 @@ class LIFT_Docs_Admin {
                     </div>
                 </div>
 
+            </div>
+            
+            <div class="modal-column-right">
                 <?php if (!empty($file_urls)): ?>
                 <div class="modal-section">
                     <h3><?php _e('Files', 'lift-docs-system'); ?> (<?php echo count($file_urls); ?>)</h3>
@@ -2899,10 +2900,7 @@ class LIFT_Docs_Admin {
                     </div>
                 </div>
                 <?php endif; ?>
-            </div>
-
-            <div class="modal-column-right">
-                <?php if (!empty($user_details)): ?>
+                <!-- <?php if (!empty($user_details)): ?>
                 <div class="modal-section">
                     <h3><?php _e('View Documents', 'lift-docs-system'); ?> (<?php echo count($user_details); ?>)</h3>
                     <div class="assigned-users-grid">
@@ -2921,7 +2919,7 @@ class LIFT_Docs_Admin {
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <?php endif; ?>
+                <?php endif; ?> -->
 
                 <?php if (!empty($form_details)): ?>
                 <div class="modal-section">
@@ -2956,13 +2954,6 @@ class LIFT_Docs_Admin {
                 </div>
                 <?php endif; ?>
 
-                <div class="modal-section">
-                    <h3><?php _e('Created', 'lift-docs-system'); ?></h3>
-                    <p style="margin: 0; color: #646970; font-size: 12px;">
-                        <?php echo get_the_date('M j, Y g:i A', $document->ID); ?><br>
-                        <?php _e('by', 'lift-docs-system'); ?> <?php echo get_the_author_meta('display_name', $document->post_author); ?>
-                    </p>
-                </div>
             </div>
         </div>
         <?php
