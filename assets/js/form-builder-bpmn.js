@@ -1771,27 +1771,17 @@
                         if (!silent) {
                             showFormMessage('Form created successfully! Redirecting to edit page...', 'success');
                             setTimeout(function() {
-                                // Try multiple methods to build the correct URL
-                                let editUrl;
+                                // Build correct edit URL without post_type parameter
+                                const baseUrl = '/wp-admin/admin.php';
+                                const editUrl = baseUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
                                 
-                                // Method 1: Use current location with query string replacement
-                                if (window.location.search) {
-                                    // Replace existing query params
-                                    const url = new URL(window.location.href);
-                                    url.searchParams.set('page', 'lift-forms-builder');
-                                    url.searchParams.set('id', response.data.form_id);
-                                    url.searchParams.set('created', '1');
-                                    editUrl = url.href;
-                                } else {
-                                    // Method 2: Build from scratch
-                                    const baseUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
-                                    editUrl = baseUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
-                                }
+                                console.log('Redirecting to:', editUrl);
                                 
-                                // Try redirect, with fallback
+                                // Redirect to correct URL
                                 try {
                                     window.location.href = editUrl;
                                 } catch (error) {
+                                    console.error('Redirect failed:', error);
                                     // Fallback: reload current page with form ID
                                     window.location.reload();
                                 }
