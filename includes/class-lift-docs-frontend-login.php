@@ -188,7 +188,38 @@ class LIFT_Docs_Frontend_Login {
      */
     private function render_form_page($document, $form, $existing_submission = null, $is_edit_mode = false) {
         $current_user = wp_get_current_user();
-        $form_fields = json_decode($form->form_fields, true);
+        
+        // Parse form fields - handle different data structures from Form Builder
+        $form_fields = array();
+        $raw_form_data = $form->form_fields;
+        
+        if (!empty($raw_form_data)) {
+            $parsed_data = json_decode($raw_form_data, true);
+            
+            if (is_array($parsed_data)) {
+                // Check if it's the new hierarchical structure with layout
+                if (isset($parsed_data['layout']) && isset($parsed_data['layout']['rows'])) {
+                    // New structure - extract fields from rows
+                    foreach ($parsed_data['layout']['rows'] as $row) {
+                        if (isset($row['columns'])) {
+                            foreach ($row['columns'] as $column) {
+                                if (isset($column['fields'])) {
+                                    foreach ($column['fields'] as $field) {
+                                        $form_fields[] = $field;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } elseif (isset($parsed_data[0]) && is_array($parsed_data[0])) {
+                    // Direct array of fields
+                    $form_fields = $parsed_data;
+                } else {
+                    // Legacy or other structure - try to extract fields
+                    $form_fields = $parsed_data;
+                }
+            }
+        }
         
         // Check document status - prevent form access if status restricts it
         $document_status = get_post_meta($document->ID, '_lift_doc_status', true);
@@ -196,22 +227,26 @@ class LIFT_Docs_Frontend_Login {
             $document_status = 'pending';
         }
         
-        $is_form_disabled = in_array($document_status, array('processing', 'done', 'cancelled'));
+        // Only allow edit/submit if document status is 'pending'
+        $is_form_disabled = ($document_status !== 'pending');
         $status_message = '';
         
         if ($is_form_disabled) {
             $status_messages = array(
-                'processing' => __('This form is currently disabled - document is being processed', 'lift-docs-system'),
-                'done' => __('This form is currently disabled - document has been completed', 'lift-docs-system'),
-                'cancelled' => __('This form is currently disabled - document has been cancelled', 'lift-docs-system')
+                'processing' => __('This form is view-only - document is being processed', 'lift-docs-system'),
+                'done' => __('This form is view-only - document has been completed', 'lift-docs-system'),
+                'cancelled' => __('This form is view-only - document has been cancelled', 'lift-docs-system')
             );
-            $status_message = $status_messages[$document_status];
+            $status_message = isset($status_messages[$document_status]) ? $status_messages[$document_status] : __('This form is view-only', 'lift-docs-system');
         }
         
         // Parse existing form data if in edit mode
         $existing_data = array();
         if ($is_edit_mode && $existing_submission) {
             $existing_data = json_decode($existing_submission->form_data, true);
+            if (!is_array($existing_data)) {
+                $existing_data = array();
+            }
         }
         
         ?>
@@ -250,6 +285,14 @@ class LIFT_Docs_Frontend_Login {
                 color: #666;
                 font-size: 14px;
             }
+            .status-notice {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                color: #856404;
+                padding: 12px;
+                border-radius: 4px;
+                margin-bottom: 20px;
+            }
             .form-field {
                 margin-bottom: 20px;
             }
@@ -259,30 +302,100 @@ class LIFT_Docs_Frontend_Login {
                 font-weight: 600;
                 color: #23282d;
             }
-            .form-field input,
-            .form-field textarea,
-            .form-field select {
+            .form-field .required {
+                color: #d63384;
+            }
+            .form-control {
                 width: 100%;
                 padding: 8px 12px;
                 border: 1px solid #ddd;
                 border-radius: 4px;
                 font-size: 14px;
+                box-sizing: border-box;
             }
-            .form-field textarea {
-                height: 100px;
-                resize: vertical;
+            .form-control:focus {
+                border-color: #0073aa;
+                box-shadow: 0 0 0 1px #0073aa;
+                outline: none;
+            }
+            .form-control:disabled {
+                background-color: #f5f5f5;
+                cursor: not-allowed;
+            }
+            .checkbox-field label,
+            .radio-option {
+                display: flex;
+                align-items: center;
+                margin-bottom: 8px;
+                font-weight: normal;
+                cursor: pointer;
+            }
+            .checkbox-field input,
+            .radio-option input {
+                width: auto;
+                margin-right: 8px;
+            }
+            .radio-group .radio-option {
+                margin-bottom: 10px;
+            }
+            .current-file {
+                display: block;
+                margin-top: 5px;
+                color: #666;
+                font-style: italic;
             }
             .form-actions {
                 margin-top: 30px;
                 padding-top: 20px;
                 border-top: 1px solid #e1e1e1;
-                text-align: right;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
             }
             .btn {
                 padding: 10px 20px;
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }
+            .btn-secondary {
+                background: #6c757d;
+                color: #fff;
+            }
+            .btn-secondary:hover {
+                background: #5a6268;
+                color: #fff;
+            }
+            .btn-primary {
+                background: #0073aa;
+                color: #fff;
+            }
+            .btn-primary:hover {
+                background: #005a87;
+            }
+            .btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            @media (max-width: 768px) {
+                .form-container {
+                    margin: 10px;
+                    padding: 20px;
+                }
+                .form-actions {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+                .btn {
+                    width: 100%;
+                    text-align: center;
+                }
+            }
                 text-decoration: none;
                 display: inline-block;
                 font-size: 14px;
@@ -424,6 +537,10 @@ class LIFT_Docs_Frontend_Login {
      * Render form field
      */
     private function render_form_field($field, $existing_data = array(), $is_disabled = false) {
+        if (!is_array($field) || !isset($field['id']) || !isset($field['type'])) {
+            return;
+        }
+        
         $field_id = 'field_' . esc_attr($field['id']);
         $field_name = 'form_fields[' . esc_attr($field['id']) . ']';
         $required = isset($field['required']) && $field['required'] ? 'required' : '';
@@ -432,16 +549,20 @@ class LIFT_Docs_Frontend_Login {
         // Get existing value for this field
         $field_value = isset($existing_data[$field['id']]) ? $existing_data[$field['id']] : '';
         
+        // Handle different field types
         switch ($field['type']) {
             case 'text':
             case 'email':
             case 'number':
+            case 'url':
+            case 'tel':
                 ?>
                 <input type="<?php echo esc_attr($field['type']); ?>" 
                        id="<?php echo $field_id; ?>" 
                        name="<?php echo $field_name; ?>" 
                        value="<?php echo esc_attr($field_value); ?>"
                        placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
+                       class="form-control"
                        <?php echo $required; ?>
                        <?php echo $disabled; ?>>
                 <?php
@@ -452,18 +573,32 @@ class LIFT_Docs_Frontend_Login {
                 <textarea id="<?php echo $field_id; ?>" 
                           name="<?php echo $field_name; ?>" 
                           placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
+                          class="form-control"
+                          rows="<?php echo esc_attr($field['rows'] ?? '4'); ?>"
                           <?php echo $required; ?>
                           <?php echo $disabled; ?>><?php echo esc_textarea($field_value); ?></textarea>
                 <?php
                 break;
                 
             case 'select':
+            case 'dropdown':
                 ?>
-                <select id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>" <?php echo $required; ?> <?php echo $disabled; ?>>
-                    <option value=""><?php _e('Please select...', 'lift-docs-system'); ?></option>
+                <select id="<?php echo $field_id; ?>" 
+                        name="<?php echo $field_name; ?>" 
+                        class="form-control"
+                        <?php echo $required; ?> 
+                        <?php echo $disabled; ?>>
+                    <option value=""><?php echo esc_html($field['placeholder'] ?? __('Please select...', 'lift-docs-system')); ?></option>
                     <?php if (isset($field['options']) && is_array($field['options'])): ?>
                         <?php foreach ($field['options'] as $option): ?>
-                            <option value="<?php echo esc_attr($option); ?>" <?php selected($field_value, $option); ?>><?php echo esc_html($option); ?></option>
+                            <?php 
+                            $option_value = is_array($option) ? $option['value'] : $option;
+                            $option_label = is_array($option) ? $option['label'] : $option;
+                            ?>
+                            <option value="<?php echo esc_attr($option_value); ?>" 
+                                    <?php selected($field_value, $option_value); ?>>
+                                <?php echo esc_html($option_label); ?>
+                            </option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
@@ -472,40 +607,97 @@ class LIFT_Docs_Frontend_Login {
                 
             case 'checkbox':
                 ?>
-                <label>
-                    <input type="checkbox" 
-                           id="<?php echo $field_id; ?>" 
-                           name="<?php echo $field_name; ?>" 
-                           value="1"
-                           <?php echo $required; ?>>
-                    <?php echo esc_html($field['label']); ?>
-                </label>
+                <div class="checkbox-field">
+                    <label>
+                        <input type="checkbox" 
+                               id="<?php echo $field_id; ?>" 
+                               name="<?php echo $field_name; ?>" 
+                               value="1"
+                               <?php checked($field_value, '1'); ?>
+                               <?php echo $required; ?>
+                               <?php echo $disabled; ?>>
+                        <?php echo esc_html($field['description'] ?? $field['label'] ?? ''); ?>
+                    </label>
+                </div>
                 <?php
                 break;
                 
             case 'radio':
                 if (isset($field['options']) && is_array($field['options'])):
-                    foreach ($field['options'] as $index => $option):
-                        ?>
-                        <label style="display: block; margin-bottom: 5px;">
-                            <input type="radio" 
-                                   name="<?php echo $field_name; ?>" 
-                                   value="<?php echo esc_attr($option); ?>"
-                                   <?php echo $required; ?>>
-                            <?php echo esc_html($option); ?>
-                        </label>
-                        <?php
-                    endforeach;
+                    ?>
+                    <div class="radio-group">
+                        <?php foreach ($field['options'] as $index => $option): ?>
+                            <?php 
+                            $option_value = is_array($option) ? $option['value'] : $option;
+                            $option_label = is_array($option) ? $option['label'] : $option;
+                            $radio_id = $field_id . '_' . $index;
+                            ?>
+                            <label class="radio-option">
+                                <input type="radio" 
+                                       id="<?php echo $radio_id; ?>"
+                                       name="<?php echo $field_name; ?>" 
+                                       value="<?php echo esc_attr($option_value); ?>"
+                                       <?php checked($field_value, $option_value); ?>
+                                       <?php echo $required; ?>
+                                       <?php echo $disabled; ?>>
+                                <?php echo esc_html($option_label); ?>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php
                 endif;
                 break;
                 
+            case 'file':
+                ?>
+                <input type="file" 
+                       id="<?php echo $field_id; ?>" 
+                       name="<?php echo $field_name; ?>" 
+                       class="form-control"
+                       <?php if (isset($field['accept'])): ?>accept="<?php echo esc_attr($field['accept']); ?>"<?php endif; ?>
+                       <?php echo $required; ?>
+                       <?php echo $disabled; ?>>
+                <?php if ($field_value): ?>
+                    <small class="current-file"><?php printf(__('Current file: %s', 'lift-docs-system'), esc_html($field_value)); ?></small>
+                <?php endif; ?>
+                <?php
+                break;
+                
+            case 'date':
+                ?>
+                <input type="date" 
+                       id="<?php echo $field_id; ?>" 
+                       name="<?php echo $field_name; ?>" 
+                       value="<?php echo esc_attr($field_value); ?>"
+                       class="form-control"
+                       <?php echo $required; ?>
+                       <?php echo $disabled; ?>>
+                <?php
+                break;
+                
+            case 'time':
+                ?>
+                <input type="time" 
+                       id="<?php echo $field_id; ?>" 
+                       name="<?php echo $field_name; ?>" 
+                       value="<?php echo esc_attr($field_value); ?>"
+                       class="form-control"
+                       <?php echo $required; ?>
+                       <?php echo $disabled; ?>>
+                <?php
+                break;
+                
             default:
+                // Fallback for unknown field types
                 ?>
                 <input type="text" 
                        id="<?php echo $field_id; ?>" 
                        name="<?php echo $field_name; ?>" 
+                       value="<?php echo esc_attr($field_value); ?>"
                        placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
-                       <?php echo $required; ?>>
+                       class="form-control"
+                       <?php echo $required; ?>
+                       <?php echo $disabled; ?>>
                 <?php
                 break;
         }
@@ -1278,10 +1470,10 @@ class LIFT_Docs_Frontend_Login {
         foreach ($all_documents as $document) {
             $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
             
-            // If no specific assignments, only admin and editor can see
+            // If no specific assignments, only admin can see
             if (empty($assigned_users) || !is_array($assigned_users)) {
-                // Only admin and editor can see unassigned documents
-                if (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents')) {
+                // Only admin can see unassigned documents
+                if (user_can($user_id, 'manage_options')) {
                     $user_documents[] = $document;
                 }
             } 
@@ -1331,8 +1523,8 @@ class LIFT_Docs_Frontend_Login {
         // Get current user
         $current_user_id = get_current_user_id();
         
-        // Admin and editors can always view
-        if (user_can($current_user_id, 'manage_options') || user_can($current_user_id, 'edit_lift_documents')) {
+        // Admin can always view
+        if (user_can($current_user_id, 'manage_options')) {
             return true;
         }
         
@@ -1340,7 +1532,7 @@ class LIFT_Docs_Frontend_Login {
         $assigned_users = get_post_meta($document_id, '_lift_doc_assigned_users', true);
         
         if (empty($assigned_users) || !is_array($assigned_users)) {
-            // Unassigned documents - only admin/editor can view
+            // Unassigned documents - only admin can view
             return false;
         }
         

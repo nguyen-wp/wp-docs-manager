@@ -1221,25 +1221,32 @@ class LIFT_Forms {
         
         // If document_id is provided, verify access
         if ($document_id) {
-            // Check if user has access to the document
-            if (!current_user_can('view_lift_documents') && 
-                !in_array('documents_user', wp_get_current_user()->roles)) {
-                wp_send_json_error(__('Access denied', 'lift-docs-system'));
+            $current_user_id = get_current_user_id();
+            
+            // Check if user has access to the document (only admin or assigned users)
+            if (!current_user_can('manage_options')) {
+                // Check if document is assigned to current user
+                $assigned_users = get_post_meta($document_id, '_lift_doc_assigned_users', true);
+                
+                if (empty($assigned_users) || !is_array($assigned_users) || !in_array($current_user_id, $assigned_users)) {
+                    wp_send_json_error(__('You do not have permission to access this document', 'lift-docs-system'));
+                }
             }
             
-            // Check document status - prevent submission/editing if status is processing, done, or cancelled
+            // Check document status - only allow submission/editing if status is 'pending'
             $document_status = get_post_meta($document_id, '_lift_doc_status', true);
             if (empty($document_status)) {
                 $document_status = 'pending';
             }
             
-            if (in_array($document_status, array('processing', 'done', 'cancelled'))) {
+            if ($document_status !== 'pending') {
                 $status_messages = array(
                     'processing' => __('Cannot submit form - document is currently being processed', 'lift-docs-system'),
                     'done' => __('Cannot submit form - document has been completed', 'lift-docs-system'),
                     'cancelled' => __('Cannot submit form - document has been cancelled', 'lift-docs-system')
                 );
-                wp_send_json_error($status_messages[$document_status]);
+                $message = isset($status_messages[$document_status]) ? $status_messages[$document_status] : __('Cannot submit form - document status does not allow editing', 'lift-docs-system');
+                wp_send_json_error($message);
             }
             
             // Verify form is assigned to document
