@@ -2009,7 +2009,10 @@ class LIFT_Docs_Admin {
         wp_enqueue_style('lift-docs-admin-modal', plugin_dir_url(__FILE__) . '../assets/css/admin-modal.css', array(), '1.0.0');
         
         wp_localize_script('lift-docs-admin-modal', 'liftDocsAdmin', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('get_admin_document_details'),
             'strings' => array(
+                'documentDetails' => __('Document Details', 'lift-docs-system'),
                 'viewDetails' => __('Document Details', 'lift-docs-system'),
                 'secureView' => __('Secure View', 'lift-docs-system'),
                 'downloadUrl' => __('Download URL', 'lift-docs-system'),
@@ -2047,81 +2050,11 @@ class LIFT_Docs_Admin {
                     <button type="button" class="lift-modal-close">&times;</button>
                 </div>
                 
-                <div class="lift-modal-body">
-                    <div class="lift-detail-group">
-                        <label><?php _e('View URL', 'lift-docs-system'); ?>:</label>
-                        <div class="lift-input-group">
-                            <input type="text" id="lift-view-url" readonly onclick="this.select()" />
-                            <button type="button" class="button lift-copy-btn" data-target="#lift-view-url">
-                                <?php _e('Copy', 'lift-docs-system'); ?>
-                            </button>
-                            <a href="#" id="lift-view-preview" class="button" target="_blank">
-                                <?php _e('Preview', 'lift-docs-system'); ?>
-                            </a>
-                        </div>
-                        <!-- <p class="description" id="lift-view-description" style="margin-top: 5px; color: #666; font-size: 12px;"></p> -->
-                    </div>
-                    
-                    <!-- <div class="lift-detail-group">
-                        <label><?php _e('Download URLs', 'lift-docs-system'); ?>:</label>
-                        <div id="lift-download-urls-container">
-                            <div class="lift-input-group" id="lift-single-download">
-                                <input type="text" id="lift-download-url" readonly onclick="this.select()" />
-                                <button type="button" class="button lift-copy-btn" data-target="#lift-download-url">
-                                    <?php _e('Copy', 'lift-docs-system'); ?>
-                                </button>
-                                <a href="#" id="lift-online-view" class="button" target="_blank">
-                                    <?php _e('View Online', 'lift-docs-system'); ?>
-                                </a>
-                            </div>
-                            <div id="lift-multiple-downloads" style="display: none;">
-                            </div>
-                        </div>
-                    </div> -->
-                    
-                    <div class="lift-detail-group" id="lift-secure-download-group" style="display: none;">
-                        <label><?php _e('Secure Download URLs', 'lift-docs-system'); ?>:</label>
-                        <div id="lift-secure-download-urls-container">
-                            <!-- Single file fallback -->
-                            <div class="lift-input-group" id="lift-single-secure-download">
-                                <input type="text" id="lift-secure-download-url" readonly onclick="this.select()" />
-                                <button type="button" class="button lift-copy-btn" data-target="#lift-secure-download-url">
-                                    <?php _e('Copy', 'lift-docs-system'); ?>
-                                </button>
-                            </div>
-                            <!-- Multiple files list -->
-                            <div id="lift-multiple-secure-downloads" style="display: none;">
-                                <!-- Will be populated by JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="lift-detail-group">
-                        <label><?php _e('Shortcode', 'lift-docs-system'); ?>:</label>
-                        <div class="lift-input-group">
-                            <input type="text" id="lift-shortcode" readonly onclick="this.select()" />
-                            <button type="button" class="button lift-copy-btn" data-target="#lift-shortcode">
-                                <?php _e('Copy', 'lift-docs-system'); ?>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="lift-detail-group">
-                        <label><?php _e('Statistics', 'lift-docs-system'); ?>:</label>
-                        <div class="lift-stats-display">
-                            <div class="lift-stat-item">
-                                <strong id="lift-views">0</strong>
-                                <span><?php _e('Views', 'lift-docs-system'); ?></span>
-                            </div>
-                            <div class="lift-stat-item">
-                                <strong id="lift-downloads">0</strong>
-                                <span><?php _e('Downloads', 'lift-docs-system'); ?></span>
-                            </div>
-                            <div class="lift-stat-item">
-                                <strong id="lift-files-count">0</strong>
-                                <span><?php _e('Files', 'lift-docs-system'); ?></span>
-                            </div>
-                        </div>
+                <div class="lift-modal-body" id="lift-modal-body">
+                    <!-- Content will be loaded via AJAX -->
+                    <div style="text-align: center; padding: 40px;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #0073aa;"></i><br><br>
+                        Loading document details...
                     </div>
                 </div>
                 
@@ -2814,20 +2747,29 @@ class LIFT_Docs_Admin {
      * Get admin document details for modal (AJAX handler)
      */
     public function ajax_get_admin_document_details() {
+        // Debug logging
+        error_log('AJAX get_admin_document_details called');
+        error_log('POST data: ' . print_r($_POST, true));
+        
         // Check nonce
         if (!wp_verify_nonce($_POST['nonce'], 'get_admin_document_details')) {
+            error_log('Nonce verification failed');
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
         
         // Check user permissions
         if (!current_user_can('manage_options') && !current_user_can('edit_lift_documents')) {
+            error_log('Permission check failed');
             wp_send_json_error(__('Access denied', 'lift-docs-system'));
         }
         
         $document_id = intval($_POST['document_id']);
+        error_log('Document ID: ' . $document_id);
+        
         $document = get_post($document_id);
         
         if (!$document || $document->post_type !== 'lift_document') {
+            error_log('Document not found or wrong type');
             wp_send_json_error(__('Document not found', 'lift-docs-system'));
         }
         
@@ -2870,21 +2812,36 @@ class LIFT_Docs_Admin {
             }
         }
         
-        // Get form details
+        // Get form details with submission information
         $form_details = array();
         if (!empty($assigned_forms)) {
             global $wpdb;
             $forms_table = $wpdb->prefix . 'lift_forms';
+            $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+            
             foreach ($assigned_forms as $form_id) {
                 $form = $wpdb->get_row($wpdb->prepare(
                     "SELECT id, name, description FROM $forms_table WHERE id = %d AND status = 'active'",
                     $form_id
                 ));
                 if ($form) {
+                    // Check for submissions by current user for this document
+                    $submission = $wpdb->get_row($wpdb->prepare(
+                        "SELECT id, submitted_at FROM $submissions_table 
+                         WHERE form_id = %d AND document_id = %d AND user_id = %d 
+                         ORDER BY submitted_at DESC LIMIT 1",
+                        $form_id,
+                        $document_id,
+                        get_current_user_id()
+                    ));
+                    
                     $form_details[] = array(
                         'id' => $form->id,
                         'name' => $form->name,
-                        'description' => $form->description
+                        'description' => $form->description,
+                        'has_submission' => !empty($submission),
+                        'submission_id' => $submission ? $submission->id : null,
+                        'submitted_at' => $submission ? $submission->submitted_at : null
                     );
                 }
             }
@@ -2935,7 +2892,7 @@ class LIFT_Docs_Admin {
         
         <?php if (!empty($user_details)): ?>
         <div class="modal-section">
-            <h3><?php _e('Assigned Users', 'lift-docs-system'); ?> (<?php echo count($user_details); ?>)</h3>
+            <h3><?php _e('View Documents', 'lift-docs-system'); ?> (<?php echo count($user_details); ?>)</h3>
             <div class="assigned-users-grid">
                 <?php foreach ($user_details as $user_info): ?>
                     <div class="user-item">
@@ -2956,11 +2913,31 @@ class LIFT_Docs_Admin {
         
         <?php if (!empty($form_details)): ?>
         <div class="modal-section">
-            <h3><?php _e('Assigned Forms', 'lift-docs-system'); ?> (<?php echo count($form_details); ?>)</h3>
+            <h3><?php _e('Forms', 'lift-docs-system'); ?> (<?php echo count($form_details); ?>)</h3>
             <div class="assigned-forms-grid">
                 <?php foreach ($form_details as $form_info): ?>
-                    <div class="form-badge" title="<?php echo esc_attr($form_info['description']); ?>">
-                        <?php echo esc_html($form_info['name']); ?>
+                    <div class="form-item">
+                        <div class="form-info">
+                            <strong><?php echo esc_html($form_info['name']); ?></strong>
+                            <?php if (!empty($form_info['description'])): ?>
+                                <div class="form-description"><?php echo esc_html($form_info['description']); ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <?php if ($form_info['has_submission']): ?>
+                            <div class="form-actions">
+                                <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions&submission_id=' . $form_info['submission_id']); ?>" 
+                                   class="button button-small" target="_blank">
+                                    <?php _e('View Submission', 'lift-docs-system'); ?>
+                                </a>
+                                <div class="submission-date">
+                                    <?php echo date('M j, Y', strtotime($form_info['submitted_at'])); ?>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="form-status">
+                                <span class="status-badge status-pending"><?php _e('No Submission', 'lift-docs-system'); ?></span>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             </div>

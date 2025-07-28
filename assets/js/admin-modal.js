@@ -12,14 +12,53 @@
             e.preventDefault();
             
             var $button = $(this);
-            var data = $button.data();
+            var documentId = $button.data('document-id') || $button.data('post-id');
             
+            console.log('Button clicked, documentId:', documentId);
+            console.log('Button data:', $button.data());
+            console.log('Ajax URL:', liftDocsAdmin.ajaxUrl);
+            console.log('Nonce:', liftDocsAdmin.nonce);
             
-            // Populate modal with data
-            populateModal(data);
+            if (!documentId) {
+                console.error('No document ID found');
+                return;
+            }
             
-            // Show modal
-            showModal();
+            // Show loading modal
+            showModalLoading();
+            
+            // Make AJAX request to get document details
+            $.ajax({
+                url: liftDocsAdmin.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'get_admin_document_details',
+                    document_id: documentId,
+                    nonce: liftDocsAdmin.nonce
+                },
+                success: function(response) {
+                    console.log('AJAX Success:', response);
+                    if (response.success) {
+                        // Populate modal with detailed content
+                        $('#lift-modal-body').html(response.data.content);
+                        
+                        // Update modal title if needed
+                        $('#lift-modal-title').text(liftDocsAdmin.strings.documentDetails || 'Document Details');
+                        
+                        // Show modal
+                        showModal();
+                    } else {
+                        console.error('AJAX Error Response:', response.data);
+                        alert(response.data || 'Error loading document details');
+                        hideModal();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr, status, error);
+                    alert('Error loading document details');
+                    hideModal();
+                }
+            });
         });
         
         // Handle modal close
@@ -259,6 +298,15 @@
             };
             
             return icons[extension] || '<i class="fas fa-file"></i>';
+        }
+        
+        /**
+         * Show modal with loading state
+         */
+        function showModalLoading() {
+            $('#lift-modal-title').text('Loading...');
+            $('#lift-modal-body').html('<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #0073aa;"></i><br><br>Loading document details...</div>');
+            showModal();
         }
         
         /**

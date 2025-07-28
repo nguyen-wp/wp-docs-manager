@@ -157,7 +157,7 @@
 .lift-stat-item span {
     font-size: 12px;
     color: #666;
-    text-
+    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 /* Button styling for document list page */
@@ -297,6 +297,197 @@
     border-right: none;
 }
 /* Improved modal width for multiple files */
+/* Modal sections styling */
+.modal-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.modal-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.modal-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.modal-stat {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.modal-stat .number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0073aa;
+    margin-bottom: 4px;
+}
+
+.modal-stat .label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.view-url-box {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.view-url-box a {
+    color: #0073aa;
+    text-decoration: none;
+    font-family: monospace;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+.view-url-box a:hover {
+    text-decoration: underline;
+}
+
+.assigned-users-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.assigned-users-grid .user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+}
+
+.assigned-users-grid .user-info strong {
+    display: block;
+    color: #1d2327;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.assigned-users-grid .user-email {
+    font-size: 12px;
+    color: #646970;
+}
+
+.assigned-users-grid .user-code-badge {
+    background: #0073aa;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.files-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.files-grid .file-item {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+}
+
+.files-grid .file-item a {
+    color: #0073aa;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.files-grid .file-item a:hover {
+    text-decoration: underline;
+}
+
+/* Form items styling */
+.assigned-forms-grid .form-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #fafafa;
+    margin-bottom: 8px;
+}
+
+.assigned-forms-grid .form-info {
+    flex: 1;
+}
+
+.assigned-forms-grid .form-info strong {
+    display: block;
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.assigned-forms-grid .form-description {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+}
+
+.assigned-forms-grid .form-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.assigned-forms-grid .form-actions .button {
+    padding: 4px 12px;
+    font-size: 11px;
+    height: auto;
+}
+
+.assigned-forms-grid .submission-date {
+    font-size: 11px;
+    color: #666;
+    text-align: right;
+}
+
+.assigned-forms-grid .form-status {
+    display: flex;
+    align-items: center;
+}
+
+.assigned-forms-grid .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.assigned-forms-grid .status-pending {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
 @media (min-width: 768px) {
     .lift-modal-content {
         max-width: 700px;
@@ -319,5 +510,19 @@
     .multiple-files-list .button {
         width: 100%;
         text-align: center;
+    }
+    
+    /* Mobile responsive for forms */
+    .assigned-forms-grid .form-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .assigned-forms-grid .form-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
     }
 }
