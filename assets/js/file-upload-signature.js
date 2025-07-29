@@ -249,16 +249,47 @@
         // Extract filename from the current file text
         const filename = currentFileText.replace('Current file: ', '').trim();
         
+        // Debug logging
+        console.log('Loading existing file:', filename);
+        console.log('Current file text:', currentFileText);
+        
         // Try to get file URL from hidden input if it exists
         const $hiddenInput = $field.find('input[type="hidden"][name$="_url"]');
         let fileUrl = '';
         
         if ($hiddenInput.length) {
             fileUrl = $hiddenInput.val();
+            console.log('Found hidden input URL:', fileUrl);
         } else {
-            // Try to construct URL from upload directory and filename
-            const uploadDir = liftFormsFrontend.uploadDir || '';
-            fileUrl = uploadDir + '/' + filename;
+            // Check if filename is already a full URL
+            if (filename.startsWith('http://') || filename.startsWith('https://')) {
+                fileUrl = filename;
+                console.log('Filename appears to be a full URL:', fileUrl);
+            } else if (filename.startsWith('/wp-content/uploads/')) {
+                // Relative path from wp-content/uploads
+                fileUrl = window.location.origin + filename;
+                console.log('Constructed full URL from relative path:', fileUrl);
+            } else if (filename.includes('/')) {
+                // Might be a relative path, try to construct full URL
+                const uploadDir = liftFormsFrontend.uploadDir || '';
+                if (uploadDir) {
+                    fileUrl = uploadDir + '/' + filename;
+                } else {
+                    // Fallback to wp-content/uploads
+                    fileUrl = window.location.origin + '/wp-content/uploads/' + filename;
+                }
+                console.log('Constructed URL from path:', fileUrl);
+            } else {
+                // Just a filename, construct full path
+                const uploadDir = liftFormsFrontend.uploadDir || '';
+                if (uploadDir) {
+                    fileUrl = uploadDir + '/' + filename;
+                } else {
+                    // Fallback to wp-content/uploads
+                    fileUrl = window.location.origin + '/wp-content/uploads/' + filename;
+                }
+                console.log('Constructed URL from filename:', fileUrl, 'from uploadDir:', uploadDir);
+            }
         }
         
         if (filename && fileUrl) {
@@ -304,7 +335,19 @@
             // Add image preview for image files
             if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
                 const $imagePreview = $('<div class="image-preview">');
-                $imagePreview.html(`<img src="${fileUrl}" alt="Preview">`);
+                const $img = $('<img alt="Preview">');
+                
+                $img.on('load', function() {
+                    console.log('Image loaded successfully:', fileUrl);
+                });
+                
+                $img.on('error', function() {
+                    console.warn('Failed to load image:', fileUrl);
+                    $imagePreview.html('<div class="image-error"><i class="dashicons dashicons-warning"></i> Could not load image preview</div>');
+                });
+                
+                $img.attr('src', fileUrl);
+                $imagePreview.append($img);
                 $preview.prepend($imagePreview);
             }
             
