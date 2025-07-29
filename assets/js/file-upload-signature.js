@@ -194,7 +194,15 @@
                 $removeOverlay.on('click', function(e) {
                     e.stopPropagation(); // Prevent triggering file picker
                     $preview.remove();
-                    $input.val('');
+                    
+                    // Get field name and clear all related inputs
+                    const fieldName = $input.attr('name');
+                    const $field = $input.closest('.lift-form-field');
+                    
+                    if (fieldName) {
+                        clearRelatedInputs($field, fieldName);
+                    }
+                    
                     if ($previewArea.children().length === 0) {
                         $previewArea.hide();
                     }
@@ -226,7 +234,15 @@
             $removeOverlay.on('click', function(e) {
                 e.stopPropagation(); // Prevent triggering file picker
                 $preview.remove();
-                $input.val('');
+                
+                // Get field name and clear all related inputs
+                const fieldName = $input.attr('name');
+                const $field = $input.closest('.lift-form-field');
+                
+                if (fieldName) {
+                    clearRelatedInputs($field, fieldName);
+                }
+                
                 if ($previewArea.children().length === 0) {
                     $previewArea.hide();
                 }
@@ -347,10 +363,18 @@
             $removeOverlay.on('click', function(e) {
                 e.stopPropagation(); // Prevent triggering file picker
                 $preview.remove();
-                $input.val('');
+                
+                // Get field name and clear all related inputs
+                const fieldName = $input.attr('name');
+                if (fieldName) {
+                    clearRelatedInputs($field, fieldName);
+                }
+                
+                // Remove the hidden input reference if it exists
                 if ($hiddenInput.length) {
                     $hiddenInput.remove();
                 }
+                
                 if ($previewArea.children().length === 0) {
                     $previewArea.hide();
                 }
@@ -495,7 +519,18 @@
         function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             $actions.find('.save-signature').prop('disabled', true);
-            $('#' + fieldId + '_data').val('');
+            
+            // Get the field and field name
+            const $field = $(canvas).closest('.lift-form-field');
+            const originalInputName = $field.find('input[type="hidden"]').first().attr('name');
+            
+            if (originalInputName) {
+                clearRelatedInputs($field, originalInputName);
+            }
+            
+            // Initialize with white background after clearing
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
         // Draw function
@@ -678,6 +713,34 @@
             if (hasInvalidSignature) {
                 e.preventDefault();
                 return false;
+            }
+        });
+    }
+
+    /**
+     * Clear all related input values for a field
+     */
+    function clearRelatedInputs($field, fieldName) {
+        if (!fieldName) return;
+        
+        // Clear all inputs with names starting with the field name
+        $field.find('input').each(function() {
+            const $input = $(this);
+            const inputName = $input.attr('name');
+            if (inputName && inputName.indexOf(fieldName) === 0) {
+                $input.val('');
+                
+                // Also trigger change event to notify other scripts
+                $input.trigger('change');
+            }
+        });
+        
+        // Remove any dynamically created hidden inputs (like _url inputs)
+        $field.find('input[type="hidden"]').each(function() {
+            const $hiddenInput = $(this);
+            const hiddenName = $hiddenInput.attr('name');
+            if (hiddenName && hiddenName.indexOf(fieldName) === 0 && hiddenName !== fieldName) {
+                $hiddenInput.remove();
             }
         });
     }
