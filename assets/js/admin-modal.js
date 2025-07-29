@@ -59,6 +59,50 @@
             hideModal();
         });
         
+        // Handle submission view button click
+        $(document).on('click', '.view-submission-btn', function(e) {
+            e.preventDefault();
+            
+            var $button = $(this);
+            var submissionId = $button.data('submission-id');
+            var nonce = $button.data('nonce');
+            
+            if (!submissionId) {
+                console.error('No submission ID found');
+                return;
+            }
+            
+            // Show loading in submission modal
+            showSubmissionModalLoading();
+            
+            // Make AJAX request to get submission details
+            $.ajax({
+                url: liftDocsAdmin.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'lift_forms_get_submission',
+                    submission_id: submissionId,
+                    nonce: nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Populate submission modal with detailed content
+                        $('#submission-detail-content-from-doc').html(response.data);
+                        
+                        // Show submission modal
+                        showSubmissionModal();
+                    } else {
+                        alert(response.data || 'Error loading submission details');
+                        hideSubmissionModal();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error loading submission details');
+                    hideSubmissionModal();
+                }
+            });
+        });
+        
         // Handle copy buttons
         $(document).on('click', '.lift-copy-btn', function(e) {
             e.preventDefault();
@@ -320,6 +364,30 @@
         }
         
         /**
+         * Show submission modal loading
+         */
+        function showSubmissionModalLoading() {
+            $('#submission-detail-content-from-doc').html('<div class="submission-loading"><div class="spinner is-active"></div><p>Loading submission details...</p></div>');
+            showSubmissionModal();
+        }
+        
+        /**
+         * Show submission modal
+         */
+        function showSubmissionModal() {
+            $('body').addClass('modal-open');
+            $('#submission-detail-modal-from-doc').fadeIn(200);
+        }
+        
+        /**
+         * Hide submission modal
+         */
+        function hideSubmissionModal() {
+            $('body').removeClass('modal-open');
+            $('#submission-detail-modal-from-doc').fadeOut(200);
+        }
+        
+        /**
          * Add some body styles when modal is open
          */
         $('<style>')
@@ -327,5 +395,11 @@
             .html('body.modal-open { overflow: hidden; }')
             .appendTo('head');
     });
+    
+    // Global functions for onclick attributes
+    window.closeSubmissionModalFromDoc = function() {
+        $('body').removeClass('modal-open');
+        $('#submission-detail-modal-from-doc').fadeOut(200);
+    };
     
 })(jQuery);

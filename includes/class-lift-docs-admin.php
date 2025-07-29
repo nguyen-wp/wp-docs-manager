@@ -2169,6 +2169,44 @@ class LIFT_Docs_Admin {
         
         <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
         
+        <!-- Submission Details Modal (WordPress Style) -->
+        <div id="submission-detail-modal-from-doc" class="wp-core-ui" style="display: none;">
+            <div class="media-modal wp-core-ui">
+                <button type="button" class="media-modal-close" onclick="closeSubmissionModalFromDoc()">
+                    <span class="media-modal-icon">
+                        <span class="screen-reader-text"><?php _e('Close modal', 'lift-docs-system'); ?></span>
+                    </span>
+                </button>
+                <div class="media-modal-content">
+                    <div class="media-frame mode-select wp-core-ui">
+                        <div class="media-frame-title">
+                            <h1><?php _e('Submission Details', 'lift-docs-system'); ?></h1>
+                        </div>
+                        <div class="media-frame-content">
+                            <div class="submission-details-container">
+                                <div id="submission-detail-content-from-doc">
+                                    <div class="submission-loading">
+                                        <div class="spinner is-active"></div>
+                                        <p><?php _e('Loading submission details...', 'lift-docs-system'); ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="media-frame-toolbar">
+                            <div class="media-toolbar">
+                                <div class="media-toolbar-secondary">
+                                    <button type="button" class="button" onclick="closeSubmissionModalFromDoc()">
+                                        <?php _e('Close', 'lift-docs-system'); ?>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="media-modal-backdrop"></div>
+        </div>
+        
         <?php
     }
     
@@ -2923,14 +2961,13 @@ class LIFT_Docs_Admin {
                     $form_id
                 ));
                 if ($form) {
-                    // Check for submissions by current user for this document
+                    // Check for submissions for this document and form (all users)
                     $submission = $wpdb->get_row($wpdb->prepare(
-                        "SELECT id, submitted_at FROM $submissions_table 
-                         WHERE form_id = %d AND document_id = %d AND user_id = %d 
+                        "SELECT id, submitted_at, user_id FROM $submissions_table 
+                         WHERE form_id = %d AND form_data LIKE %s 
                          ORDER BY submitted_at DESC LIMIT 1",
                         $form_id,
-                        $document_id,
-                        get_current_user_id()
+                        '%"_document_id":' . $document_id . '%'
                     ));
                     
                     $form_details[] = array(
@@ -2939,7 +2976,8 @@ class LIFT_Docs_Admin {
                         'description' => $form->description,
                         'has_submission' => !empty($submission),
                         'submission_id' => $submission ? $submission->id : null,
-                        'submitted_at' => $submission ? $submission->submitted_at : null
+                        'submitted_at' => $submission ? $submission->submitted_at : null,
+                        'submitted_by_user_id' => $submission ? $submission->user_id : null
                     );
                 }
             }
@@ -3044,12 +3082,28 @@ class LIFT_Docs_Admin {
                                 </div>
                                 <?php if ($form_info['has_submission']): ?>
                                     <div class="form-actions">
-                                        <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions&submission_id=' . $form_info['submission_id']); ?>" 
-                                           class="button" target="_blank">
-                                            <?php _e('View', 'lift-docs-system'); ?>
-                                        </a>
-                                        <div class="submission-date">
-                                            <?php echo date('M j', strtotime($form_info['submitted_at'])); ?>
+                                        <button type="button" 
+                                                class="button view-submission-btn" 
+                                                data-submission-id="<?php echo esc_attr($form_info['submission_id']); ?>"
+                                                data-nonce="<?php echo wp_create_nonce('lift_forms_get_submission'); ?>">
+                                            <?php _e('View Submission', 'lift-docs-system'); ?>
+                                        </button>
+                                        <div class="submission-info">
+                                            <div class="submission-date">
+                                                <?php echo date('M j', strtotime($form_info['submitted_at'])); ?>
+                                            </div>
+                                            <?php if ($form_info['submitted_by_user_id']): ?>
+                                                <?php $submit_user = get_user_by('id', $form_info['submitted_by_user_id']); ?>
+                                                <?php if ($submit_user): ?>
+                                                    <div class="submission-user">
+                                                        <?php _e('by', 'lift-docs-system'); ?> <?php echo esc_html($submit_user->display_name); ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <div class="submission-user">
+                                                    <?php _e('by Guest', 'lift-docs-system'); ?>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 <?php else: ?>

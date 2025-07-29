@@ -480,7 +480,30 @@
     align-items: center;
 }
 
-.assigned-forms-grid .status-badge {
+.assigned-forms-grid .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.submission-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+    color: #666;
+}
+
+.submission-date {
+    font-weight: 600;
+    color: #0073aa;
+}
+
+.submission-user {
+    font-style: italic;
+}
+
+.status-badge {
     padding: 3px 6px;
     border-radius: 10px;
     font-size: 10px;
@@ -644,4 +667,110 @@
     padding: 3px 20px 3px 6px !important;
     height: auto;
     line-height: 1.2;
+}
+
+/* Submission Modal Styles (WordPress Admin Style) */
+#submission-detail-modal-from-doc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100050;
+}
+
+#submission-detail-modal-from-doc .media-modal {
+    top: 30px;
+    bottom: 30px;
+    left: 30px;
+    right: 30px;
+}
+
+#submission-detail-modal-from-doc .media-modal-content {
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+}
+
+#submission-detail-modal-from-doc .media-frame-title {
+    border-bottom: 1px solid #ddd;
+    background: #fcfcfc;
+}
+
+#submission-detail-modal-from-doc .submission-details-container {
+    padding: 20px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+#submission-detail-modal-from-doc .submission-loading {
+    text-align: center;
+    padding: 40px;
+}
+
+#submission-detail-modal-from-doc .submission-loading .spinner {
+    margin: 0 auto 15px;
+}
+
+#submission-detail-modal-from-doc .submission-details h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+    color: #0073aa;
+}
+
+#submission-detail-modal-from-doc .form-table {
+    margin-top: 10px;
+}
+
+#submission-detail-modal-from-doc .form-table th {
+    width: 150px;
+    padding: 10px;
+    vertical-align: top;
+    color: #555;
+    font-weight: 600;
+}
+
+#submission-detail-modal-from-doc .form-table td {
+    padding: 10px;
+    word-break: break-word;
+}
+
+#submission-detail-modal-from-doc .user-info-detail strong {
+    color: #0073aa;
+}
+
+#submission-detail-modal-from-doc .guest-user-detail {
+    color: #666;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#submission-detail-modal-from-doc .status {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+#submission-detail-modal-from-doc .status-read {
+    background: #d4edda;
+    color: #155724;
+}
+
+#submission-detail-modal-from-doc .status-unread {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Close button for submission modal */
+#submission-detail-modal-from-doc .media-modal-close {
+    color: #666;
+}
+
+#submission-detail-modal-from-doc .media-modal-close:hover {
+    color: #000;
 }
