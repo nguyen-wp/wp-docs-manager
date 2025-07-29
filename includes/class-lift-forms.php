@@ -975,43 +975,31 @@ class LIFT_Forms {
             <?php endif; ?>
         </div>
         
-        <!-- Submission Detail Modal - WordPress Admin Style -->
-        <div id="submission-detail-modal" class="wp-core-ui" style="display: none;">
-            <div class="media-modal wp-core-ui">
-                <button type="button" class="media-modal-close" onclick="closeLiftModal()">
-                    <span class="media-modal-icon">
-                        <span class="screen-reader-text"><?php _e('Close modal', 'lift-docs-system'); ?></span>
-                    </span>
-                </button>
-                <div class="media-modal-content">
-                    <div class="media-frame mode-select wp-core-ui">
-                        <div class="media-frame-title">
-                            <h1><?php _e('Submission Details', 'lift-docs-system'); ?></h1>
-                        </div>
-                        <div class="media-frame-content">
-                            <div class="submission-details-container">
-                                <div id="submission-detail-content">
-                                    <div class="submission-loading">
-                                        <div class="spinner is-active"></div>
-                                        <p><?php _e('Loading submission details...', 'lift-docs-system'); ?></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="media-frame-toolbar">
-                            <div class="media-toolbar">
-                                <div class="media-toolbar-secondary">
-                                    <button type="button" class="button" onclick="closeLiftModal()">
-                                        <?php _e('Close', 'lift-docs-system'); ?>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Submission Detail Modal - LIFT Documents Style -->
+        <div id="submission-detail-modal" class="lift-modal" style="display: none;">
+            <div class="lift-modal-content">
+                <div class="lift-modal-header">
+                    <h2 id="lift-modal-title"><?php _e('Submission Details', 'lift-docs-system'); ?></h2>
+                    <button type="button" class="lift-modal-close" onclick="closeLiftModal()">&times;</button>
+                </div>
+                
+                <div class="lift-modal-body" id="submission-detail-content">
+                    <!-- Content will be loaded via AJAX -->
+                    <div class="submission-loading" style="text-align: center; padding: 40px;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #0073aa;"></i><br><br>
+                        <?php _e('Loading submission details...', 'lift-docs-system'); ?>
                     </div>
                 </div>
+                
+                <div class="lift-modal-footer">
+                    <button type="button" class="button button-primary" onclick="closeLiftModal()">
+                        <?php _e('Close', 'lift-docs-system'); ?>
+                    </button>
+                </div>
             </div>
-            <div class="media-modal-backdrop"></div>
         </div>
+        
+        <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
         
         <style>
         .user-info {
@@ -1107,148 +1095,9 @@ class LIFT_Forms {
             font-style: italic;
         }
         
-        /* WordPress-style Modal */
-        #submission-detail-modal .media-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 160000;
-        }
-        
-        #submission-detail-modal .media-modal-content {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            right: 30px;
-            bottom: 30px;
-            overflow: auto;
-            min-height: 300px;
-            background: #fff;
-            border-radius: 3px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.7);
-        }
-        
-        #submission-detail-modal .media-frame-title {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            z-index: 200;
-            border-bottom: 1px solid #ddd;
-            background: #fcfcfc;
-            padding: 0 20px;
-            line-height: 50px;
-        }
-        
-        #submission-detail-modal .media-frame-title h1 {
-            font-size: 22px;
-            margin: 0;
-            padding: 0;
-            font-weight: 600;
-            color: #23282d;
-        }
-        
-        #submission-detail-modal .media-frame-content {
-            position: absolute;
-            top: 50px;
-            left: 0;
-            right: 0;
-            bottom: 60px;
-            overflow: auto;
-            background: #fff;
-        }
-        
-        #submission-detail-modal .submission-details-container {
-            padding: 20px;
-        }
-        
-        #submission-detail-modal .media-frame-toolbar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
+        /* Prevent body scroll when modal is open */
+        body.modal-open {
             overflow: hidden;
-            border-top: 1px solid #ddd;
-            background: #fcfcfc;
-        }
-        
-        #submission-detail-modal .media-toolbar {
-            padding: 16px 20px;
-            height: 28px;
-        }
-        
-        #submission-detail-modal .media-modal-close {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 50px;
-            height: 50px;
-            margin: 0;
-            padding: 0;
-            border: 0;
-            cursor: pointer;
-            z-index: 1000;
-            background: none;
-            color: #666;
-            text-align: center;
-        }
-        
-        #submission-detail-modal .media-modal-close:hover,
-        #submission-detail-modal .media-modal-close:focus {
-            color: #2ea2cc;
-            outline: none;
-            box-shadow: none;
-        }
-        
-        #submission-detail-modal .media-modal-close .media-modal-icon:before {
-            content: '\f335';
-            font: normal 20px/50px dashicons;
-        }
-        
-        #submission-detail-modal .media-modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 159900;
-        }
-        
-        #submission-detail-modal .submission-loading {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
-        }
-        
-        #submission-detail-modal .submission-loading .spinner {
-            float: none;
-            margin: 0 auto 10px;
-        }
-        
-        /* Responsive design */
-        @media screen and (max-width: 782px) {
-            #submission-detail-modal .media-modal-content {
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                border-radius: 0;
-            }
-        }
-        
-        @media screen and (max-width: 640px) {
-            #submission-detail-modal .media-frame-title h1 {
-                font-size: 18px;
-            }
-            
-            #submission-detail-modal .submission-details-container {
-                padding: 15px;
-            }
         }
         </style>
         
@@ -1256,6 +1105,7 @@ class LIFT_Forms {
         // Global function for closing modal
         function closeLiftModal() {
             jQuery('#submission-detail-modal').hide();
+            jQuery('#lift-modal-backdrop').hide();
             jQuery('body').removeClass('modal-open');
         }
         
@@ -1265,8 +1115,9 @@ class LIFT_Forms {
                 var submissionId = $(this).data('id');
                 
                 // Show modal and loading state
-                $('#submission-detail-content').html('<div class="submission-loading"><div class="spinner is-active"></div><p><?php _e('Loading submission details...', 'lift-docs-system'); ?></p></div>');
+                $('#submission-detail-content').html('<div class="submission-loading" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #0073aa;"></i><br><br><?php _e('Loading submission details...', 'lift-docs-system'); ?></div>');
                 $('#submission-detail-modal').show();
+                $('#lift-modal-backdrop').show();
                 $('body').addClass('modal-open');
                 
                 // Make AJAX request
@@ -1286,7 +1137,7 @@ class LIFT_Forms {
             });
             
             // Close modal on backdrop click
-            $(document).on('click', '#submission-detail-modal .media-modal-backdrop', function() {
+            $(document).on('click', '#lift-modal-backdrop', function() {
                 closeLiftModal();
             });
             
@@ -1296,24 +1147,8 @@ class LIFT_Forms {
                     closeLiftModal();
                 }
             });
-            
-            // Prevent body scroll when modal is open
-            $(document).on('show', '#submission-detail-modal', function() {
-                $('body').addClass('modal-open');
-            });
-            
-            $(document).on('hide', '#submission-detail-modal', function() {
-                $('body').removeClass('modal-open');
-            });
         });
         </script>
-        
-        <style>
-        /* Prevent body scroll when modal is open */
-        body.modal-open {
-            overflow: hidden;
-        }
-        </style>
         <?php
     }
     
