@@ -28,6 +28,14 @@ body.document-form-page {
     line-height: 1.4;
 }
 
+/* PDF-style document form page */
+body.document-form-page {
+    background: #f5f5f5;
+    font-family: "Times New Roman", Times, serif;
+    color: #000;
+    line-height: 1.6;
+}
+
 /* ========================================
    Layout Containers - Windows Server 2003 Style
    ======================================== */
@@ -55,6 +63,16 @@ body.document-form-page {
     max-width: 800px;
 }
 
+/* PDF-style document form layout */
+body.document-form-page .document-form-wrapper {
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    margin: 20px auto;
+    max-width: 850px;
+    border-radius: 0;
+}
+
 /* ========================================
    Form Sections - Compact Layout
    ======================================== */
@@ -67,13 +85,41 @@ body.document-form-page {
     margin: 2px;
 }
 
-.document-form-title {
+/* PDF-style form content sections */
+body.document-form-page .form-content-section {
+    background: #fff;
+    padding: 25px 0;
+    order: 1;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    margin: 0;
+}
+
+/* Form Header - Windows Server 2003 Style */
+.form-header {
     background: #316ac5;
     color: white;
-    padding: 4px 8px;
-    order: 2;
-    border-bottom: 1px solid #1e3a8a;
+    padding: 3px 8px;
     font-family: "MS Sans Serif", sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    border-bottom: 1px solid #000040;
+    margin: 0;
+    text-shadow: none;
+}
+
+/* PDF-style form header */
+body.document-form-page .form-header {
+    background: #fff;
+    color: #333;
+    padding: 25px 30px 15px;
+    font-family: "Times New Roman", serif;
+    font-size: 20px;
+    font-weight: bold;
+    border-bottom: 2px solid #000;
+    margin: 0;
+    text-align: center;
+    text-shadow: none;
 }
 
 .document-form-title .title-grid {
@@ -360,6 +406,11 @@ body.document-form-page {
     margin-bottom: 8px;
 }
 
+/* PDF-style form fields */
+body.document-form-page .form-field {
+    margin-bottom: 20px;
+}
+
 .form-field label {
     display: block;
     margin-bottom: 2px;
@@ -368,6 +419,17 @@ body.document-form-page {
     font-size: 10px;
     line-height: 1.2;
     font-family: "MS Sans Serif", sans-serif;
+}
+
+/* PDF-style form labels */
+body.document-form-page .form-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #000;
+    font-size: 12px;
+    line-height: 1.4;
+    font-family: "Times New Roman", serif;
 }
 
 .form-field .required {
@@ -389,10 +451,33 @@ body.document-form-page {
     line-height: 1.2;
 }
 
+/* PDF-style form controls */
+body.document-form-page .form-control {
+    width: 100%;
+    height: 32px;
+    padding: 8px 12px;
+    border: 1px solid #666;
+    font-size: 12px;
+    background: #fff;
+    color: #000;
+    box-sizing: border-box;
+    font-family: "Times New Roman", serif;
+    line-height: 1.4;
+    border-radius: 0;
+}
+
 .form-control:focus {
     border: 1px inset #316ac5;
     outline: none;
     background: #fff;
+}
+
+/* PDF-style form controls focus */
+body.document-form-page .form-control:focus {
+    border: 2px solid #0066cc;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 5px rgba(0, 102, 204, 0.3);
 }
 
 .form-control:disabled {
@@ -417,14 +502,31 @@ textarea.form-control {
     font-family: "MS Sans Serif", sans-serif;
 }
 
+/* PDF-style textarea */
+body.document-form-page textarea.form-control {
+    height: 80px;
+    padding: 12px;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 200px;
+    font-family: "Times New Roman", serif;
+    line-height: 1.6;
+}
+
 /* Select dropdown styling - Windows Server 2003 style */
 select.form-control {
     height: 18px;
     padding: 1px 3px;
     background: #fff;
     cursor: pointer;
-    font-family: "MS Sans Serif", sans-serif;
-    font-size: 10px;
+}
+
+/* PDF-style select dropdown */
+body.document-form-page select.form-control {
+    height: 32px;
+    padding: 6px 12px;
+    background: #fff;
+    cursor: pointer;
 }
 
 select.form-control:focus {
@@ -644,6 +746,27 @@ select.form-control:focus {
     color: #000;
 }
 
+/* PDF-style buttons */
+body.document-form-page .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: normal;
+    text-decoration: none;
+    border: 1px solid #666;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: "Times New Roman", serif;
+    line-height: 1.4;
+    background: #f8f8f8;
+    color: #000;
+    border-radius: 0;
+}
+
 .btn-primary {
     background: #316ac5;
     color: #fff;
@@ -651,8 +774,22 @@ select.form-control:focus {
     height: auto;
 }
 
+/* PDF-style primary button */
+body.document-form-page .btn-primary {
+    background: #0066cc;
+    color: #fff;
+    border: 1px solid #0066cc;
+    height: auto;
+}
+
 .btn-primary:hover {
     background: #2557a8;
+    color: #fff;
+}
+
+/* PDF-style primary button hover */
+body.document-form-page .btn-primary:hover {
+    background: #0052a3;
     color: #fff;
 }
 
@@ -1549,6 +1686,34 @@ select.form-control:focus {
 /* ========================================
    Existing File and Signature Displays
    ======================================== */
+
+/* Add some final PDF-style spacing and layout improvements */
+body.document-form-page .document-form-wrapper {
+    padding: 40px;
+    max-width: 900px;
+}
+
+body.document-form-page .form-header {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+}
+
+body.document-form-page .form-content-section:last-child {
+    border-bottom: none;
+}
+
+body.document-form-page .form-actions {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #000;
+    text-align: center;
+}
+
+body.document-form-page .form-actions .btn {
+    margin: 0 10px;
+    min-width: 120px;
+}
 
 /* Existing file preview styling - Windows Server 2003 */
 .file-preview-item.existing-file {
