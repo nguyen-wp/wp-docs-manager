@@ -1161,7 +1161,6 @@ body.document-form-page .file-preview-item:last-child {
 body.document-form-page .image-preview {
     flex-shrink: 0;
     width: 100%;
-    max-width: 300px;
     height: auto;
     border-radius: 0;
     overflow: hidden;
@@ -1208,6 +1207,7 @@ body.document-form-page .file-actions {
 }
 
 .file-info {
+    display: none !important;
     flex: 1;
     min-width: 0;
 }
