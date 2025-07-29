@@ -728,9 +728,11 @@ class LIFT_Forms {
         $simple_submissions = $wpdb->get_results("SELECT * FROM $submissions_table ORDER BY submitted_at DESC");
         error_log('LIFT Forms Simple Query Count: ' . count($simple_submissions));
         
-        // Execute query with or without prepare based on params
+        // Try JOIN query first
+        $submissions = array();
+        
         if (!empty($params)) {
-            $submissions = $wpdb->get_results($wpdb->prepare(
+            $join_query = $wpdb->prepare(
                 "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
                  FROM $submissions_table s 
                  LEFT JOIN $forms_table f ON s.form_id = f.id 
@@ -738,24 +740,46 @@ class LIFT_Forms {
                  WHERE $where 
                  ORDER BY s.submitted_at DESC",
                 $params
-            ));
-        } else {
-            $submissions = $wpdb->get_results(
-                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
-                 FROM $submissions_table s 
-                 LEFT JOIN $forms_table f ON s.form_id = f.id 
-                 LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
-                 WHERE $where 
-                 ORDER BY s.submitted_at DESC"
             );
+        } else {
+            $join_query = "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
+                          FROM $submissions_table s 
+                          LEFT JOIN $forms_table f ON s.form_id = f.id 
+                          LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
+                          WHERE $where 
+                          ORDER BY s.submitted_at DESC";
         }
         
-        // If no results from JOIN query, fall back to simple query
-        if (empty($submissions) && !empty($simple_submissions)) {
-            error_log('LIFT Forms: JOIN query failed, using simple query');
-            $submissions = $simple_submissions;
-            // Add form names manually
+        error_log('LIFT Forms JOIN Query: ' . $join_query);
+        $submissions = $wpdb->get_results($join_query);
+        
+        // Check for database errors
+        if ($wpdb->last_error) {
+            error_log('LIFT Forms JOIN Query Error: ' . $wpdb->last_error);
+        }
+        
+        // If JOIN query failed or returned empty results, use simple query with manual joins
+        if (empty($submissions) || $wpdb->last_error) {
+            error_log('LIFT Forms: Using simple query fallback');
+            
+            // Build simple query with same WHERE conditions
+            if (!empty($params)) {
+                $simple_where = str_replace('s.', '', $where); // Remove table alias for simple query
+                $simple_query = $wpdb->prepare(
+                    "SELECT * FROM $submissions_table WHERE $simple_where ORDER BY submitted_at DESC",
+                    $params
+                );
+            } else {
+                $simple_where = str_replace('s.', '', $where);
+                $simple_query = "SELECT * FROM $submissions_table WHERE $simple_where ORDER BY submitted_at DESC";
+            }
+            
+            error_log('LIFT Forms Simple Query: ' . $simple_query);
+            $submissions = $wpdb->get_results($simple_query);
+            
+            // Manually add form names and user info
             foreach ($submissions as &$submission) {
+                // Get form name
                 if ($submission->form_id) {
                     $form = $wpdb->get_row($wpdb->prepare("SELECT name FROM $forms_table WHERE id = %d", $submission->form_id));
                     $submission->form_name = $form ? $form->name : __('Unknown Form', 'lift-docs-system');
@@ -763,12 +787,15 @@ class LIFT_Forms {
                     $submission->form_name = __('Unknown Form', 'lift-docs-system');
                 }
                 
-                // Add user info if user_id exists
+                // Get user info
                 if ($submission->user_id) {
                     $user = get_user_by('id', $submission->user_id);
                     if ($user) {
                         $submission->user_name = $user->display_name;
                         $submission->user_email = $user->user_email;
+                    } else {
+                        $submission->user_name = null;
+                        $submission->user_email = null;
                     }
                 } else {
                     $submission->user_name = null;
@@ -796,6 +823,44 @@ class LIFT_Forms {
         <div class="wrap">
             <h1><?php _e('Form Submissions', 'lift-docs-system'); ?></h1>
             
+            <!-- Filters -->
+            <div class="tablenav top">
+                <div class="alignleft actions">
+                    <form method="get" action="<?php echo admin_url('admin.php'); ?>">
+                        <input type="hidden" name="page" value="lift-forms-submissions">
+                        
+                        <select name="form_id" id="form-filter">
+                            <option value=""><?php _e('All Forms', 'lift-docs-system'); ?></option>
+                            <?php foreach ($forms as $form): ?>
+                                <option value="<?php echo $form->id; ?>" <?php selected($form_id, $form->id); ?>>
+                                    <?php echo esc_html($form->name); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        
+                        <select name="status_filter" id="status-filter">
+                            <option value=""><?php _e('All Statuses', 'lift-docs-system'); ?></option>
+                            <option value="unread" <?php selected($status_filter, 'unread'); ?>><?php _e('Unread', 'lift-docs-system'); ?></option>
+                            <option value="read" <?php selected($status_filter, 'read'); ?>><?php _e('Read', 'lift-docs-system'); ?></option>
+                        </select>
+                        
+                        <select name="user_filter" id="user-filter">
+                            <option value=""><?php _e('All Users', 'lift-docs-system'); ?></option>
+                            <option value="logged_in" <?php selected($user_filter, 'logged_in'); ?>><?php _e('Registered Users', 'lift-docs-system'); ?></option>
+                            <option value="guest" <?php selected($user_filter, 'guest'); ?>><?php _e('Guest Users', 'lift-docs-system'); ?></option>
+                        </select>
+                        
+                        <?php submit_button(__('Filter', 'lift-docs-system'), 'action', 'filter_action', false); ?>
+                        
+                        <?php if ($form_id || $status_filter || $user_filter): ?>
+                            <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions'); ?>" class="button">
+                                <?php _e('Clear Filters', 'lift-docs-system'); ?>
+                            </a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+            </div>
+            
             <?php
             // Debug information panel - only show when WP_DEBUG is enabled
             if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -812,6 +877,17 @@ class LIFT_Forms {
                 if ($table_exists) {
                     $total_count = $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table");
                     echo '<p><strong>Total records in submissions table:</strong> ' . $total_count . '</p>';
+                    
+                    // Show submissions by form_id
+                    $submissions_by_form = $wpdb->get_results("SELECT form_id, COUNT(*) as count FROM $submissions_table GROUP BY form_id");
+                    if ($submissions_by_form) {
+                        echo '<p><strong>Submissions by form:</strong></p>';
+                        echo '<ul style="margin-left: 20px;">';
+                        foreach ($submissions_by_form as $sbf) {
+                            echo '<li>Form ID ' . $sbf->form_id . ': ' . $sbf->count . ' submissions</li>';
+                        }
+                        echo '</ul>';
+                    }
                 }
                 
                 // Check forms table
@@ -821,6 +897,17 @@ class LIFT_Forms {
                 if ($forms_exists) {
                     $forms_count = $wpdb->get_var("SELECT COUNT(*) FROM $forms_table");
                     echo '<p><strong>Total forms:</strong> ' . $forms_count . '</p>';
+                    
+                    // Show all forms
+                    $all_forms = $wpdb->get_results("SELECT id, name, status FROM $forms_table ORDER BY id");
+                    if ($all_forms) {
+                        echo '<p><strong>All forms:</strong></p>';
+                        echo '<ul style="margin-left: 20px;">';
+                        foreach ($all_forms as $f) {
+                            echo '<li>ID: ' . $f->id . ', Name: "' . $f->name . '", Status: ' . $f->status . '</li>';
+                        }
+                        echo '</ul>';
+                    }
                 }
                 
                 // Show last database error if any
@@ -917,19 +1004,43 @@ class LIFT_Forms {
             <?php endif; ?>
         </div>
         
-        <!-- Submission Detail Modal -->
-        <div id="submission-detail-modal" class="lift-modal" style="display: none;">
-            <div class="lift-modal-content">
-                <div class="lift-modal-header">
-                    <h2><?php _e('Submission Details', 'lift-docs-system'); ?></h2>
-                    <button type="button" class="lift-modal-close">&times;</button>
-                </div>
-                <div class="lift-modal-body">
-                    <div id="submission-detail-content"></div>
+        <!-- Submission Detail Modal - WordPress Admin Style -->
+        <div id="submission-detail-modal" class="wp-core-ui" style="display: none;">
+            <div class="media-modal wp-core-ui">
+                <button type="button" class="media-modal-close" onclick="closeLiftModal()">
+                    <span class="media-modal-icon">
+                        <span class="screen-reader-text"><?php _e('Close modal', 'lift-docs-system'); ?></span>
+                    </span>
+                </button>
+                <div class="media-modal-content">
+                    <div class="media-frame mode-select wp-core-ui">
+                        <div class="media-frame-title">
+                            <h1><?php _e('Submission Details', 'lift-docs-system'); ?></h1>
+                        </div>
+                        <div class="media-frame-content">
+                            <div class="submission-details-container">
+                                <div id="submission-detail-content">
+                                    <div class="submission-loading">
+                                        <div class="spinner is-active"></div>
+                                        <p><?php _e('Loading submission details...', 'lift-docs-system'); ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="media-frame-toolbar">
+                            <div class="media-toolbar">
+                                <div class="media-toolbar-secondary">
+                                    <button type="button" class="button" onclick="closeLiftModal()">
+                                        <?php _e('Close', 'lift-docs-system'); ?>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            <div class="media-modal-backdrop"></div>
         </div>
-        <div id="submission-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
         
         <style>
         .user-info {
@@ -1025,71 +1136,167 @@ class LIFT_Forms {
             font-style: italic;
         }
         
-        /* Modal styles */
-        #submission-modal-backdrop {
-            display: none;
+        /* WordPress-style Modal */
+        #submission-detail-modal .media-modal {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 999999;
+            right: 0;
+            bottom: 0;
+            z-index: 160000;
         }
         
-        #submission-detail-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            max-width: 800px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border-radius: 4px;
-            z-index: 1000000;
-            padding: 20px;
-            width: 90%;
-        }
-        
-        .lift-modal-close {
+        #submission-detail-modal .media-modal-content {
             position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 20px;
+            top: 30px;
+            left: 30px;
+            right: 30px;
+            bottom: 30px;
+            overflow: auto;
+            min-height: 300px;
+            background: #fff;
+            border-radius: 3px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+        }
+        
+        #submission-detail-modal .media-frame-title {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            z-index: 200;
+            border-bottom: 1px solid #ddd;
+            background: #fcfcfc;
+            padding: 0 20px;
+            line-height: 50px;
+        }
+        
+        #submission-detail-modal .media-frame-title h1 {
+            font-size: 22px;
+            margin: 0;
+            padding: 0;
+            font-weight: 600;
+            color: #23282d;
+        }
+        
+        #submission-detail-modal .media-frame-content {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            overflow: auto;
+            background: #fff;
+        }
+        
+        #submission-detail-modal .submission-details-container {
+            padding: 20px;
+        }
+        
+        #submission-detail-modal .media-frame-toolbar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            overflow: hidden;
+            border-top: 1px solid #ddd;
+            background: #fcfcfc;
+        }
+        
+        #submission-detail-modal .media-toolbar {
+            padding: 16px 20px;
+            height: 28px;
+        }
+        
+        #submission-detail-modal .media-modal-close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50px;
+            height: 50px;
+            margin: 0;
+            padding: 0;
+            border: 0;
             cursor: pointer;
+            z-index: 1000;
+            background: none;
             color: #666;
-            line-height: 1;
+            text-align: center;
         }
         
-        .lift-modal-close:hover {
-            color: #333;
+        #submission-detail-modal .media-modal-close:hover,
+        #submission-detail-modal .media-modal-close:focus {
+            color: #2ea2cc;
+            outline: none;
+            box-shadow: none;
         }
         
-        @media (max-width: 768px) {
-            #submission-detail-modal {
-                width: 95%;
-                max-height: 90vh;
+        #submission-detail-modal .media-modal-close .media-modal-icon:before {
+            content: '\f335';
+            font: normal 20px/50px dashicons;
+        }
+        
+        #submission-detail-modal .media-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 159900;
+        }
+        
+        #submission-detail-modal .submission-loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        #submission-detail-modal .submission-loading .spinner {
+            float: none;
+            margin: 0 auto 10px;
+        }
+        
+        /* Responsive design */
+        @media screen and (max-width: 782px) {
+            #submission-detail-modal .media-modal-content {
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                border-radius: 0;
+            }
+        }
+        
+        @media screen and (max-width: 640px) {
+            #submission-detail-modal .media-frame-title h1 {
+                font-size: 18px;
+            }
+            
+            #submission-detail-modal .submission-details-container {
                 padding: 15px;
-                top: 5%;
-                transform: translateX(-50%);
             }
         }
         </style>
         
         <script>
+        // Global function for closing modal
+        function closeLiftModal() {
+            jQuery('#submission-detail-modal').hide();
+            jQuery('body').removeClass('modal-open');
+        }
+        
         jQuery(document).ready(function($) {
             // View submission handler
             $('.view-submission').on('click', function() {
                 var submissionId = $(this).data('id');
                 
-                // Show loading
-                $('#submission-detail-content').html('<p><?php _e('Loading...', 'lift-docs-system'); ?></p>');
+                // Show modal and loading state
+                $('#submission-detail-content').html('<div class="submission-loading"><div class="spinner is-active"></div><p><?php _e('Loading submission details...', 'lift-docs-system'); ?></p></div>');
                 $('#submission-detail-modal').show();
-                $('#submission-modal-backdrop').show();
+                $('body').addClass('modal-open');
                 
                 // Make AJAX request
                 $.post(ajaxurl, {
@@ -1100,28 +1307,42 @@ class LIFT_Forms {
                     if (response.success) {
                         $('#submission-detail-content').html(response.data);
                     } else {
-                        $('#submission-detail-content').html('<p class="error">' + (response.data || '<?php _e('Error loading submission', 'lift-docs-system'); ?>') + '</p>');
+                        $('#submission-detail-content').html('<div class="notice notice-error"><p>' + (response.data || '<?php _e('Error loading submission', 'lift-docs-system'); ?>') + '</p></div>');
                     }
                 }).fail(function() {
-                    $('#submission-detail-content').html('<p class="error"><?php _e('Network error', 'lift-docs-system'); ?></p>');
+                    $('#submission-detail-content').html('<div class="notice notice-error"><p><?php _e('Network error occurred while loading submission details.', 'lift-docs-system'); ?></p></div>');
                 });
             });
             
-            // Close modal handlers
-            $('.lift-modal-close, #submission-modal-backdrop').on('click', function() {
-                $('#submission-detail-modal').hide();
-                $('#submission-modal-backdrop').hide();
+            // Close modal on backdrop click
+            $(document).on('click', '#submission-detail-modal .media-modal-backdrop', function() {
+                closeLiftModal();
             });
             
-            // ESC key to close modal
+            // Close modal on ESC key
             $(document).on('keyup', function(e) {
-                if (e.keyCode === 27) {
-                    $('#submission-detail-modal').hide();
-                    $('#submission-modal-backdrop').hide();
+                if (e.keyCode === 27 && $('#submission-detail-modal').is(':visible')) {
+                    closeLiftModal();
                 }
+            });
+            
+            // Prevent body scroll when modal is open
+            $(document).on('show', '#submission-detail-modal', function() {
+                $('body').addClass('modal-open');
+            });
+            
+            $(document).on('hide', '#submission-detail-modal', function() {
+                $('body').removeClass('modal-open');
             });
         });
         </script>
+        
+        <style>
+        /* Prevent body scroll when modal is open */
+        body.modal-open {
+            overflow: hidden;
+        }
+        </style>
         <?php
     }
     
