@@ -3134,7 +3134,7 @@ class LIFT_Docs_Admin {
                         'cancelled' => '#e74c3c'
                     );
                     ?>
-                    <select class="lift-status-dropdown" data-post-id="<?php echo esc_attr($document->ID); ?>" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #ddd; background-color: <?php echo esc_attr($status_colors[$current_status]); ?>; color: white; font-weight: 500; width: 100%; font-size: 13px;">
+                    <select class="lift-status-dropdown" data-post-id="<?php echo esc_attr($document->ID); ?>" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #ddd; background-color: <?php echo esc_attr($status_colors[$current_status]); ?>; color: white; font-weight: 500; font-size: 13px;">
                         <?php foreach ($status_options as $value => $label): ?>
                             <option value="<?php echo esc_attr($value); ?>" <?php selected($current_status, $value); ?> data-color="<?php echo esc_attr($status_colors[$value]); ?>">
                                 <?php echo esc_html($label); ?>
