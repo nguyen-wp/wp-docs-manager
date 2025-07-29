@@ -2128,24 +2128,35 @@ body.document-form-page .mode-info-column {
 }
 
 body.document-form-page .mode-indicator {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+    background: #007cba;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    min-width: 200px;
+}
+
+body.document-form-page .mode-indicator.edit-mode {
+    background: #FF9800;
+    color: #fff;
+}
+
+body.document-form-page .mode-indicator.view-only-mode {
+    background: #666;
+    color: #fff;
 }
 
 body.document-form-page .mode-header {
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-bottom: 4px;
 }
 
 body.document-form-page .mode-header i {
-    font-size: 18px;
-    color: #4CAF50;
-}
-
-body.document-form-page .edit-mode .mode-header i {
-    color: #FF9800;
+    font-size: 16px;
 }
 
 body.document-form-page .mode-title {
@@ -2161,14 +2172,16 @@ body.document-form-page .mode-details {
 }
 
 body.document-form-page .mode-description {
-    font-size: 14px;
-    color: #ccc;
+    font-size: 12px;
+    color: #fff;
+    line-height: 1.4;
+    margin-bottom: 4px;
 }
 
 body.document-form-page .submission-timestamp,
 body.document-form-page .form-requirement {
     font-size: 11px;
-    color: #999;
+    color: rgba(255,255,255,0.8);
 }
 
 body.document-form-page .status-warning {
@@ -2261,8 +2274,7 @@ body.document-form-page .action-cancel:hover {
     }
     
     body.document-form-page .mode-indicator {
-        flex-direction: column;
-        gap: 8px;
+        width: 100%;
         text-align: center;
     }
     

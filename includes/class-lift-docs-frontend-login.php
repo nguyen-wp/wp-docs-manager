@@ -426,7 +426,20 @@ class LIFT_Docs_Frontend_Login {
                     <div class="action-bar-content">
                         <!-- Left Column: Mode Information -->
                         <div class="mode-info-column">
-                            <?php if ($is_edit_mode): ?>
+                            <?php if ($is_form_disabled): ?>
+                                <div class="mode-indicator view-only-mode">
+                                    <div class="mode-header">
+                                        <i class="fas fa-eye"></i>
+                                        <span class="mode-title"><?php _e('View Only Mode', 'lift-docs-system'); ?></span>
+                                    </div>
+                                    <div class="mode-details">
+                                        <span class="mode-description"><?php _e('Form is read-only due to document status', 'lift-docs-system'); ?></span>
+                                        <small class="form-requirement">
+                                            <?php printf(__('Status: %s', 'lift-docs-system'), ucfirst($document_status)); ?>
+                                        </small>
+                                    </div>
+                                </div>
+                            <?php elseif ($is_edit_mode): ?>
                                 <div class="mode-indicator edit-mode">
                                     <div class="mode-header">
                                         <i class="fas fa-edit"></i>
@@ -451,13 +464,6 @@ class LIFT_Docs_Frontend_Login {
                                     </div>
                                 </div>
                             <?php endif; ?>
-                            
-                            <!-- <?php if ($is_form_disabled): ?>
-                                <div class="status-warning">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    <span><?php printf(__('Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?></span>
-                                </div>
-                            <?php endif; ?> -->
                         </div>
                         
                         <!-- Right Column: Action Buttons -->
