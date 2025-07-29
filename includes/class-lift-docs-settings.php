@@ -27,6 +27,7 @@ class LIFT_Docs_Settings {
         add_action('admin_menu', array($this, 'add_settings_page'));
         add_action('admin_init', array($this, 'init_settings'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+        add_action('wp_ajax_lift_docs_reset_settings', array($this, 'ajax_reset_settings'));
     }
     
     /**
@@ -83,6 +84,14 @@ class LIFT_Docs_Settings {
             '1.0.0',
             true
         );
+        
+        // Localize script for AJAX
+        wp_localize_script('lift-docs-settings-enhanced', 'liftDocsSettings', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'reset_nonce' => wp_create_nonce('lift_docs_reset_settings'),
+            'reset_confirm' => __('Are you sure you want to reset all settings to default? This will enable all checkboxes and cannot be undone.', 'lift-docs-system'),
+            'reset_success' => __('Settings Reset! Please Save Changes.', 'lift-docs-system')
+        ));
         
         // Force load media scripts
         wp_enqueue_script('media-upload');
@@ -442,6 +451,9 @@ class LIFT_Docs_Settings {
                     
                     <div class="lift-settings-footer">
                         <?php submit_button(__('Save Changes', 'lift-docs-system'), 'primary', 'submit', false, array('class' => 'lift-button lift-button-primary')); ?>
+                        <button type="button" id="reset-settings-btn" class="lift-button lift-button-secondary" style="margin-left: 10px;">
+                            <i class="fas fa-undo"></i> <?php _e('Reset All Settings to Default', 'lift-docs-system'); ?>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -547,6 +559,67 @@ class LIFT_Docs_Settings {
             // Initialize checkbox states
             $('.lift-checkbox:checked').each(function() {
                 $(this).closest('.lift-checkbox-wrapper').addClass('checked');
+            });
+            
+            // Reset settings functionality
+            $('#reset-settings-btn').on('click', function(e) {
+                e.preventDefault();
+                
+                if (confirm('<?php _e('Are you sure you want to reset all settings to default? This will enable all checkboxes and cannot be undone.', 'lift-docs-system'); ?>')) {
+                    var $resetBtn = $(this);
+                    var originalText = $resetBtn.html();
+                    
+                    // Show loading state
+                    $resetBtn.html('<i class="fas fa-spinner fa-spin"></i> <?php _e('Resetting...', 'lift-docs-system'); ?>');
+                    $resetBtn.prop('disabled', true);
+                    
+                    // Make AJAX call to reset settings
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'lift_docs_reset_settings',
+                            nonce: '<?php echo wp_create_nonce('lift_docs_reset_settings'); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Check all checkboxes (default state)
+                                $('.lift-checkbox').prop('checked', true);
+                                
+                                // Update visual states
+                                $('.lift-checkbox-wrapper').addClass('checked');
+                                
+                                // Show success message
+                                $resetBtn.html('<i class="fas fa-check"></i> <?php _e('Settings Reset! Please Save Changes.', 'lift-docs-system'); ?>');
+                                $resetBtn.addClass('lift-button-success').removeClass('lift-button-secondary');
+                                
+                                // Highlight save button
+                                $('.lift-button-primary').addClass('lift-button-highlight');
+                                
+                                // Show success notice
+                                if ($('.notice-success').length === 0) {
+                                    $('.lift-docs-settings-container').prepend('<div class="notice notice-success is-dismissible"><p>' + response.data.message + '</p></div>');
+                                }
+                            } else {
+                                alert('<?php _e('Error resetting settings. Please try again.', 'lift-docs-system'); ?>');
+                            }
+                        },
+                        error: function() {
+                            alert('<?php _e('Error resetting settings. Please try again.', 'lift-docs-system'); ?>');
+                        },
+                        complete: function() {
+                            // Reset button state
+                            $resetBtn.prop('disabled', false);
+                            
+                            // Reset button text after 3 seconds
+                            setTimeout(function() {
+                                $resetBtn.html(originalText);
+                                $resetBtn.removeClass('lift-button-success').addClass('lift-button-secondary');
+                                $('.lift-button-primary').removeClass('lift-button-highlight');
+                            }, 3000);
+                        }
+                    });
+                }
             });
             
             // Add form validation feedback
@@ -1077,6 +1150,44 @@ class LIFT_Docs_Settings {
     }
     
     /**
+     * AJAX handler for resetting all settings to default
+     */
+    public function ajax_reset_settings() {
+        // Check nonce for security
+        if (!check_ajax_referer('lift_docs_reset_settings', 'nonce', false)) {
+            wp_die('Security check failed');
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_die('Insufficient permissions');
+        }
+        
+        // Reset all boolean settings to true (default enabled state)
+        $default_settings = array(
+            'require_login_to_view' => true,
+            'require_login_to_download' => true,
+            'show_document_header' => true,
+            'show_document_description' => true,
+            'show_document_meta' => true,
+            'show_download_button' => true,
+            'show_secure_access_notice' => true,
+            'show_dashboard_stats' => true,
+            'show_document_stats' => true,
+            'enable_secure_links' => true,
+            'secure_link_expiry' => 24
+        );
+        
+        // Update the settings
+        update_option('lift_docs_settings', $default_settings);
+        
+        // Return success response
+        wp_send_json_success(array(
+            'message' => __('All settings have been reset to default values.', 'lift-docs-system')
+        ));
+    }
+    
+    /**
      * Validate and sanitize color values (supports both hex and rgba, allows empty values)
      */
     private function validate_color($color, $default = '', $allow_empty = true) {
@@ -1174,14 +1285,21 @@ class LIFT_Docs_Settings {
             return 24;
         }
         
-        // Set default for show_dashboard_stats to true (show by default)
-        if ($key === 'show_dashboard_stats') {
-            $settings = get_option('lift_docs_settings', array());
-            return isset($settings[$key]) ? $settings[$key] : true;
-        }
+        // Define all boolean settings that should default to true (enabled)
+        $boolean_settings_default_true = array(
+            'require_login_to_view',
+            'require_login_to_download',
+            'show_document_header',
+            'show_document_description',
+            'show_document_meta',
+            'show_download_button',
+            'show_secure_access_notice',
+            'show_dashboard_stats',
+            'show_document_stats'
+        );
         
-        // Set default for show_document_stats to true (show by default)
-        if ($key === 'show_document_stats') {
+        // Check if this is a boolean setting that should default to true
+        if (in_array($key, $boolean_settings_default_true)) {
             $settings = get_option('lift_docs_settings', array());
             return isset($settings[$key]) ? $settings[$key] : true;
         }

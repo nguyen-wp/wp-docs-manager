@@ -427,6 +427,21 @@
     transform: none !important;
 }
 
+.lift-button-highlight {
+    animation: pulse-highlight 2s ease-in-out;
+    box-shadow: 0 0 20px rgba(34, 113, 177, 0.4);
+}
+
+@keyframes pulse-highlight {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(34, 113, 177, 0.4);
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(34, 113, 177, 0.7);
+        transform: translateY(-2px);
+    }
+}
+
 /* ===============================================
    CARDS & CONTAINERS
    =============================================== */
