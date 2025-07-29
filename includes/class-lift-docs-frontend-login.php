@@ -363,37 +363,57 @@ class LIFT_Docs_Frontend_Login {
                     </form>
                 </div>
 
-                  <!-- Header Section - Left Sidebar -->
+                  <!-- Header Section - Two Column Layout -->
                 <div class="document-form-title">
-                    <h1><?php echo esc_html($form->name); ?></h1>
-                    
-                    <div class="document-info">
-                        <strong><?php _e('Document:', 'lift-docs-system'); ?></strong><br>
-                        <?php echo esc_html($document->post_title); ?>
+                    <div class="title-grid">
+                        <!-- Left Column: Form Info -->
+                        <div class="form-info-column">
+                            <h1><?php echo esc_html($form->name); ?></h1>
+                            <div class="document-info">
+                                <span class="info-label"><?php _e('Document:', 'lift-docs-system'); ?></span>
+                                <span class="info-value"><?php echo esc_html($document->post_title); ?></span>
+                            </div>
+                            <?php if ($form->description): ?>
+                                <div class="form-description">
+                                    <span class="info-label"><?php _e('Description:', 'lift-docs-system'); ?></span>
+                                    <span class="info-value"><?php echo esc_html($form->description); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <!-- Right Column: Status & Notices -->
+                        <div class="status-info-column">
+                            <?php if ($is_edit_mode): ?>
+                                <div class="edit-mode-notice">
+                                    <div class="notice-header">
+                                        <i class="fas fa-edit"></i>
+                                        <strong><?php _e('Edit Mode', 'lift-docs-system'); ?></strong>
+                                    </div>
+                                    <div class="notice-content">
+                                        <?php _e('You are editing your previous submission.', 'lift-docs-system'); ?>
+                                        <small class="submission-date">
+                                            <?php printf(__('Originally submitted: %s', 'lift-docs-system'), date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($existing_submission->submitted_at))); ?>
+                                        </small>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($is_form_disabled): ?>
+                                <div class="status-disabled-notice">
+                                    <div class="notice-header">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <strong><?php _e('Form Access Restricted', 'lift-docs-system'); ?></strong>
+                                    </div>
+                                    <div class="notice-content">
+                                        <?php echo esc_html($status_message); ?>
+                                        <small class="status-info">
+                                            <?php printf(__('Document Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?>
+                                        </small>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    
-                    <?php if ($form->description): ?>
-                        <div class="form-description">
-                            <strong><?php _e('Description:', 'lift-docs-system'); ?></strong><br>
-                            <?php echo esc_html($form->description); ?>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($is_edit_mode): ?>
-                        <div class="edit-mode-notice">
-                            <strong><?php _e('Edit Mode:', 'lift-docs-system'); ?></strong><br>
-                            <?php _e('You are editing your previous submission.', 'lift-docs-system'); ?>
-                            <br><small><?php printf(__('Originally submitted: %s', 'lift-docs-system'), date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($existing_submission->submitted_at))); ?></small>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($is_form_disabled): ?>
-                        <div class="status-disabled-notice">
-                            <strong><i class="fas fa-exclamation-triangle"></i> <?php _e('Form Access Restricted', 'lift-docs-system'); ?></strong>
-                            <br><?php echo esc_html($status_message); ?>
-                            <br><small><?php printf(__('Document Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?></small>
-                        </div>
-                    <?php endif; ?>
                 </div>
             </div>
             

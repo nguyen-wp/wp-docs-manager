@@ -1651,10 +1651,23 @@ class LIFT_Forms {
         <div class="document-form-wrapper">
             <?php if ($atts['title'] === 'true'): ?>
                 <div class="document-form-title">
-                    <h1><?php echo esc_html($form->name); ?></h1>
-                    <?php if ($form->description): ?>
-                        <p><?php echo esc_html($form->description); ?></p>
-                    <?php endif; ?>
+                    <div class="title-grid">
+                        <!-- Left Column: Form Info -->
+                        <div class="form-info-column">
+                            <h1><?php echo esc_html($form->name); ?></h1>
+                            <?php if ($form->description): ?>
+                                <div class="form-description">
+                                    <span class="info-label"><?php _e('Description:', 'lift-docs-system'); ?></span>
+                                    <span class="info-value"><?php echo esc_html($form->description); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <!-- Right Column: Additional Info (can be extended) -->
+                        <div class="status-info-column">
+                            <!-- Space for future status information -->
+                        </div>
+                    </div>
                 </div>
             <?php endif; ?>
             

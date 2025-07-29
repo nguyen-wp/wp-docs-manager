@@ -70,22 +70,101 @@ body.document-form-page {
 .document-form-title {
     background: #1976d2;
     color: white;
-    padding: 6px 25px;
+    padding: 15px 25px;
     order: 2;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    border-radius: 8px 8px 0 0;
+}
+
+.document-form-title .title-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    align-items: start;
+}
+
+.document-form-title .form-info-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.document-form-title .status-info-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
 }
 
 .document-form-title h1 {
-    margin: 0;
+    margin: 0 0 8px 0;
     color: white;
-    font-size: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.document-form-title .document-info,
+.document-form-title .form-description {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.document-form-title .info-label {
     font-weight: 600;
-    line-height: 1;
-    display: inline;
-    margin-right: 8px;
+    opacity: 0.9;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.document-form-title .info-value {
+    font-weight: 400;
+    opacity: 0.95;
+    font-size: 13px;
+}
+
+.document-form-title .edit-mode-notice,
+.document-form-title .status-disabled-notice {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11px;
+    max-width: 280px;
+}
+
+.document-form-title .notice-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.document-form-title .notice-header i {
+    font-size: 12px;
+}
+
+.document-form-title .notice-header strong {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.document-form-title .notice-content {
+    font-size: 10px;
+    line-height: 1.3;
+    opacity: 0.9;
+}
+
+.document-form-title .submission-date,
+.document-form-title .status-info {
+    display: block;
+    margin-top: 4px;
+    font-size: 9px;
+    opacity: 0.8;
+    font-style: italic;
 }
 
 /* ========================================
@@ -627,7 +706,21 @@ select.form-control {
         flex: none;
         order: 2;
         margin-top: 20px;
-        padding: 20px;
+        padding: 15px 20px;
+    }
+    
+    .document-form-title .title-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .document-form-title .status-info-column {
+        align-items: flex-start;
+    }
+    
+    .document-form-title .edit-mode-notice,
+    .document-form-title .status-disabled-notice {
+        max-width: 100%;
     }
     
     .form-content-section {
@@ -884,11 +977,24 @@ select.form-control {
     }
     
     .document-form-title {
-        padding: 4px 20px;
+        padding: 12px 20px;
+    }
+    
+    .document-form-title .title-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
     
     .document-form-title h1 {
+        font-size: 16px;
+    }
+    
+    .document-form-title .info-label {
         font-size: 11px;
+    }
+    
+    .document-form-title .info-value {
+        font-size: 12px;
     }
     
     .form-column.col-2,
@@ -919,11 +1025,23 @@ select.form-control {
     }
     
     .document-form-title {
-        padding: 3px 15px;
+        padding: 10px 15px;
+    }
+    
+    .document-form-title .title-grid {
+        gap: 10px;
     }
     
     .document-form-title h1 {
+        font-size: 14px;
+    }
+    
+    .document-form-title .notice-header strong {
         font-size: 10px;
+    }
+    
+    .document-form-title .notice-content {
+        font-size: 9px;
     }
     
     .form-control {
