@@ -32,6 +32,9 @@ class LIFT_Docs_Frontend_Login {
         add_action('wp_loaded', array($this, 'check_dashboard_access'), 10);
         add_action('init', array($this, 'check_admin_access'), 1);
         add_action('query_vars', array($this, 'add_query_vars'));
+        
+        // Hide admin bar for specific pages
+        add_action('wp', array($this, 'maybe_hide_admin_bar'));
     }
     
     /**
@@ -305,6 +308,9 @@ class LIFT_Docs_Frontend_Login {
             }
         }
         
+        // Disable admin bar for this page
+        add_filter('show_admin_bar', '__return_false');
+        
         ?>
         <!DOCTYPE html>
         <html <?php language_attributes(); ?>>
@@ -312,8 +318,21 @@ class LIFT_Docs_Frontend_Login {
             <meta charset="<?php bloginfo('charset'); ?>">
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title><?php echo esc_html($form->name); ?> - <?php echo esc_html($document->post_title); ?></title>
-            <?php wp_head(); ?>
+            <?php 
+            // Remove admin bar from wp_head
+            remove_action('wp_head', '_admin_bar_bump_cb');
+            wp_head(); 
+            ?>
             <style>
+            /* Hide admin bar completely */
+            #wpadminbar {
+                display: none !important;
+            }
+            
+            html {
+                margin-top: 0 !important;
+            }
+            
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
                 background: #f1f1f1;
@@ -2992,6 +3011,27 @@ class LIFT_Docs_Frontend_Login {
         
         // Set flag that pages have been created
         update_option('lift_docs_default_pages_created', true);
+    }
+    
+    /**
+     * Maybe hide admin bar for specific pages
+     */
+    public function maybe_hide_admin_bar() {
+        $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+        
+        // Check if this is a document form page
+        if (preg_match('/\/document-form\/\d+\/\d+\/?/', $request_uri) || get_query_var('document_form')) {
+            add_filter('show_admin_bar', '__return_false');
+            remove_action('wp_head', '_admin_bar_bump_cb');
+            return;
+        }
+        
+        // Check if this is a secure link page
+        if (strpos($request_uri, '/lift-docs/secure/') !== false && isset($_GET['lift_secure'])) {
+            add_filter('show_admin_bar', '__return_false');
+            remove_action('wp_head', '_admin_bar_bump_cb');
+            return;
+        }
     }
 }
 

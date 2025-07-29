@@ -27,6 +27,9 @@ class LIFT_Docs_Layout {
         add_action('init', array($this, 'add_rewrite_rules'));
         add_action('template_redirect', array($this, 'handle_custom_layout'));
         add_filter('query_vars', array($this, 'add_query_vars'));
+        
+        // Hide admin bar for secure pages
+        add_action('wp', array($this, 'maybe_hide_admin_bar_for_secure'));
     }
     
     /**
@@ -110,6 +113,9 @@ class LIFT_Docs_Layout {
         
         // Increment view count
         $this->increment_view_count($doc_id);
+        
+        // Disable admin bar for secure pages
+        add_filter('show_admin_bar', '__return_false');
         
         // Display the layout
         $this->render_custom_layout($document, $layout_settings);
@@ -351,6 +357,9 @@ class LIFT_Docs_Layout {
     private function render_custom_layout($document, $settings) {
         // Start output buffering
         ob_start();
+        
+        // Remove admin bar CSS bump
+        remove_action('wp_head', '_admin_bar_bump_cb');
         
         // Get header
         get_header();
@@ -838,6 +847,21 @@ class LIFT_Docs_Layout {
                 flush();
             }
             fclose($handle);
+        }
+    }
+    
+    /**
+     * Maybe hide admin bar for secure pages
+     */
+    public function maybe_hide_admin_bar_for_secure() {
+        $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+        
+        // Check if this is a secure link page
+        if ((strpos($request_uri, '/lift-docs/secure/') !== false || 
+             strpos($request_uri, '/lift-docs/view/') !== false) && 
+            isset($_GET['lift_secure'])) {
+            add_filter('show_admin_bar', '__return_false');
+            remove_action('wp_head', '_admin_bar_bump_cb');
         }
     }
 }
