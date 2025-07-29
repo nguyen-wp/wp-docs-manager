@@ -2173,9 +2173,7 @@ class LIFT_Docs_Admin {
         <div id="submission-detail-modal-from-doc" class="wp-core-ui" style="display: none;">
             <div class="media-modal wp-core-ui">
                 <button type="button" class="media-modal-close" onclick="closeSubmissionModalFromDoc()">
-                    <span class="media-modal-icon">
-                        <span class="screen-reader-text"><?php _e('Close modal', 'lift-docs-system'); ?></span>
-                    </span>
+                    ×
                 </button>
                 <div class="media-modal-content">
                     <div class="media-frame mode-select wp-core-ui">

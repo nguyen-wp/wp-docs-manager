@@ -54,10 +54,11 @@
 }
 
 .lift-modal-close {
-    background: rgba(255, 255, 255, 0.8);
-    border: 2px solid rgba(0, 115, 170, 0.2);
     font-size: 20px;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #0073aa;
     cursor: pointer;
     padding: 0;
@@ -66,16 +67,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
     transition: all 0.3s ease;
     font-weight: bold;
+    background: transparent ;
+    border: none;
 }
 
 .lift-modal-close:hover {
-    background: rgba(220, 50, 50, 0.1);
     color: #dc3232;
-    border-color: rgba(220, 50, 50, 0.3);
-    transform: scale(1.1);
 }
 .lift-modal-body {
     padding: 0;
@@ -989,17 +988,6 @@
     position: relative;
 }
 
-#submission-detail-modal-from-doc .media-frame-title::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #9c27b0 0%, #7b1fa2 100%);
-    border-radius: 12px 12px 0 0;
-}
-
 #submission-detail-modal-from-doc .media-frame-title h1 {
     margin: 0;
     font-size: 24px;
@@ -1161,16 +1149,15 @@
     background: #dc3545;
 }
 
-/* Enhanced Close button */
+/* Enhanced Close button - positioned in header */
 #submission-detail-modal-from-doc .media-modal-close {
     position: absolute;
-    top: 30px;
-    right: 40px;
+    top: 20px;
+    right: 25px;
     width: 36px;
     height: 36px;
-    background: rgba(255, 255, 255, 0.8);
-    border: 2px solid rgba(0, 115, 170, 0.2);
-    border-radius: 50%;
+    background: transparent;
+    border: none;
     color: #0073aa;
     font-size: 20px;
     font-weight: bold;
@@ -1179,13 +1166,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1000001;
 }
 
 #submission-detail-modal-from-doc .media-modal-close:hover {
-    background: rgba(220, 50, 50, 0.1);
-    border-color: rgba(220, 50, 50, 0.3);
-    transform: scale(1.1);
     color: #dc3232;
+}
+
+/* Hide the bottom toolbar close button */
+#submission-detail-modal-from-doc .media-frame-toolbar {
+    display: none;
 }
 
 /* Responsive design for submission modal */
@@ -1207,7 +1197,7 @@
     
     #submission-detail-modal-from-doc .submission-details-container {
         padding: 25px 20px;
-        max-height: calc(95vh - 150px);
+        max-height: calc(95vh - 120px);
     }
     
     #submission-detail-modal-from-doc .form-table th {
@@ -1222,8 +1212,8 @@
     }
     
     #submission-detail-modal-from-doc .media-modal-close {
-        top: 20px;
-        right: 24px;
+        top: 15px;
+        right: 20px;
         width: 30px;
         height: 30px;
         font-size: 16px;
