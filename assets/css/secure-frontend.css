@@ -70,38 +70,52 @@ body.document-form-page {
 .form-header-section {
     background: #1976d2;
     color: white;
-    padding: 12px 25px;
+    padding: 6px 25px;
     order: 2;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .form-header-section h1 {
-    margin: 0 0 4px 0;
+    margin: 0;
     color: white;
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1;
+    display: inline;
+    margin-right: 8px;
 }
 
 .form-header-section p {
     margin: 0;
-    font-size: 13px;
+    font-size: 10px;
     opacity: 0.9;
-    line-height: 1.3;
+    line-height: 1;
+    display: inline;
 }
 
 .form-header-section .document-info,
 .form-header-section .form-description {
-    font-size: 12px;
-    margin-top: 6px;
-    opacity: 0.85;
+    font-size: 9px;
+    opacity: 0.8;
+    line-height: 1;
+    display: inline;
+    margin: 0 6px;
 }
 
 .form-header-section .document-info strong,
 .form-header-section .form-description strong {
     font-weight: 500;
-    display: block;
-    margin-bottom: 2px;
+    display: inline;
+    margin-right: 2px;
+}
+
+.form-header-section * {
+    display: inline !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }
 
 /* ========================================
@@ -925,17 +939,17 @@ select.form-control {
     }
     
     .form-header-section {
-        padding: 10px 20px;
+        padding: 4px 20px;
     }
     
     .form-header-section h1 {
-        font-size: 15px;
+        font-size: 11px;
     }
     
     .form-header-section p,
     .form-header-section .document-info,
     .form-header-section .form-description {
-        font-size: 12px;
+        font-size: 8px;
     }
     
     .form-column.col-2,
@@ -966,17 +980,17 @@ select.form-control {
     }
     
     .form-header-section {
-        padding: 8px 15px;
+        padding: 3px 15px;
     }
     
     .form-header-section h1 {
-        font-size: 14px;
+        font-size: 10px;
     }
     
     .form-header-section p,
     .form-header-section .document-info,
     .form-header-section .form-description {
-        font-size: 11px;
+        font-size: 7px;
     }
     
     .form-control {
