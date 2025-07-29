@@ -724,7 +724,7 @@
 
 .field-compact-input textarea {
     resize: none;
-    font-family: inherit;
+    
     min-height: 20px;
     height: 20px;
 }

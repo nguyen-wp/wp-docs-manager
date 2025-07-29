@@ -113,7 +113,7 @@ body.document-form-page .form-header {
     background: #fff;
     color: #333;
     padding: 25px 30px 15px;
-    font-family: "Times New Roman", serif;
+    
     font-size: 20px;
     font-weight: bold;
     border-bottom: 2px solid #000;
@@ -429,7 +429,7 @@ body.document-form-page .form-field label {
     color: #000;
     font-size: 12px;
     line-height: 1.4;
-    font-family: "Times New Roman", serif;
+    
 }
 
 .form-field .required {
@@ -461,7 +461,7 @@ body.document-form-page .form-control {
     background: #fff;
     color: #000;
     box-sizing: border-box;
-    font-family: "Times New Roman", serif;
+    
     line-height: 1.4;
     border-radius: 0;
 }
@@ -474,7 +474,7 @@ body.document-form-page .form-control {
 
 /* PDF-style form controls focus */
 body.document-form-page .form-control:focus {
-    border: 2px solid #0066cc;
+    border: 1px solid #000;
     outline: none;
     background: #fff;
     box-shadow: 0 0 5px rgba(0, 102, 204, 0.3);
@@ -509,7 +509,7 @@ body.document-form-page textarea.form-control {
     resize: vertical;
     min-height: 80px;
     max-height: 200px;
-    font-family: "Times New Roman", serif;
+    
     line-height: 1.6;
 }
 
@@ -760,7 +760,7 @@ body.document-form-page .btn {
     border: 1px solid #666;
     cursor: pointer;
     white-space: nowrap;
-    font-family: "Times New Roman", serif;
+    
     line-height: 1.4;
     background: #f8f8f8;
     color: #000;
