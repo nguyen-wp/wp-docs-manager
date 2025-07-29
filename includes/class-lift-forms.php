@@ -56,6 +56,9 @@ class LIFT_Forms {
      * Initialize
      */
     public function init() {
+        // Log initialization
+        error_log('LIFT Forms: Initializing...');
+        
         $this->create_tables();
         $this->register_post_type();
         $this->setup_capabilities();
@@ -63,6 +66,8 @@ class LIFT_Forms {
         
         // Force check for missing columns on every init
         $this->maybe_add_user_id_column();
+        
+        error_log('LIFT Forms: Initialization complete');
     }
     
     /**
@@ -130,8 +135,24 @@ class LIFT_Forms {
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql_forms);
-        dbDelta($sql_submissions);
+        
+        // Log table creation
+        error_log('LIFT Forms: Creating tables...');
+        error_log('LIFT Forms: Forms table SQL: ' . $sql_forms);
+        error_log('LIFT Forms: Submissions table SQL: ' . $sql_submissions);
+        
+        $forms_result = dbDelta($sql_forms);
+        $submissions_result = dbDelta($sql_submissions);
+        
+        error_log('LIFT Forms: Forms table result: ' . print_r($forms_result, true));
+        error_log('LIFT Forms: Submissions table result: ' . print_r($submissions_result, true));
+        
+        // Verify tables were created
+        $forms_exists = $wpdb->get_var("SHOW TABLES LIKE '$forms_table'");
+        $submissions_exists = $wpdb->get_var("SHOW TABLES LIKE '$submissions_table'");
+        
+        error_log('LIFT Forms: Forms table exists: ' . ($forms_exists ? 'Yes' : 'No'));
+        error_log('LIFT Forms: Submissions table exists: ' . ($submissions_exists ? 'Yes' : 'No'));
         
         // Add user_id column if it doesn't exist (for existing installations)
         $this->maybe_add_user_id_column();
@@ -505,11 +526,11 @@ class LIFT_Forms {
                                     </td>
                                     <td><?php echo date_i18n(get_option('date_format'), strtotime($form->created_at)); ?></td>
                                     <td>
-                                        <a href="<?php echo admin_url('admin.php?page=lift-forms-builder&id=' . $form->id); ?>" class="button button-small">
+                                        <a href="<?php echo admin_url('admin.php?page=lift-forms-builder&id=' . $form->id); ?>" class="button">
                                             <?php _e('Edit', 'lift-docs-system'); ?>
                                         </a>
                                         <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=lift-forms&action=delete&id=' . $form->id), 'delete_form_' . $form->id); ?>" 
-                                           class="button button-small button-link-delete" 
+                                           class="button button-link-delete" 
                                            onclick="return confirm('<?php _e('Are you sure you want to delete this form?', 'lift-docs-system'); ?>')">
                                             <?php _e('Delete', 'lift-docs-system'); ?>
                                         </a>
@@ -650,10 +671,16 @@ class LIFT_Forms {
      * Submissions page
      */
     public function submissions_page() {
+        // Debug log entry
+        error_log('LIFT Forms: submissions_page() called');
+        
         // Check user permissions
         if (!current_user_can('manage_options')) {
+            error_log('LIFT Forms: User permission denied for submissions page');
             wp_die(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
         }
+        
+        error_log('LIFT Forms: User permissions OK');
         
         global $wpdb;
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
@@ -677,8 +704,9 @@ class LIFT_Forms {
         }
         
         if ($document_id) {
-            $where .= ' AND s.document_id = %d';
-            $params[] = $document_id;
+            // Search for document_id in form_data JSON
+            $where .= ' AND s.form_data LIKE %s';
+            $params[] = '%"_document_id":' . $document_id . '%';
         }
         
         if ($user_filter === 'logged_in') {
@@ -692,33 +720,139 @@ class LIFT_Forms {
             $params[] = $status_filter;
         }
         
+        // Debug query để kiểm tra
+        error_log('LIFT Forms Submissions Query WHERE: ' . $where);
+        error_log('LIFT Forms Submissions Query PARAMS: ' . print_r($params, true));
+        
+        // First, try simple query without JOINs to see if we get data
+        $simple_submissions = $wpdb->get_results("SELECT * FROM $submissions_table ORDER BY submitted_at DESC");
+        error_log('LIFT Forms Simple Query Count: ' . count($simple_submissions));
+        
         // Execute query with or without prepare based on params
         if (!empty($params)) {
             $submissions = $wpdb->get_results($wpdb->prepare(
-                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email, d.post_title as document_title
+                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
                  FROM $submissions_table s 
                  LEFT JOIN $forms_table f ON s.form_id = f.id 
                  LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
-                 LEFT JOIN {$wpdb->posts} d ON s.document_id = d.ID
                  WHERE $where 
                  ORDER BY s.submitted_at DESC",
                 $params
             ));
         } else {
             $submissions = $wpdb->get_results(
-                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email, d.post_title as document_title
+                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
                  FROM $submissions_table s 
                  LEFT JOIN $forms_table f ON s.form_id = f.id 
                  LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
-                 LEFT JOIN {$wpdb->posts} d ON s.document_id = d.ID
                  WHERE $where 
                  ORDER BY s.submitted_at DESC"
             );
         }
         
+        // If no results from JOIN query, fall back to simple query
+        if (empty($submissions) && !empty($simple_submissions)) {
+            error_log('LIFT Forms: JOIN query failed, using simple query');
+            $submissions = $simple_submissions;
+            // Add form names manually
+            foreach ($submissions as &$submission) {
+                if ($submission->form_id) {
+                    $form = $wpdb->get_row($wpdb->prepare("SELECT name FROM $forms_table WHERE id = %d", $submission->form_id));
+                    $submission->form_name = $form ? $form->name : __('Unknown Form', 'lift-docs-system');
+                } else {
+                    $submission->form_name = __('Unknown Form', 'lift-docs-system');
+                }
+                
+                // Add user info if user_id exists
+                if ($submission->user_id) {
+                    $user = get_user_by('id', $submission->user_id);
+                    if ($user) {
+                        $submission->user_name = $user->display_name;
+                        $submission->user_email = $user->user_email;
+                    }
+                } else {
+                    $submission->user_name = null;
+                    $submission->user_email = null;
+                }
+            }
+        }
+        
+        // Debug submissions data
+        error_log('LIFT Forms Submissions Count: ' . count($submissions));
+        if (!empty($submissions)) {
+            error_log('LIFT Forms First Submission: ' . print_r($submissions[0], true));
+        }
+        
+        // Also check directly from database
+        $direct_count = $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table");
+        error_log('LIFT Forms Direct DB Count: ' . $direct_count);
+        
+        if ($direct_count > 0) {
+            $direct_sample = $wpdb->get_row("SELECT * FROM $submissions_table LIMIT 1");
+            error_log('LIFT Forms Direct Sample: ' . print_r($direct_sample, true));
+        }
+        
         ?>
         <div class="wrap">
             <h1><?php _e('Form Submissions', 'lift-docs-system'); ?></h1>
+            
+            <?php
+            // Debug information panel - always show for troubleshooting
+            echo '<div class="notice notice-info">';
+            echo '<h3>Debug Information</h3>';
+            echo '<p><strong>Submissions table:</strong> ' . $submissions_table . '</p>';
+            echo '<p><strong>Forms table:</strong> ' . $forms_table . '</p>';
+            echo '<p><strong>Query submissions found:</strong> ' . count($submissions) . '</p>';
+            
+            // Check table exists
+            $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$submissions_table'");
+            echo '<p><strong>Submissions table exists:</strong> ' . ($table_exists ? 'Yes' : 'No') . '</p>';
+            
+            if ($table_exists) {
+                $total_count = $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table");
+                echo '<p><strong>Total records in submissions table:</strong> ' . $total_count . '</p>';
+                
+                if ($total_count > 0) {
+                    $sample = $wpdb->get_results("SELECT * FROM $submissions_table LIMIT 3");
+                    echo '<p><strong>Sample submissions:</strong></p>';
+                    echo '<pre style="background: #f1f1f1; padding: 10px; max-height: 300px; overflow-y: auto;">';
+                    foreach ($sample as $s) {
+                        echo "ID: {$s->id}, Form ID: {$s->form_id}, Status: {$s->status}, Submitted: {$s->submitted_at}\n";
+                        echo "Form Data: " . substr($s->form_data, 0, 100) . "...\n";
+                        echo "---\n";
+                    }
+                    echo '</pre>';
+                }
+            }
+            
+            // Check forms table
+            $forms_exists = $wpdb->get_var("SHOW TABLES LIKE '$forms_table'");
+            echo '<p><strong>Forms table exists:</strong> ' . ($forms_exists ? 'Yes' : 'No') . '</p>';
+            
+            if ($forms_exists) {
+                $forms_count = $wpdb->get_var("SELECT COUNT(*) FROM $forms_table");
+                echo '<p><strong>Total forms:</strong> ' . $forms_count . '</p>';
+                
+                if ($forms_count > 0) {
+                    $sample_forms = $wpdb->get_results("SELECT id, name, status FROM $forms_table LIMIT 3");
+                    echo '<p><strong>Sample forms:</strong></p>';
+                    echo '<pre style="background: #f9f9f9; padding: 10px;">';
+                    foreach ($sample_forms as $f) {
+                        echo "ID: {$f->id}, Name: {$f->name}, Status: {$f->status}\n";
+                    }
+                    echo '</pre>';
+                }
+            }
+            
+            // Show last database error if any
+            if ($wpdb->last_error) {
+                echo '<p style="color: red;"><strong>Last Database Error:</strong> ' . $wpdb->last_error . '</p>';
+            }
+            
+            echo '<p><a href="/wp-content/plugins/wp-docs-manager/debug-submissions.php" target="_blank" style="color: blue;">Open Debug Page</a></p>';
+            
+            echo '</div>';
+            ?>
             
             <?php if (empty($submissions)): ?>
                 <div class="lift-empty-state">
@@ -740,16 +874,27 @@ class LIFT_Forms {
                     </thead>
                     <tbody>
                         <?php foreach ($submissions as $submission): ?>
+                            <?php
+                            // Get document info from form_data
+                            $form_data = json_decode($submission->form_data, true);
+                            $document_id = isset($form_data['_document_id']) ? intval($form_data['_document_id']) : 0;
+                            $document_title = '';
+                            
+                            if ($document_id) {
+                                $document_post = get_post($document_id);
+                                $document_title = $document_post ? $document_post->post_title : '';
+                            }
+                            ?>
                             <tr>
                                 <td>
-                                    <strong><?php echo esc_html($submission->form_name); ?></strong>
+                                    <strong><?php echo esc_html($submission->form_name ? $submission->form_name : __('Unknown Form', 'lift-docs-system')); ?></strong>
                                 </td>
                                 <td>
-                                    <?php if ($submission->document_title): ?>
-                                        <a href="<?php echo admin_url('post.php?post=' . $submission->document_id . '&action=edit'); ?>" target="_blank">
-                                            <?php echo esc_html($submission->document_title); ?>
+                                    <?php if ($document_title): ?>
+                                        <a href="<?php echo admin_url('post.php?post=' . $document_id . '&action=edit'); ?>" target="_blank">
+                                            <?php echo esc_html($document_title); ?>
                                         </a>
-                                        <br><small>ID: <?php echo $submission->document_id; ?></small>
+                                        <br><small>ID: <?php echo $document_id; ?></small>
                                     <?php else: ?>
                                         <span class="no-document">
                                             <?php _e('No Document', 'lift-docs-system'); ?>
@@ -782,7 +927,7 @@ class LIFT_Forms {
                                         <?php _e('View', 'lift-docs-system'); ?>
                                     </button>
                                     <?php if ($submission->user_id): ?>
-                                        <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" class="button button-small" target="_blank">
+                                        <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" class="button" target="_blank">
                                             <?php _e('View User', 'lift-docs-system'); ?>
                                         </a>
                                     <?php endif; ?>
@@ -1633,7 +1778,7 @@ class LIFT_Forms {
                                     <small><?php _e('Email:', 'lift-docs-system'); ?> <?php echo esc_html($submission->user_email); ?></small><br>
                                     <small><?php _e('Username:', 'lift-docs-system'); ?> <?php echo esc_html($submission->user_login); ?></small><br>
                                     <small><?php _e('User ID:', 'lift-docs-system'); ?> <?php echo $submission->user_id; ?></small><br>
-                                    <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" target="_blank" class="button button-small">
+                                    <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" target="_blank" class="button">
                                         <?php _e('View User Profile', 'lift-docs-system'); ?>
                                     </a>
                                 </div>
@@ -1688,7 +1833,7 @@ class LIFT_Forms {
                         <td>
                             <strong><?php echo esc_html($form_data['_document_title'] ?? 'Unknown'); ?></strong><br>
                             <small><?php _e('Document ID:', 'lift-docs-system'); ?> <?php echo intval($form_data['_document_id']); ?></small><br>
-                            <a href="<?php echo admin_url('post.php?post=' . intval($form_data['_document_id']) . '&action=edit'); ?>" target="_blank" class="button button-small">
+                            <a href="<?php echo admin_url('post.php?post=' . intval($form_data['_document_id']) . '&action=edit'); ?>" target="_blank" class="button">
                                 <?php _e('Edit Document', 'lift-docs-system'); ?>
                             </a>
                         </td>

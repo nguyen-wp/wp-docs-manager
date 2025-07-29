@@ -2293,14 +2293,14 @@ class LIFT_Docs_Admin {
                         <div id="user-code-cell-<?php echo $user->ID; ?>">
                             <?php if ($user_code): ?>
                                 <strong style="color: #0073aa; font-family: monospace;"><?php echo esc_html($user_code); ?></strong><br>
-                                <button type="button" class="button button-small button-secondary generate-user-code-btn-mgmt" 
+                                <button type="button" class="button button-secondary generate-user-code-btn-mgmt" 
                                         data-user-id="<?php echo $user->ID; ?>" 
                                         style="margin-top: 5px; font-size: 11px;">
                                     <?php _e('Generate New Code', 'lift-docs-system'); ?>
                                 </button>
                             <?php else: ?>
                                 <span style="color: #d63638; font-style: italic;"><?php _e('No Code', 'lift-docs-system'); ?></span><br>
-                                <button type="button" class="button button-small button-primary generate-user-code-btn-mgmt" 
+                                <button type="button" class="button button-primary generate-user-code-btn-mgmt" 
                                         data-user-id="<?php echo $user->ID; ?>" 
                                         style="margin-top: 5px; font-size: 11px;">
                                     <?php _e('Generate Code', 'lift-docs-system'); ?>
@@ -2310,7 +2310,7 @@ class LIFT_Docs_Admin {
                     </td>
                     <td><?php echo date_i18n(get_option('date_format'), strtotime($user->user_registered)); ?></td>
                     <td>
-                        <a href="<?php echo get_edit_user_link($user->ID); ?>" class="button button-small">
+                        <a href="<?php echo get_edit_user_link($user->ID); ?>" class="button">
                             <?php _e('Edit User', 'lift-docs-system'); ?>
                         </a>
                     </td>
@@ -2355,7 +2355,7 @@ class LIFT_Docs_Admin {
                         if (response.success && response.data.code) {
                             // Update the cell with new code and regenerate button
                             var newHtml = '<strong style="color: #0073aa; font-family: monospace;">' + response.data.code + '</strong><br>' +
-                                         '<button type="button" class="button button-small button-secondary generate-user-code-btn-mgmt" ' +
+                                         '<button type="button" class="button button-secondary generate-user-code-btn-mgmt" ' +
                                          'data-user-id="' + userId + '" ' +
                                          'style="margin-top: 5px; font-size: 11px;"><?php _e("Generate New Code", "lift-docs-system"); ?></button>';
                             
@@ -2622,7 +2622,7 @@ class LIFT_Docs_Admin {
                     // User has a code - show code with regenerate button
                     return '<div id="user-code-cell-' . $user_id . '">' .
                            '<strong style="color: #0073aa; font-family: monospace;">' . esc_html($user_code) . '</strong><br>' .
-                           '<button type="button" class="button button-small button-secondary generate-user-code-btn-list" ' .
+                           '<button type="button" class="button button-secondary generate-user-code-btn-list" ' .
                            'data-user-id="' . $user_id . '" data-nonce="' . $nonce . '" ' .
                            'style="margin-top: 5px; font-size: 11px;">Generate New Code</button>' .
                            '</div>';
@@ -2630,7 +2630,7 @@ class LIFT_Docs_Admin {
                     // User has no code - show generate button
                     return '<div id="user-code-cell-' . $user_id . '">' .
                            '<span style="color: #d63638; font-style: italic;">No Code</span><br>' .
-                           '<button type="button" class="button button-small button-primary generate-user-code-btn-list" ' .
+                           '<button type="button" class="button button-primary generate-user-code-btn-list" ' .
                            'data-user-id="' . $user_id . '" data-nonce="' . $nonce . '" ' .
                            'style="margin-top: 5px; font-size: 11px;">Generate Code</button>' .
                            '</div>';
@@ -2726,7 +2726,7 @@ class LIFT_Docs_Admin {
                         if (response.success && response.data.code) {
                             // Update the cell with new code and regenerate button
                             var newHtml = '<strong style="color: #0073aa; font-family: monospace;">' + response.data.code + '</strong><br>' +
-                                         '<button type="button" class="button button-small button-secondary generate-user-code-btn-list" ' +
+                                         '<button type="button" class="button button-secondary generate-user-code-btn-list" ' +
                                          'data-user-id="' + userId + '" data-nonce="' + nonce + '" ' +
                                          'style="margin-top: 5px; font-size: 11px;"><?php _e("Generate New Code", "lift-docs-system"); ?></button>';
                             
@@ -3045,7 +3045,7 @@ class LIFT_Docs_Admin {
                                 <?php if ($form_info['has_submission']): ?>
                                     <div class="form-actions">
                                         <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions&submission_id=' . $form_info['submission_id']); ?>" 
-                                           class="button button-small" target="_blank">
+                                           class="button" target="_blank">
                                             <?php _e('View', 'lift-docs-system'); ?>
                                         </a>
                                         <div class="submission-date">
