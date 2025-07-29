@@ -1044,18 +1044,15 @@
 }
 
 #submission-detail-modal-from-doc .submission-details h3 {
-    margin: 0 0 25px 0;
-    padding: 20px 25px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e8f0fe 100%);
-    border: 1px solid #e8eaed;
-    border-radius: 12px;
+    margin: 25px 0;
+    padding: 0;
     color: #1a2332;
     font-size: 18px;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 0
 }
 
 #submission-detail-modal-from-doc .form-table {

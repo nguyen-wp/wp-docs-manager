@@ -1875,6 +1875,20 @@ class LIFT_Forms {
     }
     
     /**
+     * Check if a file URL is an image
+     */
+    private function is_image_file($url) {
+        if (empty($url)) {
+            return false;
+        }
+        
+        $file_extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
+        $image_extensions = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg');
+        
+        return in_array(strtolower($file_extension), $image_extensions);
+    }
+    
+    /**
      * AJAX get submission details
      */
     public function ajax_get_submission() {
@@ -1896,9 +1910,9 @@ class LIFT_Forms {
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
         $forms_table = $wpdb->prefix . 'lift_forms';
         
-        // Get submission with user data
+        // Get submission with user data and form definition
         $submission = $wpdb->get_row($wpdb->prepare(
-            "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email, u.user_login as user_login
+            "SELECT s.*, f.name as form_name, f.form_fields, u.display_name as user_name, u.user_email as user_email, u.user_login as user_login
              FROM $submissions_table s 
              LEFT JOIN $forms_table f ON s.form_id = f.id 
              LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
@@ -1916,12 +1930,46 @@ class LIFT_Forms {
             $form_data = array();
         }
         
+        // Parse form definition to get field labels and types
+        $form_fields = array();
+        $field_map = array(); // Map field ID to field info
+        
+        if (!empty($submission->form_fields)) {
+            $parsed_form_data = json_decode($submission->form_fields, true);
+            
+            if (is_array($parsed_form_data)) {
+                // Check if it's the new hierarchical structure with layout
+                if (isset($parsed_form_data['layout']) && isset($parsed_form_data['layout']['rows'])) {
+                    // New structure - extract fields
+                    foreach ($parsed_form_data['layout']['rows'] as $row) {
+                        if (isset($row['columns'])) {
+                            foreach ($row['columns'] as $column) {
+                                if (isset($column['fields'])) {
+                                    foreach ($column['fields'] as $field) {
+                                        if (isset($field['id'])) {
+                                            $field_map[$field['id']] = $field;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } elseif (isset($parsed_form_data[0]) && is_array($parsed_form_data[0])) {
+                    // Direct array of fields
+                    foreach ($parsed_form_data as $field) {
+                        if (isset($field['id'])) {
+                            $field_map[$field['id']] = $field;
+                        }
+                    }
+                }
+            }
+        }
+        
         // Build HTML output
         ob_start();
         ?>
         <div class="submission-details">
             <div class="submission-meta">
-                <h3><?php _e('Submission Information', 'lift-docs-system'); ?></h3>
                 <table class="form-table">
                     <tr>
                         <th><?php _e('Form:', 'lift-docs-system'); ?></th>
@@ -1977,10 +2025,47 @@ class LIFT_Forms {
                     <table class="form-table">
                         <?php foreach ($form_data as $key => $value): ?>
                             <?php if (strpos($key, '_') === 0) continue; // Skip meta fields ?>
+                            <?php 
+                            // Get field info from form definition
+                            $field_info = isset($field_map[$key]) ? $field_map[$key] : null;
+                            $field_label = $field_info && !empty($field_info['label']) ? $field_info['label'] : ucfirst(str_replace('_', ' ', $key));
+                            $field_type = $field_info && !empty($field_info['type']) ? $field_info['type'] : 'text';
+                            ?>
                             <tr>
-                                <th><?php echo esc_html(ucfirst(str_replace('_', ' ', $key))); ?>:</th>
+                                <th><?php echo esc_html($field_label); ?>:</th>
                                 <td>
-                                    <?php if (is_array($value)): ?>
+                                    <?php if ($field_type === 'file' && !empty($value)): ?>
+                                        <div class="file-field-value">
+                                            <?php if ($this->is_image_file($value)): ?>
+                                                <div class="image-preview">
+                                                    <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($field_label); ?>" style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px;">
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="file-info">
+                                                    <span class="dashicons dashicons-media-document"></span>
+                                                    <span><?php echo esc_html(basename($value)); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                            <div class="file-actions" style="margin-top: 8px;">
+                                                <a href="<?php echo esc_url($value); ?>" target="_blank" class="button">
+                                                    <span class="dashicons dashicons-download"></span>
+                                                    <?php _e('Download', 'lift-docs-system'); ?>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    <?php elseif ($field_type === 'signature' && !empty($value)): ?>
+                                        <div class="signature-field-value">
+                                            <div class="signature-preview">
+                                                <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($field_label); ?>" style="max-width: 300px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px; background: #fff;">
+                                            </div>
+                                            <div class="signature-actions" style="margin-top: 8px;">
+                                                <a href="<?php echo esc_url($value); ?>" target="_blank" class="button">
+                                                    <span class="dashicons dashicons-download"></span>
+                                                    <?php _e('Download Signature', 'lift-docs-system'); ?>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    <?php elseif (is_array($value)): ?>
                                         <?php echo esc_html(implode(', ', $value)); ?>
                                     <?php else: ?>
                                         <?php echo nl2br(esc_html($value)); ?>
@@ -2047,6 +2132,37 @@ class LIFT_Forms {
         }
         .form-table td {
             word-break: break-word;
+        }
+        .file-field-value, .signature-field-value {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .image-preview img, .signature-preview img {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .file-info .dashicons {
+            color: #666;
+        }
+        .file-actions .button, .signature-actions .button {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+        }
+        .file-actions .dashicons, .signature-actions .dashicons {
+            width: 16px;
+            height: 16px;
+            font-size: 16px;
         }
         </style>
         <?php
