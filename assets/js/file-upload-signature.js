@@ -25,6 +25,15 @@
                 console.log('LIFT Forms: File upload and signature functionality initialized');
                 console.log('Found file fields:', $('.lift-form-field.lift-field-file').length);
                 console.log('Found signature fields:', $('.lift-form-field.lift-field-signature').length);
+                
+                // Check for existing files
+                $('.lift-form-field.lift-field-file').each(function(index) {
+                    const $field = $(this);
+                    const $currentFile = $field.find('.current-file');
+                    console.log('File field ' + index + ':', $field);
+                    console.log('Current file element:', $currentFile);
+                    console.log('Current file text:', $currentFile.text());
+                });
             }
         }, 100);
     });
@@ -39,6 +48,12 @@
             
             if ($input.length) {
                 setupFileUpload($input);
+                
+                // Check for existing file data
+                const $currentFile = $field.find('.current-file');
+                if ($currentFile.length && $currentFile.text().trim()) {
+                    loadExistingFileData($field, $currentFile.text());
+                }
             }
         });
     }
@@ -222,6 +237,96 @@
     }
 
     /**
+     * Load existing file data
+     */
+    function loadExistingFileData($field, currentFileText) {
+        const $container = $field.find('.file-upload-container');
+        const $previewArea = $container.find('.file-preview-area');
+        const $input = $field.find('input[type="file"]');
+        
+        if (!$container.length || !$previewArea.length) return;
+        
+        // Extract filename from the current file text
+        const filename = currentFileText.replace('Current file: ', '').trim();
+        
+        // Try to get file URL from hidden input if it exists
+        const $hiddenInput = $field.find('input[type="hidden"][name$="_url"]');
+        let fileUrl = '';
+        
+        if ($hiddenInput.length) {
+            fileUrl = $hiddenInput.val();
+        } else {
+            // Try to construct URL from upload directory and filename
+            const uploadDir = liftFormsFrontend.uploadDir || '';
+            fileUrl = uploadDir + '/' + filename;
+        }
+        
+        if (filename && fileUrl) {
+            // Create preview for existing file
+            const $preview = $('<div class="file-preview-item existing-file">');
+            const $info = $('<div class="file-info">');
+            const $actions = $('<div class="file-actions">');
+            
+            // Determine file type and icon
+            let iconClass = 'dashicons-media-default';
+            const fileExt = filename.split('.').pop().toLowerCase();
+            
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+                iconClass = 'dashicons-format-image';
+            } else if (fileExt === 'pdf') {
+                iconClass = 'dashicons-pdf';
+            } else if (['doc', 'docx'].includes(fileExt)) {
+                iconClass = 'dashicons-media-text';
+            }
+            
+            $info.html(`
+                <div class="file-icon">
+                    <i class="dashicons ${iconClass}"></i>
+                </div>
+                <div class="file-details">
+                    <div class="file-name">${filename}</div>
+                    <div class="file-status">Đã tải lên</div>
+                </div>
+            `);
+            
+            $actions.html(`
+                <a class="download-link" href="${fileUrl}" target="_blank">
+                    <i class="dashicons dashicons-download"></i> Tải xuống
+                </a>
+                <button type="button" class="btn btn-secondary btn-sm remove-file">
+                    <i class="dashicons dashicons-no"></i>
+                </button>
+            `);
+            
+            $preview.append($info, $actions);
+            $previewArea.append($preview).show();
+            
+            // Add image preview for image files
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+                const $imagePreview = $('<div class="image-preview">');
+                $imagePreview.html(`<img src="${fileUrl}" alt="Preview">`);
+                $preview.prepend($imagePreview);
+            }
+            
+            // Hide current file text
+            $field.find('.current-file').hide();
+            
+            // Bind remove event
+            $actions.find('.remove-file').on('click', function() {
+                $preview.remove();
+                $input.val('');
+                if ($hiddenInput.length) {
+                    $hiddenInput.remove();
+                }
+                if ($previewArea.children().length === 0) {
+                    $previewArea.hide();
+                }
+                $field.find('.current-file').show();
+            });
+        }
+    }
+
+    /**
      * Upload file via AJAX
      */
     function uploadFile(file, $input) {
@@ -285,6 +390,12 @@
         $('.lift-form-field.lift-field-signature').each(function() {
             const $field = $(this);
             setupSignatureField($field);
+            
+            // Check for existing signature data
+            const $currentSignature = $field.find('.current-signature img');
+            if ($currentSignature.length) {
+                loadExistingSignatureData($field, $currentSignature.attr('src'));
+            }
         });
     }
 
@@ -468,6 +579,47 @@
                 showError('Lỗi kết nối khi lưu chữ ký');
             }
         });
+    }
+
+    /**
+     * Load existing signature data
+     */
+    function loadExistingSignatureData($field, signatureUrl) {
+        const $container = $field.find('.signature-container');
+        const $canvas = $container.find('.signature-canvas');
+        const $hiddenInput = $container.find('input[type="hidden"]');
+        const $actions = $container.find('.signature-actions');
+        
+        if (!$container.length || !$canvas.length || !signatureUrl) return;
+        
+        // Load signature image onto canvas
+        const canvas = $canvas[0];
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = function() {
+            // Clear canvas and set white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the signature image
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Set the hidden input value
+            $hiddenInput.val(signatureUrl);
+            
+            // Enable the save button (since signature exists)
+            $actions.find('.save-signature').prop('disabled', false);
+        };
+        
+        img.onerror = function() {
+            console.warn('Could not load existing signature image:', signatureUrl);
+        };
+        
+        img.src = signatureUrl;
+        
+        // Hide the current signature display
+        $field.find('.current-signature').hide();
     }
 
     /**

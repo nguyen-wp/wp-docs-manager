@@ -1552,3 +1552,71 @@ select.form-control:focus {
         font-size: 14px;
     }
 }
+
+/* ========================================
+   Existing File and Signature Displays
+   ======================================== */
+
+/* Existing file preview styling */
+.file-preview-item.existing-file {
+    background: #f8f9fa;
+    border: 2px solid #1976d2;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.file-preview-item.existing-file .file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-preview-item.existing-file .file-status {
+    color: #1976d2;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.file-preview-item.existing-file .download-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #1976d2;
+    text-decoration: none;
+    font-size: 12px;
+    margin-right: 10px;
+}
+
+.file-preview-item.existing-file .download-link:hover {
+    color: #1565c0;
+    text-decoration: underline;
+}
+
+/* Hide current file text when preview is shown */
+.current-file.hidden,
+.current-signature.hidden {
+    display: none !important;
+}
+
+/* Enhanced current file/signature display when not processed */
+.current-file,
+.current-signature {
+    display: block;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #e3f2fd;
+    border: 1px solid #1976d2;
+    border-radius: 4px;
+    color: #1565c0;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.current-signature img {
+    max-width: 200px;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
