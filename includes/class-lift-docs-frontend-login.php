@@ -2773,7 +2773,7 @@ class LIFT_Docs_Frontend_Login {
         }
         
         // Check if this is a secure link page
-        if (strpos($request_uri, '/lift-docs/secure/') !== false && isset($_GET['lift_secure'])) {
+        if (strpos($request_uri, '/document-files/secure/') !== false && isset($_GET['lift_secure'])) {
             add_filter('show_admin_bar', '__return_false');
             remove_action('wp_head', '_admin_bar_bump_cb');
             return;

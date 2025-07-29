@@ -1186,7 +1186,7 @@ class LIFT_Docs_Settings {
             update_post_meta($document_id, '_lift_doc_permanent_token', $permanent_token);
         }
         
-        return home_url('/lift-docs/secure/?lift_secure=' . $permanent_token);
+        return home_url('/document-files/secure/?lift_secure=' . $permanent_token);
     }
     
     /**
@@ -1211,7 +1211,7 @@ class LIFT_Docs_Settings {
             $download_token .= '_file_' . $file_index;
         }
         
-        return home_url('/lift-docs/download/?lift_secure=' . $download_token);
+        return home_url('/document-files/download/?lift_secure=' . $download_token);
     }
     
     /**

@@ -42,13 +42,13 @@ class LIFT_Docs_Layout {
         }
         
         add_rewrite_rule(
-            '^lift-docs/view/([^/]+)/?$',
+            '^document-files/view/([^/]+)/?$',
             'index.php?lift_custom_view=1&lift_doc_id=$matches[1]',
             'top'
         );
         
         add_rewrite_rule(
-            '^lift-docs/download/?$',
+            '^document-files/download/?$',
             'index.php?lift_custom_download=1',
             'top'
         );
@@ -578,7 +578,7 @@ class LIFT_Docs_Layout {
      * Generate custom view URL
      */
     public static function generate_custom_view_url($doc_id) {
-        return home_url('/lift-docs/view/' . $doc_id . '/');
+        return home_url('/document-files/view/' . $doc_id . '/');
     }
     
     /**
@@ -586,7 +586,7 @@ class LIFT_Docs_Layout {
      */
     public static function generate_secure_download_url($doc_id) {
         $secure_token = LIFT_Docs_Settings::generate_secure_token($doc_id, 'download');
-        return home_url('/lift-docs/download/?lift_secure=' . $secure_token);
+        return home_url('/document-files/download/?lift_secure=' . $secure_token);
     }
     
     /**
@@ -660,7 +660,7 @@ class LIFT_Docs_Layout {
         $request_uri = $_SERVER['REQUEST_URI'] ?? '';
         
         // Check if this is a secure link page
-        if ((strpos($request_uri, '/lift-docs/secure/') !== false || 
+        if ((strpos($request_uri, '/document-files/secure/') !== false || 
              strpos($request_uri, '/lift-docs/view/') !== false) && 
             isset($_GET['lift_secure'])) {
             add_filter('show_admin_bar', '__return_false');

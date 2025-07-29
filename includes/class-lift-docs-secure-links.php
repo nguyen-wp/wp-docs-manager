@@ -62,8 +62,8 @@ class LIFT_Docs_Secure_Links {
      * Add custom rewrite rules for secure access
      */
     public function add_rewrite_rules() {
-        add_rewrite_rule('^lift-docs/secure/?$', 'index.php?lift_secure_page=1', 'top');
-        add_rewrite_rule('^lift-docs/download/?$', 'index.php?lift_download=1', 'top');
+        add_rewrite_rule('^document-files/secure/?$', 'index.php?lift_secure_page=1', 'top');
+        add_rewrite_rule('^document-files/download/?$', 'index.php?lift_download=1', 'top');
         add_rewrite_tag('%lift_secure_page%', '([0-9]+)');
         add_rewrite_tag('%lift_download%', '([0-9]+)');
     }
@@ -74,7 +74,7 @@ class LIFT_Docs_Secure_Links {
     public function handle_secure_access() {
         // Check both query var AND URL pattern for backwards compatibility
         $is_secure_request = get_query_var('lift_secure_page') || 
-                            (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/lift-docs/secure/') !== false);
+                            (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/document-files/secure/') !== false);
         
         if (!$is_secure_request) {
             return;
@@ -129,7 +129,7 @@ class LIFT_Docs_Secure_Links {
     public function handle_secure_download() {
         // Check both query var AND URL pattern for backwards compatibility
         $is_download_request = get_query_var('lift_download') || 
-                              (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/lift-docs/download/') !== false);
+                              (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/document-files/download/') !== false);
         
         if (!$is_download_request) {
             return;
@@ -1120,8 +1120,8 @@ class LIFT_Docs_Secure_Links {
             $output .= "Disallow: /document-category/\n";
             $output .= "Disallow: /document-tag/\n";
             $output .= "Disallow: /lift-docs/\n";
-            $output .= "Disallow: /lift-docs/secure/\n";
-            $output .= "Disallow: /lift-docs/download/\n";
+            $output .= "Disallow: /document-files/secure/\n";
+            $output .= "Disallow: /document-files/download/\n";
         }
         
         return $output;
@@ -1753,7 +1753,7 @@ class LIFT_Docs_Secure_Links {
      */
     private function get_secure_view_url($document_id, $file_index = 0) {
         $token = LIFT_Docs_Settings::generate_secure_link($document_id, 'view', $file_index);
-        return home_url('/lift-docs/secure/?lift_secure=' . urlencode($token) . '&action=view&file=' . $file_index);
+        return home_url('/document-files/secure/?lift_secure=' . urlencode($token) . '&action=view&file=' . $file_index);
     }
     
     /**
@@ -1761,6 +1761,6 @@ class LIFT_Docs_Secure_Links {
      */
     private function get_secure_download_url($document_id, $file_index = 0) {
         $token = LIFT_Docs_Settings::generate_secure_link($document_id, 'download', $file_index);
-        return home_url('/lift-docs/secure/?lift_secure=' . urlencode($token) . '&action=download&file=' . $file_index);
+        return home_url('/document-files/secure/?lift_secure=' . urlencode($token) . '&action=download&file=' . $file_index);
     }
 }
