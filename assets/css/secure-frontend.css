@@ -2079,3 +2079,201 @@ body.document-form-page .form-actions .btn {
     border-radius: 4px;
     margin-bottom: 5px;
 }
+
+/* ========================================
+   Form Action Bar - Dark Theme Bottom Section
+   ======================================== */
+
+/* Form Action Bar Container */
+body.document-form-page .form-action-bar {
+    background: #1a1a1a;
+    border-top: 2px solid #333;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+}
+
+/* Action Bar Content - Two Column Layout */
+body.document-form-page .action-bar-content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    padding: 20px 40px;
+    align-items: center;
+    max-width: 100%;
+}
+
+/* Left Column - Mode Information */
+body.document-form-page .mode-info-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #fff;
+}
+
+body.document-form-page .mode-indicator {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+body.document-form-page .mode-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.document-form-page .mode-header i {
+    font-size: 18px;
+    color: #4CAF50;
+}
+
+body.document-form-page .edit-mode .mode-header i {
+    color: #FF9800;
+}
+
+body.document-form-page .mode-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+}
+
+body.document-form-page .mode-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+body.document-form-page .mode-description {
+    font-size: 14px;
+    color: #ccc;
+}
+
+body.document-form-page .submission-timestamp,
+body.document-form-page .form-requirement {
+    font-size: 11px;
+    color: #999;
+}
+
+body.document-form-page .status-warning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #333;
+    border-radius: 4px;
+    color: #FFA726;
+    font-size: 12px;
+}
+
+body.document-form-page .status-warning i {
+    color: #FFA726;
+}
+
+/* Right Column - Action Buttons */
+body.document-form-page .action-buttons-column {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Action Buttons Styling */
+body.document-form-page .action-submit {
+    background: #007cba;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 180px;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+body.document-form-page .action-submit:hover:not(:disabled) {
+    background: #005a87;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+body.document-form-page .action-submit:disabled {
+    background: #555;
+    color: #999;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+body.document-form-page .action-cancel {
+    background: #666;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+body.document-form-page .action-cancel:hover {
+    background: #555;
+    color: #fff;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Mobile Responsive for Action Bar */
+@media (max-width: 768px) {
+    body.document-form-page .action-bar-content {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 16px 20px;
+        text-align: center;
+    }
+    
+    body.document-form-page .mode-indicator {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    body.document-form-page .action-buttons-column {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    body.document-form-page .action-submit,
+    body.document-form-page .action-cancel {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    body.document-form-page .action-bar-content {
+        padding: 12px 16px;
+    }
+    
+    body.document-form-page .mode-title {
+        font-size: 14px;
+    }
+    
+    body.document-form-page .mode-description {
+        font-size: 12px;
+    }
+}

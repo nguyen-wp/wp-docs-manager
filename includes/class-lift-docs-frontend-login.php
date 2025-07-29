@@ -347,36 +347,8 @@ class LIFT_Docs_Frontend_Login {
                             <?php endif; ?>
                         </div>
                         
-                        <!-- Right Column: Status & Notices -->
+                        <!-- Right Column: Document Status Info -->
                         <div class="status-info-column">
-                            <?php if ($is_edit_mode): ?>
-                                <div class="edit-mode-notice">
-                                    <div class="notice-header">
-                                        <i class="fas fa-edit"></i>
-                                        <strong><?php _e('Edit Mode', 'lift-docs-system'); ?></strong>
-                                    </div>
-                                    <div class="notice-content">
-                                        <?php _e('You are editing your previous submission.', 'lift-docs-system'); ?>
-                                        <small class="submission-date">
-                                            <?php printf(__('Originally submitted: %s', 'lift-docs-system'), date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($existing_submission->submitted_at))); ?>
-                                        </small>
-                                    </div>
-                                </div>
-                            <?php else: ?>
-                                <div class="submit-mode-notice">
-                                    <div class="notice-header">
-                                        <i class="fas fa-plus-circle"></i>
-                                        <strong><?php _e('New Submission', 'lift-docs-system'); ?></strong>
-                                    </div>
-                                    <div class="notice-content">
-                                        <?php _e('Fill out the form below to submit your information.', 'lift-docs-system'); ?>
-                                        <small class="form-info">
-                                            <?php _e('All required fields must be completed.', 'lift-docs-system'); ?>
-                                        </small>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                            
                             <?php if ($is_form_disabled): ?>
                                 <div class="status-disabled-notice">
                                     <div class="notice-header">
@@ -385,6 +357,19 @@ class LIFT_Docs_Frontend_Login {
                                     </div>
                                     <div class="notice-content">
                                         <?php echo esc_html($status_message); ?>
+                                        <small class="status-info">
+                                            <?php printf(__('Document Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?>
+                                        </small>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <div class="status-active-notice">
+                                    <div class="notice-header">
+                                        <i class="fas fa-check-circle"></i>
+                                        <strong><?php _e('Form Active', 'lift-docs-system'); ?></strong>
+                                    </div>
+                                    <div class="notice-content">
+                                        <?php _e('This form is ready for submission.', 'lift-docs-system'); ?>
                                         <small class="status-info">
                                             <?php printf(__('Document Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?>
                                         </small>
@@ -411,23 +396,74 @@ class LIFT_Docs_Frontend_Login {
                         <div class="form-builder-content">
                             <?php $this->render_form_builder_layout($form_fields, $existing_data, $is_form_disabled); ?>
                         </div>
+                    </form>
+                </div>
+
+                <!-- Form Action Bar - Bottom Section with Dark Theme -->
+                <div class="form-action-bar">
+                    <div class="action-bar-content">
+                        <!-- Left Column: Mode Information -->
+                        <div class="mode-info-column">
+                            <?php if ($is_edit_mode): ?>
+                                <div class="mode-indicator edit-mode">
+                                    <div class="mode-header">
+                                        <i class="fas fa-edit"></i>
+                                        <span class="mode-title"><?php _e('Edit Mode', 'lift-docs-system'); ?></span>
+                                    </div>
+                                    <div class="mode-details">
+                                        <span class="mode-description"><?php _e('Editing previous submission', 'lift-docs-system'); ?></span>
+                                        <small class="submission-timestamp">
+                                            <?php printf(__('Originally: %s', 'lift-docs-system'), date_i18n('M j, Y g:i A', strtotime($existing_submission->submitted_at))); ?>
+                                        </small>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <div class="mode-indicator submit-mode">
+                                    <div class="mode-header">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span class="mode-title"><?php _e('New Submission', 'lift-docs-system'); ?></span>
+                                    </div>
+                                    <div class="mode-details">
+                                        <span class="mode-description"><?php _e('Ready to submit new form', 'lift-docs-system'); ?></span>
+                                        <small class="form-requirement"><?php _e('Complete all required fields', 'lift-docs-system'); ?></small>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($is_form_disabled): ?>
+                                <div class="status-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span><?php printf(__('Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                         
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary" <?php if ($is_form_disabled): ?>disabled<?php endif; ?>>
+                        <!-- Right Column: Action Buttons -->
+                        <div class="action-buttons-column">
+                            <button type="submit" form="document-form" class="btn btn-primary action-submit" <?php if ($is_form_disabled): ?>disabled<?php endif; ?>>
                                 <?php 
                                 if ($is_form_disabled) {
                                     if ($document_status === 'cancelled') {
-                                        echo __('Form Cancelled', 'lift-docs-system');
+                                        echo '<i class="fas fa-ban"></i> ' . __('Form Cancelled', 'lift-docs-system');
                                     } else {
-                                        echo __('View Only', 'lift-docs-system');
+                                        echo '<i class="fas fa-eye"></i> ' . __('View Only', 'lift-docs-system');
                                     }
                                 } else {
-                                    echo $is_edit_mode ? __('Update Submission', 'lift-docs-system') : __('Submit Form', 'lift-docs-system');
+                                    if ($is_edit_mode) {
+                                        echo '<i class="fas fa-save"></i> ' . __('Update Submission', 'lift-docs-system');
+                                    } else {
+                                        echo '<i class="fas fa-paper-plane"></i> ' . __('Submit Form', 'lift-docs-system');
+                                    }
                                 }
                                 ?>
                             </button>
+                            
+                            <a href="<?php echo home_url('/document-dashboard/'); ?>" class="btn btn-secondary action-cancel">
+                                <i class="fas fa-arrow-left"></i> <?php _e('Back to Dashboard', 'lift-docs-system'); ?>
+                            </a>
                         </div>
-                    </form>
+                    </div>
+                </div>
                 </div>
 
             </div>
