@@ -24,6 +24,9 @@ class LIFT_Forms {
         
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
         
+        // Add body class for document forms to apply dashboard-style
+        add_filter('body_class', array($this, 'add_form_body_class'));
+        
         // AJAX handlers
         add_action('wp_ajax_lift_forms_save', array($this, 'ajax_save_form'));
         add_action('wp_ajax_lift_forms_get', array($this, 'ajax_get_form'));
@@ -312,6 +315,14 @@ class LIFT_Forms {
             '1.0.0'
         );
         
+        // Enqueue secure frontend styles for document forms to match dashboard style
+        wp_enqueue_style(
+            'lift-docs-secure-frontend',
+            plugin_dir_url(__FILE__) . '../assets/css/secure-frontend.css',
+            array(),
+            '1.0.0'
+        );
+        
         wp_localize_script('lift-forms-frontend', 'liftFormsFrontend', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('lift_forms_submit_nonce'),
@@ -323,6 +334,20 @@ class LIFT_Forms {
                 'invalidEmail' => __('Please enter a valid email address.', 'lift-docs-system'),
             )
         ));
+    }
+    
+    /**
+     * Add body class for form pages to apply dashboard-style
+     */
+    public function add_form_body_class($classes) {
+        global $post;
+        
+        // Check if current page/post contains a lift_form shortcode
+        if (is_a($post, 'WP_Post') && has_shortcode($post->post_content, 'lift_form')) {
+            $classes[] = 'document-form-page';
+        }
+        
+        return $classes;
     }
     
     /**
@@ -1623,37 +1648,41 @@ class LIFT_Forms {
         
         ob_start();
         ?>
-        <div class="lift-form-container" data-form-id="<?php echo $form_id; ?>">
+        <div class="document-form-wrapper">
             <?php if ($atts['title'] === 'true'): ?>
-                <div class="lift-form-header">
-                    <h2><?php echo esc_html($form->name); ?></h2>
+                <div class="form-header-section">
+                    <h1><?php echo esc_html($form->name); ?></h1>
                     <?php if ($form->description): ?>
                         <p><?php echo esc_html($form->description); ?></p>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
             
-            <form class="lift-form" id="lift-form-<?php echo $form_id; ?>">
-                <?php wp_nonce_field('lift_forms_submit_nonce', 'lift_forms_nonce'); ?>
-                <input type="hidden" name="form_id" value="<?php echo $form_id; ?>">
-                
-                <?php echo $this->render_form_fields($fields); ?>
-                
-                <div class="lift-form-submit">
-                    <button type="submit" class="lift-form-submit-btn">
-                        <span class="btn-text"><?php _e('Submit Form', 'lift-docs-system'); ?></span>
-                        <span class="btn-spinner" style="display: none;">
-                            <span class="spinner"></span>
-                            <?php _e('Submitting...', 'lift-docs-system'); ?>
-                        </span>
-                    </button>
+            <div class="form-content-section">
+                <div class="lift-form-container" data-form-id="<?php echo $form_id; ?>">
+                    <form class="lift-form" id="lift-form-<?php echo $form_id; ?>">
+                        <?php wp_nonce_field('lift_forms_submit_nonce', 'lift_forms_nonce'); ?>
+                        <input type="hidden" name="form_id" value="<?php echo $form_id; ?>">
+                        
+                        <?php echo $this->render_form_fields($fields); ?>
+                        
+                        <div class="lift-form-submit">
+                            <button type="submit" class="lift-form-submit-btn btn button-primary">
+                                <span class="btn-text"><?php _e('Submit Form', 'lift-docs-system'); ?></span>
+                                <span class="btn-spinner" style="display: none;">
+                                    <span class="spinner"></span>
+                                    <?php _e('Submitting...', 'lift-docs-system'); ?>
+                                </span>
+                            </button>
+                        </div>
+                        
+                        <div class="lift-form-messages">
+                            <div class="form-error" style="display: none;"></div>
+                            <div class="form-success" style="display: none;"></div>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="lift-form-messages">
-                    <div class="form-error" style="display: none;"></div>
-                    <div class="form-success" style="display: none;"></div>
-                </div>
-            </form>
+            </div>
         </div>
         <?php
         return ob_get_clean();

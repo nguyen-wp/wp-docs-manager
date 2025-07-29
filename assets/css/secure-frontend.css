@@ -16,23 +16,11 @@ html {
     margin-top: 0 !important;
 }
 
-body.lift-secure-page {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    background: #f9f9f9;
-    margin: 0;
-    padding: 40px 0;
-    line-height: 1.6;
-}
 
 /* ========================================
    Layout Containers
    ======================================== */
 
-.lift-docs-custom-layout {
-    padding: 40px 0;
-    background: #f9f9f9;
-    min-height: 60vh;
-}
 
 .lift-docs-custom-layout .container {
     max-width: 800px;
@@ -64,19 +52,7 @@ body.lift-secure-page {
     background: #fff;
     padding: 40px;
     border-radius: 8px 8px 0 0;
-    order: 1;
 }
-
-.form-header-section {
-    background: #f8f9fa;
-    padding: 25px 40px;
-    border-radius: 0 0 8px 8px;
-    box-shadow: none;
-    order: 2;
-    border-top: 1px solid #dee2e6;
-    margin-top: 30px;
-}
-
 .form-header-section h1 {
     margin: 0 0 15px 0;
     color: #333;
@@ -585,5 +561,147 @@ body.lift-secure-page {
     body.lift-secure-page {
         background: #fff !important;
         padding: 0 !important;
+    }
+}
+
+
+/* Dashboard-style download section */
+.lift-secure-page .download-section {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    margin-bottom: 30px;
+}
+
+.lift-secure-page .download-section-title {
+    color: #2c3e50;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lift-secure-page .download-section-title .dashicons {
+    color: #667eea;
+    font-size: 22px;
+}
+
+.lift-secure-page .files-count {
+    color: #6c757d;
+    font-weight: 400;
+    font-size: 16px;
+}
+
+/* Dashboard-style file list */
+.lift-secure-page .files-list {
+    display: grid;
+    gap: 15px;
+}
+
+.lift-secure-page .file-item {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafafa;
+    transition: all 0.2s ease;
+}
+
+.lift-secure-page .file-item:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.lift-secure-page .file-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.lift-secure-page .file-icon {
+    font-size: 24px;
+    color: #667eea;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 8px;
+}
+
+.lift-secure-page .file-name {
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+/* Dashboard-style buttons */
+.lift-secure-page .lift-download-btn,
+.document-form-page .button,
+.document-form-page .btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.lift-secure-page .lift-download-btn:hover,
+.document-form-page .button:hover,
+.document-form-page .btn:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+}
+
+.lift-secure-page .lift-download-btn .dashicons {
+    font-size: 16px;
+}
+
+/* Dashboard-style responsive design */
+@media (max-width: 768px) {
+    .lift-secure-page .lift-docs-custom-layout .container,
+    .document-form-page .document-form-wrapper {
+        padding: 15px;
+    }
+    
+    .lift-secure-page .document-header,
+    .lift-secure-page .secure-access-notice,
+    .lift-secure-page .document-description,
+    .lift-secure-page .document-actions,
+    .lift-secure-page .download-section,
+    .document-form-page .form-content-section,
+    .document-form-page .form-header-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .lift-secure-page .document-title,
+    .document-form-page .form-header-section h1 {
+        font-size: 24px;
+    }
+    
+    .lift-secure-page .file-item {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .lift-secure-page .file-info {
+        justify-content: center;
     }
 }

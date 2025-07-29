@@ -263,6 +263,10 @@ class LIFT_Docs_Secure_Links {
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                     line-height: 1.6;
                     min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
                 }
                 
                 /* Hide unwanted elements */
@@ -284,6 +288,7 @@ class LIFT_Docs_Secure_Links {
                     border-radius: 12px;
                     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                     overflow: hidden;
+                    width: 100%;
                 }
                 
                 .secure-header {
@@ -352,10 +357,6 @@ class LIFT_Docs_Secure_Links {
                 
                 .document-description p {
                     margin-bottom: 15px;
-                }
-                
-                .document-files {
-                    margin-bottom: 40px;
                 }
                 
                 .document-files h3 {
@@ -436,7 +437,7 @@ class LIFT_Docs_Secure_Links {
                     font-size: 14px;
                     color: #666;
                     text-align: center;
-                    margin-top: 20px;
+                    margin: 20px 0 0 0;
                     padding: 15px;
                     background: #e3f2fd;
                     border-radius: 6px;
@@ -643,12 +644,6 @@ class LIFT_Docs_Secure_Links {
                         <?php endforeach; ?>
                     </div>
                     <?php endif; ?>
-                    <?php endif; ?>
-                    
-                    <?php if ($settings['show_related_docs']): ?>
-                    <div class="related-documents">
-                        <?php echo $this->get_related_documents($document->ID); ?>
-                    </div>
                     <?php endif; ?>
                     
                 </div>
@@ -1575,7 +1570,7 @@ class LIFT_Docs_Secure_Links {
         .download-info {
             font-size: 12px;
             color: #666;
-            margin-top: 8px;
+            margin: 8px 0 0 0;
             text-align: center;
         }
         
