@@ -797,61 +797,39 @@ class LIFT_Forms {
             <h1><?php _e('Form Submissions', 'lift-docs-system'); ?></h1>
             
             <?php
-            // Debug information panel - always show for troubleshooting
-            echo '<div class="notice notice-info">';
-            echo '<h3>Debug Information</h3>';
-            echo '<p><strong>Submissions table:</strong> ' . $submissions_table . '</p>';
-            echo '<p><strong>Forms table:</strong> ' . $forms_table . '</p>';
-            echo '<p><strong>Query submissions found:</strong> ' . count($submissions) . '</p>';
-            
-            // Check table exists
-            $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$submissions_table'");
-            echo '<p><strong>Submissions table exists:</strong> ' . ($table_exists ? 'Yes' : 'No') . '</p>';
-            
-            if ($table_exists) {
-                $total_count = $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table");
-                echo '<p><strong>Total records in submissions table:</strong> ' . $total_count . '</p>';
+            // Debug information panel - only show when WP_DEBUG is enabled
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                echo '<div class="notice notice-info">';
+                echo '<h3>Debug Information</h3>';
+                echo '<p><strong>Submissions table:</strong> ' . $submissions_table . '</p>';
+                echo '<p><strong>Forms table:</strong> ' . $forms_table . '</p>';
+                echo '<p><strong>Query submissions found:</strong> ' . count($submissions) . '</p>';
                 
-                if ($total_count > 0) {
-                    $sample = $wpdb->get_results("SELECT * FROM $submissions_table LIMIT 3");
-                    echo '<p><strong>Sample submissions:</strong></p>';
-                    echo '<pre style="background: #f1f1f1; padding: 10px; max-height: 300px; overflow-y: auto;">';
-                    foreach ($sample as $s) {
-                        echo "ID: {$s->id}, Form ID: {$s->form_id}, Status: {$s->status}, Submitted: {$s->submitted_at}\n";
-                        echo "Form Data: " . substr($s->form_data, 0, 100) . "...\n";
-                        echo "---\n";
-                    }
-                    echo '</pre>';
-                }
-            }
-            
-            // Check forms table
-            $forms_exists = $wpdb->get_var("SHOW TABLES LIKE '$forms_table'");
-            echo '<p><strong>Forms table exists:</strong> ' . ($forms_exists ? 'Yes' : 'No') . '</p>';
-            
-            if ($forms_exists) {
-                $forms_count = $wpdb->get_var("SELECT COUNT(*) FROM $forms_table");
-                echo '<p><strong>Total forms:</strong> ' . $forms_count . '</p>';
+                // Check table exists
+                $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$submissions_table'");
+                echo '<p><strong>Submissions table exists:</strong> ' . ($table_exists ? 'Yes' : 'No') . '</p>';
                 
-                if ($forms_count > 0) {
-                    $sample_forms = $wpdb->get_results("SELECT id, name, status FROM $forms_table LIMIT 3");
-                    echo '<p><strong>Sample forms:</strong></p>';
-                    echo '<pre style="background: #f9f9f9; padding: 10px;">';
-                    foreach ($sample_forms as $f) {
-                        echo "ID: {$f->id}, Name: {$f->name}, Status: {$f->status}\n";
-                    }
-                    echo '</pre>';
+                if ($table_exists) {
+                    $total_count = $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table");
+                    echo '<p><strong>Total records in submissions table:</strong> ' . $total_count . '</p>';
                 }
+                
+                // Check forms table
+                $forms_exists = $wpdb->get_var("SHOW TABLES LIKE '$forms_table'");
+                echo '<p><strong>Forms table exists:</strong> ' . ($forms_exists ? 'Yes' : 'No') . '</p>';
+                
+                if ($forms_exists) {
+                    $forms_count = $wpdb->get_var("SELECT COUNT(*) FROM $forms_table");
+                    echo '<p><strong>Total forms:</strong> ' . $forms_count . '</p>';
+                }
+                
+                // Show last database error if any
+                if ($wpdb->last_error) {
+                    echo '<p style="color: red;"><strong>Last Database Error:</strong> ' . $wpdb->last_error . '</p>';
+                }
+                
+                echo '</div>';
             }
-            
-            // Show last database error if any
-            if ($wpdb->last_error) {
-                echo '<p style="color: red;"><strong>Last Database Error:</strong> ' . $wpdb->last_error . '</p>';
-            }
-            
-            echo '<p><a href="/wp-content/plugins/wp-docs-manager/debug-submissions.php" target="_blank" style="color: blue;">Open Debug Page</a></p>';
-            
-            echo '</div>';
             ?>
             
             <?php if (empty($submissions)): ?>
