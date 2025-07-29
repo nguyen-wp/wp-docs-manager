@@ -327,41 +327,7 @@ class LIFT_Docs_Frontend_Login {
         </head>
         <body class="lift-secure-page">
             <div class="lift-docs-custom-layout">
-              
-                
-                <!-- Form Content Section - Main Area -->
-                <div class="form-content-section">
-                    <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" <?php if ($is_form_disabled): ?>style="opacity: 0.6; pointer-events: none;"<?php endif; ?>>
-                        <input type="hidden" name="action" value="lift_forms_submit">
-                        <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
-                        <input type="hidden" name="document_id" value="<?php echo esc_attr($document->ID); ?>">
-                        <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('lift_forms_submit_nonce'); ?>">
-                        <?php if ($is_edit_mode && $existing_submission): ?>
-                            <input type="hidden" name="submission_id" value="<?php echo esc_attr($existing_submission->id); ?>">
-                            <input type="hidden" name="is_edit" value="1">
-                        <?php endif; ?>
-                        
-                        <div class="form-builder-content">
-                            <?php $this->render_form_builder_layout($form_fields, $existing_data, $is_form_disabled); ?>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary" <?php if ($is_form_disabled): ?>disabled<?php endif; ?>>
-                                <?php 
-                                if ($is_form_disabled) {
-                                    if ($document_status === 'cancelled') {
-                                        echo __('Form Cancelled', 'lift-docs-system');
-                                    } else {
-                                        echo __('View Only', 'lift-docs-system');
-                                    }
-                                } else {
-                                    echo $is_edit_mode ? __('Update Submission', 'lift-docs-system') : __('Submit Form', 'lift-docs-system');
-                                }
-                                ?>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+
 
                   <!-- Header Section - Two Column Layout -->
                 <div class="document-form-title">
@@ -415,6 +381,42 @@ class LIFT_Docs_Frontend_Login {
                         </div>
                     </div>
                 </div>
+              
+                
+                <!-- Form Content Section - Main Area -->
+                <div class="form-content-section">
+                    <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" <?php if ($is_form_disabled): ?>style="opacity: 0.6; pointer-events: none;"<?php endif; ?>>
+                        <input type="hidden" name="action" value="lift_forms_submit">
+                        <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
+                        <input type="hidden" name="document_id" value="<?php echo esc_attr($document->ID); ?>">
+                        <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('lift_forms_submit_nonce'); ?>">
+                        <?php if ($is_edit_mode && $existing_submission): ?>
+                            <input type="hidden" name="submission_id" value="<?php echo esc_attr($existing_submission->id); ?>">
+                            <input type="hidden" name="is_edit" value="1">
+                        <?php endif; ?>
+                        
+                        <div class="form-builder-content">
+                            <?php $this->render_form_builder_layout($form_fields, $existing_data, $is_form_disabled); ?>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" <?php if ($is_form_disabled): ?>disabled<?php endif; ?>>
+                                <?php 
+                                if ($is_form_disabled) {
+                                    if ($document_status === 'cancelled') {
+                                        echo __('Form Cancelled', 'lift-docs-system');
+                                    } else {
+                                        echo __('View Only', 'lift-docs-system');
+                                    }
+                                } else {
+                                    echo $is_edit_mode ? __('Update Submission', 'lift-docs-system') : __('Submit Form', 'lift-docs-system');
+                                }
+                                ?>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
             
             <script>
