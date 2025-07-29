@@ -1499,6 +1499,10 @@ class LIFT_Docs_Frontend_Login {
                     letter-spacing: 0.5px;
                     /* No animation */
                     box-shadow: 0 4px 12px <?php echo esc_attr($btn_color); ?>40;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    white-space: nowrap;
                 }
                 
                 .lift-login-btn:hover {
@@ -1523,6 +1527,12 @@ class LIFT_Docs_Frontend_Login {
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
+                    white-space: nowrap;
+                }
+                
+                .btn-text {
+                    display: inline-flex;
+                    align-items: center;
                 }
                 
                 .spinner {
@@ -1531,7 +1541,13 @@ class LIFT_Docs_Frontend_Login {
                     border: 2px solid rgba(255, 255, 255, 0.3);
                     border-top: 2px solid white;
                     border-radius: 50%;
-                    /* No spinner animation */
+                    flex-shrink: 0;
+                    animation: spin 1s linear infinite;
+                }
+                
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
                 }
                 
                 /* Spinner animation removed */
@@ -1708,7 +1724,7 @@ class LIFT_Docs_Frontend_Login {
                             <button type="submit" class="lift-login-btn">
                                 <span class="btn-text"><?php _e('Sign In', 'lift-docs-system'); ?></span>
                                 <span class="btn-spinner" style="display: none;">
-                                    <span class="spinner"></i>
+                                    <span class="spinner"></span>
                                     <?php _e('Signing in...', 'lift-docs-system'); ?>
                                 </span>
                             </button>
@@ -2749,7 +2765,7 @@ class LIFT_Docs_Frontend_Login {
                         <button type="submit" class="lift-login-btn">
                             <span class="btn-text"><?php _e('Sign In', 'lift-docs-system'); ?></span>
                             <span class="btn-spinner" style="display: none;">
-                                <span class="spinner"></i>
+                                <span class="spinner"></span>
                                 <?php _e('Signing in...', 'lift-docs-system'); ?>
                             </span>
                         </button>
