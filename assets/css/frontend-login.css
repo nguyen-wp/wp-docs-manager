@@ -125,6 +125,7 @@
     color: #6c757d;
     cursor: pointer;
     padding: 4px;
+    transform: translateY(-50%);
 }
 .toggle-password:hover {
     color: #495057;
