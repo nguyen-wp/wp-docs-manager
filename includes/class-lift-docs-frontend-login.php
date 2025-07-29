@@ -1644,29 +1644,23 @@ class LIFT_Docs_Frontend_Login {
                     <h3 class="document-title">
                         <span><?php echo esc_html($document->post_title); ?></span>
                         <?php
-                        // Check if status should be shown based on settings
-                        $show_status = LIFT_Docs_Settings::get_setting('show_document_status', true);
-                        if ($show_status) {
-                            // Add status badge
-                            $status_colors = array(
-                                'pending' => '#f39c12',
-                                'processing' => '#3498db',
-                                'done' => '#27ae60',
-                                'cancelled' => '#e74c3c'
-                            );
-                            $status_labels = array(
-                                'pending' => __('Pending', 'lift-docs-system'),
-                                'processing' => __('Processing', 'lift-docs-system'),
-                                'done' => __('Done', 'lift-docs-system'),
-                                'cancelled' => __('Cancelled', 'lift-docs-system')
-                            );
-                            ?>
-                            <span class="badge status-badge" style="background-color: <?php echo esc_attr($status_colors[$document_status]); ?>; color: white;">
-                                <?php echo esc_html($status_labels[$document_status]); ?>
-                            </span>
-                            <?php
-                        }
+                        // Add status badge
+                        $status_colors = array(
+                            'pending' => '#f39c12',
+                            'processing' => '#3498db',
+                            'done' => '#27ae60',
+                            'cancelled' => '#e74c3c'
+                        );
+                        $status_labels = array(
+                            'pending' => __('Pending', 'lift-docs-system'),
+                            'processing' => __('Processing', 'lift-docs-system'),
+                            'done' => __('Done', 'lift-docs-system'),
+                            'cancelled' => __('Cancelled', 'lift-docs-system')
+                        );
                         ?>
+                        <span class="badge status-badge" style="background-color: <?php echo esc_attr($status_colors[$document_status]); ?>; color: white;">
+                            <?php echo esc_html($status_labels[$document_status]); ?>
+                        </span>
                     </h3>
                 </div>
                 <div class="document-meta">
@@ -2427,7 +2421,12 @@ class LIFT_Docs_Frontend_Login {
                 
                 <!-- Dashboard Content -->
                 <div class="lift-docs-dashboard-content">
-                    <?php if ($atts['show_stats'] === 'true'): ?>
+                    <?php 
+                    // Check both shortcode attribute and global setting
+                    $show_stats_attr = ($atts['show_stats'] === 'true');
+                    $show_stats_setting = LIFT_Docs_Settings::get_setting('show_dashboard_stats', true);
+                    if ($show_stats_attr && $show_stats_setting): 
+                    ?>
                     <!-- Quick Stats -->
                     <div class="dashboard-stats">
                         <div class="stat-item">

@@ -150,12 +150,12 @@ class LIFT_Docs_Settings {
         );
         
         add_settings_field(
-            'show_document_status',
-            __('Show Document Status', 'lift-docs-system'),
+            'show_dashboard_stats',
+            __('Show Dashboard Stats', 'lift-docs-system'),
             array($this, 'checkbox_field_callback'),
             'lift-docs-general',
             'lift_docs_general_section',
-            array('field' => 'show_document_status', 'description' => __('Display document status in Document Dashboard', 'lift-docs-system'))
+            array('field' => 'show_dashboard_stats', 'description' => __('Display statistics section in Document Dashboard (Documents count, Downloads, Views, etc.)', 'lift-docs-system'))
         );
 
         
@@ -1050,7 +1050,7 @@ class LIFT_Docs_Settings {
             'show_document_meta',
             'show_download_button',
             'show_secure_access_notice',
-            'show_document_status'
+            'show_dashboard_stats'
         );
         
         foreach ($boolean_fields as $field) {
@@ -1164,8 +1164,8 @@ class LIFT_Docs_Settings {
             return 24;
         }
         
-        // Set default for show_document_status to true (show by default)
-        if ($key === 'show_document_status') {
+        // Set default for show_dashboard_stats to true (show by default)
+        if ($key === 'show_dashboard_stats') {
             $settings = get_option('lift_docs_settings', array());
             return isset($settings[$key]) ? $settings[$key] : true;
         }
