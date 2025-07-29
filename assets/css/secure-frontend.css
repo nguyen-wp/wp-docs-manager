@@ -302,7 +302,6 @@ body.document-form-page .form-header {
     border-left: 4px solid #dc3545;
     padding: 16px;
     border-radius: 8px;
-    margin-bottom: 20px;
     color: rgba(255, 255, 255, 0.9);
 }
 
@@ -344,7 +343,22 @@ body.document-form-page .form-header {
     color: #721c24;
     padding: 15px;
     border-radius: 4px;
-    margin-bottom: 20px;
+}
+
+.status-done-notice {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.status-cancel-notice {
+    background: #d8d8d8;
+    border: 1px solid #d8d8d8;
+    color: #787878;
+    padding: 15px;
+    border-radius: 4px;
 }
 
 /* ========================================
@@ -2365,6 +2379,39 @@ body.document-form-page .status-active-notice {
     min-width: 200px;
 }
 
+body.document-form-page .status-done-notice {
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    min-width: 200px;
+}
+
+body.document-form-page .status-cancelled-notice {
+    background: #f44336;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    min-width: 200px;
+}
+
+body.document-form-page .status-processing-notice {
+    background: #FF9800;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    min-width: 200px;
+}
+
 body.document-form-page .notice-header {
     display: flex;
     align-items: center;
@@ -2409,7 +2456,10 @@ body.document-form-page .status-info {
     }
     
     body.document-form-page .status-disabled-notice,
-    body.document-form-page .status-active-notice {
+    body.document-form-page .status-active-notice,
+    body.document-form-page .status-done-notice,
+    body.document-form-page .status-cancelled-notice,
+    body.document-form-page .status-processing-notice {
         width: 100%;
         text-align: center;
     }

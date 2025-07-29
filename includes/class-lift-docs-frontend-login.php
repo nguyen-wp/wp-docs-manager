@@ -350,10 +350,32 @@ class LIFT_Docs_Frontend_Login {
                         <!-- Right Column: Document Status Info -->
                         <div class="status-info-column">
                             <?php if ($is_form_disabled): ?>
-                                <div class="status-disabled-notice">
+                                <?php
+                                $status_class_map = array(
+                                    'processing' => 'status-processing-notice',
+                                    'done' => 'status-done-notice', 
+                                    'cancelled' => 'status-cancelled-notice'
+                                );
+                                $status_class = isset($status_class_map[$document_status]) ? $status_class_map[$document_status] : 'status-disabled-notice';
+                                
+                                $status_icon_map = array(
+                                    'processing' => 'fas fa-cog fa-spin',
+                                    'done' => 'fas fa-check-circle',
+                                    'cancelled' => 'fas fa-ban'
+                                );
+                                $status_icon = isset($status_icon_map[$document_status]) ? $status_icon_map[$document_status] : 'fas fa-exclamation-triangle';
+                                
+                                $status_title_map = array(
+                                    'processing' => __('Document Processing', 'lift-docs-system'),
+                                    'done' => __('Document Completed', 'lift-docs-system'), 
+                                    'cancelled' => __('Document Cancelled', 'lift-docs-system')
+                                );
+                                $status_title = isset($status_title_map[$document_status]) ? $status_title_map[$document_status] : __('Form Access Restricted', 'lift-docs-system');
+                                ?>
+                                <div class="<?php echo esc_attr($status_class); ?>">
                                     <div class="notice-header">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        <strong><?php _e('Form Access Restricted', 'lift-docs-system'); ?></strong>
+                                        <i class="<?php echo esc_attr($status_icon); ?>"></i>
+                                        <strong><?php echo esc_html($status_title); ?></strong>
                                     </div>
                                     <div class="notice-content">
                                         <?php echo esc_html($status_message); ?>
