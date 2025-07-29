@@ -34,6 +34,8 @@ class LIFT_Forms {
         add_action('wp_ajax_lift_forms_submit', array($this, 'ajax_submit_form'));
         add_action('wp_ajax_nopriv_lift_forms_submit', array($this, 'ajax_submit_form'));
         add_action('wp_ajax_lift_forms_get_submission', array($this, 'ajax_get_submission'));
+        add_action('wp_ajax_lift_forms_update_status', array($this, 'ajax_update_form_status'));
+        add_action('wp_ajax_lift_forms_update_submission_status', array($this, 'ajax_update_submission_status'));
         
         // BPMN.io form builder AJAX actions
         add_action('wp_ajax_lift_form_builder_save', array($this, 'ajax_save_form_schema'));
@@ -387,8 +389,34 @@ class LIFT_Forms {
      * Admin page - Forms list
      */
     public function admin_page() {
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
+        }
+        
         global $wpdb;
         $forms_table = $wpdb->prefix . 'lift_forms';
+        
+        // Handle status update
+        if (isset($_POST['action']) && $_POST['action'] === 'update_status' && isset($_POST['form_id'])) {
+            if (wp_verify_nonce($_POST['_wpnonce'], 'update_form_status')) {
+                $form_id = intval($_POST['form_id']);
+                $new_status = sanitize_text_field($_POST['status']);
+                
+                // Validate status
+                $valid_statuses = array('active', 'inactive', 'draft');
+                if (in_array($new_status, $valid_statuses)) {
+                    $wpdb->update(
+                        $forms_table,
+                        array('status' => $new_status),
+                        array('id' => $form_id),
+                        array('%s'),
+                        array('%d')
+                    );
+                    echo '<div class="notice notice-success"><p>' . __('Form status updated successfully.', 'lift-docs-system') . '</p></div>';
+                }
+            }
+        }
         
         // Handle form deletion
         if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
@@ -467,6 +495,16 @@ class LIFT_Forms {
                                         <span class="status status-<?php echo esc_attr($form->status); ?>">
                                             <?php echo ucfirst($form->status); ?>
                                         </span>
+                                        <div class="status-actions">
+                                            <select class="form-status-select small-text" data-form-id="<?php echo $form->id; ?>">
+                                                <option value="active" <?php selected($form->status, 'active'); ?>><?php _e('Active', 'lift-docs-system'); ?></option>
+                                                <option value="inactive" <?php selected($form->status, 'inactive'); ?>><?php _e('Inactive', 'lift-docs-system'); ?></option>
+                                                <option value="draft" <?php selected($form->status, 'draft'); ?>><?php _e('Draft', 'lift-docs-system'); ?></option>
+                                            </select>
+                                            <div class="status-spinner" style="display: none;">
+                                                <span class="spinner is-active" style="float: none; margin: 0;"></span>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td><?php echo date_i18n(get_option('date_format'), strtotime($form->created_at)); ?></td>
                                     <td>
@@ -486,6 +524,62 @@ class LIFT_Forms {
                 <?php endif; ?>
             </div>
         </div>
+        
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            // Handle form status updates
+            $('.form-status-select').on('change', function() {
+                var $select = $(this);
+                var $statusBadge = $select.closest('td').find('.status');
+                var $spinner = $select.siblings('.status-spinner');
+                var formId = $select.data('form-id');
+                var newStatus = $select.val();
+                
+                // Show spinner
+                $spinner.show();
+                $select.prop('disabled', true);
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'lift_forms_update_status',
+                        form_id: formId,
+                        status: newStatus,
+                        nonce: '<?php echo wp_create_nonce('lift_forms_admin_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Update status badge
+                            $statusBadge.removeClass('status-active status-inactive status-draft')
+                                       .addClass('status-' + response.data.status)
+                                       .text(response.data.label);
+                            
+                            // Show success message
+                            $('<div class="notice notice-success is-dismissible"><p>' + response.data.message + '</p></div>')
+                                .insertAfter('.wrap h1')
+                                .delay(3000)
+                                .fadeOut();
+                        } else {
+                            alert('Error: ' + response.data);
+                            // Revert select to previous value
+                            $select.val($statusBadge.text().toLowerCase());
+                        }
+                    },
+                    error: function() {
+                        alert('<?php _e('An error occurred while updating the form status.', 'lift-docs-system'); ?>');
+                        // Revert select to previous value
+                        $select.val($statusBadge.text().toLowerCase());
+                    },
+                    complete: function() {
+                        // Hide spinner and re-enable select
+                        $spinner.hide();
+                        $select.prop('disabled', false);
+                    }
+                });
+            });
+        });
+        </script>
         <?php
     }
     
@@ -556,12 +650,19 @@ class LIFT_Forms {
      * Submissions page
      */
     public function submissions_page() {
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
+        }
+        
         global $wpdb;
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
         $forms_table = $wpdb->prefix . 'lift_forms';
         
         $form_id = isset($_GET['form_id']) ? intval($_GET['form_id']) : 0;
         $user_filter = isset($_GET['user_filter']) ? sanitize_text_field($_GET['user_filter']) : '';
+        $document_id = isset($_GET['document_id']) ? intval($_GET['document_id']) : 0;
+        $status_filter = isset($_GET['status_filter']) ? sanitize_text_field($_GET['status_filter']) : '';
         
         // Get forms for filter
         $forms = $wpdb->get_results("SELECT id, name FROM $forms_table ORDER BY name");
@@ -575,29 +676,41 @@ class LIFT_Forms {
             $params[] = $form_id;
         }
         
+        if ($document_id) {
+            $where .= ' AND s.document_id = %d';
+            $params[] = $document_id;
+        }
+        
         if ($user_filter === 'logged_in') {
             $where .= ' AND s.user_id IS NOT NULL';
         } elseif ($user_filter === 'guest') {
             $where .= ' AND s.user_id IS NULL';
         }
         
+        if ($status_filter) {
+            $where .= ' AND s.status = %s';
+            $params[] = $status_filter;
+        }
+        
         // Execute query with or without prepare based on params
         if (!empty($params)) {
             $submissions = $wpdb->get_results($wpdb->prepare(
-                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
+                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email, d.post_title as document_title
                  FROM $submissions_table s 
                  LEFT JOIN $forms_table f ON s.form_id = f.id 
                  LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
+                 LEFT JOIN {$wpdb->posts} d ON s.document_id = d.ID
                  WHERE $where 
                  ORDER BY s.submitted_at DESC",
                 $params
             ));
         } else {
             $submissions = $wpdb->get_results(
-                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
+                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email, d.post_title as document_title
                  FROM $submissions_table s 
                  LEFT JOIN $forms_table f ON s.form_id = f.id 
                  LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
+                 LEFT JOIN {$wpdb->posts} d ON s.document_id = d.ID
                  WHERE $where 
                  ORDER BY s.submitted_at DESC"
             );
@@ -607,7 +720,7 @@ class LIFT_Forms {
         <div class="wrap">
             <h1><?php _e('Form Submissions', 'lift-docs-system'); ?></h1>
             
-                        <div class="submissions-filters">
+            <div class="submissions-filters">
                 <form method="get">
                     <input type="hidden" name="page" value="lift-forms-submissions">
                     
@@ -626,7 +739,15 @@ class LIFT_Forms {
                         <option value="guest" <?php selected($user_filter, 'guest'); ?>><?php _e('Guest Users', 'lift-docs-system'); ?></option>
                     </select>
                     
-                    <?php if ($form_id || $user_filter): ?>
+                    <select name="status_filter" onchange="this.form.submit()">
+                        <option value=""><?php _e('All Status', 'lift-docs-system'); ?></option>
+                        <option value="unread" <?php selected($status_filter, 'unread'); ?>><?php _e('Unread', 'lift-docs-system'); ?></option>
+                        <option value="read" <?php selected($status_filter, 'read'); ?>><?php _e('Read', 'lift-docs-system'); ?></option>
+                    </select>
+                    
+                    <input type="number" name="document_id" value="<?php echo $document_id; ?>" placeholder="<?php _e('Document ID', 'lift-docs-system'); ?>" min="1" style="width: 120px;" onchange="this.form.submit()">
+                    
+                    <?php if ($form_id || $user_filter || $document_id || $status_filter): ?>
                         <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions'); ?>" class="button">
                             <?php _e('Clear Filters', 'lift-docs-system'); ?>
                         </a>
@@ -644,6 +765,7 @@ class LIFT_Forms {
                     <thead>
                         <tr>
                             <th><?php _e('Form', 'lift-docs-system'); ?></th>
+                            <th><?php _e('Document', 'lift-docs-system'); ?></th>
                             <th><?php _e('Submitted By', 'lift-docs-system'); ?></th>
                             <th><?php _e('Submitted', 'lift-docs-system'); ?></th>
                             <th><?php _e('Status', 'lift-docs-system'); ?></th>
@@ -656,6 +778,18 @@ class LIFT_Forms {
                             <tr>
                                 <td>
                                     <strong><?php echo esc_html($submission->form_name); ?></strong>
+                                </td>
+                                <td>
+                                    <?php if ($submission->document_title): ?>
+                                        <a href="<?php echo admin_url('post.php?post=' . $submission->document_id . '&action=edit'); ?>" target="_blank">
+                                            <?php echo esc_html($submission->document_title); ?>
+                                        </a>
+                                        <br><small>ID: <?php echo $submission->document_id; ?></small>
+                                    <?php else: ?>
+                                        <span class="no-document">
+                                            <?php _e('No Document', 'lift-docs-system'); ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <?php if ($submission->user_id && $submission->user_name): ?>
@@ -676,6 +810,12 @@ class LIFT_Forms {
                                     <span class="status status-<?php echo esc_attr($submission->status); ?>">
                                         <?php echo ucfirst($submission->status); ?>
                                     </span>
+                                    <div class="submission-status-actions">
+                                        <select class="submission-status-select small-text" data-submission-id="<?php echo $submission->id; ?>">
+                                            <option value="unread" <?php selected($submission->status, 'unread'); ?>><?php _e('Unread', 'lift-docs-system'); ?></option>
+                                            <option value="read" <?php selected($submission->status, 'read'); ?>><?php _e('Read', 'lift-docs-system'); ?></option>
+                                        </select>
+                                    </div>
                                 </td>
                                 <td><?php echo esc_html($submission->user_ip); ?></td>
                                 <td>
@@ -764,6 +904,47 @@ class LIFT_Forms {
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status-draft {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status-actions {
+            margin-top: 8px;
+        }
+        .status-actions select {
+            font-size: 11px;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .submission-status-actions {
+            margin-top: 5px;
+        }
+        .submission-status-select {
+            font-size: 11px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+            min-width: 70px;
+        }
+        .submission-status-select:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .no-document {
+            color: #999;
+            font-style: italic;
+        }
         .submissions-filters {
             margin-bottom: 20px;
             padding: 15px;
@@ -782,8 +963,8 @@ class LIFT_Forms {
             flex-wrap: wrap;
             margin: 0;
         }
-        .submissions-filters select {
-            min-width: 200px;
+        .submissions-filters select, .submissions-filters input {
+            min-width: 140px;
             padding: 6px 10px;
         }
         .submissions-filters .button {
@@ -798,6 +979,11 @@ class LIFT_Forms {
                 flex-direction: column;
                 gap: 10px;
             }
+            .submissions-filters select, .submissions-filters input {
+                min-width: auto;
+                width: 100%;
+            }
+        }
             .submissions-filters select {
                 min-width: auto;
                 width: 100%;
@@ -898,6 +1084,55 @@ class LIFT_Forms {
                     $('#submission-detail-modal').hide();
                     $('#submission-modal-backdrop').hide();
                 }
+            });
+            
+            // Handle submission status updates
+            $('.submission-status-select').on('change', function() {
+                var $select = $(this);
+                var $statusBadge = $select.closest('td').find('.status');
+                var submissionId = $select.data('submission-id');
+                var newStatus = $select.val();
+                
+                // Disable select while processing
+                $select.prop('disabled', true);
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'lift_forms_update_submission_status',
+                        submission_id: submissionId,
+                        status: newStatus,
+                        nonce: '<?php echo wp_create_nonce('lift_forms_admin_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Update status badge
+                            $statusBadge.removeClass('status-read status-unread')
+                                       .addClass('status-' + response.data.status)
+                                       .text(response.data.label);
+                            
+                            // Show success message
+                            $('<div class="notice notice-success is-dismissible"><p>' + response.data.message + '</p></div>')
+                                .insertAfter('.wrap h1')
+                                .delay(3000)
+                                .fadeOut();
+                        } else {
+                            alert('Error: ' + response.data);
+                            // Revert select to previous value
+                            $select.val($statusBadge.text().toLowerCase());
+                        }
+                    },
+                    error: function() {
+                        alert('<?php _e('An error occurred while updating the submission status.', 'lift-docs-system'); ?>');
+                        // Revert select to previous value
+                        $select.val($statusBadge.text().toLowerCase());
+                    },
+                    complete: function() {
+                        // Re-enable select
+                        $select.prop('disabled', false);
+                    }
+                });
             });
         });
         </script>
@@ -2266,6 +2501,130 @@ class LIFT_Forms {
         wp_send_json_success(array(
             'schema' => $form_schema,
             'message' => __('Form preview ready', 'lift-docs-system')
+        ));
+    }
+    
+    /**
+     * AJAX: Update form status
+     */
+    public function ajax_update_form_status() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_admin_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
+        }
+        
+        $form_id = intval($_POST['form_id']);
+        $new_status = sanitize_text_field($_POST['status']);
+        
+        // Validate status
+        $valid_statuses = array('active', 'inactive', 'draft');
+        if (!in_array($new_status, $valid_statuses)) {
+            wp_send_json_error(__('Invalid status', 'lift-docs-system'));
+        }
+        
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        
+        // Check if form exists
+        $form = $wpdb->get_row($wpdb->prepare("SELECT id, name FROM $forms_table WHERE id = %d", $form_id));
+        if (!$form) {
+            wp_send_json_error(__('Form not found', 'lift-docs-system'));
+        }
+        
+        // Update status
+        $result = $wpdb->update(
+            $forms_table,
+            array('status' => $new_status),
+            array('id' => $form_id),
+            array('%s'),
+            array('%d')
+        );
+        
+        if ($result === false) {
+            wp_send_json_error(__('Failed to update form status', 'lift-docs-system'));
+        }
+        
+        // Get status label and color
+        $status_labels = array(
+            'active' => __('Active', 'lift-docs-system'),
+            'inactive' => __('Inactive', 'lift-docs-system'),
+            'draft' => __('Draft', 'lift-docs-system')
+        );
+        
+        $status_colors = array(
+            'active' => '#d4edda',
+            'inactive' => '#f8d7da',
+            'draft' => '#fff3cd'
+        );
+        
+        wp_send_json_success(array(
+            'status' => $new_status,
+            'label' => $status_labels[$new_status],
+            'color' => $status_colors[$new_status],
+            'message' => sprintf(__('Form "%s" status updated to %s', 'lift-docs-system'), $form->name, $status_labels[$new_status])
+        ));
+    }
+    
+    /**
+     * AJAX: Update submission status
+     */
+    public function ajax_update_submission_status() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_admin_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
+        }
+        
+        $submission_id = intval($_POST['submission_id']);
+        $new_status = sanitize_text_field($_POST['status']);
+        
+        // Validate status
+        $valid_statuses = array('read', 'unread');
+        if (!in_array($new_status, $valid_statuses)) {
+            wp_send_json_error(__('Invalid status', 'lift-docs-system'));
+        }
+        
+        global $wpdb;
+        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+        
+        // Check if submission exists
+        $submission = $wpdb->get_row($wpdb->prepare("SELECT id FROM $submissions_table WHERE id = %d", $submission_id));
+        if (!$submission) {
+            wp_send_json_error(__('Submission not found', 'lift-docs-system'));
+        }
+        
+        // Update status
+        $result = $wpdb->update(
+            $submissions_table,
+            array('status' => $new_status),
+            array('id' => $submission_id),
+            array('%s'),
+            array('%d')
+        );
+        
+        if ($result === false) {
+            wp_send_json_error(__('Failed to update submission status', 'lift-docs-system'));
+        }
+        
+        // Get status label
+        $status_labels = array(
+            'read' => __('Read', 'lift-docs-system'),
+            'unread' => __('Unread', 'lift-docs-system')
+        );
+        
+        wp_send_json_success(array(
+            'status' => $new_status,
+            'label' => $status_labels[$new_status],
+            'message' => sprintf(__('Submission status updated to %s', 'lift-docs-system'), $status_labels[$new_status])
         ));
     }
 }

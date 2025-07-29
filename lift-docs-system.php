@@ -99,6 +99,7 @@ class LIFT_Docs_System {
         if (defined('WP_DEBUG') && WP_DEBUG) {
             require_once LIFT_DOCS_PLUGIN_DIR . 'includes/test-upload-signature.php';
             require_once LIFT_DOCS_PLUGIN_DIR . 'includes/debug-upload-signature.php';
+            require_once LIFT_DOCS_PLUGIN_DIR . 'includes/test-admin-fixes.php';
         }
     }
     
