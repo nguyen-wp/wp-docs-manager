@@ -694,113 +694,84 @@ class LIFT_Forms {
         // Get forms for filter
         $forms = $wpdb->get_results("SELECT id, name FROM $forms_table ORDER BY name");
         
-        // Build query
+        // Debug input filters
+        error_log('LIFT Forms Filters - Form ID: ' . ($form_id ?: 'none'));
+        error_log('LIFT Forms Filters - Document ID: ' . ($document_id ?: 'none'));
+        error_log('LIFT Forms Filters - User Filter: ' . ($user_filter ?: 'none'));
+        error_log('LIFT Forms Filters - Status Filter: ' . ($status_filter ?: 'none'));
+        
+        // Use simple, direct query approach
+        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
         $where = '1=1';
         $params = array();
         
         if ($form_id) {
-            $where .= ' AND s.form_id = %d';
+            $where .= ' AND form_id = %d';
             $params[] = $form_id;
         }
         
         if ($document_id) {
-            // Search for document_id in form_data JSON
-            $where .= ' AND s.form_data LIKE %s';
+            $where .= ' AND form_data LIKE %s';
             $params[] = '%"_document_id":' . $document_id . '%';
         }
         
         if ($user_filter === 'logged_in') {
-            $where .= ' AND s.user_id IS NOT NULL';
+            $where .= ' AND user_id IS NOT NULL';
         } elseif ($user_filter === 'guest') {
-            $where .= ' AND s.user_id IS NULL';
+            $where .= ' AND user_id IS NULL';
         }
         
         if ($status_filter) {
-            $where .= ' AND s.status = %s';
+            $where .= ' AND status = %s';
             $params[] = $status_filter;
         }
         
-        // Debug query để kiểm tra
-        error_log('LIFT Forms Submissions Query WHERE: ' . $where);
-        error_log('LIFT Forms Submissions Query PARAMS: ' . print_r($params, true));
-        
-        // First, try simple query without JOINs to see if we get data
-        $simple_submissions = $wpdb->get_results("SELECT * FROM $submissions_table ORDER BY submitted_at DESC");
-        error_log('LIFT Forms Simple Query Count: ' . count($simple_submissions));
-        
-        // Try JOIN query first
-        $submissions = array();
-        
+        // Build and execute query
         if (!empty($params)) {
-            $join_query = $wpdb->prepare(
-                "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
-                 FROM $submissions_table s 
-                 LEFT JOIN $forms_table f ON s.form_id = f.id 
-                 LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
-                 WHERE $where 
-                 ORDER BY s.submitted_at DESC",
+            $query = $wpdb->prepare(
+                "SELECT * FROM $submissions_table WHERE $where ORDER BY submitted_at DESC",
                 $params
             );
         } else {
-            $join_query = "SELECT s.*, f.name as form_name, u.display_name as user_name, u.user_email as user_email
-                          FROM $submissions_table s 
-                          LEFT JOIN $forms_table f ON s.form_id = f.id 
-                          LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
-                          WHERE $where 
-                          ORDER BY s.submitted_at DESC";
+            $query = "SELECT * FROM $submissions_table WHERE $where ORDER BY submitted_at DESC";
         }
         
-        error_log('LIFT Forms JOIN Query: ' . $join_query);
-        $submissions = $wpdb->get_results($join_query);
+        error_log('LIFT Forms Final Query: ' . $query);
+        $submissions = $wpdb->get_results($query);
         
         // Check for database errors
         if ($wpdb->last_error) {
-            error_log('LIFT Forms JOIN Query Error: ' . $wpdb->last_error);
+            error_log('LIFT Forms Query Error: ' . $wpdb->last_error);
+            // If there's an error, use empty array
+            $submissions = array();
         }
         
-        // If JOIN query failed or returned empty results, use simple query with manual joins
-        if (empty($submissions) || $wpdb->last_error) {
-            error_log('LIFT Forms: Using simple query fallback');
-            
-            // Build simple query with same WHERE conditions
-            if (!empty($params)) {
-                $simple_where = str_replace('s.', '', $where); // Remove table alias for simple query
-                $simple_query = $wpdb->prepare(
-                    "SELECT * FROM $submissions_table WHERE $simple_where ORDER BY submitted_at DESC",
-                    $params
-                );
+        error_log('LIFT Forms Query Results Count: ' . count($submissions));
+        
+        // Manually add form names and user info for all submissions
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        foreach ($submissions as &$submission) {
+            // Get form name
+            if ($submission->form_id) {
+                $form = $wpdb->get_row($wpdb->prepare("SELECT name FROM $forms_table WHERE id = %d", $submission->form_id));
+                $submission->form_name = $form ? $form->name : __('Unknown Form', 'lift-docs-system');
             } else {
-                $simple_where = str_replace('s.', '', $where);
-                $simple_query = "SELECT * FROM $submissions_table WHERE $simple_where ORDER BY submitted_at DESC";
+                $submission->form_name = __('Unknown Form', 'lift-docs-system');
             }
             
-            error_log('LIFT Forms Simple Query: ' . $simple_query);
-            $submissions = $wpdb->get_results($simple_query);
-            
-            // Manually add form names and user info
-            foreach ($submissions as &$submission) {
-                // Get form name
-                if ($submission->form_id) {
-                    $form = $wpdb->get_row($wpdb->prepare("SELECT name FROM $forms_table WHERE id = %d", $submission->form_id));
-                    $submission->form_name = $form ? $form->name : __('Unknown Form', 'lift-docs-system');
+            // Get user info
+            if ($submission->user_id) {
+                $user = get_user_by('id', $submission->user_id);
+                if ($user) {
+                    $submission->user_name = $user->display_name;
+                    $submission->user_email = $user->user_email;
                 } else {
-                    $submission->form_name = __('Unknown Form', 'lift-docs-system');
+                    $submission->user_name = __('Unknown User', 'lift-docs-system');
+                    $submission->user_email = '';
                 }
-                
-                // Get user info
-                if ($submission->user_id) {
-                    $user = get_user_by('id', $submission->user_id);
-                    if ($user) {
-                        $submission->user_name = $user->display_name;
-                        $submission->user_email = $user->user_email;
-                    } else {
-                        $submission->user_name = null;
-                        $submission->user_email = null;
-                    }
-                } else {
-                    $submission->user_name = null;
-                    $submission->user_email = null;
-                }
+            } else {
+                $submission->user_name = __('Guest', 'lift-docs-system');
+                $submission->user_email = '';
             }
         }
         
