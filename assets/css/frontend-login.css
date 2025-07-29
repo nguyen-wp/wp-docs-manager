@@ -80,9 +80,6 @@
     font-size: 16px;
     background: #f8f9fa;
     /* Remove all animations */
-    -webkit-
-    -moz-
-    -o-
 }
 .lift-form-group input:focus {
     outline: none;
@@ -178,9 +175,6 @@
     font-weight: 600;
     cursor: pointer;
     /* Remove all animations */
-    -webkit-
-    -moz-
-    -o-
 }
 .lift-login-btn:hover {
     background: #5a6fd8;
@@ -767,5 +761,194 @@
 .lift-form-group input.has-value,
 .lift-form-group input:focus {
     background: white;
+}
+
+/* Archived Documents Styles */
+.document-card.archived-document {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    opacity: 0.8;
+    position: relative;
+}
+
+.document-card.archived-document:hover {
+    border-color: #adb5bd;
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Admin archived access styles */
+.document-card.archived-admin-access {
+    background: #fff8e1;
+    border: 2px solid #f39c12;
+    opacity: 1;
+    position: relative;
+}
+
+.document-card.archived-admin-access:hover {
+    border-color: #e67e22;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(243, 156, 18, 0.3);
+}
+
+.document-card.archived-admin-access::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(243, 156, 18, 0.1) 10px,
+        rgba(243, 156, 18, 0.1) 20px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.document-card.archived-document::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(149, 165, 166, 0.1) 10px,
+        rgba(149, 165, 166, 0.1) 20px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.archived-badge {
+    background-color: #95a5a6 !important;
+    color: white !important;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.archived-admin-badge {
+    background-color: #f39c12 !important;
+    color: white !important;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 4px rgba(243, 156, 18, 0.3);
+}
+
+.archived-badge i,
+.archived-admin-badge i {
+    font-size: 10px;
+}
+
+.admin-archived-access {
+    border: 2px solid #f39c12 !important;
+    background: #fff3cd !important;
+    color: #856404 !important;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.admin-archived-access:hover {
+    background: #ffeaa7 !important;
+    color: #6c5700 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(243, 156, 18, 0.4);
+}
+
+.archived-info,
+.archived-form-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6c757d;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.archived-info i,
+.archived-form-info i {
+    opacity: 0.5;
+}
+
+.archived-notice {
+    font-style: italic;
+    font-size: 12px;
+    color: #95a5a6;
+}
+
+.document-card.archived-document .document-title span {
+    color: #6c757d;
+}
+
+.document-card.archived-admin-access .document-title span {
+    color: #856404;
+}
+
+.document-card.archived-document .document-meta {
+    opacity: 0.7;
+}
+
+.document-card.archived-admin-access .document-meta {
+    opacity: 1;
+}
+
+.document-card.archived-document .badge:not(.archived-badge) {
+    opacity: 0.6;
+}
+
+.document-card.archived-admin-access .badge:not(.archived-admin-badge) {
+    opacity: 1;
+}
+
+.document-card.archived-document .view-actions {
+    opacity: 0.8;
+}
+
+.document-card.archived-admin-access .view-actions {
+    opacity: 1;
+}
+
+/* Responsive adjustments for archived documents */
+@media (max-width: 768px) {
+    .archived-info,
+    .archived-form-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .archived-notice {
+        margin-left: 0;
+    }
+    
+    .admin-archived-access {
+        flex-direction: column;
+        text-align: center;
+        gap: 4px;
+        padding: 10px;
+    }
 }
 /* No spinner animations */

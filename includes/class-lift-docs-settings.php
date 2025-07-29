@@ -1451,10 +1451,13 @@ class LIFT_Docs_Settings {
             $user_id = get_current_user_id();
         }
         
-        // Check if document is archived - block access for all users including admins
+        // Check if document is archived - block access for regular users, allow admin access
         $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
         if ($is_archived === '1' || $is_archived === 1) {
-            return false;
+            // Admin can still access archived documents
+            if (!($user_id && user_can($user_id, 'manage_options'))) {
+                return false;
+            }
         }
         
         // Administrators and editors always have access
@@ -1484,10 +1487,13 @@ class LIFT_Docs_Settings {
             $user_id = get_current_user_id();
         }
         
-        // Check if document is archived - block access for all users including admins
+        // Check if document is archived - block access for regular users, allow admin access
         $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
         if ($is_archived === '1' || $is_archived === 1) {
-            return false;
+            // Admin can still download archived documents
+            if (!($user_id && user_can($user_id, 'manage_options'))) {
+                return false;
+            }
         }
         
         // Administrators and editors always have access

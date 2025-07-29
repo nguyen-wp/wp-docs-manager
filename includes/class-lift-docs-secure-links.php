@@ -1054,9 +1054,6 @@ class LIFT_Docs_Secure_Links {
                         <a href="<?php echo home_url('/document-login/'); ?>" class="btn btn-primary">
                             <i class="fas fa-lock"></i> <?php _e('Document Login', 'lift-docs-system'); ?>
                         </a>
-                        <a href="<?php echo home_url(); ?>" class="btn btn-secondary">
-                            <i class="fas fa-home"></i> <?php _e('Return Home', 'lift-docs-system'); ?>
-                        </a>
                     </div>
                     
                 </div>

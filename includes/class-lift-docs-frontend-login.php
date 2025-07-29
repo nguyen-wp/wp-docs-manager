@@ -56,10 +56,10 @@ class LIFT_Docs_Frontend_Login {
      */
     private function maybe_flush_rewrite_rules() {
         $version = get_option('lift_docs_form_rewrite_version');
-        // Update version to force flush for new URL structure
-        if ($version !== LIFT_DOCS_VERSION . '_v2') {
+        // Update version to force flush for archived document protection
+        if ($version !== LIFT_DOCS_VERSION . '_v3_archived') {
             flush_rewrite_rules();
-            update_option('lift_docs_form_rewrite_version', LIFT_DOCS_VERSION . '_v2');
+            update_option('lift_docs_form_rewrite_version', LIFT_DOCS_VERSION . '_v3_archived');
         }
     }
     
@@ -194,6 +194,12 @@ class LIFT_Docs_Frontend_Login {
         // Verify user has access to the document
         if (!$this->user_can_view_document($document_id)) {
             wp_die(__('You do not have access to this document.', 'lift-docs-system'), __('Access Denied', 'lift-docs-system'));
+        }
+        
+        // Additional check: Verify document is not archived (except for admin)
+        $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
+        if (($is_archived === '1' || $is_archived === 1) && !current_user_can('manage_options')) {
+            wp_die(__('This document has been archived and is no longer accessible.', 'lift-docs-system'), __('Document Archived', 'lift-docs-system'));
         }
         
         // Verify form is assigned to document
@@ -1840,14 +1846,40 @@ class LIFT_Docs_Frontend_Login {
      * Get documents assigned to user
      */
     private function get_user_documents($user_id) {
-        // Get all published documents
-        $all_documents = get_posts(array(
+        // Check if current user is admin
+        $is_admin = current_user_can('manage_options');
+        
+        // Meta query - admin can see archived documents, regular users cannot
+        $meta_query = array();
+        if (!$is_admin) {
+            $meta_query = array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_lift_doc_archived',
+                    'compare' => 'NOT EXISTS'
+                ),
+                array(
+                    'key' => '_lift_doc_archived',
+                    'value' => '1',
+                    'compare' => '!='
+                )
+            );
+        }
+        
+        // Get all published documents (admin sees all, users see non-archived only)
+        $query_args = array(
             'post_type' => 'lift_document',
             'post_status' => 'publish',
             'posts_per_page' => -1,
             'orderby' => 'date',
             'order' => 'DESC'
-        ));
+        );
+        
+        if (!empty($meta_query)) {
+            $query_args['meta_query'] = $meta_query;
+        }
+        
+        $all_documents = get_posts($query_args);
         
         $user_documents = array();
         
@@ -1911,24 +1943,8 @@ class LIFT_Docs_Frontend_Login {
      * Check if user can view document
      */
     private function user_can_view_document($document_id) {
-        // Get current user
-        $current_user_id = get_current_user_id();
-        
-        // Admin can always view
-        if (user_can($current_user_id, 'manage_options')) {
-            return true;
-        }
-        
-        // Check if document is assigned to current user
-        $assigned_users = get_post_meta($document_id, '_lift_doc_assigned_users', true);
-        
-        if (empty($assigned_users) || !is_array($assigned_users)) {
-            // Unassigned documents - only admin can view
-            return false;
-        }
-        
-        // Check if current user is in assigned list
-        return in_array($current_user_id, $assigned_users);
+        // Use centralized permission checking which includes archive status check
+        return LIFT_Docs_Settings::user_can_view_document($document_id);
     }
     
     /**
@@ -1945,15 +1961,23 @@ class LIFT_Docs_Frontend_Login {
         $views = get_post_meta($document->ID, '_lift_doc_views', true);
         $downloads = get_post_meta($document->ID, '_lift_doc_downloads', true);
         
+        // Check if document is archived
+        $is_archived = get_post_meta($document->ID, '_lift_doc_archived', true) === '1';
+        
+        // Check if current user is admin
+        $is_admin = current_user_can('manage_options');
+        
         // Get document status
         $document_status = get_post_meta($document->ID, '_lift_doc_status', true);
         if (empty($document_status)) {
             $document_status = 'pending';
         }
         
-        // Determine if editing/submitting is disabled based on status
-        $is_forms_disabled = in_array($document_status, array('processing', 'done', 'cancelled'));
-        $is_view_disabled = ($document_status === 'cancelled');
+        // Determine if editing/submitting is disabled based on status or archive status
+        // Admin can always access archived documents, regular users cannot
+        $archive_restriction = $is_archived && !$is_admin;
+        $is_forms_disabled = in_array($document_status, array('processing', 'done', 'cancelled')) || $archive_restriction;
+        $is_view_disabled = ($document_status === 'cancelled') || $archive_restriction;
         $is_cancelled = ($document_status === 'cancelled');
         
         // Check if user has downloaded this document
@@ -1965,11 +1989,24 @@ class LIFT_Docs_Frontend_Login {
         ));
         
         ?>
-        <div class="document-card" data-document-id="<?php echo $document->ID; ?>">
+        <div class="document-card <?php echo ($is_archived && !$is_admin) ? 'archived-document' : ''; ?> <?php echo ($is_archived && $is_admin) ? 'archived-admin-access' : ''; ?>" data-document-id="<?php echo $document->ID; ?>">
             <div class="document-card-header-meta">
                 <div class="document-header-info">
                     <h3 class="document-title">
                         <span><?php echo esc_html($document->post_title); ?></span>
+                        <?php
+                        // Add archive badge if archived
+                        if ($is_archived): ?>
+                            <?php if ($is_admin): ?>
+                                <span class="badge archived-admin-badge" style="background-color: #f39c12; color: white;">
+                                    <i class="fas fa-archive"></i> <?php _e('Archived', 'lift-docs-system'); ?> (<?php _e('Admin Access', 'lift-docs-system'); ?>)
+                                </span>
+                            <?php else: ?>
+                                <span class="badge archived-badge" style="background-color: #95a5a6; color: white;">
+                                    <i class="fas fa-archive"></i> <?php _e('Archived', 'lift-docs-system'); ?>
+                                </span>
+                            <?php endif; ?>
+                        <?php endif; ?>
                         <?php
                         // Add status badge
                         $status_colors = array(
@@ -2018,8 +2055,8 @@ class LIFT_Docs_Frontend_Login {
                     <div class="view-actions">
                         <!-- <h4><i class="fas fa-file"></i> Documents</h4> -->
                         <?php 
-                        // Show Attached files link
-                        if ($this->user_can_view_document($document->ID)) {
+                        // Show Attached files - admin can access archived documents, regular users cannot
+                        if ($this->user_can_view_document($document->ID) && (!$is_archived || $is_admin)) {
                             $view_text = __('View Document', 'lift-docs-system');
                             if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
                                 $view_url = LIFT_Docs_Settings::generate_secure_link($document->ID);
@@ -2029,7 +2066,15 @@ class LIFT_Docs_Frontend_Login {
                             
                             $link_class = '';
                             $link_style = '';
-                            if ($is_view_disabled) {
+                            
+                            // Add admin notice for archived documents
+                            if ($is_archived && $is_admin) {
+                                $view_text .= ' (' . __('Admin Only', 'lift-docs-system') . ')';
+                                $link_class .= ' admin-archived-access';
+                                $link_style = 'border: 2px solid #f39c12; background: #fff3cd; color: #856404;';
+                            }
+                            
+                            if ($is_view_disabled && !$is_archived) {
                                 $link_class .= ' cancelled-link';
                                 $link_style = 'pointer-events: none; opacity: 0.5; text-decoration: line-through; color: #e74c3c;';
                                 $view_text .= ' (' . __('Cancelled', 'lift-docs-system') . ')';
@@ -2048,6 +2093,21 @@ class LIFT_Docs_Frontend_Login {
                             <?php endif; ?>
                             </span>
                             <?php
+                        } elseif ($is_archived && !$is_admin) {
+                            // Show files info but no clickable link for archived documents (non-admin users only)
+                            ?>
+                            <span class="archived-info">
+                                <i class="fas fa-file" style="opacity: 0.5;"></i>
+                                <span style="opacity: 0.5; text-decoration: line-through;"><?php _e('View Document', 'lift-docs-system'); ?></span>
+                                <span class="archived-notice" style="color: #95a5a6; font-size: 12px;">(<?php _e('Archived', 'lift-docs-system'); ?>)</span>
+                                <?php if ($file_count > 1): ?>
+                                    <span class="badge files-badge" style="opacity: 0.5;"><?php echo $file_count; ?> <?php _e('files', 'lift-docs-system'); ?></span>
+                                <?php endif; ?>
+                                <?php if ($user_downloaded): ?>
+                                    <span class="badge downloaded-badge" style="opacity: 0.5;"><?php _e('Downloaded', 'lift-docs-system'); ?></span>
+                                <?php endif; ?>
+                            </span>
+                            <?php
                         }
                         ?>
                     </div>
@@ -2056,7 +2116,7 @@ class LIFT_Docs_Frontend_Login {
                     <div class="view-actions">
                         <!-- <h4><i class="fas fa-file-text"></i> Forms</h4> -->
                         <?php
-                        // Show assigned form links
+                        // Show assigned form links - admin can access archived documents, regular users cannot
                         $assigned_forms = get_post_meta($document->ID, '_lift_doc_assigned_forms', true);
                         if (!empty($assigned_forms) && is_array($assigned_forms)) {
                             global $wpdb;
@@ -2070,6 +2130,18 @@ class LIFT_Docs_Frontend_Login {
                                 ));
                                 
                                 if ($form) {
+                                    // For archived documents, show form name but no clickable link for regular users only
+                                    if ($is_archived && !$is_admin) {
+                                        ?>
+                                        <span class="archived-form-info">
+                                            <i class="fas fa-rectangle-list" style="opacity: 0.5;"></i>
+                                            <span style="opacity: 0.5; text-decoration: line-through;"><?php echo esc_html($form->name); ?></span>
+                                            <span class="archived-notice" style="color: #95a5a6; font-size: 12px;">(<?php _e('Archived', 'lift-docs-system'); ?>)</span>
+                                        </span>
+                                        <?php
+                                        continue;
+                                    }
+                                    
                                     // Use new URL structure: /document-form/document_id/form_id
                                     $form_url = $this->get_form_url($document->ID, $form->id);
                                     
@@ -2089,8 +2161,15 @@ class LIFT_Docs_Frontend_Login {
                                         }
                                     }
                                     
-                                    // Apply status-based restrictions
-                                    if ($is_forms_disabled && $document_status !== 'cancelled') {
+                                    // Add admin notice for archived documents
+                                    if ($is_archived && $is_admin) {
+                                        $button_text .= ' (' . __('Admin Only', 'lift-docs-system') . ')';
+                                        $button_class .= ' admin-archived-access';
+                                        $button_style = 'border: 2px solid #f39c12; background: #fff3cd; color: #856404;';
+                                    }
+                                    
+                                    // Apply status-based restrictions (but not archive restrictions for admin)
+                                    if ($is_forms_disabled && $document_status !== 'cancelled' && !($is_archived && $is_admin)) {
                                         // For processing/done: allow opening form but it will be disabled inside
                                         if ($has_submitted) {
                                             $button_text = sprintf(__('View %s', 'lift-docs-system'), $form->name) . ' (' . __('Read Only', 'lift-docs-system') . ')';
@@ -2884,6 +2963,12 @@ class LIFT_Docs_Frontend_Login {
         // Verify user has access to the document
         if (!$this->user_can_view_document($document_id)) {
             return '<div class="error"><p>' . __('You do not have access to this document.', 'lift-docs-system') . '</p></div>';
+        }
+        
+        // Additional check: Verify document is not archived
+        $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            return '<div class="error"><p>' . __('This document has been archived and is no longer accessible.', 'lift-docs-system') . '</p></div>';
         }
         
         // Verify form is assigned to document
