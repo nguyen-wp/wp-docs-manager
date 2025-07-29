@@ -1304,13 +1304,11 @@ body.document-form-page .signature-container {
     border: 1px solid #999;
     background: #fff;
     overflow: hidden;
+    width: fit-content;
 }
 
 body.document-form-page .signature-canvas {
     display: block;
-    width: 100%;
-    height: 0;
-    padding-bottom: 30%; /* 3:1 aspect ratio */
     border: none;
     cursor: crosshair;
     background: #fff;
