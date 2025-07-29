@@ -493,9 +493,6 @@ class LIFT_Forms {
                                     </td>
                                     <td>
                                         <div class="status-container">
-                                            <span class="status status-<?php echo esc_attr($form->status); ?>">
-                                                <?php echo ucfirst($form->status); ?>
-                                            </span>
                                             <select class="form-status-select small-text" data-form-id="<?php echo $form->id; ?>">
                                                 <option value="active" <?php selected($form->status, 'active'); ?>><?php _e('Active', 'lift-docs-system'); ?></option>
                                                 <option value="inactive" <?php selected($form->status, 'inactive'); ?>><?php _e('Inactive', 'lift-docs-system'); ?></option>
@@ -530,10 +527,15 @@ class LIFT_Forms {
             // Handle form status updates
             $('.form-status-select').on('change', function() {
                 var $select = $(this);
-                var $statusBadge = $select.closest('td').find('.status');
                 var $spinner = $select.siblings('.status-spinner');
                 var formId = $select.data('form-id');
                 var newStatus = $select.val();
+                var originalStatus = $select.data('original-status') || $select.val();
+                
+                // Store original status
+                if (!$select.data('original-status')) {
+                    $select.data('original-status', originalStatus);
+                }
                 
                 // Show spinner
                 $spinner.show();
@@ -550,26 +552,24 @@ class LIFT_Forms {
                     },
                     success: function(response) {
                         if (response.success) {
-                            // Update status badge
-                            $statusBadge.removeClass('status-active status-inactive status-draft')
-                                       .addClass('status-' + response.data.status)
-                                       .text(response.data.label);
-                            
                             // Show success message
                             $('<div class="notice notice-success is-dismissible"><p>' + response.data.message + '</p></div>')
                                 .insertAfter('.wrap h1')
                                 .delay(3000)
                                 .fadeOut();
+                            
+                            // Update stored original status
+                            $select.data('original-status', response.data.status);
                         } else {
                             alert('Error: ' + response.data);
-                            // Revert select to previous value
-                            $select.val($statusBadge.text().toLowerCase());
+                            // Revert select to original value
+                            $select.val(originalStatus);
                         }
                     },
                     error: function() {
                         alert('<?php _e('An error occurred while updating the form status.', 'lift-docs-system'); ?>');
-                        // Revert select to previous value
-                        $select.val($statusBadge.text().toLowerCase());
+                        // Revert select to original value
+                        $select.val(originalStatus);
                     },
                     complete: function() {
                         // Hide spinner and re-enable select
@@ -881,18 +881,14 @@ class LIFT_Forms {
         .status-container {
             display: flex;
             align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .status-container .status {
-            flex-shrink: 0;
+            gap: 8px;
         }
         .status-container select {
             font-size: 11px;
-            padding: 2px 4px;
+            padding: 4px 8px;
             border-radius: 3px;
             border: 1px solid #ddd;
-            min-width: 80px;
+            min-width: 90px;
         }
         .status-spinner {
             display: inline-block;
