@@ -14,9 +14,19 @@
      * Initialize when document is ready
      */
     $(document).ready(function() {
-        initializeFileUploads();
-        initializeSignatureFields();
-        setupFormSubmission();
+        // Add a small delay to ensure all CSS is loaded
+        setTimeout(function() {
+            initializeFileUploads();
+            initializeSignatureFields();
+            setupFormSubmission();
+            
+            // Debug logging
+            if (typeof console !== 'undefined') {
+                console.log('LIFT Forms: File upload and signature functionality initialized');
+                console.log('Found file fields:', $('.lift-form-field.lift-field-file').length);
+                console.log('Found signature fields:', $('.lift-form-field.lift-field-signature').length);
+            }
+        }, 100);
     });
 
     /**

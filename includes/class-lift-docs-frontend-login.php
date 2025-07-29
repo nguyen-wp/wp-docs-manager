@@ -325,7 +325,7 @@ class LIFT_Docs_Frontend_Login {
             ?>
             <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/secure-frontend.css'; ?>">
         </head>
-        <body class="lift-secure-page">
+        <body class="lift-secure-page document-form-page">
             <div class="lift-docs-custom-layout">
 
 
@@ -602,6 +602,24 @@ class LIFT_Docs_Frontend_Login {
                 <?php
                 break;
                 
+            case 'signature':
+                ?>
+                <input type="hidden" 
+                       id="<?php echo $field_id; ?>" 
+                       name="<?php echo $field_name; ?>" 
+                       class="form-control"
+                       value="<?php echo esc_attr($field_value); ?>"
+                       <?php echo $required; ?>
+                       <?php echo $disabled; ?>>
+                <?php if ($field_value): ?>
+                    <div class="current-signature">
+                        <img src="<?php echo esc_url($field_value); ?>" alt="<?php _e('Current signature', 'lift-docs-system'); ?>" style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
+                        <small class="field-description"><?php _e('Current signature', 'lift-docs-system'); ?></small>
+                    </div>
+                <?php endif; ?>
+                <?php
+                break;
+                
             case 'date':
                 ?>
                 <input type="date" 
@@ -766,7 +784,10 @@ class LIFT_Docs_Frontend_Login {
             return;
         }
         
-        echo '<div class="form-field" data-field-type="' . esc_attr($field['type']) . '" data-field-id="' . esc_attr($field['id']) . '">';
+        // Add specific CSS classes for JavaScript targeting
+        $field_classes = 'form-field lift-form-field lift-field-' . esc_attr($field['type']);
+        
+        echo '<div class="' . $field_classes . '" data-field-type="' . esc_attr($field['type']) . '" data-field-id="' . esc_attr($field['id']) . '">';
         
         // Render label for most field types (except checkbox which handles its own label)
         if ($field['type'] !== 'checkbox') {
@@ -2028,6 +2049,26 @@ class LIFT_Docs_Frontend_Login {
         if (get_query_var('document_form')) {
             wp_enqueue_style('lift-docs-secure-frontend', plugin_dir_url(__FILE__) . '../assets/css/secure-frontend.css', array(), LIFT_DOCS_VERSION);
             wp_enqueue_script('lift-docs-secure-frontend', plugin_dir_url(__FILE__) . '../assets/js/secure-frontend.js', array('jquery'), LIFT_DOCS_VERSION, true);
+            
+            // Enqueue file upload and signature functionality for document forms
+            wp_enqueue_script('lift-file-upload-signature', plugin_dir_url(__FILE__) . '../assets/js/file-upload-signature.js', array('jquery'), '1.0.0', true);
+            
+            // Localize script for file upload and signature
+            wp_localize_script('lift-file-upload-signature', 'liftFormsFrontend', array(
+                'ajaxurl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('lift_forms_submit_nonce'),
+                'uploadDir' => wp_upload_dir()['url'],
+                'maxFileSize' => 5 * 1024 * 1024, // 5MB
+                'allowedTypes' => array('image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+                'strings' => array(
+                    'uploadError' => __('Error uploading file', 'lift-docs-system'),
+                    'signatureError' => __('Error saving signature', 'lift-docs-system'),
+                    'fileTooLarge' => __('File is too large. Maximum size is 5MB.', 'lift-docs-system'),
+                    'invalidFileType' => __('Invalid file type. Please select a supported format.', 'lift-docs-system'),
+                    'signatureSaved' => __('Signature saved successfully!', 'lift-docs-system'),
+                    'fileUploaded' => __('File uploaded successfully!', 'lift-docs-system'),
+                )
+            ));
         }
         
         wp_enqueue_script('lift-docs-frontend-login', plugin_dir_url(__FILE__) . '../assets/js/frontend-login.js', array('jquery'), '1.0.0', true);
