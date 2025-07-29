@@ -3076,13 +3076,33 @@ class LIFT_Docs_Admin {
                                         <div class="form-description"><?php echo esc_html(wp_trim_words($form_info['description'], 8)); ?></div>
                                     <?php endif; ?>
                                 </div>
-                                <?php if ($form_info['has_submission']): ?>
-                                    <div class="form-actions">
+                                <div class="form-actions">
+                                    <?php 
+                                    // Build view form URL with submission data for admin
+                                    $view_form_url = home_url('/document-form/' . $document_id . '/' . $form_info['id'] . '/');
+                                    if ($form_info['has_submission'] && $form_info['submission_id']) {
+                                        $view_form_url .= '?admin_view=1&submission_id=' . $form_info['submission_id'];
+                                    } else {
+                                        $view_form_url .= '?admin_view=1';
+                                    }
+                                    ?>
+                                    <a href="<?php echo esc_url($view_form_url); ?>" 
+                                       class="button button-primary" 
+                                       target="_blank">
+                                        <?php 
+                                        if ($form_info['has_submission']) {
+                                            _e('View Form & Submission', 'lift-docs-system');
+                                        } else {
+                                            _e('View Form', 'lift-docs-system');
+                                        }
+                                        ?>
+                                    </a>
+                                    <?php if ($form_info['has_submission']): ?>
                                         <button type="button" 
                                                 class="button view-submission-btn" 
                                                 data-submission-id="<?php echo esc_attr($form_info['submission_id']); ?>"
                                                 data-nonce="<?php echo wp_create_nonce('lift_forms_get_submission'); ?>">
-                                            <?php _e('View Submission', 'lift-docs-system'); ?>
+                                            <?php _e('View Submission Only', 'lift-docs-system'); ?>
                                         </button>
                                         <div class="submission-info">
                                             <div class="submission-date">
@@ -3101,12 +3121,12 @@ class LIFT_Docs_Admin {
                                                 </div>
                                             <?php endif; ?>
                                         </div>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="form-status">
-                                        <span class="status-badge status-pending"><?php _e('No Submit', 'lift-docs-system'); ?></span>
-                                    </div>
-                                <?php endif; ?>
+                                    <?php else: ?>
+                                        <div class="form-status">
+                                            <span class="status-badge status-pending"><?php _e('No Submit', 'lift-docs-system'); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         <?php endforeach; ?>
                     </div>

@@ -2482,3 +2482,96 @@ body.document-form-page .status-info {
         font-size: 12px;
     }
 }
+
+/* ========================================
+   Admin Readonly Form Styles
+   ======================================== */
+
+/* Admin view notices */
+.admin-view-notice {
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.admin-view-notice strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Readonly form fields */
+.admin-readonly-form .lift-form-field.readonly-field {
+    margin-bottom: 20px;
+}
+
+.admin-readonly-form .readonly-value {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 8px 12px;
+    min-height: 20px;
+    color: #495057;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.admin-readonly-form .readonly-value.textarea-readonly {
+    min-height: 80px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.admin-readonly-form .readonly-value.file-readonly a {
+    color: #007cba;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.admin-readonly-form .readonly-value.file-readonly a:hover {
+    text-decoration: underline;
+}
+
+.admin-readonly-form .readonly-value.signature-readonly {
+    text-align: center;
+    padding: 15px;
+}
+
+.admin-readonly-form .readonly-value.signature-readonly img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+    background: white;
+}
+
+/* Admin form actions */
+.admin-form-actions {
+    border-top: 2px solid #007cba;
+    background: #f8f9fa !important;
+}
+
+.admin-form-actions p {
+    margin: 0 0 10px 0;
+    color: #495057;
+}
+
+/* Print styles for admin view */
+@media print {
+    .admin-view-notice,
+    .admin-form-actions {
+        display: none !important;
+    }
+    
+    .document-form-wrapper {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .admin-readonly-form .readonly-value {
+        border: 1px solid #000 !important;
+        background: white !important;
+        color: #000 !important;
+    }
+}

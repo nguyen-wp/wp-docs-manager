@@ -225,6 +225,61 @@ class LIFT_Docs_Frontend_Login {
         $existing_submission = null;
         $is_edit_mode = false;
         
+        // ADMIN VIEW DEBUG - Add here where form rendering happens
+        // Simplified admin view check - force true for testing
+        $is_admin_view = isset($_GET['admin_view']) && $_GET['admin_view'] == '1';
+        if ($is_admin_view) {
+            // Double check user permissions
+            if (!current_user_can('manage_options')) {
+                $is_admin_view = false;
+                error_log('LIFT Frontend Debug: Admin view denied - insufficient permissions');
+            }
+        }
+        
+        $submission_data = array();
+        $submission_info = null;
+        
+        if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') {
+            error_log('LIFT Frontend Debug: Admin view parameter detected');
+            error_log('LIFT Frontend Debug: Current user can manage options: ' . (current_user_can('manage_options') ? 'Yes' : 'No'));
+            error_log('LIFT Frontend Debug: Current user ID: ' . get_current_user_id());
+            error_log('LIFT Frontend Debug: Form ID: ' . $form_id);
+            error_log('LIFT Frontend Debug: Document ID: ' . $document_id);
+            error_log('LIFT Frontend Debug: isset($_GET[admin_view]): ' . (isset($_GET['admin_view']) ? 'true' : 'false'));
+            error_log('LIFT Frontend Debug: $_GET[admin_view] == 1: ' . ($_GET['admin_view'] == '1' ? 'true' : 'false'));
+            error_log('LIFT Frontend Debug: current_user_can(manage_options): ' . (current_user_can('manage_options') ? 'true' : 'false'));
+            error_log('LIFT Frontend Debug: Final is_admin_view: ' . ($is_admin_view ? 'true' : 'false'));
+        }
+        
+        if ($is_admin_view && isset($_GET['submission_id'])) {
+            $submission_id = intval($_GET['submission_id']);
+            error_log('LIFT Frontend Debug: Submission ID: ' . $submission_id);
+            
+            if ($submission_id) {
+                $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+                $submission_info = $wpdb->get_row($wpdb->prepare(
+                    "SELECT s.*, u.display_name as user_name, u.user_email as user_email 
+                     FROM $submissions_table s 
+                     LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
+                     WHERE s.id = %d",
+                    $submission_id
+                ));
+                
+                error_log('LIFT Frontend Debug: Submission info query result: ' . print_r($submission_info, true));
+                
+                if ($submission_info) {
+                    error_log('LIFT Frontend Debug: Raw form_data: ' . $submission_info->form_data);
+                    $submission_data = json_decode($submission_info->form_data, true);
+                    if (!is_array($submission_data)) {
+                        $submission_data = array();
+                    }
+                    error_log('LIFT Frontend Debug: Parsed submission_data: ' . print_r($submission_data, true));
+                } else {
+                    error_log('LIFT Frontend Debug: No submission found for ID ' . $submission_id);
+                }
+            }
+        }
+        
         if ($current_user_id > 0) {
             // Get LIFT_Forms instance to check for existing submission
             $lift_forms = new LIFT_Forms();
@@ -233,13 +288,13 @@ class LIFT_Docs_Frontend_Login {
         }
 
         // Render form page
-        $this->render_form_page($document, $form, $existing_submission, $is_edit_mode);
+        $this->render_form_page($document, $form, $existing_submission, $is_edit_mode, $is_admin_view, $submission_data, $submission_info);
     }
     
     /**
      * Render form page
      */
-    private function render_form_page($document, $form, $existing_submission = null, $is_edit_mode = false) {
+    private function render_form_page($document, $form, $existing_submission = null, $is_edit_mode = false, $is_admin_view = false, $submission_data = array(), $submission_info = null) {
         $current_user = wp_get_current_user();
         
         // Parse form fields - handle different data structures from Form Builder
@@ -404,6 +459,20 @@ class LIFT_Docs_Frontend_Login {
                 
                 <!-- Form Content Section - Main Area -->
                 <div class="form-content-section">
+                    <?php if ($is_admin_view && $submission_info): ?>
+                        <div class="admin-view-notice" style="background: #e3f2fd; border: 1px solid #0073aa; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+                            <strong style="color: #0073aa;">Admin View - Viewing Submitted Data</strong>
+                            <small>
+                                Submitted by: <strong><?php echo esc_html($submission_info->user_name ?: 'Guest'); ?></strong>
+                                Submitted on: <strong><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($submission_info->submitted_at)); ?></strong>
+                            </small>
+                        </div>
+                    <?php elseif ($is_admin_view): ?>
+                        <div class="admin-view-notice" style="background: #fff3cd; border: 1px solid #f39c12; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+                            <strong style="color: #856404;">Admin View - No Submission Found</strong>
+                            <small>The specified submission could not be found.</small>
+                        </div>
+                    <?php endif; ?>
                     <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" <?php if ($is_form_disabled): ?>style="opacity: 0.6; pointer-events: none;"<?php endif; ?>>
                         <input type="hidden" name="action" value="lift_forms_submit">
                         <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
@@ -415,7 +484,14 @@ class LIFT_Docs_Frontend_Login {
                         <?php endif; ?>
                         
                         <div class="form-builder-content">
-                            <?php $this->render_form_builder_layout($form_fields, $existing_data, $is_form_disabled); ?>
+                            <?php 
+                            // Pass admin view data to form renderer
+                            $render_data = $existing_data;
+                            if ($is_admin_view && !empty($submission_data)) {
+                                $render_data = $submission_data;
+                            }
+                            $this->render_form_builder_layout($form_fields, $render_data, $is_form_disabled || $is_admin_view); 
+                            ?>
                         </div>
                     </form>
                 </div>

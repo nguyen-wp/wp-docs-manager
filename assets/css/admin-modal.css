@@ -744,6 +744,11 @@
     font-size: 10px;
     height: auto;
     line-height: 1.2;
+    white-space: nowrap;
+}
+
+.assigned-forms-grid .form-actions .button-primary {
+    margin-bottom: 2px;
 }
 
 .assigned-forms-grid .submission-date {
@@ -755,12 +760,6 @@
 .assigned-forms-grid .form-status {
     display: flex;
     align-items: center;
-}
-
-.assigned-forms-grid .form-actions {
-    display: flex;
-    align-items: center;
-    gap: 2px;
 }
 
 .submission-info {

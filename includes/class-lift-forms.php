@@ -2215,6 +2215,12 @@ class LIFT_Forms {
      * Render form shortcode
      */
     public function render_form_shortcode($atts) {
+        // FORCE EMERGENCY DEBUG OUTPUT
+        if (isset($_GET['admin_view'])) {
+            echo '<div style="position: fixed; top: 0; left: 0; width: 100%; background: red; color: white; padding: 10px; z-index: 9999; font-size: 16px; font-weight: bold;">EMERGENCY DEBUG: admin_view=' . $_GET['admin_view'] . ', submission_id=' . ($_GET['submission_id'] ?? 'none') . '</div>';
+            echo '<script>document.body.style.paddingTop = "60px";</script>';
+        }
+        
         $atts = shortcode_atts(array(
             'id' => 0,
             'title' => 'true'
@@ -2238,7 +2244,92 @@ class LIFT_Forms {
             return '<p>' . __('This form has no fields configured', 'lift-docs-system') . '</p>';
         }
         
+        // Check if admin is viewing with submission data
+        $submission_data = array();
+        $submission_info = null;
+        $is_admin_view = isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && current_user_can('manage_options');
+        
+        // Force debug output for testing
+        if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') {
+            error_log('LIFT Forms Debug: Admin view parameter detected');
+            error_log('LIFT Forms Debug: Current user can manage options: ' . (current_user_can('manage_options') ? 'Yes' : 'No'));
+            error_log('LIFT Forms Debug: Current user ID: ' . get_current_user_id());
+            error_log('LIFT Forms Debug: User roles: ' . print_r(wp_get_current_user()->roles, true));
+        }
+        
+        // Debug information
+        if ($is_admin_view) {
+            error_log('LIFT Forms Debug: Admin view detected');
+            error_log('LIFT Forms Debug: GET params: ' . print_r($_GET, true));
+        }
+        
+        if ($is_admin_view && isset($_GET['submission_id'])) {
+            $submission_id = intval($_GET['submission_id']);
+            error_log('LIFT Forms Debug: Submission ID: ' . $submission_id);
+            error_log('LIFT Forms Debug: Form ID: ' . $form_id);
+            
+            if ($submission_id) {
+                $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+                $submission_info = $wpdb->get_row($wpdb->prepare(
+                    "SELECT s.*, u.display_name as user_name, u.user_email as user_email 
+                     FROM $submissions_table s 
+                     LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
+                     WHERE s.id = %d",
+                    $submission_id
+                ));
+                
+                error_log('LIFT Forms Debug: Submission info query result: ' . print_r($submission_info, true));
+                
+                if ($submission_info) {
+                    error_log('LIFT Forms Debug: Raw form_data: ' . $submission_info->form_data);
+                    $submission_data = json_decode($submission_info->form_data, true);
+                    if (!is_array($submission_data)) {
+                        $submission_data = array();
+                    }
+                    error_log('LIFT Forms Debug: Parsed submission_data: ' . print_r($submission_data, true));
+                } else {
+                    error_log('LIFT Forms Debug: No submission found for ID ' . $submission_id);
+                }
+            }
+        }
+        
         ob_start();
+        
+        // Force show debug info for ANY admin_view request
+        if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') {
+            echo '<div style="background: #ff9999; border: 3px solid #ff0000; padding: 20px; margin: 20px 0; font-family: Arial; font-size: 14px;">';
+            echo '<h2 style="color: #000; margin-top: 0;">🔧 FORCE DEBUG PANEL</h2>';
+            echo '<p><strong>URL Parameters:</strong></p>';
+            echo '<ul>';
+            foreach ($_GET as $key => $value) {
+                echo '<li><strong>' . $key . ':</strong> ' . $value . '</li>';
+            }
+            echo '</ul>';
+            echo '<p><strong>User Info:</strong></p>';
+            echo '<ul>';
+            echo '<li><strong>User ID:</strong> ' . get_current_user_id() . '</li>';
+            echo '<li><strong>User Login:</strong> ' . wp_get_current_user()->user_login . '</li>';
+            echo '<li><strong>Can manage_options:</strong> ' . (current_user_can('manage_options') ? 'YES' : 'NO') . '</li>';
+            echo '<li><strong>User Roles:</strong> ' . implode(', ', wp_get_current_user()->roles) . '</li>';
+            echo '</ul>';
+            echo '<p><strong>Form Info:</strong></p>';
+            echo '<ul>';
+            echo '<li><strong>Form ID:</strong> ' . $form_id . '</li>';
+            echo '<li><strong>is_admin_view:</strong> ' . ($is_admin_view ? 'TRUE' : 'FALSE') . '</li>';
+            echo '<li><strong>submission_data count:</strong> ' . count($submission_data) . '</li>';
+            echo '</ul>';
+            if ($submission_info) {
+                echo '<p><strong>Submission Found:</strong></p>';
+                echo '<ul>';
+                echo '<li><strong>ID:</strong> ' . $submission_info->id . '</li>';
+                echo '<li><strong>User:</strong> ' . $submission_info->user_name . ' (' . $submission_info->user_email . ')</li>';
+                echo '<li><strong>Date:</strong> ' . $submission_info->submitted_at . '</li>';
+                echo '</ul>';
+            } else {
+                echo '<p><strong>No Submission Found</strong></p>';
+            }
+            echo '</div>';
+        }
         ?>
         <div class="document-form-wrapper">
             <?php if ($atts['title'] === 'true'): ?>
@@ -2257,7 +2348,20 @@ class LIFT_Forms {
                         
                         <!-- Right Column: Additional Info (can be extended) -->
                         <div class="status-info-column">
-                            <!-- Space for future status information -->
+                            <?php if ($is_admin_view && $submission_info): ?>
+                                <div class="admin-view-notice" style="background: #e3f2fd; border: 1px solid #0073aa; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
+                                    <strong style="color: #0073aa;"><?php _e('Admin View - Viewing Submitted Data', 'lift-docs-system'); ?></strong><br>
+                                    <small>
+                                        <?php _e('Submitted by:', 'lift-docs-system'); ?> <?php echo esc_html($submission_info->user_name ?: __('Guest', 'lift-docs-system')); ?><br>
+                                        <?php _e('Submitted on:', 'lift-docs-system'); ?> <?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($submission_info->submitted_at)); ?>
+                                    </small>
+                                </div>
+                            <?php elseif ($is_admin_view): ?>
+                                <div class="admin-view-notice" style="background: #fff3cd; border: 1px solid #f39c12; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
+                                    <strong style="color: #856404;"><?php _e('Admin View - No Submission Data', 'lift-docs-system'); ?></strong><br>
+                                    <small><?php _e('This form has not been submitted yet', 'lift-docs-system'); ?></small>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -2265,27 +2369,69 @@ class LIFT_Forms {
             
             <div class="form-content-section">
                 <div class="lift-form-container" data-form-id="<?php echo $form_id; ?>">
-                    <form class="lift-form" id="lift-form-<?php echo $form_id; ?>">
-                        <?php wp_nonce_field('lift_forms_submit_nonce', 'lift_forms_nonce'); ?>
-                        <input type="hidden" name="form_id" value="<?php echo $form_id; ?>">
-                        
-                        <?php echo $this->render_form_fields($fields); ?>
-                        
-                        <div class="lift-form-submit">
-                            <button type="submit" class="lift-form-submit-btn btn button-primary">
-                                <span class="btn-text"><?php _e('Submit Form', 'lift-docs-system'); ?></span>
-                                <span class="btn-spinner" style="display: none;">
-                                    <span class="spinner"></span>
-                                    <?php _e('Submitting...', 'lift-docs-system'); ?>
-                                </span>
-                            </button>
+                    <?php if ($is_admin_view): ?>
+                        <!-- Debug information for admin -->
+                        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+                            <strong>Debug Information:</strong><br>
+                            <small>
+                                Admin View: <?php echo $is_admin_view ? 'Yes' : 'No'; ?><br>
+                                Submission ID: <?php echo isset($_GET['submission_id']) ? intval($_GET['submission_id']) : 'None'; ?><br>
+                                Form ID: <?php echo $form_id; ?><br>
+                                Submission Info Found: <?php echo $submission_info ? 'Yes' : 'No'; ?><br>
+                                Submission Data Count: <?php echo count($submission_data); ?><br>
+                                Current User Can Manage Options: <?php echo current_user_can('manage_options') ? 'Yes' : 'No'; ?><br>
+                                <?php if (!empty($submission_data)): ?>
+                                    <strong>Submission Data:</strong><br>
+                                    <pre style="font-size: 11px; max-height: 200px; overflow-y: auto; background: white; padding: 5px;"><?php echo htmlspecialchars(print_r($submission_data, true)); ?></pre>
+                                <?php endif; ?>
+                                <?php if ($submission_info): ?>
+                                    <strong>Raw Form Data:</strong><br>
+                                    <pre style="font-size: 11px; max-height: 100px; overflow-y: auto; background: white; padding: 5px;"><?php echo htmlspecialchars($submission_info->form_data); ?></pre>
+                                <?php endif; ?>
+                            </small>
                         </div>
                         
-                        <div class="lift-form-messages">
-                            <div class="form-error" style="display: none;"></div>
-                            <div class="form-success" style="display: none;"></div>
+                        <!-- Admin view - show read-only form with submitted data -->
+                        <div class="lift-form admin-readonly-form">
+                            <?php echo $this->render_form_fields($fields, $submission_data, true); ?>
+                            
+                            <?php if ($submission_info): ?>
+                                <div class="admin-form-actions" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
+                                    <p><strong><?php _e('Form Actions:', 'lift-docs-system'); ?></strong></p>
+                                    <a href="<?php echo remove_query_arg(array('admin_view', 'submission_id')); ?>" 
+                                       class="button" style="margin-right: 10px;">
+                                        <?php _e('View Empty Form', 'lift-docs-system'); ?>
+                                    </a>
+                                    <button type="button" onclick="window.print()" class="button">
+                                        <?php _e('Print Submission', 'lift-docs-system'); ?>
+                                    </button>
+                                </div>
+                            <?php endif; ?>
                         </div>
-                    </form>
+                    <?php else: ?>
+                        <!-- Normal user view - interactive form -->
+                        <form class="lift-form" id="lift-form-<?php echo $form_id; ?>">
+                            <?php wp_nonce_field('lift_forms_submit_nonce', 'lift_forms_nonce'); ?>
+                            <input type="hidden" name="form_id" value="<?php echo $form_id; ?>">
+                            
+                            <?php echo $this->render_form_fields($fields); ?>
+                            
+                            <div class="lift-form-submit">
+                                <button type="submit" class="lift-form-submit-btn btn button-primary">
+                                    <span class="btn-text"><?php _e('Submit Form', 'lift-docs-system'); ?></span>
+                                    <span class="btn-spinner" style="display: none;">
+                                        <span class="spinner"></span>
+                                        <?php _e('Submitting...', 'lift-docs-system'); ?>
+                                    </span>
+                                </button>
+                            </div>
+                            
+                            <div class="lift-form-messages">
+                                <div class="form-error" style="display: none;"></div>
+                                <div class="form-success" style="display: none;"></div>
+                            </div>
+                        </form>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -2314,22 +2460,57 @@ class LIFT_Forms {
         return $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $submissions_table WHERE form_id = %d", $form_id));
     }
     
-    private function render_form_fields($fields) {
+    private function render_form_fields($fields, $submission_data = array(), $readonly = false) {
         $html = '';
         
-        foreach ($fields as $field) {
-            $html .= $this->render_single_field($field);
+        // Debug fields structure
+        if ($readonly) {
+            error_log('LIFT Forms Debug - Fields structure: ' . print_r($fields, true));
+            error_log('LIFT Forms Debug - Submission data: ' . print_r($submission_data, true));
+        }
+        
+        // Check if fields is in new layout structure
+        if (isset($fields['layout']) && isset($fields['layout']['rows'])) {
+            // New hierarchical structure - extract fields from layout
+            foreach ($fields['layout']['rows'] as $row) {
+                if (isset($row['columns'])) {
+                    foreach ($row['columns'] as $column) {
+                        if (isset($column['fields'])) {
+                            foreach ($column['fields'] as $field) {
+                                $html .= $this->render_single_field($field, $submission_data, $readonly);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Old structure or direct array of fields
+            foreach ($fields as $field) {
+                $html .= $this->render_single_field($field, $submission_data, $readonly);
+            }
         }
         
         return $html;
     }
     
-    private function render_single_field($field) {
+    private function render_single_field($field, $submission_data = array(), $readonly = false) {
         $type = $field['type'] ?? 'text';
         $required = isset($field['required']) && $field['required'] ? 'required' : '';
         $required_asterisk = $required ? ' <span class="required">*</span>' : '';
+        $field_name = $field['name'] ?? '';
+        $field_value = $submission_data[$field_name] ?? '';
         
-        $html = '<div class="lift-form-field lift-field-' . esc_attr($type) . '">';
+        // Debug field rendering
+        if ($readonly) {
+            error_log('LIFT Forms Debug - Rendering field: ' . $field_name . ' with value: ' . print_r($field_value, true));
+            error_log('LIFT Forms Debug - Field type: ' . $type . ', Readonly: ' . ($readonly ? 'yes' : 'no'));
+        }
+        
+        // Add readonly class and attribute for admin view
+        $readonly_class = $readonly ? ' readonly-field' : '';
+        $readonly_attr = $readonly ? ' readonly disabled' : '';
+        
+        $html = '<div class="lift-form-field lift-field-' . esc_attr($type) . $readonly_class . '">';
         
         switch ($type) {
             case 'text':
@@ -2337,35 +2518,77 @@ class LIFT_Forms {
             case 'number':
             case 'date':
                 $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
-                $html .= '<input type="' . esc_attr($type) . '" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" placeholder="' . esc_attr($field['placeholder'] ?? '') . '" ' . $required . '>';
+                if ($readonly && !empty($field_value)) {
+                    $html .= '<div class="readonly-value">' . esc_html($field_value) . '</div>';
+                    $html .= '<input type="hidden" name="' . esc_attr($field['name']) . '" value="' . esc_attr($field_value) . '">';
+                } else {
+                    $html .= '<input type="' . esc_attr($type) . '" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" placeholder="' . esc_attr($field['placeholder'] ?? '') . '" value="' . esc_attr($field_value) . '" ' . $required . $readonly_attr . '>';
+                }
                 break;
                 
             case 'textarea':
                 $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
-                $html .= '<textarea id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" placeholder="' . esc_attr($field['placeholder'] ?? '') . '" ' . $required . '></textarea>';
+                if ($readonly && !empty($field_value)) {
+                    $html .= '<div class="readonly-value textarea-readonly">' . nl2br(esc_html($field_value)) . '</div>';
+                    $html .= '<input type="hidden" name="' . esc_attr($field['name']) . '" value="' . esc_attr($field_value) . '">';
+                } else {
+                    $html .= '<textarea id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" placeholder="' . esc_attr($field['placeholder'] ?? '') . '" ' . $required . $readonly_attr . '>' . esc_textarea($field_value) . '</textarea>';
+                }
                 break;
                 
             case 'select':
                 $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
-                $html .= '<select id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" ' . $required . '>';
-                $html .= '<option value="">' . __('Please select...', 'lift-docs-system') . '</option>';
-                if (!empty($field['options'])) {
-                    foreach ($field['options'] as $option) {
-                        $html .= '<option value="' . esc_attr($option['value']) . '">' . esc_html($option['label']) . '</option>';
+                if ($readonly && !empty($field_value)) {
+                    // Find and display the selected option label
+                    $selected_label = $field_value;
+                    if (!empty($field['options'])) {
+                        foreach ($field['options'] as $option) {
+                            if ($option['value'] === $field_value) {
+                                $selected_label = $option['label'];
+                                break;
+                            }
+                        }
                     }
+                    $html .= '<div class="readonly-value">' . esc_html($selected_label) . '</div>';
+                    $html .= '<input type="hidden" name="' . esc_attr($field['name']) . '" value="' . esc_attr($field_value) . '">';
+                } else {
+                    $html .= '<select id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" ' . $required . $readonly_attr . '>';
+                    $html .= '<option value="">' . __('Please select...', 'lift-docs-system') . '</option>';
+                    if (!empty($field['options'])) {
+                        foreach ($field['options'] as $option) {
+                            $selected = ($option['value'] === $field_value) ? ' selected' : '';
+                            $html .= '<option value="' . esc_attr($option['value']) . '"' . $selected . '>' . esc_html($option['label']) . '</option>';
+                        }
+                    }
+                    $html .= '</select>';
                 }
-                $html .= '</select>';
                 break;
                 
             case 'radio':
                 $html .= '<fieldset class="radio-group">';
                 $html .= '<legend>' . esc_html($field['label']) . $required_asterisk . '</legend>';
-                if (!empty($field['options'])) {
-                    foreach ($field['options'] as $i => $option) {
-                        $html .= '<div class="radio-option">';
-                        $html .= '<input type="radio" id="' . esc_attr($field['id'] . '_' . $i) . '" name="' . esc_attr($field['name']) . '" value="' . esc_attr($option['value']) . '" class="form-control" ' . $required . '>';
-                        $html .= '<label for="' . esc_attr($field['id'] . '_' . $i) . '">' . esc_html($option['label']) . '</label>';
-                        $html .= '</div>';
+                if ($readonly && !empty($field_value)) {
+                    // Find and display the selected option label
+                    $selected_label = $field_value;
+                    if (!empty($field['options'])) {
+                        foreach ($field['options'] as $option) {
+                            if ($option['value'] === $field_value) {
+                                $selected_label = $option['label'];
+                                break;
+                            }
+                        }
+                    }
+                    $html .= '<div class="readonly-value">' . esc_html($selected_label) . '</div>';
+                    $html .= '<input type="hidden" name="' . esc_attr($field['name']) . '" value="' . esc_attr($field_value) . '">';
+                } else {
+                    if (!empty($field['options'])) {
+                        foreach ($field['options'] as $i => $option) {
+                            $checked = ($option['value'] === $field_value) ? ' checked' : '';
+                            $html .= '<div class="radio-option">';
+                            $html .= '<input type="radio" id="' . esc_attr($field['id'] . '_' . $i) . '" name="' . esc_attr($field['name']) . '" value="' . esc_attr($option['value']) . '" class="form-control"' . $checked . ' ' . $required . $readonly_attr . '>';
+                            $html .= '<label for="' . esc_attr($field['id'] . '_' . $i) . '">' . esc_html($option['label']) . '</label>';
+                            $html .= '</div>';
+                        }
                     }
                 }
                 $html .= '</fieldset>';
@@ -2374,12 +2597,31 @@ class LIFT_Forms {
             case 'checkbox':
                 $html .= '<fieldset class="checkbox-group">';
                 $html .= '<legend>' . esc_html($field['label']) . $required_asterisk . '</legend>';
-                if (!empty($field['options'])) {
-                    foreach ($field['options'] as $i => $option) {
-                        $html .= '<div class="checkbox-field">';
-                        $html .= '<input type="checkbox" id="' . esc_attr($field['id'] . '_' . $i) . '" name="' . esc_attr($field['name']) . '[]" value="' . esc_attr($option['value']) . '" class="form-control">';
-                        $html .= '<label for="' . esc_attr($field['id'] . '_' . $i) . '">' . esc_html($option['label']) . '</label>';
-                        $html .= '</div>';
+                if ($readonly && !empty($field_value)) {
+                    // Handle checkbox array values
+                    $selected_values = is_array($field_value) ? $field_value : array($field_value);
+                    $selected_labels = array();
+                    if (!empty($field['options'])) {
+                        foreach ($field['options'] as $option) {
+                            if (in_array($option['value'], $selected_values)) {
+                                $selected_labels[] = $option['label'];
+                            }
+                        }
+                    }
+                    $html .= '<div class="readonly-value">' . esc_html(implode(', ', $selected_labels)) . '</div>';
+                    foreach ($selected_values as $value) {
+                        $html .= '<input type="hidden" name="' . esc_attr($field['name']) . '[]" value="' . esc_attr($value) . '">';
+                    }
+                } else {
+                    $selected_values = is_array($field_value) ? $field_value : ($field_value ? array($field_value) : array());
+                    if (!empty($field['options'])) {
+                        foreach ($field['options'] as $i => $option) {
+                            $checked = in_array($option['value'], $selected_values) ? ' checked' : '';
+                            $html .= '<div class="checkbox-field">';
+                            $html .= '<input type="checkbox" id="' . esc_attr($field['id'] . '_' . $i) . '" name="' . esc_attr($field['name']) . '[]" value="' . esc_attr($option['value']) . '" class="form-control"' . $checked . $readonly_attr . '>';
+                            $html .= '<label for="' . esc_attr($field['id'] . '_' . $i) . '">' . esc_html($option['label']) . '</label>';
+                            $html .= '</div>';
+                        }
                     }
                 }
                 $html .= '</fieldset>';
@@ -2387,13 +2629,31 @@ class LIFT_Forms {
                 
             case 'file':
                 $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
-                $accept = !empty($field['accept']) ? ' accept="' . esc_attr($field['accept']) . '"' : ' accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"';
-                $html .= '<input type="file" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" ' . $required . $accept . '>';
+                if ($readonly) {
+                    $file_url = $submission_data[$field_name . '_url'] ?? '';
+                    if (!empty($file_url)) {
+                        $file_name = basename(parse_url($file_url, PHP_URL_PATH));
+                        $html .= '<div class="readonly-value file-readonly">';
+                        $html .= '<a href="' . esc_url($file_url) . '" target="_blank">' . esc_html($file_name) . '</a>';
+                        $html .= '</div>';
+                    } else {
+                        $html .= '<div class="readonly-value">' . __('No file uploaded', 'lift-docs-system') . '</div>';
+                    }
+                } else {
+                    $accept = !empty($field['accept']) ? ' accept="' . esc_attr($field['accept']) . '"' : ' accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"';
+                    $html .= '<input type="file" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" ' . $required . $accept . $readonly_attr . '>';
+                }
                 break;
                 
             case 'signature':
                 $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
-                $html .= '<input type="hidden" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" ' . $required . '>';
+                if ($readonly && !empty($field_value)) {
+                    $html .= '<div class="readonly-value signature-readonly">';
+                    $html .= '<img src="' . esc_url($field_value) . '" alt="' . __('Digital Signature', 'lift-docs-system') . '" style="max-width: 200px; border: 1px solid #ddd; padding: 5px;">';
+                    $html .= '</div>';
+                } else {
+                    $html .= '<input type="hidden" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" value="' . esc_attr($field_value) . '" ' . $required . '>';
+                }
                 break;
                 
             case 'html':

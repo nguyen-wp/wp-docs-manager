@@ -1,15 +1,12 @@
 <?php
 /**
- * Plugin Name: LIFT Docs System
- * Plugin URI: https://liftcreations.com
- * Description: A comprehensive document management system for WordPress with advanced features.
- * Version: 3.7.2
- * Author: Nguyen Pham
- * Author URI: https://nguyenpham.pro
+ * Plugin Name: LIFT Documents System
+ * Plugin URI: https://github.com/nguyen-wp/wp-docs-manager
+ * Description: A comprehensive document management system for WordPress with user assignments, forms, and status tracking.
+ * Version: 2.5.0
+ * Author: Nguyen
  * License: GPL v2 or later
- * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: lift-docs-system
- * Domain Path: /languages
  */
 
 // Prevent direct access
