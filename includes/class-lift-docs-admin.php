@@ -2181,12 +2181,10 @@ class LIFT_Docs_Admin {
                             <h1><?php _e('Submission Details', 'lift-docs-system'); ?></h1>
                         </div>
                         <div class="media-frame-content">
-                            <div class="submission-details-container">
-                                <div id="submission-detail-content-from-doc">
-                                    <div class="submission-loading">
-                                        <div class="spinner is-active"></div>
-                                        <p><?php _e('Loading submission details...', 'lift-docs-system'); ?></p>
-                                    </div>
+                            <div id="submission-detail-content-from-doc">
+                                <div class="submission-loading">
+                                    <div class="spinner is-active"></div>
+                                    <p><?php _e('Loading submission details...', 'lift-docs-system'); ?></p>
                                 </div>
                             </div>
                         </div>
