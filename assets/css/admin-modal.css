@@ -943,108 +943,289 @@
     line-height: 1.2;
 }
 
-/* Submission Modal Styles (WordPress Admin Style) */
+/* Enhanced Submission Modal Styles */
 #submission-detail-modal-from-doc {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 100050;
+    z-index: 1000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
 }
 
 #submission-detail-modal-from-doc .media-modal {
-    top: 30px;
-    bottom: 30px;
-    left: 30px;
-    right: 30px;
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
 }
 
 #submission-detail-modal-from-doc .media-modal-content {
     background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+    border-radius: 12px;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 #submission-detail-modal-from-doc .media-frame-title {
-    border-bottom: 1px solid #ddd;
-    background: #fcfcfc;
+    border-bottom: 1px solid #e8eaed;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 30px 40px 25px;
+    border-radius: 12px 12px 0 0;
+    position: relative;
+}
+
+#submission-detail-modal-from-doc .media-frame-title::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #9c27b0 0%, #7b1fa2 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+#submission-detail-modal-from-doc .media-frame-title h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a2332;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 #submission-detail-modal-from-doc .submission-details-container {
-    padding: 20px;
-    max-height: calc(100vh - 200px);
+    padding: 30px 40px;
+    max-height: calc(90vh - 170px);
     overflow-y: auto;
+    flex: 1;
+    background: #fafbfc;
+}
+
+/* Enhanced scrollbar */
+#submission-detail-modal-from-doc .submission-details-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#submission-detail-modal-from-doc .submission-details-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#submission-detail-modal-from-doc .submission-details-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+#submission-detail-modal-from-doc .submission-details-container::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
 }
 
 #submission-detail-modal-from-doc .submission-loading {
     text-align: center;
-    padding: 40px;
+    padding: 60px 40px;
 }
 
 #submission-detail-modal-from-doc .submission-loading .spinner {
-    margin: 0 auto 15px;
+    margin: 0 auto 20px;
+    width: 32px;
+    height: 32px;
+}
+
+#submission-detail-modal-from-doc .submission-loading p {
+    color: #5f6368;
+    font-size: 16px;
+    margin: 0;
 }
 
 #submission-detail-modal-from-doc .submission-details h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #ddd;
-    color: #0073aa;
+    margin: 0 0 25px 0;
+    padding: 20px 25px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e8f0fe 100%);
+    border: 1px solid #e8eaed;
+    border-radius: 12px;
+    color: #1a2332;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 #submission-detail-modal-from-doc .form-table {
-    margin-top: 10px;
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid #e8eaed;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 #submission-detail-modal-from-doc .form-table th {
-    width: 150px;
-    padding: 10px;
+    width: 200px;
+    padding: 18px 25px;
     vertical-align: top;
-    color: #555;
-    font-weight: 600;
+    color: #1a2332;
+    font-weight: 700;
+    font-size: 14px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%);
+    border-bottom: 1px solid #e8eaed;
 }
 
 #submission-detail-modal-from-doc .form-table td {
-    padding: 10px;
+    padding: 18px 25px;
     word-break: break-word;
+    border-bottom: 1px solid #f1f3f4;
+    background: #fff;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+#submission-detail-modal-from-doc .form-table tr:last-child th,
+#submission-detail-modal-from-doc .form-table tr:last-child td {
+    border-bottom: none;
 }
 
 #submission-detail-modal-from-doc .user-info-detail strong {
     color: #0073aa;
+    font-weight: 700;
 }
 
 #submission-detail-modal-from-doc .guest-user-detail {
-    color: #666;
+    color: #5f6368;
     font-style: italic;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%);
+    border-radius: 8px;
+    border: 1px solid #e8eaed;
+    font-size: 14px;
 }
 
 #submission-detail-modal-from-doc .status {
-    padding: 4px 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#submission-detail-modal-from-doc .status::before {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    content: '';
 }
 
 #submission-detail-modal-from-doc .status-read {
-    background: #d4edda;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
     color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+#submission-detail-modal-from-doc .status-read::before {
+    background: #28a745;
 }
 
 #submission-detail-modal-from-doc .status-unread {
-    background: #f8d7da;
+    background: linear-gradient(135deg, #f8d7da 0%, #f1b0b7 100%);
     color: #721c24;
+    border: 1px solid #f1b0b7;
 }
 
-/* Close button for submission modal */
+#submission-detail-modal-from-doc .status-unread::before {
+    background: #dc3545;
+}
+
+/* Enhanced Close button */
 #submission-detail-modal-from-doc .media-modal-close {
-    color: #666;
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(0, 115, 170, 0.2);
+    border-radius: 50%;
+    color: #0073aa;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #submission-detail-modal-from-doc .media-modal-close:hover {
-    color: #000;
+    background: rgba(220, 50, 50, 0.1);
+    border-color: rgba(220, 50, 50, 0.3);
+    transform: scale(1.1);
+    color: #dc3232;
+}
+
+/* Responsive design for submission modal */
+@media (max-width: 768px) {
+    #submission-detail-modal-from-doc .media-modal {
+        max-width: 95%;
+        width: 95%;
+        max-height: 95vh;
+        margin: 20px;
+    }
+    
+    #submission-detail-modal-from-doc .media-frame-title {
+        padding: 20px 24px 18px;
+    }
+    
+    #submission-detail-modal-from-doc .media-frame-title h1 {
+        font-size: 20px;
+    }
+    
+    #submission-detail-modal-from-doc .submission-details-container {
+        padding: 25px 20px;
+        max-height: calc(95vh - 150px);
+    }
+    
+    #submission-detail-modal-from-doc .form-table th {
+        width: 120px;
+        padding: 15px 16px;
+        font-size: 13px;
+    }
+    
+    #submission-detail-modal-from-doc .form-table td {
+        padding: 15px 16px;
+        font-size: 14px;
+    }
+    
+    #submission-detail-modal-from-doc .media-modal-close {
+        top: 20px;
+        right: 24px;
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+    }
 }
