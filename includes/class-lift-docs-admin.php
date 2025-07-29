@@ -3069,77 +3069,77 @@ class LIFT_Docs_Admin {
                     <h3><?php _e('Forms', 'lift-docs-system'); ?> (<?php echo count($form_details); ?>)</h3>
                     <div class="assigned-forms-grid">
                         <?php foreach ($form_details as $form_info): ?>
-                            <div class="form-item">
+                            <div class="fpgroup">
                                 <div class="form-info">
                                     <strong><?php echo esc_html($form_info['name']); ?></strong>
-                                    <?php if (!empty($form_info['description'])): ?>
-                                        <div class="form-description"><?php echo esc_html(wp_trim_words($form_info['description'], 8)); ?></div>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="form-actions">
-                                    <?php 
-                                    // Build view form URL with submission data for admin
-                                    $view_form_url = home_url('/document-form/' . $document_id . '/' . $form_info['id'] . '/');
-                                    if ($form_info['has_submission'] && $form_info['submission_id']) {
-                                        $view_form_url .= '?admin_view=1&submission_id=' . $form_info['submission_id'];
-                                    } else {
-                                        $view_form_url .= '?admin_view=1';
-                                    }
-                                    
-                                    // Build edit form URL for admin
-                                    $edit_form_url = home_url('/document-form/' . $document_id . '/' . $form_info['id'] . '/');
-                                    if ($form_info['has_submission'] && $form_info['submission_id']) {
-                                        $edit_form_url .= '?admin_edit=1&submission_id=' . $form_info['submission_id'];
-                                    }
-                                    ?>
-                                    <a href="<?php echo esc_url($view_form_url); ?>" 
-                                       class="button button-secondary" 
-                                       target="_blank">
-                                        <?php 
-                                        if ($form_info['has_submission']) {
-                                            _e('View Form & Submission', 'lift-docs-system');
-                                        } else {
-                                            _e('View Form', 'lift-docs-system');
-                                        }
-                                        ?>
-                                    </a>
-                                    <?php if ($form_info['has_submission'] && $form_info['submission_id']): ?>
-                                        <a href="<?php echo esc_url($edit_form_url); ?>" 
-                                           class="button button-primary" 
-                                           target="_blank">
-                                            <span class="dashicons dashicons-edit"></span>
-                                            <?php _e('Edit Submission', 'lift-docs-system'); ?>
-                                        </a>
-                                    <?php endif; ?>
                                     <?php if ($form_info['has_submission']): ?>
-                                        <button type="button" 
-                                                class="button view-submission-btn" 
-                                                data-submission-id="<?php echo esc_attr($form_info['submission_id']); ?>"
-                                                data-nonce="<?php echo wp_create_nonce('lift_forms_get_submission'); ?>">
-                                            <?php _e('View Submission Only', 'lift-docs-system'); ?>
-                                        </button>
                                         <div class="submission-info">
                                             <div class="submission-date">
-                                                <?php echo date('M j', strtotime($form_info['submitted_at'])); ?>
-                                            </div>
-                                            <?php if ($form_info['submitted_by_user_id']): ?>
-                                                <?php $submit_user = get_user_by('id', $form_info['submitted_by_user_id']); ?>
-                                                <?php if ($submit_user): ?>
-                                                    <div class="submission-user">
-                                                        <?php _e('by', 'lift-docs-system'); ?> <?php echo esc_html($submit_user->display_name); ?>
-                                                    </div>
+                                                <span><?php echo date('M j', strtotime($form_info['submitted_at'])); ?></span>
+                                                <?php if ($form_info['submitted_by_user_id']): ?>
+                                                    <?php $submit_user = get_user_by('id', $form_info['submitted_by_user_id']); ?>
+                                                    <?php if ($submit_user): ?>
+                                                        <span class="submission-user">
+                                                            <?php _e('by', 'lift-docs-system'); ?> <?php echo esc_html($submit_user->display_name); ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <span class="submission-user">
+                                                        <?php _e('by Guest', 'lift-docs-system'); ?>
+                                                    </span>
                                                 <?php endif; ?>
-                                            <?php else: ?>
-                                                <div class="submission-user">
-                                                    <?php _e('by Guest', 'lift-docs-system'); ?>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="form-status">
-                                            <span class="status-badge status-pending"><?php _e('No Submit', 'lift-docs-system'); ?></span>
+                                            </div>
                                         </div>
                                     <?php endif; ?>
+                                </div>
+                                <div class="form-item">
+                                    <div class="form-actions">
+                                        <?php 
+                                        // Build view form URL with submission data for admin
+                                        $view_form_url = home_url('/document-form/' . $document_id . '/' . $form_info['id'] . '/');
+                                        if ($form_info['has_submission'] && $form_info['submission_id']) {
+                                            $view_form_url .= '?admin_view=1&submission_id=' . $form_info['submission_id'];
+                                        } else {
+                                            $view_form_url .= '?admin_view=1';
+                                        }
+                                        
+                                        // Build edit form URL for admin
+                                        $edit_form_url = home_url('/document-form/' . $document_id . '/' . $form_info['id'] . '/');
+                                        if ($form_info['has_submission'] && $form_info['submission_id']) {
+                                            $edit_form_url .= '?admin_edit=1&submission_id=' . $form_info['submission_id'];
+                                        }
+                                        ?>
+                                        <a href="<?php echo esc_url($view_form_url); ?>" 
+                                        class="button button-secondary" 
+                                        target="_blank">
+                                            <?php 
+                                            if ($form_info['has_submission']) {
+                                                _e('View Submission', 'lift-docs-system');
+                                            } else {
+                                                _e('View Form', 'lift-docs-system');
+                                            }
+                                            ?>
+                                        </a>
+                                        <?php if ($form_info['has_submission'] && $form_info['submission_id']): ?>
+                                            <a href="<?php echo esc_url($edit_form_url); ?>" 
+                                            class="button" 
+                                            target="_blank">
+                                                <?php _e('Edit Submission', 'lift-docs-system'); ?>
+                                            </a>
+                                        <?php endif; ?>
+                                        <?php if ($form_info['has_submission']): ?>
+                                            <button type="button" 
+                                                    class="button view-submission-btn" 
+                                                    data-submission-id="<?php echo esc_attr($form_info['submission_id']); ?>"
+                                                    data-nonce="<?php echo wp_create_nonce('lift_forms_get_submission'); ?>">
+                                                <?php _e('View Data', 'lift-docs-system'); ?>
+                                            </button>
+                                        <?php else: ?>
+                                            <div class="form-status">
+                                                <span class="status-badge status-pending"><?php _e('No Submit', 'lift-docs-system'); ?></span>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>

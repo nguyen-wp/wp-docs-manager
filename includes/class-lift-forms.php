@@ -2078,66 +2078,6 @@ class LIFT_Forms {
                 </table>
             </div>
             
-            <div class="submission-data">
-                <h3><?php _e('Form Data', 'lift-docs-system'); ?></h3>
-                <?php if (!empty($form_data)): ?>
-                    <table class="form-table">
-                        <?php foreach ($form_data as $key => $value): ?>
-                            <?php if (strpos($key, '_') === 0) continue; // Skip meta fields ?>
-                            <?php 
-                            // Get field info from form definition
-                            $field_info = isset($field_map[$key]) ? $field_map[$key] : null;
-                            $field_label = $field_info && !empty($field_info['label']) ? $field_info['label'] : ucfirst(str_replace('_', ' ', $key));
-                            $field_type = $field_info && !empty($field_info['type']) ? $field_info['type'] : 'text';
-                            ?>
-                            <tr>
-                                <th><?php echo esc_html($field_label); ?>:</th>
-                                <td>
-                                    <?php if ($field_type === 'file' && !empty($value)): ?>
-                                        <div class="file-field-value">
-                                            <?php if ($this->is_image_file($value)): ?>
-                                                <div class="image-preview">
-                                                    <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($field_label); ?>" style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px;">
-                                                </div>
-                                            <?php else: ?>
-                                                <div class="file-info">
-                                                    <span class="dashicons dashicons-media-document"></span>
-                                                    <span><?php echo esc_html(basename($value)); ?></span>
-                                                </div>
-                                            <?php endif; ?>
-                                            <div class="file-actions" style="margin-top: 8px;">
-                                                <a href="<?php echo esc_url($value); ?>" target="_blank" class="button">
-                                                    <span class="dashicons dashicons-download"></span>
-                                                    <?php _e('Download', 'lift-docs-system'); ?>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    <?php elseif ($field_type === 'signature' && !empty($value)): ?>
-                                        <div class="signature-field-value">
-                                            <div class="signature-preview">
-                                                <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($field_label); ?>" style="max-width: 300px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px; background: #fff;">
-                                            </div>
-                                            <div class="signature-actions" style="margin-top: 8px;">
-                                                <a href="<?php echo esc_url($value); ?>" target="_blank" class="button">
-                                                    <span class="dashicons dashicons-download"></span>
-                                                    <?php _e('Download Signature', 'lift-docs-system'); ?>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    <?php elseif (is_array($value)): ?>
-                                        <?php echo esc_html(implode(', ', $value)); ?>
-                                    <?php else: ?>
-                                        <?php echo nl2br(esc_html($value)); ?>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </table>
-                <?php else: ?>
-                    <p><?php _e('No form data available.', 'lift-docs-system'); ?></p>
-                <?php endif; ?>
-            </div>
-            
             <?php if (isset($form_data['_document_id'])): ?>
             <div class="submission-context">
                 <h3><?php _e('Document Context', 'lift-docs-system'); ?></h3>
