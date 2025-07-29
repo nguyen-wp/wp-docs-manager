@@ -88,7 +88,7 @@ body.document-form-page .document-form-wrapper {
 /* PDF-style form content sections */
 body.document-form-page .form-content-section {
     background: #fff;
-    padding: 25px 0;
+    padding: 30px 40px;
     order: 1;
     border: none;
     border-bottom: 1px solid #ddd;
@@ -97,7 +97,7 @@ body.document-form-page .form-content-section {
 
 /* Form Header - Windows Server 2003 Style */
 .form-header {
-    background: #316ac5;
+    background: #404040;
     color: white;
     padding: 3px 8px;
     font-family: "MS Sans Serif", sans-serif;
@@ -110,8 +110,8 @@ body.document-form-page .form-content-section {
 
 /* PDF-style form header */
 body.document-form-page .form-header {
-    background: #fff;
-    color: #333;
+    background: #404040;
+    color: white;
     padding: 25px 30px 15px;
     
     font-size: 20px;
@@ -123,47 +123,71 @@ body.document-form-page .form-header {
 }
 
 .document-form-title .title-grid {
-    display: block;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    align-items: start;
 }
 
 .document-form-title .form-info-column {
-    display: block;
-    margin-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
 }
 
 .document-form-title .status-info-column {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    flex-shrink: 0;
 }
 
 .document-form-title h1 {
-    margin: 0;
+    margin: 0 0 8px 0;
     color: white;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: bold;
-    line-height: 1.2;
+    line-height: 1.3;
     font-family: "MS Sans Serif", sans-serif;
+    word-break: break-word;
 }
 
 .document-form-title .document-info,
 .document-form-title .form-description {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     font-size: 10px;
-    line-height: 1.2;
+    line-height: 1.3;
     font-family: "MS Sans Serif", sans-serif;
+}
+
+.document-form-title .info-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .document-form-title .info-label {
     font-weight: bold;
     opacity: 1;
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.9);
+    flex-shrink: 0;
 }
 
 .document-form-title .info-value {
     font-weight: 400;
     opacity: 0.95;
-    font-size: 13px;
+    font-size: 11px;
+    color: white;
+    min-width: 0;
+    word-break: break-word;
 }
 
 .document-form-title .edit-mode-notice,
@@ -171,10 +195,12 @@ body.document-form-page .form-header {
 .document-form-title .status-disabled-notice {
     background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    padding: 10px 12px;
-    font-size: 11px;
-    max-width: 280px;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 10px;
+    max-width: 240px;
+    min-width: 180px;
+    align-self: flex-end;
 }
 
 .document-form-title .submit-mode-notice {
@@ -185,17 +211,23 @@ body.document-form-page .form-header {
 .document-form-title .notice-header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
+    gap: 4px;
+    margin-bottom: 3px;
 }
 
 .document-form-title .notice-header i {
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .document-form-title .notice-header strong {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
+}
+
+.document-form-title .notice-content {
+    font-size: 9px;
+    line-height: 1.3;
+    opacity: 0.9;
 }
 
 .document-form-title .notice-content {
@@ -408,7 +440,7 @@ body.document-form-page .form-header {
 
 /* PDF-style form fields */
 body.document-form-page .form-field {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .form-field label {
@@ -425,11 +457,11 @@ body.document-form-page .form-field {
 body.document-form-page .form-field label {
     display: block;
     margin-bottom: 8px;
-    font-weight: bold;
-    color: #000;
-    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
     line-height: 1.4;
-    
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
 }
 
 .form-field .required {
@@ -454,16 +486,17 @@ body.document-form-page .form-field label {
 /* PDF-style form controls */
 body.document-form-page .form-control {
     width: 100%;
-    height: 32px;
-    padding: 8px 12px;
+    height: 40px;
+    padding: 10px 12px;
     border: 1px solid #666;
-    font-size: 12px;
+    font-size: 14px;
     background: #fff;
     color: #000;
     box-sizing: border-box;
-    
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
     line-height: 1.4;
     border-radius: 0;
+    transition: border-color 0.2s ease;
 }
 
 .form-control:focus {
@@ -504,12 +537,12 @@ textarea.form-control {
 
 /* PDF-style textarea */
 body.document-form-page textarea.form-control {
-    height: 80px;
+    height: 100px;
     padding: 12px;
     resize: vertical;
-    min-height: 80px;
+    min-height: 100px;
     max-height: 200px;
-    
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
     line-height: 1.6;
 }
 
@@ -523,8 +556,8 @@ select.form-control {
 
 /* PDF-style select dropdown */
 body.document-form-page select.form-control {
-    height: 32px;
-    padding: 6px 12px;
+    height: 40px;
+    padding: 8px 12px;
     background: #fff;
     cursor: pointer;
 }
@@ -752,19 +785,20 @@ body.document-form-page .btn {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    height: 36px;
-    padding: 8px 16px;
-    font-size: 12px;
-    font-weight: normal;
+    height: 40px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
     text-decoration: none;
-    border: 1px solid #666;
+    border: 1px solid #333;
     cursor: pointer;
     white-space: nowrap;
-    
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
     line-height: 1.4;
     background: #f8f8f8;
-    color: #000;
+    color: #333;
     border-radius: 0;
+    transition: all 0.2s ease;
 }
 
 .btn-primary {
@@ -776,9 +810,9 @@ body.document-form-page .btn {
 
 /* PDF-style primary button */
 body.document-form-page .btn-primary {
-    background: #0066cc;
+    background: #000;
     color: #fff;
-    border: 1px solid #0066cc;
+    border: 1px solid #000;
     height: auto;
 }
 
@@ -789,8 +823,9 @@ body.document-form-page .btn-primary {
 
 /* PDF-style primary button hover */
 body.document-form-page .btn-primary:hover {
-    background: #0052a3;
+    background: #333;
     color: #fff;
+    border-color: #333;
 }
 
 .btn-secondary {
@@ -917,17 +952,24 @@ body.document-form-page .btn-primary:hover {
     
     .document-form-title .title-grid {
         grid-template-columns: 1fr;
-        gap: 15px;
+        gap: 12px;
     }
     
     .document-form-title .status-info-column {
         align-items: flex-start;
+        order: 2;
+    }
+    
+    .document-form-title .form-info-column {
+        order: 1;
     }
     
     .document-form-title .edit-mode-notice,
     .document-form-title .submit-mode-notice,
     .document-form-title .status-disabled-notice {
         max-width: 100%;
+        align-self: flex-start;
+        min-width: auto;
     }
     
     .form-content-section {
@@ -988,24 +1030,56 @@ body.document-form-page .btn-primary:hover {
    File Upload & Signature Fields - Enhanced Styling
    ======================================== */
 
-/* File Upload Container */
-.file-upload-container {
-    margin-top: 6px;
+/* File Upload Container - PDF Style */
+body.document-form-page .file-upload-container {
+    margin-top: 8px;
 }
 
-.file-drop-zone {
-    border: 1px inset #c0c0c0;
-    padding: 8px;
+body.document-form-page .file-drop-zone {
+    border: 2px dashed #999;
+    padding: 20px;
     text-align: center;
-    background: #f0f0f0;
+    background: #fafafa;
     cursor: pointer;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.file-drop-zone:hover,
-.file-drop-zone.drag-over {
-    border: 1px inset #316ac5;
-    background: #e8f0ff;
+body.document-form-page .file-drop-zone:hover,
+body.document-form-page .file-drop-zone.drag-over {
+    border-color: #333;
+    background: #f0f0f0;
+}
+
+body.document-form-page .file-drop-zone:hover .upload-overlay {
+    opacity: 1;
+}
+
+body.document-form-page .upload-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    color: white;
+    font-size: 16px;
+}
+
+body.document-form-page .upload-overlay .dashicons {
+    font-size: 32px;
+    margin-bottom: 8px;
 }
 
 .drop-zone-content {
@@ -1061,43 +1135,59 @@ body.document-form-page .btn-primary:hover {
     font-size: 13px;
 }
 
-/* File Preview Area */
-.file-preview-area {
+/* File Preview Area - PDF Style Image Only */
+body.document-form-page .file-preview-area {
     display: none;
     margin-top: 12px;
 }
 
-.file-preview-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    margin-bottom: 8px;
-}
-
-.file-preview-item:last-child {
-    margin-bottom: 0;
-}
-
-.image-preview {
-    flex-shrink: 0;
-    width: 60px;
-    height: 60px;
-    border-radius: 6px;
-    overflow: hidden;
-    background: #f3f4f6;
+body.document-form-page .file-preview-item {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 8px;
+    position: relative;
 }
 
-.image-preview img {
+body.document-form-page .file-preview-item:last-child {
+    margin-bottom: 0;
+}
+
+body.document-form-page .image-preview {
+    flex-shrink: 0;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 300px;
+    height: auto;
+    border-radius: 0;
+    overflow: hidden;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ddd;
+    position: relative;
+}
+
+body.document-form-page .image-preview img {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
+}
+
+body.document-form-page .image-preview:hover .upload-overlay {
+    opacity: 1;
+}
+
+/* Hide file info and actions for PDF style */
+body.document-form-page .file-info,
+body.document-form-page .file-details,
+body.document-form-page .file-actions {
+    display: none;
 }
 
 .file-icon {
@@ -1208,64 +1298,80 @@ body.document-form-page .btn-primary:hover {
     color: #dc2626;
 }
 
-/* Signature Container - Windows Server 2003 Style */
-.signature-container {
-    margin-top: 4px;
-    border: 1px inset #c0c0c0;
-    background: #f0f0f0;
+/* Signature Container - PDF Style */
+body.document-form-page .signature-container {
+    margin-top: 8px;
+    border: 1px solid #999;
+    background: #fff;
     overflow: hidden;
 }
 
-.signature-canvas {
+body.document-form-page .signature-canvas {
     display: block;
     width: 100%;
-    height: 120px;
+    height: 0;
+    padding-bottom: 30%; /* 3:1 aspect ratio */
     border: none;
     cursor: crosshair;
     background: #fff;
-    margin: 2px;
-    border: 1px inset #c0c0c0;
+    margin: 0;
+    border: none;
+    position: relative;
 }
 
-.signature-actions {
-    padding: 4px;
-    background: #f0f0f0;
-    border-top: 1px solid #c0c0c0;
+/* Actual canvas element */
+body.document-form-page .signature-canvas canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+body.document-form-page .signature-actions {
+    padding: 12px;
+    background: #f5f5f5;
+    border-top: 1px solid #ddd;
     display: flex;
-    gap: 4px;
+    gap: 12px;
     justify-content: center;
 }
 
-.signature-actions .btn {
-    height: 18px;
-    padding: 0 8px;
-    font-size: 10px;
-    min-width: 48px;
-}
-
-.clear-signature {
-    background: #f3f4f6;
-    color: #6b7280;
-    border: 1px solid #d1d5db;
-}
-
-.clear-signature:hover {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-.save-signature {
-    background: #1976d2;
+body.document-form-page .signature-actions .btn {
+    height: 36px;
+    padding: 8px 16px;
+    font-size: 12px;
+    min-width: 80px;
+    background: #333;
     color: #fff;
-    border: 1px solid #1976d2;
+    border: 1px solid #333;
 }
 
-.save-signature:hover:not(:disabled) {
-    background: #1565c0;
-    border-color: #1565c0;
+body.document-form-page .clear-signature {
+    background: #666;
+    color: #fff;
+    border: 1px solid #666;
 }
 
-.save-signature:disabled {
+body.document-form-page .clear-signature:hover {
+    background: #555;
+    color: #fff;
+    border-color: #555;
+}
+
+body.document-form-page .save-signature {
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+}
+
+body.document-form-page .save-signature:hover:not(:disabled) {
+    background: #333;
+    border-color: #333;
+    color: #fff;
+}
+
+body.document-form-page .save-signature:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -1301,75 +1407,69 @@ body.document-form-page .btn-primary:hover {
     margin-top: 1px;
 }
 
-/* Field Type Specific Styling */
-.lift-field-file .form-control[type="file"],
-.lift-field-signature .form-control {
+/* Field Type Specific Styling - PDF Enhanced */
+body.document-form-page .lift-field-file .form-control[type="file"],
+body.document-form-page .lift-field-signature .form-control {
     display: none; /* Hide original inputs */
 }
 
-.lift-field-file label,
-.lift-field-signature label {
-    margin-bottom: 8px;
+body.document-form-page .lift-field-file label,
+body.document-form-page .lift-field-signature label {
+    margin-bottom: 12px;
     display: block;
-    font-weight: 500;
+    font-weight: 600;
     color: #333;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 /* Ensure form fields have consistent structure */
-.lift-form-field {
-    margin-bottom: 16px;
+body.document-form-page .lift-form-field {
+    margin-bottom: 24px;
     width: 100%;
 }
 
-.lift-form-field.lift-field-file,
-.lift-form-field.lift-field-signature {
-    margin-bottom: 20px;
+body.document-form-page .lift-form-field.lift-field-file,
+body.document-form-page .lift-form-field.lift-field-signature {
+    margin-bottom: 28px;
 }
 
-/* Mobile Responsive for Upload/Signature */
+/* Mobile Responsive for Upload/Signature - PDF Style */
 @media (max-width: 768px) {
-    .file-drop-zone {
-        padding: 20px 16px;
+    body.document-form-page .file-drop-zone {
+        padding: 30px 20px;
+        min-height: 100px;
     }
     
-    .drop-zone-content .dashicons {
-        font-size: 28px;
+    body.document-form-page .upload-overlay .dashicons {
+        font-size: 40px;
     }
     
-    .file-preview-item {
-        flex-direction: column;
-        text-align: center;
+    body.document-form-page .image-preview {
+        max-width: 100%;
+    }
+    
+    body.document-form-page .image-preview img {
+        max-height: 150px;
+    }
+    
+    body.document-form-page .signature-canvas {
+        padding-bottom: 40%; /* Adjust aspect ratio for mobile */
+    }
+    
+    body.document-form-page .signature-actions {
+        flex-direction: row;
         gap: 8px;
+        padding: 10px;
     }
     
-    .file-info {
-        order: 1;
-    }
-    
-    .image-preview {
-        order: 2;
-        width: 80px;
-        height: 80px;
-    }
-    
-    .file-actions {
-        order: 3;
+    body.document-form-page .signature-actions .btn {
+        flex: 1;
         justify-content: center;
+        min-width: auto;
     }
     
-    .signature-canvas {
-        height: 150px;
-    }
-    
-    .signature-actions {
-        flex-direction: column;
-        gap: 6px;
-    }
-    
-    .signature-actions .btn {
-        width: 100%;
-        justify-content: center;
+    body.document-form-page .form-content-section {
+        padding: 20px 25px;
     }
 }
 
@@ -1579,6 +1679,30 @@ body.document-form-page .btn-primary:hover {
     }
 }
 
+@media (max-width: 900px) {
+    .document-form-title .title-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .document-form-title .status-info-column {
+        align-items: flex-start;
+        order: 2;
+    }
+    
+    .document-form-title .form-info-column {
+        order: 1;
+    }
+    
+    .document-form-title .edit-mode-notice,
+    .document-form-title .submit-mode-notice,
+    .document-form-title .status-disabled-notice {
+        align-self: flex-start;
+        min-width: auto;
+        max-width: 100%;
+    }
+}
+
 @media (max-width: 768px) {
     body.lift-secure-page,
     body.document-form-page {
@@ -1657,18 +1781,35 @@ body.document-form-page .btn-primary:hover {
     }
     
     .document-form-title .title-grid {
-        gap: 10px;
+        gap: 8px;
+        grid-template-columns: 1fr;
     }
     
     .document-form-title h1 {
-        font-size: 14px;
+        font-size: 12px;
+        margin-bottom: 6px;
     }
     
-    .document-form-title .notice-header strong {
+    .document-form-title .info-label {
+        font-size: 8px;
+    }
+    
+    .document-form-title .info-value {
         font-size: 10px;
     }
     
+    .document-form-title .notice-header strong {
+        font-size: 9px;
+    }
+    
     .document-form-title .notice-content {
+        font-size: 8px;
+    }
+    
+    .document-form-title .edit-mode-notice,
+    .document-form-title .submit-mode-notice,
+    .document-form-title .status-disabled-notice {
+        padding: 6px 8px;
         font-size: 9px;
     }
     
@@ -1705,14 +1846,15 @@ body.document-form-page .form-content-section:last-child {
 
 body.document-form-page .form-actions {
     margin-top: 40px;
-    padding-top: 20px;
-    border-top: 2px solid #000;
+    padding-top: 25px;
+    border-top: 2px solid #ddd;
     text-align: center;
+    background: transparent;
 }
 
 body.document-form-page .form-actions .btn {
-    margin: 0 10px;
-    min-width: 120px;
+    margin: 0 12px;
+    min-width: 140px;
 }
 
 /* Existing file preview styling - Windows Server 2003 */
