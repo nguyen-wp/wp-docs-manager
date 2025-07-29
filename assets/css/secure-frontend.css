@@ -1183,6 +1183,11 @@ body.document-form-page .file-preview-item:hover {
     background: #f9f9f9;
 }
 
+body.document-form-page .file-preview-item:hover .remove-file-overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
 body.document-form-page .file-preview-item:last-child {
     margin-bottom: 0;
 }
@@ -1219,6 +1224,62 @@ body.document-form-page .file-info,
 body.document-form-page .file-details,
 body.document-form-page .file-actions {
     display: none;
+}
+
+/* Remove file overlay - appears on hover */
+body.document-form-page .remove-file-overlay {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: rgba(220, 53, 69, 0.9);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+body.document-form-page .remove-file-overlay:hover {
+    background: #dc3545;
+    transform: scale(1.1);
+}
+
+body.document-form-page .remove-file-overlay .dashicons {
+    font-size: 14px;
+    color: white;
+    line-height: 1;
+}
+
+/* Large file icon for non-image files */
+body.document-form-page .file-icon-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    max-width: 200px;
+}
+
+body.document-form-page .file-icon-large .dashicons {
+    font-size: 64px;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+body.document-form-page .file-icon-large .file-name-overlay {
+    font-size: 12px;
+    color: #333;
+    word-break: break-word;
+    max-width: 100%;
+    font-weight: 500;
 }
 
 .file-icon {
@@ -1479,6 +1540,12 @@ body.document-form-page .lift-form-field.lift-field-signature {
     
     body.document-form-page .image-preview img {
         max-height: 150px;
+    }
+    
+    /* Show remove button on mobile always */
+    body.document-form-page .remove-file-overlay {
+        opacity: 0.8;
+        visibility: visible;
     }
     
     body.document-form-page .signature-canvas {

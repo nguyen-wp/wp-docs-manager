@@ -176,44 +176,6 @@
         $previewArea.empty().show();
         
         const $preview = $('<div class="file-preview-item">');
-        const $info = $('<div class="file-info">');
-        const $actions = $('<div class="file-actions">');
-        
-        // File icon and info
-        let iconClass = 'dashicons-media-default';
-        if (file.type.startsWith('image/')) {
-            iconClass = 'dashicons-format-image';
-        } else if (file.type === 'application/pdf') {
-            iconClass = 'dashicons-pdf';
-        } else if (file.type.includes('word')) {
-            iconClass = 'dashicons-media-text';
-        }
-        
-        $info.html(`
-            <div class="file-icon">
-                <i class="dashicons ${iconClass}"></i>
-            </div>
-            <div class="file-details">
-                <div class="file-name">${file.name}</div>
-                <div class="file-size">${formatFileSize(file.size)}</div>
-                <div class="upload-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 0%"></div>
-                    </div>
-                    <span class="progress-text">Uploading...</span>
-                </div>
-            </div>
-        `);
-        
-        // Actions
-        $actions.html(`
-            <button type="button" class="btn btn-secondary btn-sm remove-file">
-                <i class="dashicons dashicons-no"></i>
-            </button>
-        `);
-        
-        $preview.append($info, $actions);
-        $previewArea.append($preview);
         
         // Image preview for image files
         if (file.type.startsWith('image/')) {
@@ -221,19 +183,57 @@
             reader.onload = function(e) {
                 const $imagePreview = $('<div class="image-preview">');
                 $imagePreview.html(`<img src="${e.target.result}" alt="Preview">`);
-                $preview.prepend($imagePreview);
+                $preview.append($imagePreview);
+                
+                // Add remove button overlay
+                const $removeOverlay = $('<button type="button" class="remove-file-overlay" title="Remove file">');
+                $removeOverlay.html('<i class="dashicons dashicons-no"></i>');
+                $preview.append($removeOverlay);
+                
+                // Remove file handler
+                $removeOverlay.on('click', function(e) {
+                    e.stopPropagation(); // Prevent triggering file picker
+                    $preview.remove();
+                    $input.val('');
+                    if ($previewArea.children().length === 0) {
+                        $previewArea.hide();
+                    }
+                });
             };
             reader.readAsDataURL(file);
+        } else {
+            // For non-image files, show file icon
+            let iconClass = 'dashicons-media-default';
+            if (file.type === 'application/pdf') {
+                iconClass = 'dashicons-pdf';
+            } else if (file.type.includes('word')) {
+                iconClass = 'dashicons-media-text';
+            }
+            
+            const $fileIcon = $('<div class="file-icon-large">');
+            $fileIcon.html(`
+                <i class="dashicons ${iconClass}"></i>
+                <div class="file-name-overlay">${file.name}</div>
+            `);
+            $preview.append($fileIcon);
+            
+            // Add remove button overlay
+            const $removeOverlay = $('<button type="button" class="remove-file-overlay" title="Remove file">');
+            $removeOverlay.html('<i class="dashicons dashicons-no"></i>');
+            $preview.append($removeOverlay);
+            
+            // Remove file handler
+            $removeOverlay.on('click', function(e) {
+                e.stopPropagation(); // Prevent triggering file picker
+                $preview.remove();
+                $input.val('');
+                if ($previewArea.children().length === 0) {
+                    $previewArea.hide();
+                }
+            });
         }
         
-        // Remove file handler
-        $actions.find('.remove-file').on('click', function() {
-            $preview.remove();
-            $input.val('');
-            if ($previewArea.children().length === 0) {
-                $previewArea.hide();
-            }
-        });
+        $previewArea.append($preview);
     }
 
     /**
@@ -295,45 +295,12 @@
         if (filename && fileUrl) {
             // Create preview for existing file
             const $preview = $('<div class="file-preview-item existing-file">');
-            const $info = $('<div class="file-info">');
-            const $actions = $('<div class="file-actions">');
             
             // Determine file type and icon
-            let iconClass = 'dashicons-media-default';
             const fileExt = filename.split('.').pop().toLowerCase();
             
             if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-                iconClass = 'dashicons-format-image';
-            } else if (fileExt === 'pdf') {
-                iconClass = 'dashicons-pdf';
-            } else if (['doc', 'docx'].includes(fileExt)) {
-                iconClass = 'dashicons-media-text';
-            }
-            
-            $info.html(`
-                <div class="file-icon">
-                    <i class="dashicons ${iconClass}"></i>
-                </div>
-                <div class="file-details">
-                    <div class="file-name">${filename}</div>
-                    <div class="file-status">Uploaded</div>
-                </div>
-            `);
-            
-            $actions.html(`
-                <a class="download-link" href="${fileUrl}" target="_blank">
-                    <i class="dashicons dashicons-download"></i> Download
-                </a>
-                <button type="button" class="btn btn-secondary btn-sm remove-file">
-                    <i class="dashicons dashicons-no"></i>
-                </button>
-            `);
-            
-            $preview.append($info, $actions);
-            $previewArea.append($preview).show();
-            
-            // Add image preview for image files
-            if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+                // Image preview for existing image files
                 const $imagePreview = $('<div class="image-preview">');
                 const $img = $('<img alt="Preview">');
                 
@@ -348,14 +315,37 @@
                 
                 $img.attr('src', fileUrl);
                 $imagePreview.append($img);
-                $preview.prepend($imagePreview);
+                $preview.append($imagePreview);
+            } else {
+                // File icon for non-image files
+                let iconClass = 'dashicons-media-default';
+                if (fileExt === 'pdf') {
+                    iconClass = 'dashicons-pdf';
+                } else if (['doc', 'docx'].includes(fileExt)) {
+                    iconClass = 'dashicons-media-text';
+                }
+                
+                const $fileIcon = $('<div class="file-icon-large">');
+                $fileIcon.html(`
+                    <i class="dashicons ${iconClass}"></i>
+                    <div class="file-name-overlay">${filename}</div>
+                `);
+                $preview.append($fileIcon);
             }
+            
+            // Add remove button overlay
+            const $removeOverlay = $('<button type="button" class="remove-file-overlay" title="Remove file">');
+            $removeOverlay.html('<i class="dashicons dashicons-no"></i>');
+            $preview.append($removeOverlay);
+            
+            $previewArea.append($preview).show();
             
             // Hide current file text
             $field.find('.current-file').hide();
             
             // Bind remove event
-            $actions.find('.remove-file').on('click', function() {
+            $removeOverlay.on('click', function(e) {
+                e.stopPropagation(); // Prevent triggering file picker
                 $preview.remove();
                 $input.val('');
                 if ($hiddenInput.length) {
