@@ -1668,6 +1668,7 @@ class LIFT_Docs_Frontend_Login {
                         <i class="fas fa-calendar-alt"></i>
                         <?php echo get_the_date('M j, Y', $document->ID); ?>
                     </span>
+                    <?php if (LIFT_Docs_Settings::get_setting('show_document_stats', true)): ?>
                     <span class="document-stats">
                         <span class="views">
                             <i class="fas fa-eye"></i>
@@ -1678,6 +1679,7 @@ class LIFT_Docs_Frontend_Login {
                             <?php echo $downloads ? $downloads : 0; ?>
                         </span>
                     </span>
+                    <?php endif; ?>
                 </div>
             </div>
             

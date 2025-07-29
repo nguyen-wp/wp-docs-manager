@@ -157,6 +157,15 @@ class LIFT_Docs_Settings {
             'lift_docs_general_section',
             array('field' => 'show_dashboard_stats', 'description' => __('Display statistics section in Document Dashboard (Documents count, Downloads, Views, etc.)', 'lift-docs-system'))
         );
+        
+        add_settings_field(
+            'show_document_stats',
+            __('Show Document Stats', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-general',
+            'lift_docs_general_section',
+            array('field' => 'show_document_stats', 'description' => __('Display view and download statistics for each document in Document Dashboard', 'lift-docs-system'))
+        );
 
         
         // Security Tab Settings
@@ -1050,7 +1059,8 @@ class LIFT_Docs_Settings {
             'show_document_meta',
             'show_download_button',
             'show_secure_access_notice',
-            'show_dashboard_stats'
+            'show_dashboard_stats',
+            'show_document_stats'
         );
         
         foreach ($boolean_fields as $field) {
@@ -1166,6 +1176,12 @@ class LIFT_Docs_Settings {
         
         // Set default for show_dashboard_stats to true (show by default)
         if ($key === 'show_dashboard_stats') {
+            $settings = get_option('lift_docs_settings', array());
+            return isset($settings[$key]) ? $settings[$key] : true;
+        }
+        
+        // Set default for show_document_stats to true (show by default)
+        if ($key === 'show_document_stats') {
             $settings = get_option('lift_docs_settings', array());
             return isset($settings[$key]) ? $settings[$key] : true;
         }
