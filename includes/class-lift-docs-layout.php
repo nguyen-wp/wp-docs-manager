@@ -361,8 +361,21 @@ class LIFT_Docs_Layout {
         // Remove admin bar CSS bump
         remove_action('wp_head', '_admin_bar_bump_cb');
         
+        // Disable admin bar for this page
+        add_filter('show_admin_bar', '__return_false');
+        
         // Get header
         get_header();
+        
+        // Enqueue shared CSS and JS
+        wp_enqueue_style('lift-docs-secure-frontend', plugin_dir_url(dirname(__FILE__)) . 'assets/css/secure-frontend.css', array(), LIFT_DOCS_VERSION);
+        wp_enqueue_script('lift-docs-secure-frontend', plugin_dir_url(dirname(__FILE__)) . 'assets/js/secure-frontend.js', array('jquery'), LIFT_DOCS_VERSION, true);
+        
+        // Add body class
+        add_filter('body_class', function($classes) {
+            $classes[] = 'lift-secure-page';
+            return $classes;
+        });
         
         ?>
         <div class="lift-docs-custom-layout <?php echo esc_attr($settings['layout_style']); ?>">
@@ -481,216 +494,6 @@ class LIFT_Docs_Layout {
                 
             </div>
         </div>
-        
-        <style>
-        .lift-docs-custom-layout {
-            padding: 40px 0;
-            background: #f9f9f9;
-            min-height: 60vh;
-        }
-        
-        .lift-docs-custom-layout .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 40px;
-        }
-        
-        .secure-access-notice {
-            background: #e8f4fd;
-            border: 1px solid #0073aa;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .secure-access-notice .notice-content {
-            color: #0073aa;
-            font-weight: 500;
-        }
-        
-        .secure-access-notice .dashicons {
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        
-        .document-header {
-            margin-bottom: 30px;
-            border-bottom: 2px solid #f1f1f1;
-            padding-bottom: 20px;
-        }
-        
-        .document-title {
-            margin: 0 0 15px 0;
-            color: #333;
-            font-size: 2.2em;
-            line-height: 1.2;
-        }
-        
-        .document-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .meta-item {
-            display: flex;
-            align-items: center;
-        }
-        
-        .meta-item .dashicons {
-            margin-right: 5px;
-            font-size: 16px;
-        }
-        
-        .document-description {
-            margin-bottom: 30px;
-            line-height: 1.6;
-            color: #555;
-        }
-        
-        .document-actions {
-            margin: 30px 0;
-        }
-        
-        .download-section {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 25px;
-            text-align: left;
-        }
-        
-        .download-section-title {
-            margin: 0 0 20px 0;
-            color: #333;
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .download-section-title .dashicons {
-            color: #0073aa;
-        }
-        
-        .files-count {
-            color: #666;
-            font-weight: normal;
-            font-size: 0.9em;
-        }
-        
-        .files-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-        
-        .file-item:hover {
-            border-color: #0073aa;
-            box-shadow: 0 2px 5px rgba(0, 115, 170, 0.1);
-        }
-        
-        .file-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-        }
-        
-        .file-icon {
-            font-size: 20px;
-        }
-        
-        .file-name {
-            font-weight: 500;
-            color: #333;
-            word-break: break-word;
-        }
-        
-        .lift-download-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-        
-        .lift-download-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 115, 170, 0.3);
-        }
-        
-        .lift-download-btn .dashicons {
-            font-size: 16px;
-        }
-        
-        /* Responsive design for mobile */
-        @media (max-width: 768px) {
-            .file-item {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .file-info {
-                justify-content: center;
-            }
-            
-            .lift-download-btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .files-list {
-                gap: 20px;
-            }
-        }
-        
-        .related-documents {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 1px solid #f1f1f1;
-        }
-        
-        @media (max-width: 768px) {
-            .lift-docs-custom-layout .container {
-                margin: 0 10px;
-                padding: 20px;
-            }
-            
-            .document-title {
-                font-size: 1.8em;
-            }
-            
-            .document-meta {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
-        </style>
         
         <?php
         

@@ -323,281 +323,19 @@ class LIFT_Docs_Frontend_Login {
             remove_action('wp_head', '_admin_bar_bump_cb');
             wp_head(); 
             ?>
-            <style>
-            /* Hide admin bar completely */
-            #wpadminbar {
-                display: none !important;
-            }
-            
-            html {
-                margin-top: 0 !important;
-            }
-            
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-                background: #f1f1f1;
-                margin: 0;
-                padding: 20px;
-            }
-            
-            /* Main container with flex layout */
-            .document-form-wrapper {
-                display: flex;
-                max-width: 1200px;
-                margin: 0 auto;
-                gap: 20px;
-                min-height: calc(100vh - 40px);
-            }
-            
-            /* Header section - left sidebar */
-            .form-header-section {
-                flex: 0 0 300px;
-                background: #fff;
-                padding: 30px;
-                border-radius: 8px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.13);
-                height: fit-content;
-                position: sticky;
-                top: 20px;
-            }
-            
-            /* Form content section - main area */
-            .form-content-section {
-                flex: 1;
-                background: #fff;
-                padding: 30px;
-                border-radius: 8px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.13);
-            }
-            
-            .form-header-section h1 {
-                margin: 0 0 15px 0;
-                color: #23282d;
-                font-size: 24px;
-            }
-            
-            .document-info {
-                color: #666;
-                font-size: 14px;
-                margin-bottom: 20px;
-                padding: 12px;
-                background: #f8f9fa;
-                border-radius: 4px;
-                border-left: 4px solid #0073aa;
-            }
-            
-            .form-description {
-                color: #555;
-                line-height: 1.5;
-                margin-bottom: 20px;
-            }
-            
-            .status-notice {
-                background: #fff3cd;
-                border: 1px solid #ffeaa7;
-                color: #856404;
-                padding: 12px;
-                border-radius: 4px;
-                margin-bottom: 20px;
-            }
-            
-            .edit-mode-notice {
-                background: #d1ecf1;
-                border: 1px solid #bee5eb;
-                color: #0c5460;
-                padding: 12px;
-                border-radius: 4px;
-                margin-bottom: 20px;
-            }
-            
-            .status-disabled-notice {
-                background: #f8d7da;
-                border: 1px solid #f5c6cb;
-                color: #721c24;
-                padding: 15px;
-                border-radius: 4px;
-                margin-bottom: 20px;
-            }
-            
-            /* Form Builder Layout Styles */
-            .form-builder-content {
-                width: 100%;
-            }
-            
-            .form-row {
-                display: flex;
-                margin-bottom: 20px;
-                gap: 15px;
-                flex-wrap: wrap;
-            }
-            
-            .form-column {
-                flex: 1;
-                min-width: 200px;
-            }
-            
-            .form-column.col-1 { flex: 0 0 100%; }
-            .form-column.col-2 { flex: 0 0 calc(50% - 7.5px); }
-            .form-column.col-3 { flex: 0 0 calc(33.333% - 10px); }
-            .form-column.col-4 { flex: 0 0 calc(25% - 11.25px); }
-            .form-column.col-6 { flex: 0 0 calc(16.666% - 12.5px); }
-            
-            .form-field {
-                margin-bottom: 20px;
-            }
-            
-            .form-field label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: 600;
-                color: #23282d;
-            }
-            
-            .form-field .required {
-                color: #d63384;
-            }
-            
-            .form-control {
-                width: 100%;
-                padding: 8px 12px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 14px;
-                box-sizing: border-box;
-            }
-            
-            .form-control:focus {
-                border-color: #0073aa;
-                box-shadow: 0 0 0 1px #0073aa;
-                outline: none;
-            }
-            
-            .form-control:disabled {
-                background-color: #f5f5f5;
-                cursor: not-allowed;
-            }
-            
-            .checkbox-field label,
-            .radio-option {
-                display: flex;
-                align-items: center;
-                margin-bottom: 8px;
-                font-weight: normal;
-                cursor: pointer;
-            }
-            
-            .checkbox-field input,
-            .radio-option input {
-                width: auto;
-                margin-right: 8px;
-            }
-            
-            .radio-group .radio-option {
-                margin-bottom: 10px;
-            }
-            
-            .current-file {
-                display: block;
-                margin-top: 5px;
-                color: #666;
-                font-style: italic;
-            }
-            
-            .field-description {
-                display: block;
-                margin-top: 5px;
-                color: #666;
-                font-style: italic;
-                font-size: 12px;
-                line-height: 1.4;
-            }
-            
-            .form-actions {
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #e1e1e1;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            
-            .btn {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 14px;
-                font-weight: 500;
-                transition: all 0.2s ease;
-            }
-            
-            .btn-secondary {
-                background: #6c757d;
-                color: #fff;
-            }
-            
-            .btn-secondary:hover {
-                background: #5a6268;
-                color: #fff;
-            }
-            
-            .btn-primary {
-                background: #0073aa;
-                color: #fff;
-            }
-            
-            .btn-primary:hover {
-                background: #005a87;
-            }
-            
-            .btn:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-            
-            /* Responsive Design */
-            @media (max-width: 768px) {
-                .document-form-wrapper {
-                    flex-direction: column;
-                    margin: 10px;
-                    padding: 0;
-                }
-                
-                .form-header-section {
-                    flex: none;
-                    position: static;
-                    margin-bottom: 20px;
-                }
-                
-                .form-content-section {
-                    padding: 20px;
-                }
-                
-                .form-row {
-                    flex-direction: column;
-                }
-                
-                .form-column {
-                    flex: none !important;
-                    width: 100% !important;
-                }
-                
-                .form-actions {
-                    flex-direction: column;
-                    gap: 10px;
-                }
-                
-                .btn {
-                    width: 100%;
-                    text-align: center;
-                }
-            }
-            </style>
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/secure-frontend.css'; ?>">
         </head>
-        <body>
-            <div class="document-form-wrapper">
+        <body class="lift-secure-page">
+            <div class="lift-docs-custom-layout">
+                <div class="container">
+                    <div class="secure-access-notice">
+                        <div class="notice-content">
+                            <span class="dashicons dashicons-shield-alt"></span>
+                            <?php _e('Secure Document Form Access', 'lift-docs-system'); ?>
+                        </div>
+                    </div>
+                    
+                    <div class="document-form-wrapper">
                 <!-- Header Section - Left Sidebar -->
                 <div class="form-header-section">
                     <h1><?php echo esc_html($form->name); ?></h1>
@@ -669,6 +407,8 @@ class LIFT_Docs_Frontend_Login {
                             </button>
                         </div>
                     </form>
+                </div>
+                    </div>
                 </div>
             </div>
             
@@ -2244,11 +1984,11 @@ class LIFT_Docs_Frontend_Login {
      * Enqueue scripts and styles
      */
     public function enqueue_scripts() {
-        // Load on docs pages OR when shortcodes are present
+        // Load on docs pages OR when shortcodes are present OR on document form pages
         $load_scripts = false;
         
         // Check for URL-based pages
-        if (get_query_var('docs_login') || get_query_var('docs_dashboard')) {
+        if (get_query_var('docs_login') || get_query_var('docs_dashboard') || get_query_var('document_form')) {
             $load_scripts = true;
         }
         
@@ -2260,6 +2000,12 @@ class LIFT_Docs_Frontend_Login {
         
         if (!$load_scripts) {
             return;
+        }
+        
+        // Enqueue secure frontend CSS for document forms
+        if (get_query_var('document_form')) {
+            wp_enqueue_style('lift-docs-secure-frontend', plugin_dir_url(__FILE__) . '../assets/css/secure-frontend.css', array(), LIFT_DOCS_VERSION);
+            wp_enqueue_script('lift-docs-secure-frontend', plugin_dir_url(__FILE__) . '../assets/js/secure-frontend.js', array('jquery'), LIFT_DOCS_VERSION, true);
         }
         
         wp_enqueue_script('lift-docs-frontend-login', plugin_dir_url(__FILE__) . '../assets/js/frontend-login.js', array('jquery'), '1.0.0', true);

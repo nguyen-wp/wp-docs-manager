@@ -1,0 +1,609 @@
+/*
+ * LIFT Docs System - Secure Frontend Styles
+ * Shared styles for secure pages and document forms
+ */
+
+/* ========================================
+   Global Styles & Reset
+   ======================================== */
+
+/* Hide admin bar completely */
+#wpadminbar {
+    display: none !important;
+}
+
+html {
+    margin-top: 0 !important;
+}
+
+body.lift-secure-page {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    background: #f9f9f9;
+    margin: 0;
+    padding: 40px 0;
+    line-height: 1.6;
+}
+
+/* ========================================
+   Layout Containers
+   ======================================== */
+
+.lift-docs-custom-layout {
+    padding: 40px 0;
+    background: #f9f9f9;
+    min-height: 60vh;
+}
+
+.lift-docs-custom-layout .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 40px;
+}
+
+/* Document Form Layout */
+.document-form-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* ========================================
+   Form Sections
+   ======================================== */
+
+.form-content-section {
+    background: #fff;
+    padding: 40px;
+    border-radius: 8px 8px 0 0;
+    order: 1;
+}
+
+.form-header-section {
+    background: #f8f9fa;
+    padding: 25px 40px;
+    border-radius: 0 0 8px 8px;
+    box-shadow: none;
+    order: 2;
+    border-top: 1px solid #dee2e6;
+    margin-top: 30px;
+}
+
+.form-header-section h1 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.8em;
+    line-height: 1.2;
+}
+
+/* ========================================
+   Document Headers & Titles
+   ======================================== */
+
+.document-header {
+    margin-bottom: 30px;
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 20px;
+}
+
+.document-title {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 2.2em;
+    line-height: 1.2;
+}
+
+.document-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+}
+
+.meta-item .dashicons {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+.document-info {
+    color: #666;
+    margin-bottom: 15px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.document-description {
+    margin-bottom: 30px;
+    line-height: 1.6;
+    color: #555;
+}
+
+/* ========================================
+   Notice Messages
+   ======================================== */
+
+.secure-access-notice {
+    background: #e8f4fd;
+    border: 1px solid #0073aa;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.secure-access-notice .notice-content {
+    color: #0073aa;
+    font-weight: 500;
+}
+
+.secure-access-notice .dashicons {
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.form-description {
+    color: #555;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #e8f4fd;
+    border: 1px solid #0073aa;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.edit-mode-notice {
+    background: #e8f4fd;
+    border: 1px solid #0073aa;
+    color: #0073aa;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.status-disabled-notice {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+/* Success/Error messages */
+.notice {
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.notice-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.notice-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* ========================================
+   Download Section
+   ======================================== */
+
+.download-section {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 25px;
+    text-align: left;
+}
+
+.download-section-title {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.download-section-title .dashicons {
+    color: #0073aa;
+}
+
+.files-count {
+    color: #666;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+.files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.file-item:hover {
+    border-color: #0073aa;
+    box-shadow: 0 2px 5px rgba(0, 115, 170, 0.1);
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.file-icon {
+    font-size: 20px;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #333;
+    word-break: break-word;
+}
+
+/* ========================================
+   Form Builder Layout
+   ======================================== */
+
+.form-builder-content {
+    width: 100%;
+}
+
+.form-row {
+    display: flex;
+    margin-bottom: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.form-column {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Column width classes */
+.form-column.col-1 { flex: 0 0 100%; }
+.form-column.col-2 { flex: 0 0 calc(50% - 7.5px); }
+.form-column.col-3 { flex: 0 0 calc(33.333% - 10px); }
+.form-column.col-4 { flex: 0 0 calc(25% - 11.25px); }
+.form-column.col-6 { flex: 0 0 calc(16.666% - 12.5px); }
+
+.form-field {
+    margin-bottom: 20px;
+}
+
+/* ========================================
+   Form Fields & Controls
+   ======================================== */
+
+.form-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-field .required {
+    color: #d63384;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff;
+    color: #333;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+    outline: none;
+}
+
+.form-control:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Checkbox and Radio Fields */
+.checkbox-field label,
+.radio-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.checkbox-field input,
+.radio-option input {
+    width: auto;
+    margin-right: 8px;
+}
+
+.radio-group .radio-option {
+    margin-bottom: 10px;
+}
+
+.current-file {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-style: italic;
+}
+
+.field-description {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-style: italic;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* ========================================
+   Buttons & Actions
+   ======================================== */
+
+.form-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background: #0073aa;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #005a87;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 115, 170, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.lift-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.lift-download-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 115, 170, 0.3);
+}
+
+.lift-download-btn .dashicons {
+    font-size: 16px;
+}
+
+/* ========================================
+   Related Documents
+   ======================================== */
+
+.related-documents {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #f1f1f1;
+}
+
+.related-docs-list {
+    display: grid;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.related-doc-item {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #0073aa;
+}
+
+.related-doc-item h4 {
+    margin: 0 0 10px 0;
+}
+
+.related-doc-item h4 a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.related-doc-item h4 a:hover {
+    text-decoration: underline;
+}
+
+.related-doc-item p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 768px) {
+    body.lift-secure-page {
+        padding: 20px 0;
+    }
+    
+    .lift-docs-custom-layout .container {
+        margin: 0 10px;
+        padding: 20px;
+    }
+    
+    .document-form-wrapper {
+        flex-direction: column;
+        margin: 10px;
+        padding: 0;
+    }
+    
+    .form-header-section {
+        flex: none;
+        order: 2;
+        margin-top: 20px;
+        padding: 20px;
+    }
+    
+    .form-content-section {
+        padding: 20px;
+        order: 1;
+    }
+    
+    .document-title {
+        font-size: 1.8em;
+    }
+    
+    .document-meta {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-column {
+        flex: none !important;
+        width: 100% !important;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .file-item {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .file-info {
+        justify-content: center;
+    }
+    
+    .lift-download-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .files-list {
+        gap: 20px;
+    }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .form-actions,
+    .lift-download-btn,
+    .btn {
+        display: none !important;
+    }
+    
+    .document-form-wrapper,
+    .lift-docs-custom-layout .container {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    body.lift-secure-page {
+        background: #fff !important;
+        padding: 0 !important;
+    }
+}
