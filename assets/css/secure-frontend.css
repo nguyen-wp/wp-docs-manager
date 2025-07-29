@@ -1035,19 +1035,9 @@ body.document-form-page .file-upload-container {
     margin-top: 8px;
 }
 
+/* Hide drop zone completely */
 body.document-form-page .file-drop-zone {
-    border: 2px dashed #999;
-    padding: 20px;
-    text-align: center;
-    background: #fafafa;
-    cursor: pointer;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-    position: relative;
-    min-height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: none !important;
 }
 
 body.document-form-page .file-drop-zone:hover,
@@ -1123,7 +1113,7 @@ body.document-form-page .upload-overlay .dashicons {
 }
 
 .file-upload-button {
-    display: flex;
+    display: none !important;
     justify-content: center;
     margin-top: 8px;
 }
@@ -1138,20 +1128,59 @@ body.document-form-page .upload-overlay .dashicons {
 
 /* File Preview Area - PDF Style Image Only */
 body.document-form-page .file-preview-area {
-    display: none;
+    display: block !important;
     margin-top: 12px;
+    min-height: 200px;
+    border: 2px dashed #999;
+    padding: 20px;
+    text-align: center;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+body.document-form-page .file-preview-area:hover,
+body.document-form-page .file-preview-area.drag-over {
+    border-color: #333;
+    background: #f0f0f0;
+}
+
+/* Empty state placeholder */
+body.document-form-page .file-preview-area:empty::before {
+    content: "📁";
+    font-size: 48px;
+    display: block;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+body.document-form-page .file-preview-area:empty::after {
+    content: "Click to select file\ASupports: JPG, PNG, PDF, DOC, DOCX (Max: 5MB)";
+    white-space: pre-line;
+    display: block;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 body.document-form-page .file-preview-item {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    background: transparent;
-    border: none;
-    border-radius: 0;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
     margin-bottom: 8px;
     position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+body.document-form-page .file-preview-item:hover {
+    border-color: #333;
+    background: #f9f9f9;
 }
 
 body.document-form-page .file-preview-item:last-child {
@@ -1161,8 +1190,9 @@ body.document-form-page .file-preview-item:last-child {
 body.document-form-page .image-preview {
     flex-shrink: 0;
     width: 100%;
+    max-width: 300px;
     height: auto;
-    border-radius: 0;
+    border-radius: 8px;
     overflow: hidden;
     background: transparent;
     display: flex;
@@ -1177,6 +1207,7 @@ body.document-form-page .image-preview img {
     height: auto;
     max-height: 200px;
     object-fit: contain;
+    border-radius: 8px;
 }
 
 body.document-form-page .image-preview:hover .upload-overlay {

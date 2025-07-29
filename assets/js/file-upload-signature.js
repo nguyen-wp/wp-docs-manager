@@ -90,7 +90,7 @@
         
         // Insert after the original input
         $input.hide();
-        $uploadContainer.append($dropZone, $previewArea, $uploadButton);
+        $uploadContainer.append($previewArea, $dropZone, $uploadButton);
         $input.after($uploadContainer);
         
         // Bind events
@@ -106,8 +106,8 @@
         const $browseBtn = $container.find('.file-browse-btn');
         const $browseLink = $container.find('.browse-link');
         
-        // Click to browse
-        $browseBtn.add($browseLink).on('click', function(e) {
+        // Click to browse - include preview area
+        $browseBtn.add($browseLink).add($previewArea).on('click', function(e) {
             e.preventDefault();
             $input.click();
         });
@@ -117,20 +117,20 @@
             handleFileSelection(this.files, $previewArea, $input);
         });
         
-        // Drag and drop
-        $dropZone.on('dragover dragenter', function(e) {
+        // Drag and drop for both drop zone and preview area
+        $dropZone.add($previewArea).on('dragover dragenter', function(e) {
             e.preventDefault();
             e.stopPropagation();
             $(this).addClass('drag-over');
         });
         
-        $dropZone.on('dragleave dragend', function(e) {
+        $dropZone.add($previewArea).on('dragleave dragend', function(e) {
             e.preventDefault();
             e.stopPropagation();
             $(this).removeClass('drag-over');
         });
         
-        $dropZone.on('drop', function(e) {
+        $dropZone.add($previewArea).on('drop', function(e) {
             e.preventDefault();
             e.stopPropagation();
             $(this).removeClass('drag-over');
