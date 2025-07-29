@@ -75,8 +75,8 @@
         $dropZone.html(`
             <div class="drop-zone-content">
                 <i class="dashicons dashicons-upload"></i>
-                <p class="drop-zone-text">Kéo thả file vào đây hoặc <span class="browse-link">chọn file</span></p>
-                <p class="drop-zone-hint">Hỗ trợ: JPG, PNG, PDF, DOC, DOCX (Max: 5MB)</p>
+                <p class="drop-zone-text">Drop files here or <span class="browse-link">choose file</span></p>
+                <p class="drop-zone-hint">Supports: JPG, PNG, PDF, DOC, DOCX (Max: 5MB)</p>
             </div>
         `);
         
@@ -84,7 +84,7 @@
         $uploadButton.html(`
             <button type="button" class="btn btn-secondary file-browse-btn">
                 <i class="dashicons dashicons-plus"></i>
-                Chọn File
+                Choose File
             </button>
         `);
         
@@ -152,13 +152,13 @@
         
         // Validate file size
         if (file.size > maxSize) {
-            showError('File quá lớn. Kích thước tối đa là 5MB.');
+            showError('File too large. Maximum size is 5MB.');
             return;
         }
         
         // Validate file type
         if (!allowedTypes.includes(file.type)) {
-            showError('Định dạng file không được hỗ trợ.');
+            showError('File format not supported.');
             return;
         }
         
@@ -200,7 +200,7 @@
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: 0%"></div>
                     </div>
-                    <span class="progress-text">Đang tải lên...</span>
+                    <span class="progress-text">Uploading...</span>
                 </div>
             </div>
         `);
@@ -316,13 +316,13 @@
                 </div>
                 <div class="file-details">
                     <div class="file-name">${filename}</div>
-                    <div class="file-status">Đã tải lên</div>
+                    <div class="file-status">Uploaded</div>
                 </div>
             `);
             
             $actions.html(`
                 <a class="download-link" href="${fileUrl}" target="_blank">
-                    <i class="dashicons dashicons-download"></i> Tải xuống
+                    <i class="dashicons dashicons-download"></i> Download
                 </a>
                 <button type="button" class="btn btn-secondary btn-sm remove-file">
                     <i class="dashicons dashicons-no"></i>
@@ -401,7 +401,7 @@
             },
             success: function(response) {
                 if (response.success) {
-                    $progressText.text('Tải lên thành công!');
+                    $progressText.text('Upload successful!');
                     $progressBar.addClass('success');
                     
                     // Store file URL in hidden input
@@ -412,15 +412,15 @@
                     
                     // Update preview with download link
                     const $downloadLink = $('<a class="download-link" href="' + response.data.url + '" target="_blank">');
-                    $downloadLink.html('<i class="dashicons dashicons-download"></i> Tải xuống');
+                    $downloadLink.html('<i class="dashicons dashicons-download"></i> Download');
                     $preview.find('.file-actions').prepend($downloadLink);
                 } else {
-                    showError(response.data || 'Lỗi tải file lên');
+                    showError(response.data || 'File upload error');
                     $preview.remove();
                 }
             },
             error: function() {
-                showError('Lỗi kết nối khi tải file lên');
+                showError('Connection error during file upload');
                 $preview.remove();
             }
         });
@@ -467,11 +467,11 @@
         $actions.html(`
             <button type="button" class="btn btn-secondary clear-signature">
                 <i class="dashicons dashicons-eraser"></i>
-                Xóa chữ ký
+                Clear
             </button>
             <button type="button" class="btn btn-primary save-signature" disabled>
                 <i class="dashicons dashicons-yes"></i>
-                Lưu chữ ký
+                Save
             </button>
         `);
         
@@ -613,13 +613,13 @@
             success: function(response) {
                 if (response.success) {
                     $('#' + fieldId + '_data').val(response.data.url);
-                    showSuccess('Chữ ký đã được lưu thành công!');
+                    showSuccess('Signature saved successfully!');
                 } else {
-                    showError(response.data || 'Lỗi lưu chữ ký');
+                    showError(response.data || 'Signature save error');
                 }
             },
             error: function() {
-                showError('Lỗi kết nối khi lưu chữ ký');
+                showError('Connection error while saving signature');
             }
         });
     }
@@ -679,7 +679,7 @@
                 const $saveBtn = $container.find('.save-signature');
                 
                 if (!$saveBtn.prop('disabled') && !$hiddenInput.val()) {
-                    showError('Vui lòng lưu chữ ký trước khi gửi form');
+                    showError('Please save signature before submitting form');
                     hasInvalidSignature = true;
                     return false;
                 }

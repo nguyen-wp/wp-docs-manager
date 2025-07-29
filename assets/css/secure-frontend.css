@@ -19,41 +19,39 @@ html {
 /* Modern clean body styling */
 body.lift-secure-page,
 body.document-form-page {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    background: #f8f9fa;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    background: #ece9d8;
     margin: 0;
     padding: 20px 0;
     min-height: 100vh;
-    color: #333;
-    line-height: 1.6;
+    color: #000;
+    line-height: 1.4;
 }
 
 /* ========================================
-   Layout Containers - Simple Single Column
+   Layout Containers - Windows Server 2003 Style
    ======================================== */
 
 .lift-docs-custom-layout {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 8px;
 }
 
 .lift-docs-custom-layout .container {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    background: #f0f0f0;
+    border: 2px outset #c0c0c0;
     overflow: hidden;
     margin: 0;
     padding: 0;
 }
 
-/* Document Form Layout - Simplified Single Column */
+/* Document Form Layout - Windows Server 2003 Style */
 .document-form-wrapper {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    background: #f0f0f0;
+    border: 2px outset #c0c0c0;
     overflow: hidden;
-    margin: 20px auto;
+    margin: 8px auto;
     max-width: 800px;
 }
 
@@ -62,59 +60,56 @@ body.document-form-page {
    ======================================== */
 
 .form-content-section {
-    background: #fff;
-    padding: 25px;
+    background: #f0f0f0;
+    padding: 8px;
     order: 1;
+    border: 1px inset #c0c0c0;
+    margin: 2px;
 }
 
 .document-form-title {
-    background: #1976d2;
+    background: #316ac5;
     color: white;
-    padding: 15px 25px;
+    padding: 4px 8px;
     order: 2;
+    border-bottom: 1px solid #1e3a8a;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
 .document-form-title .title-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
-    align-items: start;
+    display: block;
 }
 
 .document-form-title .form-info-column {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: block;
+    margin-bottom: 4px;
 }
 
 .document-form-title .status-info-column {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-end;
+    display: block;
 }
 
 .document-form-title h1 {
-    margin: 0 0 8px 0;
+    margin: 0;
     color: white;
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: bold;
     line-height: 1.2;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
 .document-form-title .document-info,
 .document-form-title .form-description {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 13px;
-    line-height: 1.3;
+    display: block;
+    font-size: 10px;
+    line-height: 1.2;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
 .document-form-title .info-label {
-    font-weight: 600;
-    opacity: 0.9;
-    font-size: 12px;
+    font-weight: bold;
+    opacity: 1;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -362,98 +357,94 @@ body.document-form-page {
    ======================================== */
 
 .form-field {
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .form-field label {
     display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: #333;
-    font-size: 13px;
-    line-height: 1.3;
+    margin-bottom: 2px;
+    font-weight: normal;
+    color: #000;
+    font-size: 10px;
+    line-height: 1.2;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
 .form-field .required {
-    color: #e74c3c;
-    margin-left: 3px;
-    font-size: 12px;
+    color: #ff0000;
+    margin-left: 2px;
+    font-size: 10px;
 }
 
 .form-control {
     width: 100%;
-    height: 36px;
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
+    height: 18px;
+    padding: 1px 3px;
+    border: 1px inset #c0c0c0;
+    font-size: 10px;
     background: #fff;
-    color: #333;
+    color: #000;
     box-sizing: border-box;
-    transition: all 0.15s ease;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    line-height: 1.4;
+    font-family: "MS Sans Serif", sans-serif;
+    line-height: 1.2;
 }
 
 .form-control:focus {
-    border-color: #1976d2;
+    border: 1px inset #316ac5;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
     background: #fff;
 }
 
 .form-control:disabled {
-    background-color: #f3f4f6;
-    border-color: #d1d5db;
-    color: #6b7280;
+    background-color: #c0c0c0;
+    border: 1px inset #808080;
+    color: #808080;
     cursor: not-allowed;
 }
 
 .form-control::placeholder {
-    color: #9ca3af;
-    font-size: 14px;
+    color: #808080;
+    font-size: 10px;
 }
 
-/* Textarea specific styling - compact but usable */
+/* Textarea specific styling - Windows Server 2003 style */
 textarea.form-control {
-    height: auto;
-    min-height: 80px;
-    padding: 10px 12px;
+    height: 48px;
+    padding: 1px 3px;
     resize: vertical;
-    line-height: 1.5;
+    min-height: 32px;
+    max-height: 120px;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
-/* Select dropdown styling - OS-native appearance */
+/* Select dropdown styling - Windows Server 2003 style */
 select.form-control {
-    height: 36px;
-    padding: 8px 32px 8px 12px;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 10px center;
-    background-repeat: no-repeat;
-    background-size: 14px;
-    appearance: none;
+    height: 18px;
+    padding: 1px 3px;
+    background: #fff;
     cursor: pointer;
+    font-family: "MS Sans Serif", sans-serif;
+    font-size: 10px;
 }
 
 select.form-control:focus {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%231976d2' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    border: 1px inset #316ac5;
 }
 
-/* Checkbox and radio styling - compact and uniform */
+/* Checkbox and radio styling - Windows Server 2003 style */
 .form-control[type="checkbox"],
 .form-control[type="radio"] {
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
-    margin-top: 2px;
-    accent-color: #1976d2;
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+    margin-top: 1px;
     cursor: pointer;
 }
 
-/* File upload styling - compact */
+/* File upload styling - Windows Server 2003 style */
 .form-control[type="file"] {
-    height: 36px;
-    padding: 6px 12px;
+    height: 18px;
+    padding: 1px 3px;
     background: #f9fafb;
     border: 1px dashed #d1d5db;
     cursor: pointer;
@@ -574,9 +565,6 @@ select.form-control:focus {
     height: 36px;
 }
 
-.form-actions .btn-primary {
-    order: -1;
-}
 
 /* Checkbox and Radio Fields - Compact OS-style */
 .checkbox-field,
@@ -641,55 +629,56 @@ select.form-control:focus {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    height: 36px;
-    padding: 0 16px;
-    font-size: 14px;
-    font-weight: 500;
+    gap: 2px;
+    height: 18px;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: normal;
     text-decoration: none;
-    border: none;
-    border-radius: 6px;
+    border: 1px outset #c0c0c0;
     cursor: pointer;
-    transition: all 0.15s ease;
     white-space: nowrap;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    font-family: "MS Sans Serif", sans-serif;
     line-height: 1;
+    background: #f0f0f0;
+    color: #000;
 }
 
 .btn-primary {
-    background: #1976d2;
+    background: #316ac5;
     color: #fff;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px outset #316ac5;
+    height: auto;
 }
 
 .btn-primary:hover {
-    background: #1565c0;
+    background: #2557a8;
     color: #fff;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #d1d5db;
+    background: #f0f0f0;
+    color: #000;
+    border: 1px outset #c0c0c0;
 }
 
 .btn-secondary:hover {
-    background: #e5e7eb;
-    color: #374151;
-    border-color: #9ca3af;
+    background: #e0e0e0;
+    color: #000;
 }
 
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    box-shadow: none;
 }
 
 .form-actions {
-    margin-top: 25px;
-    padding-top: 15px;
+    margin-top: 8px;
+    padding-top: 4px;
     text-align: center;
+    border-top: 1px solid #c0c0c0;
+    background: #f0f0f0;
+    padding: 4px;
 }
 
 .form-content-section .form-actions {
@@ -868,55 +857,57 @@ select.form-control:focus {
 }
 
 .file-drop-zone {
-    border: 2px dashed #d1d5db;
-    border-radius: 8px;
-    padding: 24px;
+    border: 1px inset #c0c0c0;
+    padding: 8px;
     text-align: center;
-    background: #f9fafb;
-    transition: all 0.15s ease;
+    background: #f0f0f0;
     cursor: pointer;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
 }
 
 .file-drop-zone:hover,
 .file-drop-zone.drag-over {
-    border-color: #1976d2;
-    background: #f0f9ff;
+    border: 1px inset #316ac5;
+    background: #e8f0ff;
 }
 
 .drop-zone-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
 }
 
 .drop-zone-content .dashicons {
-    font-size: 32px;
-    color: #6b7280;
+    font-size: 16px;
+    color: #316ac5;
 }
 
 .drop-zone-text {
     margin: 0;
-    color: #374151;
-    font-size: 14px;
-    font-weight: 500;
+    color: #000;
+    font-size: 10px;
+    font-weight: normal;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
 .browse-link {
-    color: #1976d2;
+    color: #316ac5;
     text-decoration: underline;
     cursor: pointer;
+    font-weight: normal;
 }
 
 .browse-link:hover {
-    color: #1565c0;
+    color: #2557a8;
 }
 
 .drop-zone-hint {
     margin: 0;
-    font-size: 12px;
-    color: #6b7280;
+    font-size: 9px;
+    color: #808080;
+    font-weight: normal;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
 .file-upload-button {
@@ -1080,37 +1071,39 @@ select.form-control:focus {
     color: #dc2626;
 }
 
-/* Signature Container */
+/* Signature Container - Windows Server 2003 Style */
 .signature-container {
-    margin-top: 6px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background: #fff;
+    margin-top: 4px;
+    border: 1px inset #c0c0c0;
+    background: #f0f0f0;
     overflow: hidden;
 }
 
 .signature-canvas {
     display: block;
     width: 100%;
-    height: 200px;
+    height: 120px;
     border: none;
     cursor: crosshair;
     background: #fff;
+    margin: 2px;
+    border: 1px inset #c0c0c0;
 }
 
 .signature-actions {
-    padding: 12px;
-    background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
+    padding: 4px;
+    background: #f0f0f0;
+    border-top: 1px solid #c0c0c0;
     display: flex;
-    gap: 8px;
-    justify-content: flex-end;
+    gap: 4px;
+    justify-content: center;
 }
 
 .signature-actions .btn {
-    height: 32px;
-    padding: 0 12px;
-    font-size: 13px;
+    height: 18px;
+    padding: 0 8px;
+    font-size: 10px;
+    min-width: 48px;
 }
 
 .clear-signature {
@@ -1557,39 +1550,40 @@ select.form-control:focus {
    Existing File and Signature Displays
    ======================================== */
 
-/* Existing file preview styling */
+/* Existing file preview styling - Windows Server 2003 */
 .file-preview-item.existing-file {
-    background: #f8f9fa;
-    border: 2px solid #1976d2;
-    border-radius: 8px;
-    padding: 12px;
+    background: #f0f0f0;
+    border: 1px inset #c0c0c0;
+    padding: 4px;
 }
 
 .file-preview-item.existing-file .file-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 4px;
 }
 
 .file-preview-item.existing-file .file-status {
-    color: #1976d2;
-    font-weight: 600;
-    font-size: 12px;
+    color: #316ac5;
+    font-weight: normal;
+    font-size: 9px;
     text-transform: uppercase;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
 .file-preview-item.existing-file .download-link {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    color: #1976d2;
+    gap: 2px;
+    color: #316ac5;
     text-decoration: none;
-    font-size: 12px;
-    margin-right: 10px;
+    font-size: 9px;
+    margin-right: 4px;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
 .file-preview-item.existing-file .download-link:hover {
-    color: #1565c0;
+    color: #2557a8;
     text-decoration: underline;
 }
 
@@ -1599,26 +1593,25 @@ select.form-control:focus {
     display: none !important;
 }
 
-/* Enhanced current file/signature display when not processed */
+/* Enhanced current file/signature display - Windows Server 2003 */
 .current-file,
 .current-signature {
     display: block;
-    margin-top: 8px;
-    padding: 8px 12px;
-    background: #e3f2fd;
-    border: 1px solid #1976d2;
-    border-radius: 4px;
-    color: #1565c0;
-    font-size: 12px;
-    font-weight: 500;
+    margin-top: 2px;
+    padding: 2px 4px;
+    background: #f0f0f0;
+    border: 1px inset #c0c0c0;
+    color: #000;
+    font-size: 9px;
+    font-weight: normal;
+    font-family: "MS Sans Serif", sans-serif;
 }
 
 .current-signature img {
-    max-width: 200px;
+    max-width: 120px;
     height: auto;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 5px;
+    border: 1px inset #c0c0c0;
+    margin-bottom: 2px;
 }
 
 /* Image error styling */
