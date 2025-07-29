@@ -661,7 +661,7 @@ class LIFT_Docs_Layout {
         
         // Check if this is a secure link page
         if ((strpos($request_uri, '/document-files/secure/') !== false || 
-             strpos($request_uri, '/lift-docs/view/') !== false) && 
+             strpos($request_uri, '/document-files/view/') !== false) && 
             isset($_GET['lift_secure'])) {
             add_filter('show_admin_bar', '__return_false');
             remove_action('wp_head', '_admin_bar_bump_cb');
