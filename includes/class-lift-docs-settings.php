@@ -424,6 +424,19 @@ class LIFT_Docs_Settings {
                     <!-- General Tab Content -->
                     <div id="general-tab" class="lift-tab-content <?php echo $active_tab == 'general' ? 'active' : ''; ?>">
                         <?php do_settings_sections('lift-docs-general'); ?>
+                        
+                        <!-- Reset Settings Section -->
+                        <div class="lift-reset-section">
+                            <h3>
+                                <i class="fas fa-undo"></i> <?php _e('Reset All Settings', 'lift-docs-system'); ?>
+                            </h3>
+                            <p>
+                                <?php _e('Reset all plugin settings back to their default values. All checkboxes will be enabled and customizations will be lost.', 'lift-docs-system'); ?>
+                            </p>
+                            <button type="button" id="reset-settings-btn" class="lift-button lift-button-secondary">
+                                <i class="fas fa-undo"></i> <?php _e('Reset All Settings to Default', 'lift-docs-system'); ?>
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Security Tab Content -->
@@ -451,9 +464,6 @@ class LIFT_Docs_Settings {
                     
                     <div class="lift-settings-footer">
                         <?php submit_button(__('Save Changes', 'lift-docs-system'), 'primary', 'submit', false, array('class' => 'lift-button lift-button-primary')); ?>
-                        <button type="button" id="reset-settings-btn" class="lift-button lift-button-secondary" style="margin-left: 10px;">
-                            <i class="fas fa-undo"></i> <?php _e('Reset All Settings to Default', 'lift-docs-system'); ?>
-                        </button>
                     </div>
                 </form>
             </div>

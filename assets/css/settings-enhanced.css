@@ -477,6 +477,41 @@
 }
 
 /* ===============================================
+   RESET SETTINGS SECTION
+   =============================================== */
+.lift-reset-section {
+    background: #fff;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    border-left: 4px solid #d63384;
+}
+
+.lift-reset-section h3 {
+    margin-top: 0;
+    color: #d63384;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lift-reset-section p {
+    margin-bottom: 15px;
+    color: #6c757d;
+    line-height: 1.5;
+}
+
+.lift-reset-section .lift-button {
+    transition: all 0.3s ease;
+}
+
+.lift-reset-section .lift-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(214, 51, 132, 0.2);
+}
+
+/* ===============================================
    HELP & INFO SECTIONS
    =============================================== */
 .lift-info-box {
