@@ -927,6 +927,28 @@ class LIFT_Docs_Frontend_Login {
                 <?php
                 break;
                 
+            case 'header':
+                // Header field - render as heading, not input
+                $heading_level = isset($field['heading_level']) ? intval($field['heading_level']) : 2;
+                $heading_level = max(1, min(6, $heading_level)); // Ensure valid h1-h6
+                $heading_text = isset($field['text']) ? $field['text'] : ($field['label'] ?? '');
+                ?>
+                <h<?php echo $heading_level; ?> class="form-header-field" data-field-id="<?php echo esc_attr($field['id']); ?>">
+                    <?php echo esc_html($heading_text); ?>
+                </h<?php echo $heading_level; ?>>
+                <?php
+                break;
+                
+            case 'paragraph':
+                // Paragraph field - render as paragraph, not input
+                $paragraph_text = isset($field['text']) ? $field['text'] : ($field['label'] ?? '');
+                ?>
+                <p class="form-paragraph-field" data-field-id="<?php echo esc_attr($field['id']); ?>">
+                    <?php echo wp_kses_post($paragraph_text); ?>
+                </p>
+                <?php
+                break;
+                
             default:
                 // Fallback for unknown field types
                 ?>
@@ -1072,8 +1094,8 @@ class LIFT_Docs_Frontend_Login {
         
         echo '<div class="' . $field_classes . '" data-field-type="' . esc_attr($field['type']) . '" data-field-id="' . esc_attr($field['id']) . '">';
         
-        // Render label for most field types (except checkbox which handles its own label)
-        if ($field['type'] !== 'checkbox') {
+        // Render label for most field types (except checkbox, header, paragraph which handle their own display)
+        if (!in_array($field['type'], ['checkbox', 'header', 'paragraph'])) {
             echo '<label for="field_' . esc_attr($field['id']) . '">';
             echo esc_html($field['label'] ?? 'Field');
             if (isset($field['required']) && $field['required']) {
