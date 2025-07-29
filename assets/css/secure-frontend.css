@@ -228,7 +228,7 @@ body.document-form-page .form-header {
 }
 
 .document-form-title .notice-header strong {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
 }
 
@@ -2131,11 +2131,14 @@ body.document-form-page .mode-indicator {
     background: #007cba;
     color: #fff;
     border: none;
-    padding: 12px 20px;
+    padding: 9px 20px;
     font-size: 14px;
-    border-radius: 4px;
+    border-radius: 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    min-width: 200px;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    width: fit-content;
 }
 
 body.document-form-page .mode-indicator.edit-mode {
@@ -2152,7 +2155,7 @@ body.document-form-page .mode-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 4px;
+    margin-right: 8px;
 }
 
 body.document-form-page .mode-header i {
@@ -2276,6 +2279,7 @@ body.document-form-page .action-cancel:hover {
     body.document-form-page .mode-indicator {
         width: 100%;
         text-align: center;
+        justify-content: center;
     }
     
     body.document-form-page .action-buttons-column {

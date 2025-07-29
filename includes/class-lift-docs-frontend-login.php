@@ -378,7 +378,7 @@ class LIFT_Docs_Frontend_Login {
                                         <strong><?php echo esc_html($status_title); ?></strong>
                                     </div>
                                     <div class="notice-content">
-                                        <?php echo esc_html($status_message); ?>
+                                        <?php // echo esc_html($status_message); ?>
                                         <small class="status-info">
                                             <?php printf(__('Document Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?>
                                         </small>
@@ -391,7 +391,6 @@ class LIFT_Docs_Frontend_Login {
                                         <strong><?php _e('Form Active', 'lift-docs-system'); ?></strong>
                                     </div>
                                     <div class="notice-content">
-                                        <?php _e('This form is ready for submission.', 'lift-docs-system'); ?>
                                         <small class="status-info">
                                             <?php printf(__('Document Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?>
                                         </small>
@@ -432,12 +431,9 @@ class LIFT_Docs_Frontend_Login {
                                         <i class="fas fa-eye"></i>
                                         <span class="mode-title"><?php _e('View Only Mode', 'lift-docs-system'); ?></span>
                                     </div>
-                                    <div class="mode-details">
-                                        <span class="mode-description"><?php _e('Form is read-only due to document status', 'lift-docs-system'); ?></span>
-                                        <small class="form-requirement">
-                                            <?php printf(__('Status: %s', 'lift-docs-system'), ucfirst($document_status)); ?>
+                                    <small class="submission-timestamp">
+                                            <?php printf(__('Originally: %s', 'lift-docs-system'), date_i18n('M j, Y g:i A', strtotime($existing_submission->submitted_at))); ?>
                                         </small>
-                                    </div>
                                 </div>
                             <?php elseif ($is_edit_mode): ?>
                                 <div class="mode-indicator edit-mode">
@@ -446,7 +442,6 @@ class LIFT_Docs_Frontend_Login {
                                         <span class="mode-title"><?php _e('Edit Mode', 'lift-docs-system'); ?></span>
                                     </div>
                                     <div class="mode-details">
-                                        <span class="mode-description"><?php _e('Editing previous submission', 'lift-docs-system'); ?></span>
                                         <small class="submission-timestamp">
                                             <?php printf(__('Originally: %s', 'lift-docs-system'), date_i18n('M j, Y g:i A', strtotime($existing_submission->submitted_at))); ?>
                                         </small>
@@ -458,10 +453,9 @@ class LIFT_Docs_Frontend_Login {
                                         <i class="fas fa-plus-circle"></i>
                                         <span class="mode-title"><?php _e('New Submission', 'lift-docs-system'); ?></span>
                                     </div>
-                                    <div class="mode-details">
-                                        <span class="mode-description"><?php _e('Ready to submit new form', 'lift-docs-system'); ?></span>
-                                        <small class="form-requirement"><?php _e('Complete all required fields', 'lift-docs-system'); ?></small>
-                                    </div>
+                                    <small class="submission-timestamp">
+                                        <?php printf(__('Originally: %s', 'lift-docs-system'), date_i18n('M j, Y g:i A', strtotime($existing_submission->submitted_at))); ?>
+                                    </small>
                                 </div>
                             <?php endif; ?>
                         </div>
