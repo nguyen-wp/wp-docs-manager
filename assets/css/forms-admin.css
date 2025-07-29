@@ -1001,23 +1001,7 @@
     border-top: 2px solid currentColor;
     border-radius: 50%;
 }
-/* Success/Error Messages */
-.notice {
-    padding: 10px 15px;
-    margin: 15px 0;
-    border-radius: 4px;
-    border-left: 4px solid;
-}
-.notice-success {
-    background: #f0fff4;
-    border-left-color: #00a32a;
-    color: #155724;
-}
-.notice-error {
-    background: #ffeaea;
-    border-left-color: #dc3232;
-    color: #721c24;
-}
+
 
 /* Form builder messages */
 .lift-form-message {
@@ -1084,11 +1068,7 @@
     height: 60px;
     position: relative;
 }
-.notice-error {
-    background: #ffeaea;
-    border-left-color: #dc3232;
-    color: #721c24;
-}
+
 .ui-draggable-helper {
     z-index: 1000;
     border: 1px solid #0073aa;

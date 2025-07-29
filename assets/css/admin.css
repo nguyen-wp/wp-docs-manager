@@ -1027,20 +1027,3 @@
     width: 120px;
     text-align: center;
 }
-
-/* Success notification styles */
-.notice.notice-success.is-dismissible {
-    background: #00a32a;
-    border-left-color: #00a32a;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.notice.notice-success.is-dismissible p {
-    margin: 0;
-    color: white;
-    font-weight: 500;
-}
-

@@ -185,26 +185,6 @@ body.lift-secure-page {
     margin-bottom: 20px;
 }
 
-/* Success/Error messages */
-.notice {
-    padding: 15px;
-    margin: 15px 0;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.notice-success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.notice-error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
 /* ========================================
    Download Section
    ======================================== */
