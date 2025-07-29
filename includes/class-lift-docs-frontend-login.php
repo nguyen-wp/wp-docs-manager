@@ -249,12 +249,18 @@ class LIFT_Docs_Frontend_Login {
             if (is_array($parsed_data)) {
                 // Check if it's the new hierarchical structure with layout
                 if (isset($parsed_data['layout']) && isset($parsed_data['layout']['rows'])) {
-                    // New structure - extract fields from rows
-                    foreach ($parsed_data['layout']['rows'] as $row) {
+                    // New structure - extract fields with row/column information preserved
+                    foreach ($parsed_data['layout']['rows'] as $row_index => $row) {
                         if (isset($row['columns'])) {
-                            foreach ($row['columns'] as $column) {
+                            foreach ($row['columns'] as $col_index => $column) {
                                 if (isset($column['fields'])) {
                                     foreach ($column['fields'] as $field) {
+                                        // Add row/column information to field
+                                        $field['row'] = $row_index;
+                                        $field['column'] = $col_index;
+                                        if (isset($column['width'])) {
+                                            $field['width'] = $column['width'];
+                                        }
                                         $form_fields[] = $field;
                                     }
                                 }
@@ -314,27 +320,59 @@ class LIFT_Docs_Frontend_Login {
                 margin: 0;
                 padding: 20px;
             }
-            .form-container {
-                max-width: 800px;
+            
+            /* Main container with flex layout */
+            .document-form-wrapper {
+                display: flex;
+                max-width: 1200px;
                 margin: 0 auto;
+                gap: 20px;
+                min-height: calc(100vh - 40px);
+            }
+            
+            /* Header section - left sidebar */
+            .form-header-section {
+                flex: 0 0 300px;
+                background: #fff;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.13);
+                height: fit-content;
+                position: sticky;
+                top: 20px;
+            }
+            
+            /* Form content section - main area */
+            .form-content-section {
+                flex: 1;
                 background: #fff;
                 padding: 30px;
                 border-radius: 8px;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.13);
             }
-            .form-header {
-                border-bottom: 1px solid #e1e1e1;
-                padding-bottom: 20px;
-                margin-bottom: 30px;
-            }
-            .form-header h1 {
-                margin: 0 0 10px 0;
+            
+            .form-header-section h1 {
+                margin: 0 0 15px 0;
                 color: #23282d;
+                font-size: 24px;
             }
-            .form-header .document-info {
+            
+            .document-info {
                 color: #666;
                 font-size: 14px;
+                margin-bottom: 20px;
+                padding: 12px;
+                background: #f8f9fa;
+                border-radius: 4px;
+                border-left: 4px solid #0073aa;
             }
+            
+            .form-description {
+                color: #555;
+                line-height: 1.5;
+                margin-bottom: 20px;
+            }
+            
             .status-notice {
                 background: #fff3cd;
                 border: 1px solid #ffeaa7;
@@ -343,18 +381,63 @@ class LIFT_Docs_Frontend_Login {
                 border-radius: 4px;
                 margin-bottom: 20px;
             }
+            
+            .edit-mode-notice {
+                background: #d1ecf1;
+                border: 1px solid #bee5eb;
+                color: #0c5460;
+                padding: 12px;
+                border-radius: 4px;
+                margin-bottom: 20px;
+            }
+            
+            .status-disabled-notice {
+                background: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+                padding: 15px;
+                border-radius: 4px;
+                margin-bottom: 20px;
+            }
+            
+            /* Form Builder Layout Styles */
+            .form-builder-content {
+                width: 100%;
+            }
+            
+            .form-row {
+                display: flex;
+                margin-bottom: 20px;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+            
+            .form-column {
+                flex: 1;
+                min-width: 200px;
+            }
+            
+            .form-column.col-1 { flex: 0 0 100%; }
+            .form-column.col-2 { flex: 0 0 calc(50% - 7.5px); }
+            .form-column.col-3 { flex: 0 0 calc(33.333% - 10px); }
+            .form-column.col-4 { flex: 0 0 calc(25% - 11.25px); }
+            .form-column.col-6 { flex: 0 0 calc(16.666% - 12.5px); }
+            
             .form-field {
                 margin-bottom: 20px;
             }
+            
             .form-field label {
                 display: block;
                 margin-bottom: 5px;
                 font-weight: 600;
                 color: #23282d;
             }
+            
             .form-field .required {
                 color: #d63384;
             }
+            
             .form-control {
                 width: 100%;
                 padding: 8px 12px;
@@ -363,15 +446,18 @@ class LIFT_Docs_Frontend_Login {
                 font-size: 14px;
                 box-sizing: border-box;
             }
+            
             .form-control:focus {
                 border-color: #0073aa;
                 box-shadow: 0 0 0 1px #0073aa;
                 outline: none;
             }
+            
             .form-control:disabled {
                 background-color: #f5f5f5;
                 cursor: not-allowed;
             }
+            
             .checkbox-field label,
             .radio-option {
                 display: flex;
@@ -380,20 +466,33 @@ class LIFT_Docs_Frontend_Login {
                 font-weight: normal;
                 cursor: pointer;
             }
+            
             .checkbox-field input,
             .radio-option input {
                 width: auto;
                 margin-right: 8px;
             }
+            
             .radio-group .radio-option {
                 margin-bottom: 10px;
             }
+            
             .current-file {
                 display: block;
                 margin-top: 5px;
                 color: #666;
                 font-style: italic;
             }
+            
+            .field-description {
+                display: block;
+                margin-top: 5px;
+                color: #666;
+                font-style: italic;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+            
             .form-actions {
                 margin-top: 30px;
                 padding-top: 20px;
@@ -402,6 +501,7 @@ class LIFT_Docs_Frontend_Login {
                 justify-content: space-between;
                 align-items: center;
             }
+            
             .btn {
                 padding: 10px 20px;
                 border: none;
@@ -413,134 +513,144 @@ class LIFT_Docs_Frontend_Login {
                 font-weight: 500;
                 transition: all 0.2s ease;
             }
+            
             .btn-secondary {
                 background: #6c757d;
                 color: #fff;
             }
+            
             .btn-secondary:hover {
                 background: #5a6268;
                 color: #fff;
             }
+            
             .btn-primary {
                 background: #0073aa;
                 color: #fff;
             }
+            
             .btn-primary:hover {
                 background: #005a87;
             }
+            
             .btn:disabled {
                 opacity: 0.5;
                 cursor: not-allowed;
             }
+            
+            /* Responsive Design */
             @media (max-width: 768px) {
-                .form-container {
+                .document-form-wrapper {
+                    flex-direction: column;
                     margin: 10px;
+                    padding: 0;
+                }
+                
+                .form-header-section {
+                    flex: none;
+                    position: static;
+                    margin-bottom: 20px;
+                }
+                
+                .form-content-section {
                     padding: 20px;
                 }
+                
+                .form-row {
+                    flex-direction: column;
+                }
+                
+                .form-column {
+                    flex: none !important;
+                    width: 100% !important;
+                }
+                
                 .form-actions {
                     flex-direction: column;
                     gap: 10px;
                 }
+                
                 .btn {
                     width: 100%;
                     text-align: center;
                 }
             }
-                text-decoration: none;
-                display: inline-block;
-                font-size: 14px;
-                margin-left: 10px;
-            }
-            .btn-primary {
-                background: #0073aa;
-                color: #fff;
-            }
-            .btn-secondary {
-                background: #f1f1f1;
-                color: #333;
-            }
-            .btn:hover {
-                opacity: 0.9;
-            }
-            .required {
-                color: #d63384;
-            }
             </style>
         </head>
         <body>
-            <div class="form-container">
-                <div class="form-header">
+            <div class="document-form-wrapper">
+                <!-- Header Section - Left Sidebar -->
+                <div class="form-header-section">
                     <h1><?php echo esc_html($form->name); ?></h1>
+                    
                     <div class="document-info">
-                        <?php printf(__('Related to document: %s', 'lift-docs-system'), '<strong>' . esc_html($document->post_title) . '</strong>'); ?>
+                        <strong><?php _e('Document:', 'lift-docs-system'); ?></strong><br>
+                        <?php echo esc_html($document->post_title); ?>
                     </div>
+                    
+                    <?php if ($form->description): ?>
+                        <div class="form-description">
+                            <strong><?php _e('Description:', 'lift-docs-system'); ?></strong><br>
+                            <?php echo esc_html($form->description); ?>
+                        </div>
+                    <?php endif; ?>
+                    
                     <?php if ($is_edit_mode): ?>
-                        <div class="edit-mode-notice" style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 12px; border-radius: 4px; margin: 15px 0; color: #856404;">
-                            <strong><?php _e('Edit Mode:', 'lift-docs-system'); ?></strong> 
-                            <?php _e('You have already submitted this form. You can edit your submission below.', 'lift-docs-system'); ?>
+                        <div class="edit-mode-notice">
+                            <strong><?php _e('Edit Mode:', 'lift-docs-system'); ?></strong><br>
+                            <?php _e('You are editing your previous submission.', 'lift-docs-system'); ?>
                             <br><small><?php printf(__('Originally submitted: %s', 'lift-docs-system'), date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($existing_submission->submitted_at))); ?></small>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($is_form_disabled): ?>
-                        <div class="status-disabled-notice" style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 4px; margin: 15px 0; color: #721c24;">
+                        <div class="status-disabled-notice">
                             <strong><i class="fas fa-exclamation-triangle"></i> <?php _e('Form Access Restricted', 'lift-docs-system'); ?></strong>
                             <br><?php echo esc_html($status_message); ?>
                             <br><small><?php printf(__('Document Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?></small>
                         </div>
                     <?php endif; ?>
                     
-                    <?php if ($form->description): ?>
-                        <p><?php echo esc_html($form->description); ?></p>
-                    <?php endif; ?>
-                </div>
-                
-                <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" <?php if ($is_form_disabled): ?>style="opacity: 0.6; pointer-events: none;"<?php endif; ?>>
-                    <input type="hidden" name="action" value="lift_forms_submit">
-                    <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
-                    <input type="hidden" name="document_id" value="<?php echo esc_attr($document->ID); ?>">
-                    <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('lift_forms_submit_nonce'); ?>">
-                    <?php if ($is_edit_mode && $existing_submission): ?>
-                        <input type="hidden" name="submission_id" value="<?php echo esc_attr($existing_submission->id); ?>">
-                        <input type="hidden" name="is_edit" value="1">
-                    <?php endif; ?>
-                    
-                    <?php if (!empty($form_fields) && is_array($form_fields)): ?>
-                        <?php foreach ($form_fields as $field): ?>
-                            <div class="form-field">
-                                <label for="field_<?php echo esc_attr($field['id']); ?>">
-                                    <?php echo esc_html($field['label']); ?>
-                                    <?php if (isset($field['required']) && $field['required']): ?>
-                                        <span class="required">*</span>
-                                    <?php endif; ?>
-                                </label>
-                                
-                                <?php $this->render_form_field($field, $existing_data, $is_form_disabled); ?>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <p><?php _e('This form has no fields configured.', 'lift-docs-system'); ?></p>
-                    <?php endif; ?>
-                    
                     <div class="form-actions">
                         <a href="<?php echo home_url('/document-dashboard/'); ?>" class="btn btn-secondary">
                             <?php _e('Back to Dashboard', 'lift-docs-system'); ?>
                         </a>
-                        <button type="submit" class="btn btn-primary" <?php if ($is_form_disabled): ?>disabled style="opacity: 0.5; cursor: not-allowed;"<?php endif; ?>>
-                            <?php 
-                            if ($is_form_disabled) {
-                                if ($document_status === 'cancelled') {
-                                    echo __('Form Cancelled', 'lift-docs-system');
-                                } else {
-                                    echo __('Form Disabled', 'lift-docs-system');
-                                }
-                            } else {
-                                echo $is_edit_mode ? __('Update Submission', 'lift-docs-system') : __('Submit Form', 'lift-docs-system');
-                            }
-                            ?>
-                        </button>
                     </div>
-                </form>
+                </div>
+                
+                <!-- Form Content Section - Main Area -->
+                <div class="form-content-section">
+                    <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" <?php if ($is_form_disabled): ?>style="opacity: 0.6; pointer-events: none;"<?php endif; ?>>
+                        <input type="hidden" name="action" value="lift_forms_submit">
+                        <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
+                        <input type="hidden" name="document_id" value="<?php echo esc_attr($document->ID); ?>">
+                        <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('lift_forms_submit_nonce'); ?>">
+                        <?php if ($is_edit_mode && $existing_submission): ?>
+                            <input type="hidden" name="submission_id" value="<?php echo esc_attr($existing_submission->id); ?>">
+                            <input type="hidden" name="is_edit" value="1">
+                        <?php endif; ?>
+                        
+                        <div class="form-builder-content">
+                            <?php $this->render_form_builder_layout($form_fields, $existing_data, $is_form_disabled); ?>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" <?php if ($is_form_disabled): ?>disabled<?php endif; ?>>
+                                <?php 
+                                if ($is_form_disabled) {
+                                    if ($document_status === 'cancelled') {
+                                        echo __('Form Cancelled', 'lift-docs-system');
+                                    } else {
+                                        echo __('View Only', 'lift-docs-system');
+                                    }
+                                } else {
+                                    echo $is_edit_mode ? __('Update Submission', 'lift-docs-system') : __('Submit Form', 'lift-docs-system');
+                                }
+                                ?>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
             
             <script>
@@ -751,6 +861,153 @@ class LIFT_Docs_Frontend_Login {
                 <?php
                 break;
         }
+    }
+    
+    /**
+     * Render form builder layout with rows, columns, and fields
+     */
+    private function render_form_builder_layout($form_fields, $existing_data = array(), $is_disabled = false) {
+        if (empty($form_fields)) {
+            echo '<p>' . __('This form has no fields configured.', 'lift-docs-system') . '</p>';
+            return;
+        }
+        
+        // Check if fields are organized in rows/columns structure
+        if ($this->has_layout_structure($form_fields)) {
+            $this->render_structured_layout($form_fields, $existing_data, $is_disabled);
+        } else {
+            // Fallback to simple linear layout
+            $this->render_simple_layout($form_fields, $existing_data, $is_disabled);
+        }
+    }
+    
+    /**
+     * Check if form fields have layout structure (rows/columns)
+     */
+    private function has_layout_structure($form_fields) {
+        // Check if any field has row/column information
+        foreach ($form_fields as $field) {
+            if (isset($field['row']) || isset($field['column']) || isset($field['width'])) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Render structured layout with rows and columns
+     */
+    private function render_structured_layout($form_fields, $existing_data = array(), $is_disabled = false) {
+        // Group fields by rows
+        $rows = array();
+        foreach ($form_fields as $field) {
+            $row_index = isset($field['row']) ? $field['row'] : 0;
+            if (!isset($rows[$row_index])) {
+                $rows[$row_index] = array();
+            }
+            $rows[$row_index][] = $field;
+        }
+        
+        // Sort rows by index
+        ksort($rows);
+        
+        foreach ($rows as $row_index => $row_fields) {
+            echo '<div class="form-row" data-row="' . esc_attr($row_index) . '">';
+            
+            // Group fields by columns within this row
+            $columns = array();
+            foreach ($row_fields as $field) {
+                $col_index = isset($field['column']) ? $field['column'] : 0;
+                if (!isset($columns[$col_index])) {
+                    $columns[$col_index] = array();
+                }
+                $columns[$col_index][] = $field;
+            }
+            
+            // Sort columns by index
+            ksort($columns);
+            
+            foreach ($columns as $col_index => $col_fields) {
+                $column_width = $this->calculate_column_width(count($columns), $col_fields);
+                echo '<div class="form-column ' . esc_attr($column_width) . '" data-column="' . esc_attr($col_index) . '">';
+                
+                foreach ($col_fields as $field) {
+                    $this->render_field_container($field, $existing_data, $is_disabled);
+                }
+                
+                echo '</div>';
+            }
+            
+            echo '</div>';
+        }
+    }
+    
+    /**
+     * Render simple linear layout (fallback)
+     */
+    private function render_simple_layout($form_fields, $existing_data = array(), $is_disabled = false) {
+        echo '<div class="form-row">';
+        echo '<div class="form-column col-1">';
+        
+        foreach ($form_fields as $field) {
+            $this->render_field_container($field, $existing_data, $is_disabled);
+        }
+        
+        echo '</div>';
+        echo '</div>';
+    }
+    
+    /**
+     * Calculate column width class based on number of columns
+     */
+    private function calculate_column_width($total_columns, $col_fields) {
+        // Check if any field specifies a custom width
+        foreach ($col_fields as $field) {
+            if (isset($field['width'])) {
+                return 'col-custom';
+            }
+        }
+        
+        // Default column width based on total columns in row
+        switch ($total_columns) {
+            case 1: return 'col-1';
+            case 2: return 'col-2';
+            case 3: return 'col-3';
+            case 4: return 'col-4';
+            case 6: return 'col-6';
+            default: return 'col-auto';
+        }
+    }
+    
+    /**
+     * Render field container with label and field
+     */
+    private function render_field_container($field, $existing_data = array(), $is_disabled = false) {
+        if (!is_array($field) || !isset($field['id']) || !isset($field['type'])) {
+            return;
+        }
+        
+        echo '<div class="form-field" data-field-type="' . esc_attr($field['type']) . '" data-field-id="' . esc_attr($field['id']) . '">';
+        
+        // Render label for most field types (except checkbox which handles its own label)
+        if ($field['type'] !== 'checkbox') {
+            echo '<label for="field_' . esc_attr($field['id']) . '">';
+            echo esc_html($field['label'] ?? 'Field');
+            if (isset($field['required']) && $field['required']) {
+                echo ' <span class="required">*</span>';
+            }
+            echo '</label>';
+        }
+        
+        // Render the actual field
+        $this->render_form_field($field, $existing_data, $is_disabled);
+        
+        // Add field description if available
+        if (isset($field['description']) && !empty($field['description'])) {
+            echo '<small class="field-description">' . esc_html($field['description']) . '</small>';
+        }
+        
+        echo '</div>';
     }
     
     /**
