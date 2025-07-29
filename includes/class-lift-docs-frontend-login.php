@@ -369,15 +369,6 @@ class LIFT_Docs_Frontend_Login {
             <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/secure-frontend.css'; ?>">
             <style>
                 /* Admin View Styles for File and Signature Display */
-                .admin-view-file-display,
-                .admin-view-signature-display {
-                    padding: 10px;
-                    border: 1px solid #e0e0e0;
-                    border-radius: 4px;
-                    background-color: #f9f9f9;
-                    text-align: center;
-                }
-                
                 .file-image-link,
                 .signature-image-link {
                     display: inline-block;
@@ -388,16 +379,6 @@ class LIFT_Docs_Frontend_Login {
                 .file-image-link:hover,
                 .signature-image-link:hover {
                     opacity: 0.8;
-                }
-                
-                .file-image-link img,
-                .signature-image-link img {
-                    transition: transform 0.3s ease;
-                }
-                
-                .file-image-link:hover img,
-                .signature-image-link:hover img {
-                    transform: scale(1.05);
                 }
                 
                 .file-download-link {
@@ -424,7 +405,6 @@ class LIFT_Docs_Frontend_Login {
                 .admin-view-file-display .field-description,
                 .admin-view-signature-display .field-description {
                     display: block;
-                    margin-top: 8px;
                     color: #666;
                     font-size: 12px;
                 }
@@ -834,7 +814,7 @@ class LIFT_Docs_Frontend_Login {
                                 <a href="<?php echo esc_url($file_url); ?>" target="_blank" class="file-image-link">
                                     <img src="<?php echo esc_url($file_url); ?>" 
                                          alt="<?php _e('Uploaded file', 'lift-docs-system'); ?>" 
-                                         style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                                         style="height: auto; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
                                 </a>
                                 <small class="field-description"><?php _e('Click to view full size', 'lift-docs-system'); ?></small>
                             </div>
