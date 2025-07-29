@@ -342,16 +342,6 @@ html {
    Buttons & Actions
    ======================================== */
 
-.form-actions {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #dee2e6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-}
-
 .btn {
     display: inline-flex;
     align-items: center;

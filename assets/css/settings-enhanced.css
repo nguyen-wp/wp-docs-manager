@@ -291,24 +291,26 @@
     background: #fff;
 }
 
+.lift-checkbox:focus {
+    outline: none;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.2);
+}
+
 .lift-checkbox:checked {
     background: #2271b1;
     border-color: #2271b1;
 }
 
-.lift-checkbox:checked::before {
+.lift-checkbox:checked::after {
     content: '✓';
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.lift-checkbox:focus {
-    outline: none;
 }
 
 .lift-checkbox-label {
