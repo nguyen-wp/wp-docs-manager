@@ -149,6 +149,14 @@ class LIFT_Docs_Settings {
             'lift-docs-general'
         );
         
+        add_settings_field(
+            'show_document_status',
+            __('Show Document Status', 'lift-docs-system'),
+            array($this, 'checkbox_field_callback'),
+            'lift-docs-general',
+            'lift_docs_general_section',
+            array('field' => 'show_document_status', 'description' => __('Display document status in Document Dashboard', 'lift-docs-system'))
+        );
 
         
         // Security Tab Settings
@@ -1041,7 +1049,8 @@ class LIFT_Docs_Settings {
             'show_document_description',
             'show_document_meta',
             'show_download_button',
-            'show_secure_access_notice'
+            'show_secure_access_notice',
+            'show_document_status'
         );
         
         foreach ($boolean_fields as $field) {
@@ -1153,6 +1162,12 @@ class LIFT_Docs_Settings {
         // Set default secure link expiry to 24 hours
         if ($key === 'secure_link_expiry') {
             return 24;
+        }
+        
+        // Set default for show_document_status to true (show by default)
+        if ($key === 'show_document_status') {
+            $settings = get_option('lift_docs_settings', array());
+            return isset($settings[$key]) ? $settings[$key] : true;
         }
         
         $settings = get_option('lift_docs_settings', array());

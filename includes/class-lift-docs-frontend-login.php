@@ -1643,7 +1643,10 @@ class LIFT_Docs_Frontend_Login {
                 <div class="document-header-info">
                     <h3 class="document-title">
                         <span><?php echo esc_html($document->post_title); ?></span>
-                            <?php
+                        <?php
+                        // Check if status should be shown based on settings
+                        $show_status = LIFT_Docs_Settings::get_setting('show_document_status', true);
+                        if ($show_status) {
                             // Add status badge
                             $status_colors = array(
                                 'pending' => '#f39c12',
@@ -1661,6 +1664,9 @@ class LIFT_Docs_Frontend_Login {
                             <span class="badge status-badge" style="background-color: <?php echo esc_attr($status_colors[$document_status]); ?>; color: white;">
                                 <?php echo esc_html($status_labels[$document_status]); ?>
                             </span>
+                            <?php
+                        }
+                        ?>
                     </h3>
                 </div>
                 <div class="document-meta">
