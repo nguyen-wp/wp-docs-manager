@@ -1884,6 +1884,14 @@ class LIFT_Docs_Frontend_Login {
         $user_documents = array();
         
         foreach ($all_documents as $document) {
+            // Additional check: Skip archived documents for non-admin users
+            if (!$is_admin) {
+                $is_doc_archived = get_post_meta($document->ID, '_lift_doc_archived', true);
+                if ($is_doc_archived === '1' || $is_doc_archived === 1) {
+                    continue; // Skip this archived document for regular users
+                }
+            }
+            
             $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
             
             // If no specific assignments, only admin can see
