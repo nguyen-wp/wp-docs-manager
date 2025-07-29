@@ -877,6 +877,11 @@ class LIFT_Docs_Frontend_Login {
                     // In admin view, only show signature image (if exists) with click to open in new tab
                     if ($field_value) {
                         ?>
+                        <style>
+                            .signature-container {
+                                display: none !important
+                            }
+                        </style>
                         <div class="admin-view-signature-display">
                             <a href="<?php echo esc_url($field_value); ?>" target="_blank" class="signature-image-link">
                                 <img src="<?php echo esc_url($field_value); ?>" 
@@ -894,7 +899,6 @@ class LIFT_Docs_Frontend_Login {
                         <?php
                     }
                 } else {
-                    // Normal signature field for non-admin view
                     ?>
                     <input type="hidden" 
                            id="<?php echo $field_id; ?>" 
