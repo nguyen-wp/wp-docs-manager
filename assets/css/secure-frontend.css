@@ -1482,6 +1482,20 @@ body.document-form-page .save-signature {
 
 body.document-form-page .save-signature:hover:not(:disabled) {
     background: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+body.document-form-page .save-signature:disabled {
+    background: #ccc !important;
+    color: #888 !important;
+    border-color: #ccc !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+body.document-form-page .save-signature:hover:not(:disabled) {
+    background: #333;
     border-color: #333;
     color: #fff;
 }

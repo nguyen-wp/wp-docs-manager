@@ -479,11 +479,11 @@
         
         // Setup actions
         $actions.html(`
-            <button type="button" class="btn btn-secondary clear-signature">
+            <button type="button" class="btn btn-secondary clear-signature" title="Clear signature">
                 <i class="dashicons dashicons-eraser"></i>
                 Clear
             </button>
-            <button type="button" class="btn btn-primary save-signature" disabled>
+            <button type="button" class="btn btn-primary save-signature" disabled title="Draw signature to enable saving">
                 <i class="dashicons dashicons-yes"></i>
                 Save
             </button>
@@ -518,7 +518,7 @@
         // Clear canvas
         function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            $actions.find('.save-signature').prop('disabled', true);
+            updateSaveButtonState(false, 'Signature cleared. Draw to enable saving.');
             
             // Get the field and field name
             const $field = $(canvas).closest('.lift-form-field');
@@ -531,6 +531,19 @@
             // Initialize with white background after clearing
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Update save button state helper function
+        function updateSaveButtonState(enabled, tooltip) {
+            const $saveBtn = $actions.find('.save-signature');
+            $saveBtn.prop('disabled', !enabled);
+            $saveBtn.attr('title', tooltip);
+            
+            if (enabled) {
+                $saveBtn.find('i').removeClass('dashicons-saved').addClass('dashicons-yes');
+            } else {
+                $saveBtn.find('i').removeClass('dashicons-yes').addClass('dashicons-saved');
+            }
         }
         
         // Draw function
@@ -549,8 +562,8 @@
             lastX = x;
             lastY = y;
             
-            // Enable save button
-            $actions.find('.save-signature').prop('disabled', false);
+            // Enable save button when drawing (signature has been modified)
+            updateSaveButtonState(true, 'Click to save signature');
         }
         
         // Mouse events
@@ -594,7 +607,8 @@
             lastX = x;
             lastY = y;
             
-            $actions.find('.save-signature').prop('disabled', false);
+            // Enable save button when drawing (signature has been modified)
+            updateSaveButtonState(true, 'Click to save signature');
         });
         
         $(canvas).on('touchend', function() {
@@ -639,6 +653,14 @@
                 if (response.success) {
                     $('#' + fieldId + '_data').val(response.data.url);
                     showSuccess('Signature saved successfully!');
+                    
+                    // Disable save button after successful save
+                    const $field = $('#' + fieldId + '_canvas').closest('.lift-form-field');
+                    const $actions = $field.find('.signature-actions');
+                    const $saveBtn = $actions.find('.save-signature');
+                    $saveBtn.prop('disabled', true);
+                    $saveBtn.attr('title', 'Signature already saved. Draw to enable saving again.');
+                    $saveBtn.find('i').removeClass('dashicons-yes').addClass('dashicons-saved');
                 } else {
                     showError(response.data || 'Signature save error');
                 }
@@ -676,8 +698,10 @@
             // Set the hidden input value
             $hiddenInput.val(signatureUrl);
             
-            // Enable the save button (since signature exists)
-            $actions.find('.save-signature').prop('disabled', false);
+            // Disable the save button since signature is already saved
+            $actions.find('.save-signature').prop('disabled', true);
+            $actions.find('.save-signature').attr('title', 'Signature already saved. Draw to enable saving again.');
+            $actions.find('.save-signature').find('i').removeClass('dashicons-yes').addClass('dashicons-saved');
         };
         
         img.onerror = function() {
