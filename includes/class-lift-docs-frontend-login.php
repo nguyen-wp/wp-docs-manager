@@ -577,7 +577,7 @@ class LIFT_Docs_Frontend_Login {
                                             <?php printf(__('Originally: %s', 'lift-docs-system'), date_i18n('M j, Y g:i A', strtotime($existing_submission->submitted_at))); ?>
                                         </small>
                                 </div>
-                            <?php elseif ($is_edit_mode): ?>
+                            <?php elseif ($is_edit_mode && $existing_submission): ?>
                                 <div class="mode-indicator edit-mode">
                                     <div class="mode-header">
                                         <i class="fas fa-edit"></i>
@@ -595,9 +595,6 @@ class LIFT_Docs_Frontend_Login {
                                         <i class="fas fa-plus-circle"></i>
                                         <span class="mode-title"><?php _e('New Submission', 'lift-docs-system'); ?></span>
                                     </div>
-                                    <small class="submission-timestamp">
-                                        <?php printf(__('Originally: %s', 'lift-docs-system'), date_i18n('M j, Y g:i A', strtotime($existing_submission->submitted_at))); ?>
-                                    </small>
                                 </div>
                             <?php endif; ?>
                         </div>
