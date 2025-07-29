@@ -1250,6 +1250,8 @@ body.document-form-page .file-actions {
 /* Remove file overlay - appears on hover */
 body.document-form-page .remove-file-overlay {
     position: absolute;
+    box-sizing: content-box;
+    padding: 0;
     top: 8px;
     right: 8px;
     width: 24px;

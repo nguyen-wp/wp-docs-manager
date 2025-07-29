@@ -2625,6 +2625,10 @@ class LIFT_Docs_Frontend_Login {
                 font-size: 16px;
                 font-weight: 600;
                 cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                white-space: nowrap;
             }
             
             .lift-docs-login-container.shortcode-version .lift-login-btn:hover {
