@@ -30,8 +30,6 @@
                 $('.lift-form-field.lift-field-file').each(function(index) {
                     const $field = $(this);
                     const $currentFile = $field.find('.current-file');
-                    console.log('File field ' + index + ':', $field);
-                    console.log('Current file element:', $currentFile);
                     console.log('Current file text:', $currentFile.text());
                 });
             }
@@ -357,7 +355,7 @@
             $previewArea.append($preview).show();
             
             // Hide current file text
-            $field.find('.current-file').hide();
+            // $field.find('.current-file').hide();
             
             // Bind remove event
             $removeOverlay.on('click', function(e) {
@@ -378,7 +376,7 @@
                 if ($previewArea.children().length === 0) {
                     $previewArea.hide();
                 }
-                $field.find('.current-file').show();
+                // $field.find('.current-file').show();
             });
         }
     }

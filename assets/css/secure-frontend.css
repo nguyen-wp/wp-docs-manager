@@ -767,7 +767,7 @@ select.form-control:focus {
 
 /* Field descriptions and help text - compact */
 .current-file {
-    display: block;
+    display: none;
     margin-top: 4px;
     color: #6b7280;
     font-style: italic;
@@ -1060,11 +1060,6 @@ body.document-form-page .btn-primary:hover {
    File Upload & Signature Fields - Enhanced Styling
    ======================================== */
 
-/* File Upload Container - PDF Style */
-body.document-form-page .file-upload-container {
-    margin-top: 8px;
-}
-
 /* Hide drop zone completely */
 body.document-form-page .file-drop-zone {
     display: none !important;
@@ -1163,14 +1158,10 @@ body.document-form-page .upload-overlay .fab {
 /* File Preview Area - PDF Style Image Only */
 body.document-form-page .file-preview-area {
     display: block !important;
-    margin-top: 12px;
-    min-height: 200px;
     border: 2px dashed #999;
-    padding: 20px;
     text-align: center;
     background: #fafafa;
     cursor: pointer;
-    transition: all 0.3s ease;
     position: relative;
 }
 
@@ -1185,28 +1176,26 @@ body.document-form-page .file-preview-area:empty::before {
     content: "📁";
     font-size: 48px;
     display: block;
-    margin-bottom: 16px;
+    margin-bottom: 0;
     opacity: 0.5;
 }
 
 body.document-form-page .file-preview-area:empty::after {
-    content: "Click to select file\ASupports: JPG, PNG, PDF, DOC, DOCX (Max: 5MB)";
+    content: "Click to select file";
     white-space: pre-line;
     display: block;
     color: #666;
     font-size: 14px;
     line-height: 1.4;
+    margin-bottom: 10px;
 }
 
 body.document-form-page .file-preview-item {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 0;
     background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 8px;
     position: relative;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1229,7 +1218,6 @@ body.document-form-page .file-preview-item:last-child {
 body.document-form-page .image-preview {
     flex-shrink: 0;
     width: 100%;
-    max-width: 300px;
     height: auto;
     border-radius: 8px;
     overflow: hidden;
@@ -1244,7 +1232,6 @@ body.document-form-page .image-preview {
 body.document-form-page .image-preview img {
     width: 100%;
     height: auto;
-    max-height: 200px;
     object-fit: contain;
     border-radius: 8px;
 }
@@ -1301,6 +1288,7 @@ body.document-form-page .file-icon-large {
     justify-content: center;
     text-align: center;
     width: 100%;
+    padding: 10px;
     max-width: 200px;
 }
 
@@ -1563,7 +1551,7 @@ body.document-form-page .lift-field-signature .form-control {
 
 body.document-form-page .lift-field-file label,
 body.document-form-page .lift-field-signature label {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     display: block;
     font-weight: 600;
     color: #333;
@@ -2061,7 +2049,6 @@ body.document-form-page .form-actions .btn {
 }
 
 /* Enhanced current file/signature display - Windows Server 2003 */
-.current-file,
 .current-signature {
     display: block;
     margin-top: 2px;
