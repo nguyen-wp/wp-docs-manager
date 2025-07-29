@@ -583,7 +583,7 @@ class LIFT_Docs_Secure_Links {
                     
                     <?php if ($settings['show_download_button'] && !empty($file_urls)): ?>
                     <div class="document-files">
-                        <h3><i class="fas fa-file"></i> <?php _e('Document Files', 'lift-docs-system'); ?></h3>
+                        <h3><i class="fas fa-file"></i> <?php _e('Attached files', 'lift-docs-system'); ?></h3>
                         
                         <?php foreach ($file_urls as $index => $file_url): ?>
                         <?php
@@ -1744,7 +1744,7 @@ class LIFT_Docs_Secure_Links {
     }
     
     /**
-     * Get secure view URL for a specific file
+     * Get secure Attached files for a specific file
      */
     private function get_secure_view_url($document_id, $file_index = 0) {
         $token = LIFT_Docs_Settings::generate_secure_link($document_id, 'view', $file_index);

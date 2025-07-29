@@ -2018,7 +2018,7 @@ class LIFT_Docs_Frontend_Login {
                     <div class="view-actions">
                         <!-- <h4><i class="fas fa-file"></i> Documents</h4> -->
                         <?php 
-                        // Show View URL link
+                        // Show Attached files link
                         if ($this->user_can_view_document($document->ID)) {
                             $view_text = __('View Document', 'lift-docs-system');
                             if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {

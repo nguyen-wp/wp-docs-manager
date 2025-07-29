@@ -394,7 +394,7 @@ class LIFT_Docs_Admin {
         // Get frontend instance to check permissions
         $frontend = LIFT_Docs_Frontend::get_instance();
         
-        // Check if user can view document before generating view URL
+        // Check if user can view document before generating Attached files
         $can_view = false;
         if ($frontend && method_exists($frontend, 'can_user_view_document')) {
             $reflection = new ReflectionClass($frontend);
@@ -409,10 +409,10 @@ class LIFT_Docs_Admin {
         if ($can_view) {
             if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
                 $view_url = LIFT_Docs_Settings::generate_secure_link($post_id);
-                $view_label = __('Secure View URL', 'lift-docs-system');
+                $view_label = __('Secure Attached files', 'lift-docs-system');
             } else {
                 $view_url = get_permalink($post_id);
-                $view_label = __('View URL', 'lift-docs-system');
+                $view_label = __('Attached files', 'lift-docs-system');
             }
         } else {
             $view_url = wp_login_url(get_permalink($post_id));
@@ -453,7 +453,7 @@ class LIFT_Docs_Admin {
                     'index' => $index
                 );
                 
-                // Online view URL with file index
+                // Online Attached files with file index
                 $online_view_urls[] = array(
                     'url' => add_query_arg(array(
                         'lift_view_online' => $post_id,
@@ -610,7 +610,7 @@ class LIFT_Docs_Admin {
         ?>
         <table class="form-table">
             <tr>
-                <th><label><?php _e('Document Files', 'lift-docs-system'); ?></label></th>
+                <th><label><?php _e('Attached files', 'lift-docs-system'); ?></label></th>
                 <td>
                     <div id="lift_doc_files_container">
                         <?php if (empty($file_urls)): ?>
@@ -2520,7 +2520,7 @@ class LIFT_Docs_Admin {
             <h4><?php _e('Documents User Role Capabilities:', 'lift-docs-system'); ?></h4>
             <ul>
                 <li><?php _e('View all published documents', 'lift-docs-system'); ?></li>
-                <li><?php _e('Download document files', 'lift-docs-system'); ?></li>
+                <li><?php _e('Download Attached files', 'lift-docs-system'); ?></li>
                 <li><?php _e('Access secure document links', 'lift-docs-system'); ?></li>
                 <li><?php _e('View document analytics (own activity)', 'lift-docs-system'); ?></li>
             </ul>
@@ -2922,7 +2922,7 @@ class LIFT_Docs_Admin {
         }
         $file_urls = array_filter($file_urls);
         
-        // Generate view URL
+        // Generate Attached files
         if (class_exists('LIFT_Docs_Settings') && LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
             $view_url = LIFT_Docs_Settings::generate_secure_link($document->ID);
         } else {
@@ -3015,7 +3015,7 @@ class LIFT_Docs_Admin {
 
                 
                 <div class="modal-section">
-                    <h3><?php _e('View URL', 'lift-docs-system'); ?></h3>
+                    <h3><?php _e('Attached files', 'lift-docs-system'); ?></h3>
                     <div class="view-url-box">
                         <a href="<?php echo esc_url($view_url); ?>" target="_blank">
                             <?php echo esc_html($view_url); ?>

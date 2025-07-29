@@ -575,7 +575,7 @@ class LIFT_Docs_Layout {
     }
     
     /**
-     * Generate custom view URL
+     * Generate custom Attached files
      */
     public static function generate_custom_view_url($doc_id) {
         return home_url('/document-files/view/' . $doc_id . '/');

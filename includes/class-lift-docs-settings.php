@@ -1323,7 +1323,7 @@ class LIFT_Docs_Settings {
      */
     
     /**
-     * Generate permanent secure view URL for document
+     * Generate permanent secure Attached files for document
      * Uses document ID + salt + creation time to create unique, permanent URL
      */
     public static function generate_secure_link($document_id, $expiry_hours = null) {

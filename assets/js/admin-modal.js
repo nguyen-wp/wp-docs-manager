@@ -185,7 +185,7 @@
          */
         function populateModal(data) {
             
-            // Set view URL and preview link
+            // Set Attached files and preview link
             $('#lift-view-url').val(data.viewUrl || '');
             $('#lift-view-preview').attr('href', data.viewUrl || '#');
             
@@ -236,7 +236,7 @@
                     downloadHtml += '<input type="text" value="' + fileData.url + '" readonly onclick="this.select()" style="font-size: 12px;" />';
                     downloadHtml += '<button type="button" class="button lift-copy-btn" data-target-text="' + fileData.url + '">Copy</button>';
                     
-                    // Find corresponding online view URL
+                    // Find corresponding online Attached files
                     var onlineViewUrl = onlineViewUrls.find(function(ovData) {
                         return ovData.index === fileData.index;
                     });
