@@ -1726,6 +1726,12 @@ class LIFT_Forms {
         if ($document_id) {
             $current_user_id = get_current_user_id();
             
+            // Check if document is archived - block all access including admins
+            $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
+            if ($is_archived === '1' || $is_archived === 1) {
+                wp_send_json_error(__('This document has been archived and is no longer accessible', 'lift-docs-system'));
+            }
+            
             // Check if user has access to the document (only admin or assigned users)
             if (!current_user_can('manage_options')) {
                 // Check if document is assigned to current user

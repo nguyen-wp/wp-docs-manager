@@ -27,6 +27,7 @@ class LIFT_Docs_Post_Types {
         add_action('init', array($this, 'register_post_types'));
         add_action('init', array($this, 'register_taxonomies'));
         add_action('template_redirect', array($this, 'track_document_view'));
+        add_action('template_redirect', array($this, 'redirect_archived_documents'));
         add_action('pre_get_posts', array($this, 'exclude_archived_documents_from_frontend'));
         
         // Disable Gutenberg for lift_document post type
@@ -335,10 +336,12 @@ class LIFT_Docs_Post_Types {
             return;
         }
         
-        // Apply to archive pages and search results
-        if ($query->is_post_type_archive('lift_document') || 
+        // Apply to all lift_document queries including single documents and archive pages
+        if ($query->get('post_type') === 'lift_document' || 
+            $query->is_post_type_archive('lift_document') || 
             ($query->is_search() && $query->get('post_type') === 'lift_document') ||
-            $query->is_tax(array('lift_doc_category', 'lift_doc_tag'))) {
+            $query->is_tax(array('lift_doc_category', 'lift_doc_tag')) ||
+            ($query->is_singular() && isset($query->query_vars['post_type']) && $query->query_vars['post_type'] === 'lift_document')) {
             
             // Exclude archived documents
             $meta_query = $query->get('meta_query') ?: array();
@@ -356,6 +359,30 @@ class LIFT_Docs_Post_Types {
             );
             
             $query->set('meta_query', $meta_query);
+        }
+    }
+    
+    /**
+     * Redirect archived documents to 404 or home page
+     */
+    public function redirect_archived_documents() {
+        // Only apply to single document pages
+        if (!is_singular('lift_document')) {
+            return;
+        }
+        
+        global $post;
+        
+        // Check if document is archived
+        $is_archived = get_post_meta($post->ID, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            // For archived documents, show 404 page
+            global $wp_query;
+            $wp_query->set_404();
+            status_header(404);
+            nocache_headers();
+            include(get_query_template('404'));
+            exit;
         }
     }
 }

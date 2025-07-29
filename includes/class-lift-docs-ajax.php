@@ -71,6 +71,12 @@ class LIFT_Docs_Ajax {
         $time_spent = intval($_POST['time_spent']);
         
         if ($document_id && $time_spent > 0) {
+            // Check if document is archived
+            $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
+            if ($is_archived === '1' || $is_archived === 1) {
+                wp_send_json_error(__('Document has been archived and is no longer accessible', 'lift-docs-system'));
+            }
+            
             // Record analytics event
             global $wpdb;
             $table_name = $wpdb->prefix . 'lift_docs_analytics';
@@ -114,7 +120,19 @@ class LIFT_Docs_Ajax {
             'post_type' => 'lift_document',
             'posts_per_page' => $per_page,
             'paged' => $page,
-            'post_status' => 'publish'
+            'post_status' => 'publish',
+            'meta_query' => array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_lift_doc_archived',
+                    'compare' => 'NOT EXISTS'
+                ),
+                array(
+                    'key' => '_lift_doc_archived',
+                    'value' => '1',
+                    'compare' => '!='
+                )
+            )
         );
         
         if ($search_term) {
@@ -205,7 +223,19 @@ class LIFT_Docs_Ajax {
             'paged' => $page,
             'orderby' => $orderby,
             'order' => $order,
-            'post_status' => 'publish'
+            'post_status' => 'publish',
+            'meta_query' => array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_lift_doc_archived',
+                    'compare' => 'NOT EXISTS'
+                ),
+                array(
+                    'key' => '_lift_doc_archived',
+                    'value' => '1',
+                    'compare' => '!='
+                )
+            )
         );
         
         $tax_query = array();
@@ -553,6 +583,12 @@ class LIFT_Docs_Ajax {
             wp_send_json_error(__('Invalid document', 'lift-docs-system'));
         }
         
+        // Check if document is archived
+        $is_archived = get_post_meta($post_id, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            wp_send_json_error(__('Document has been archived and is no longer accessible', 'lift-docs-system'));
+        }
+        
         $file_url = get_post_meta($post_id, '_lift_doc_file_url', true);
         
         if ($file_url && LIFT_Docs_Settings::get_setting('show_download_button', true)) {
@@ -584,6 +620,12 @@ class LIFT_Docs_Ajax {
             wp_send_json_error(__('Invalid document', 'lift-docs-system'));
         }
         
+        // Check if document is archived
+        $is_archived = get_post_meta($post_id, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            wp_send_json_error(__('Document has been archived and is no longer accessible', 'lift-docs-system'));
+        }
+        
         $views = get_post_meta($post_id, '_lift_doc_views', true);
         $views = $views ? intval($views) : 0;
         
@@ -605,6 +647,12 @@ class LIFT_Docs_Ajax {
         
         if (!$post_id || get_post_type($post_id) !== 'lift_document') {
             wp_send_json_error(__('Invalid document', 'lift-docs-system'));
+        }
+        
+        // Check if document is archived
+        $is_archived = get_post_meta($post_id, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            wp_send_json_error(__('Document has been archived and is no longer accessible', 'lift-docs-system'));
         }
         
         // Get current view count
@@ -640,6 +688,12 @@ class LIFT_Docs_Ajax {
         
         if (!$document_id || get_post_type($document_id) !== 'lift_document') {
             wp_send_json_error(__('Invalid document', 'lift-docs-system'));
+        }
+        
+        // Check if document is archived
+        $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            wp_send_json_error(__('Document has been archived and is no longer accessible', 'lift-docs-system'));
         }
         
         // Get current download count
@@ -715,6 +769,12 @@ class LIFT_Docs_Ajax {
         
         if (!$document || $document->post_type !== 'lift_document') {
             wp_send_json_error('Document not found');
+        }
+        
+        // Check if document is archived
+        $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            wp_send_json_error('Document has been archived and is no longer accessible');
         }
         
         // Check if user has access to this document
@@ -803,6 +863,12 @@ class LIFT_Docs_Ajax {
         $document = get_post($document_id);
         if (!$document || $document->post_type !== 'lift_document') {
             wp_send_json_error('Document not found');
+        }
+        
+        // Check if document is archived
+        $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            wp_send_json_error('Document has been archived and is no longer accessible');
         }
         
         // Log the action

@@ -240,6 +240,18 @@ class LIFT_Docs_Frontend {
                     'field' => 'term_id',
                     'terms' => $category_ids,
                 )
+            ),
+            'meta_query' => array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_lift_doc_archived',
+                    'compare' => 'NOT EXISTS'
+                ),
+                array(
+                    'key' => '_lift_doc_archived',
+                    'value' => '1',
+                    'compare' => '!='
+                )
             )
         ));
         

@@ -1451,6 +1451,12 @@ class LIFT_Docs_Settings {
             $user_id = get_current_user_id();
         }
         
+        // Check if document is archived - block access for all users including admins
+        $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            return false;
+        }
+        
         // Administrators and editors always have access
         if ($user_id && (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents'))) {
             return true;
@@ -1476,6 +1482,12 @@ class LIFT_Docs_Settings {
     public static function user_can_download_document($document_id, $user_id = null) {
         if (!$user_id) {
             $user_id = get_current_user_id();
+        }
+        
+        // Check if document is archived - block access for all users including admins
+        $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
+        if ($is_archived === '1' || $is_archived === 1) {
+            return false;
         }
         
         // Administrators and editors always have access
