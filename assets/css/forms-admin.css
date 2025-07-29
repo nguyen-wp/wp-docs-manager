@@ -29,26 +29,49 @@
     border: 1px solid #ffeaa7;
 }
 
-.status-actions {
-    margin-top: 8px;
+.status-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-.status-actions select {
+.status-container .status {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.status-container select {
     font-size: 11px;
     padding: 2px 4px;
     border-radius: 3px;
     border: 1px solid #ddd;
     min-width: 80px;
+    flex-shrink: 0;
 }
 
 .status-spinner {
     display: inline-block;
-    margin-left: 5px;
+    flex-shrink: 0;
 }
 
 .form-status-select:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Responsive adjustments for status container */
+@media (max-width: 768px) {
+    .status-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .status-container select {
+        min-width: 60px;
+        font-size: 10px;
+    }
 }
 
 /* Main Layout */

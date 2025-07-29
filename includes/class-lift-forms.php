@@ -492,10 +492,10 @@ class LIFT_Forms {
                                         </a>
                                     </td>
                                     <td>
-                                        <span class="status status-<?php echo esc_attr($form->status); ?>">
-                                            <?php echo ucfirst($form->status); ?>
-                                        </span>
-                                        <div class="status-actions">
+                                        <div class="status-container">
+                                            <span class="status status-<?php echo esc_attr($form->status); ?>">
+                                                <?php echo ucfirst($form->status); ?>
+                                            </span>
                                             <select class="form-status-select small-text" data-form-id="<?php echo $form->id; ?>">
                                                 <option value="active" <?php selected($form->status, 'active'); ?>><?php _e('Active', 'lift-docs-system'); ?></option>
                                                 <option value="inactive" <?php selected($form->status, 'inactive'); ?>><?php _e('Inactive', 'lift-docs-system'); ?></option>
@@ -775,12 +775,6 @@ class LIFT_Forms {
                                     <span class="status status-<?php echo esc_attr($submission->status); ?>">
                                         <?php echo ucfirst($submission->status); ?>
                                     </span>
-                                    <div class="submission-status-actions">
-                                        <select class="submission-status-select small-text" data-submission-id="<?php echo $submission->id; ?>">
-                                            <option value="unread" <?php selected($submission->status, 'unread'); ?>><?php _e('Unread', 'lift-docs-system'); ?></option>
-                                            <option value="read" <?php selected($submission->status, 'read'); ?>><?php _e('Read', 'lift-docs-system'); ?></option>
-                                        </select>
-                                    </div>
                                 </td>
                                 <td><?php echo esc_html($submission->user_ip); ?></td>
                                 <td>
@@ -884,75 +878,32 @@ class LIFT_Forms {
             color: #856404;
             border: 1px solid #ffeaa7;
         }
-        .status-actions {
-            margin-top: 8px;
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-        .status-actions select {
-            font-size: 11px;
-            padding: 2px 4px;
-            border-radius: 3px;
+        .status-container .status {
+            flex-shrink: 0;
         }
-        .submission-status-actions {
-            margin-top: 5px;
-        }
-        .submission-status-select {
+        .status-container select {
             font-size: 11px;
             padding: 2px 4px;
             border-radius: 3px;
             border: 1px solid #ddd;
-            min-width: 70px;
+            min-width: 80px;
         }
-        .submission-status-select:disabled {
+        .status-spinner {
+            display: inline-block;
+        }
+        .form-status-select:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
         .no-document {
             color: #999;
             font-style: italic;
-        }
-        .submissions-filters {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .submissions-filters form {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin: 0;
-        }
-        .submissions-filters select, .submissions-filters input {
-            min-width: 140px;
-            padding: 6px 10px;
-        }
-        .submissions-filters .button {
-            white-space: nowrap;
-        }
-        @media (max-width: 768px) {
-            .submissions-filters {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .submissions-filters form {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .submissions-filters select, .submissions-filters input {
-                min-width: auto;
-                width: 100%;
-            }
-        }
-            .submissions-filters select {
-                min-width: auto;
-                width: 100%;
-            }
         }
         
         /* Modal styles */
@@ -1049,55 +1000,6 @@ class LIFT_Forms {
                     $('#submission-detail-modal').hide();
                     $('#submission-modal-backdrop').hide();
                 }
-            });
-            
-            // Handle submission status updates
-            $('.submission-status-select').on('change', function() {
-                var $select = $(this);
-                var $statusBadge = $select.closest('td').find('.status');
-                var submissionId = $select.data('submission-id');
-                var newStatus = $select.val();
-                
-                // Disable select while processing
-                $select.prop('disabled', true);
-                
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'lift_forms_update_submission_status',
-                        submission_id: submissionId,
-                        status: newStatus,
-                        nonce: '<?php echo wp_create_nonce('lift_forms_admin_nonce'); ?>'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // Update status badge
-                            $statusBadge.removeClass('status-read status-unread')
-                                       .addClass('status-' + response.data.status)
-                                       .text(response.data.label);
-                            
-                            // Show success message
-                            $('<div class="notice notice-success is-dismissible"><p>' + response.data.message + '</p></div>')
-                                .insertAfter('.wrap h1')
-                                .delay(3000)
-                                .fadeOut();
-                        } else {
-                            alert('Error: ' + response.data);
-                            // Revert select to previous value
-                            $select.val($statusBadge.text().toLowerCase());
-                        }
-                    },
-                    error: function() {
-                        alert('<?php _e('An error occurred while updating the submission status.', 'lift-docs-system'); ?>');
-                        // Revert select to previous value
-                        $select.val($statusBadge.text().toLowerCase());
-                    },
-                    complete: function() {
-                        // Re-enable select
-                        $select.prop('disabled', false);
-                    }
-                });
             });
         });
         </script>
