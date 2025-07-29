@@ -1849,24 +1849,7 @@ class LIFT_Docs_Frontend_Login {
         // Check if current user is admin
         $is_admin = current_user_can('manage_options');
         
-        // Meta query - admin can see archived documents, regular users cannot
-        $meta_query = array();
-        if (!$is_admin) {
-            $meta_query = array(
-                'relation' => 'OR',
-                array(
-                    'key' => '_lift_doc_archived',
-                    'compare' => 'NOT EXISTS'
-                ),
-                array(
-                    'key' => '_lift_doc_archived',
-                    'value' => '1',
-                    'compare' => '!='
-                )
-            );
-        }
-        
-        // Get all published documents (admin sees all, users see non-archived only)
+        // Get all published documents (no meta_query filtering for archive status here)
         $query_args = array(
             'post_type' => 'lift_document',
             'post_status' => 'publish',
@@ -1875,23 +1858,11 @@ class LIFT_Docs_Frontend_Login {
             'order' => 'DESC'
         );
         
-        if (!empty($meta_query)) {
-            $query_args['meta_query'] = $meta_query;
-        }
-        
         $all_documents = get_posts($query_args);
         
         $user_documents = array();
         
         foreach ($all_documents as $document) {
-            // Additional check: Skip archived documents for non-admin users
-            if (!$is_admin) {
-                $is_doc_archived = get_post_meta($document->ID, '_lift_doc_archived', true);
-                if ($is_doc_archived === '1' || $is_doc_archived === 1) {
-                    continue; // Skip this archived document for regular users
-                }
-            }
-            
             $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
             
             // If no specific assignments, only admin can see
