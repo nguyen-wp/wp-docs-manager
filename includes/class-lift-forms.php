@@ -984,7 +984,7 @@ class LIFT_Forms {
                 </div>
                 
                 <div class="lift-modal-body" id="submission-detail-content">
-                    <!-- Content will be loaded via AJAX -->
+                    <!-- Content will be loaded via AJAX with proper structure -->
                     <div class="submission-loading" style="text-align: center; padding: 40px;">
                         <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #0073aa;"></i><br><br>
                         <?php _e('Loading submission details...', 'lift-docs-system'); ?>
@@ -1002,6 +1002,368 @@ class LIFT_Forms {
         <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
         
         <style>
+        /* Document Details Modal Styles - Imported from admin-modal.css */
+        .lift-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lift-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999998;
+        }
+        .lift-modal-content {
+            background: #fff;
+            border-radius: 12px;
+            border: none;
+            max-width: 1400px;
+            width: 98%;
+            max-height: 95vh;
+            overflow: hidden;
+            position: relative;
+            z-index: 999999;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+        .lift-modal-header {
+            padding: 30px 40px 25px;
+            border-bottom: 1px solid #e8eaed;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 12px 12px 0 0;
+            position: relative;
+        }
+
+        .lift-modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a2332;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lift-modal-close {
+            font-size: 20px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0073aa;
+            cursor: pointer;
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            background: transparent;
+            border: none;
+        }
+
+        .lift-modal-close:hover {
+            color: #dc3232;
+        }
+        
+        .lift-modal-body {
+            padding: 0;
+            max-height: calc(95vh - 180px);
+            overflow-y: auto;
+            background: #fafbfc;
+        }
+        
+        .lift-modal-footer {
+            padding: 25px 40px;
+            border-top: 1px solid #e8eaed;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            text-align: right;
+            border-radius: 0 0 12px 12px;
+        }
+
+        /* Content Sections */
+        .modal-section {
+            margin-bottom: 35px;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e8eaed;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .modal-section:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-section h3 {
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a2332;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 5px;
+        }
+
+        /* Submission specific styles */
+        .submission-loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .submission-loading i {
+            margin-bottom: 15px;
+        }
+
+        /* Modal Layout Grid */
+        .modal-content-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            min-height: 500px;
+        }
+
+        .modal-main-content {
+            padding: 30px 35px;
+            background: #ffffff;
+            border-right: 1px solid #e8eaed;
+        }
+
+        .modal-sidebar {
+            padding: 30px 25px;
+            background: linear-gradient(180deg, #f8f9fa 0%, #f1f3f4 100%);
+        }
+
+        /* Stats Display */
+        .lift-stats-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e8f0fe 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e8eaed;
+            margin-bottom: 20px;
+        }
+
+        .lift-stat-item {
+            text-align: center;
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 115, 170, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lift-stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0073aa, #005177);
+        }
+
+        .lift-stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 115, 170, 0.15);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .lift-stat-item strong {
+            display: block;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a2332;
+            margin-bottom: 5px;
+        }
+
+        .lift-stat-item small {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Form Data Grid */
+        .form-data-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-data-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e8eaed;
+        }
+
+        .form-data-item label {
+            display: block;
+            font-weight: 600;
+            color: #1a2332;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-data-value {
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .form-data-value .text-value {
+            display: block;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 20px;
+        }
+
+        .form-data-value .array-value {
+            display: block;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-style: italic;
+            color: #666;
+        }
+
+        /* User Profile Card */
+        .user-profile-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e8eaed;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .user-profile-card .user-avatar {
+            margin-bottom: 15px;
+        }
+
+        .user-profile-card .avatar-rounded {
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-profile-card h4 {
+            margin: 0 0 8px 0;
+            color: #1a2332;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .user-profile-card .user-email {
+            color: #0073aa;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .user-profile-card .user-login,
+        .user-profile-card .user-id {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .user-profile-card .user-actions {
+            margin-top: 15px;
+        }
+
+        /* Guest User Card */
+        .guest-user-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e8eaed;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .guest-user-card .guest-icon {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .guest-user-card h4 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .guest-user-card p {
+            color: #999;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* Technical Info */
+        .tech-info-list {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e8eaed;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .tech-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .tech-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .tech-info-item label {
+            font-weight: 600;
+            color: #1a2332;
+            min-width: 100px;
+            flex-shrink: 0;
+        }
+
+        .tech-info-item span {
+            color: #666;
+            text-align: right;
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .tech-info-item .user-agent {
+            font-size: 12px;
+            word-break: break-all;
+            max-width: 200px;
+        }
+        
+        /* User info styles */
         .user-info {
             line-height: 1.4;
         }
@@ -1800,121 +2162,145 @@ class LIFT_Forms {
             }
         }
         
-        // Build HTML output
+        // Build HTML output with Documents modal structure
         ob_start();
         ?>
-        <div class="submission-details">
-            <div class="submission-meta">
-                <table class="form-table">
-                    <tr>
-                        <th><?php _e('Form:', 'lift-docs-system'); ?></th>
-                        <td><strong><?php echo esc_html($submission->form_name); ?></strong></td>
-                    </tr>
-                    <tr>
-                        <th><?php _e('Submitted:', 'lift-docs-system'); ?></th>
-                        <td><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($submission->submitted_at)); ?></td>
-                    </tr>
-                    <tr>
-                        <th><?php _e('Status:', 'lift-docs-system'); ?></th>
-                        <td>
-                            <span class="status status-<?php echo esc_attr($submission->status); ?>">
-                                <?php echo ucfirst($submission->status); ?>
-                            </span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><?php _e('Submitted By:', 'lift-docs-system'); ?></th>
-                        <td>
-                            <?php if ($submission->user_id && $submission->user_name): ?>
-                                <div class="user-info-detail">
-                                    <strong><?php echo esc_html($submission->user_name); ?></strong><br>
-                                    <small><?php _e('Email:', 'lift-docs-system'); ?> <?php echo esc_html($submission->user_email); ?></small><br>
-                                    <small><?php _e('Username:', 'lift-docs-system'); ?> <?php echo esc_html($submission->user_login); ?></small><br>
-                                    <small><?php _e('User ID:', 'lift-docs-system'); ?> <?php echo $submission->user_id; ?></small><br>
-                                    <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" target="_blank" class="button">
-                                        <?php _e('View User Profile', 'lift-docs-system'); ?>
+        <div class="modal-content-grid">
+            <div class="modal-main-content">
+                <div class="modal-section overview">
+                    <h3><?php _e('Submission Overview', 'lift-docs-system'); ?></h3>
+                    <div class="lift-stats-display">
+                        <div class="lift-stat-item">
+                            <strong><?php echo esc_html($submission->form_name); ?></strong>
+                            <small><?php _e('Form Name', 'lift-docs-system'); ?></small>
+                        </div>
+                        <div class="lift-stat-item">
+                            <strong><?php echo date_i18n('M j, Y', strtotime($submission->submitted_at)); ?></strong>
+                            <small><?php _e('Submitted Date', 'lift-docs-system'); ?></small>
+                        </div>
+                        <div class="lift-stat-item">
+                            <strong class="status-<?php echo esc_attr($submission->status); ?>"><?php echo ucfirst($submission->status); ?></strong>
+                            <small><?php _e('Status', 'lift-docs-system'); ?></small>
+                        </div>
+                        <div class="lift-stat-item">
+                            <strong><?php echo $submission->user_id ? __('Registered', 'lift-docs-system') : __('Guest', 'lift-docs-system'); ?></strong>
+                            <small><?php _e('User Type', 'lift-docs-system'); ?></small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section forms">
+                    <h3><?php _e('Form Data', 'lift-docs-system'); ?></h3>
+                    <?php if (!empty($form_data)): ?>
+                        <div class="form-data-grid">
+                            <?php foreach ($form_data as $key => $value): ?>
+                                <?php if (strpos($key, '_') === 0) continue; // Skip meta fields ?>
+                                <?php 
+                                // Get field info from form definition
+                                $field_info = isset($field_map[$key]) ? $field_map[$key] : null;
+                                $field_label = $field_info && !empty($field_info['label']) ? $field_info['label'] : ucfirst(str_replace('_', ' ', $key));
+                                $field_type = $field_info && !empty($field_info['type']) ? $field_info['type'] : 'text';
+                                ?>
+                                <div class="form-data-item">
+                                    <label><?php echo esc_html($field_label); ?>:</label>
+                                    <div class="form-data-value">
+                                        <?php if ($field_type === 'file' && !empty($value)): ?>
+                                            <div class="file-field-value">
+                                                <?php if ($this->is_image_file($value)): ?>
+                                                    <div class="image-preview">
+                                                        <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($field_label); ?>" style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                                    </div>
+                                                <?php else: ?>
+                                                    <div class="file-info">
+                                                        <span class="dashicons dashicons-media-document"></span>
+                                                        <span><?php echo esc_html(basename($value)); ?></span>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <div class="file-actions" style="margin-top: 8px;">
+                                                    <a href="<?php echo esc_url($value); ?>" target="_blank" class="button button-primary">
+                                                        <span class="dashicons dashicons-download"></span>
+                                                        <?php _e('Download', 'lift-docs-system'); ?>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        <?php elseif ($field_type === 'signature' && !empty($value)): ?>
+                                            <div class="signature-field-value">
+                                                <div class="signature-preview">
+                                                    <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($field_label); ?>" style="max-width: 300px; max-height: 150px; border: 1px solid #ddd; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                                </div>
+                                                <div class="signature-actions" style="margin-top: 8px;">
+                                                    <a href="<?php echo esc_url($value); ?>" target="_blank" class="button button-primary">
+                                                        <span class="dashicons dashicons-download"></span>
+                                                        <?php _e('Download Signature', 'lift-docs-system'); ?>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        <?php elseif (is_array($value)): ?>
+                                            <span class="array-value"><?php echo esc_html(implode(', ', $value)); ?></span>
+                                        <?php else: ?>
+                                            <span class="text-value"><?php echo nl2br(esc_html($value)); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <p class="no-data"><?php _e('No form data available.', 'lift-docs-system'); ?></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="modal-sidebar">
+                <div class="modal-section users">
+                    <h3><?php _e('User Information', 'lift-docs-system'); ?></h3>
+                    <?php if ($submission->user_id && $submission->user_name): ?>
+                        <div class="user-profile-card">
+                            <div class="user-avatar">
+                                <?php echo get_avatar($submission->user_id, 64, '', '', array('class' => 'avatar-rounded')); ?>
+                            </div>
+                            <div class="user-details">
+                                <h4><?php echo esc_html($submission->user_name); ?></h4>
+                                <p class="user-email"><?php echo esc_html($submission->user_email); ?></p>
+                                <p class="user-login"><small><?php _e('Username:', 'lift-docs-system'); ?> <?php echo esc_html($submission->user_login); ?></small></p>
+                                <p class="user-id"><small><?php _e('ID:', 'lift-docs-system'); ?> #<?php echo $submission->user_id; ?></small></p>
+                                <div class="user-actions">
+                                    <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" target="_blank" class="button button-primary">
+                                        <span class="dashicons dashicons-admin-users"></span>
+                                        <?php _e('View Profile', 'lift-docs-system'); ?>
                                     </a>
                                 </div>
-                            <?php else: ?>
-                                <span class="guest-user-detail">
-                                    <span class="dashicons dashicons-admin-users"></span>
-                                    <?php _e('Guest User (Not logged in)', 'lift-docs-system'); ?>
-                                </span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><?php _e('IP Address:', 'lift-docs-system'); ?></th>
-                        <td><?php echo esc_html($submission->user_ip); ?></td>
-                    </tr>
-                    <tr>
-                        <th><?php _e('User Agent:', 'lift-docs-system'); ?></th>
-                        <td><small><?php echo esc_html($submission->user_agent); ?></small></td>
-                    </tr>
-                </table>
-            </div>
-            
-            <div class="submission-data">
-                <h3><?php _e('Form Data', 'lift-docs-system'); ?></h3>
-                <?php if (!empty($form_data)): ?>
-                    <table class="form-table">
-                        <?php foreach ($form_data as $key => $value): ?>
-                            <?php if (strpos($key, '_') === 0) continue; // Skip meta fields ?>
-                            <?php 
-                            // Get field info from form definition
-                            $field_info = isset($field_map[$key]) ? $field_map[$key] : null;
-                            $field_label = $field_info && !empty($field_info['label']) ? $field_info['label'] : ucfirst(str_replace('_', ' ', $key));
-                            $field_type = $field_info && !empty($field_info['type']) ? $field_info['type'] : 'text';
-                            ?>
-                            <tr>
-                                <th><?php echo esc_html($field_label); ?>:</th>
-                                <td>
-                                    <?php if ($field_type === 'file' && !empty($value)): ?>
-                                        <div class="file-field-value">
-                                            <?php if ($this->is_image_file($value)): ?>
-                                                <div class="image-preview">
-                                                    <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($field_label); ?>" style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px;">
-                                                </div>
-                                            <?php else: ?>
-                                                <div class="file-info">
-                                                    <span class="dashicons dashicons-media-document"></span>
-                                                    <span><?php echo esc_html(basename($value)); ?></span>
-                                                </div>
-                                            <?php endif; ?>
-                                            <div class="file-actions" style="margin-top: 8px;">
-                                                <a href="<?php echo esc_url($value); ?>" target="_blank" class="button">
-                                                    <span class="dashicons dashicons-download"></span>
-                                                    <?php _e('Download', 'lift-docs-system'); ?>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    <?php elseif ($field_type === 'signature' && !empty($value)): ?>
-                                        <div class="signature-field-value">
-                                            <div class="signature-preview">
-                                                <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($field_label); ?>" style="max-width: 300px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px; background: #fff;">
-                                            </div>
-                                            <div class="signature-actions" style="margin-top: 8px;">
-                                                <a href="<?php echo esc_url($value); ?>" target="_blank" class="button">
-                                                    <span class="dashicons dashicons-download"></span>
-                                                    <?php _e('Download Signature', 'lift-docs-system'); ?>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    <?php elseif (is_array($value)): ?>
-                                        <?php echo esc_html(implode(', ', $value)); ?>
-                                    <?php else: ?>
-                                        <?php echo nl2br(esc_html($value)); ?>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </table>
-                <?php else: ?>
-                    <p><?php _e('No form data available.', 'lift-docs-system'); ?></p>
-                <?php endif; ?>
-            </div>
-            
-            <?php if (isset($form_data['_document_id'])): ?>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="guest-user-card">
+                            <div class="guest-icon">
+                                <span class="dashicons dashicons-admin-users"></span>
+                            </div>
+                            <h4><?php _e('Guest User', 'lift-docs-system'); ?></h4>
+                            <p><?php _e('This submission was made by a non-registered user.', 'lift-docs-system'); ?></p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="modal-section analytics">
+                    <h3><?php _e('Technical Info', 'lift-docs-system'); ?></h3>
+                    <div class="tech-info-list">
+                        <div class="tech-info-item">
+                            <label><?php _e('IP Address:', 'lift-docs-system'); ?></label>
+                            <span><?php echo esc_html($submission->user_ip); ?></span>
+                        </div>
+                        <div class="tech-info-item">
+                            <label><?php _e('Submitted:', 'lift-docs-system'); ?></label>
+                            <span><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($submission->submitted_at)); ?></span>
+                        </div>
+                        <div class="tech-info-item">
+                            <label><?php _e('User Agent:', 'lift-docs-system'); ?></label>
+                            <span class="user-agent"><?php echo esc_html($submission->user_agent); ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <?php if (isset($form_data['_document_id'])): ?>
             <div class="submission-context">
                 <h3><?php _e('Document Context', 'lift-docs-system'); ?></h3>
                 <table class="form-table">
