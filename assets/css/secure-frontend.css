@@ -67,7 +67,7 @@ body.document-form-page {
     order: 1;
 }
 
-.form-header-section {
+.document-form-title {
     background: #1976d2;
     color: white;
     padding: 6px 25px;
@@ -78,7 +78,7 @@ body.document-form-page {
     text-overflow: ellipsis;
 }
 
-.form-header-section h1 {
+.document-form-title h1 {
     margin: 0;
     color: white;
     font-size: 12px;
@@ -128,15 +128,6 @@ body.document-form-page {
     margin-right: 6px;
     font-size: 16px;
     color: #1976d2;
-}
-
-.edit-mode-notice {
-    background: rgba(255, 193, 7, 0.1);
-    border-left: 4px solid #ffc107;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    color: rgba(255, 255, 255, 0.9);
 }
 
 .status-disabled-notice {
@@ -632,7 +623,7 @@ select.form-control {
         padding: 0;
     }
     
-    .form-header-section {
+    .document-form-title {
         flex: none;
         order: 2;
         margin-top: 20px;
@@ -837,13 +828,13 @@ select.form-control {
     .lift-secure-page .document-actions,
     .lift-secure-page .download-section,
     .document-form-page .form-content-section,
-    .document-form-page .form-header-section {
+    .document-form-page .document-form-title {
         padding: 20px;
         margin-bottom: 20px;
     }
     
     .lift-secure-page .document-title,
-    .document-form-page .form-header-section h1 {
+    .document-form-page .document-form-title h1 {
         font-size: 24px;
     }
     
@@ -892,11 +883,11 @@ select.form-control {
         padding: 20px;
     }
     
-    .form-header-section {
+    .document-form-title {
         padding: 4px 20px;
     }
     
-    .form-header-section h1 {
+    .document-form-title h1 {
         font-size: 11px;
     }
     
@@ -927,11 +918,11 @@ select.form-control {
         padding: 15px;
     }
     
-    .form-header-section {
+    .document-form-title {
         padding: 3px 15px;
     }
     
-    .form-header-section h1 {
+    .document-form-title h1 {
         font-size: 10px;
     }
     

@@ -1650,7 +1650,7 @@ class LIFT_Forms {
         ?>
         <div class="document-form-wrapper">
             <?php if ($atts['title'] === 'true'): ?>
-                <div class="form-header-section">
+                <div class="document-form-title">
                     <h1><?php echo esc_html($form->name); ?></h1>
                     <?php if ($form->description): ?>
                         <p><?php echo esc_html($form->description); ?></p>

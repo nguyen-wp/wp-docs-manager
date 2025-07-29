@@ -364,7 +364,7 @@ class LIFT_Docs_Frontend_Login {
                 </div>
 
                   <!-- Header Section - Left Sidebar -->
-                <div class="form-header-section">
+                <div class="document-form-title">
                     <h1><?php echo esc_html($form->name); ?></h1>
                     
                     <div class="document-info">
@@ -394,12 +394,6 @@ class LIFT_Docs_Frontend_Login {
                             <br><small><?php printf(__('Document Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?></small>
                         </div>
                     <?php endif; ?>
-                    
-                    <div class="form-actions">
-                        <a href="<?php echo home_url('/document-dashboard/'); ?>" class="btn btn-secondary">
-                            <?php _e('Back to Dashboard', 'lift-docs-system'); ?>
-                        </a>
-                    </div>
                 </div>
             </div>
             
@@ -1726,7 +1720,7 @@ class LIFT_Docs_Frontend_Login {
                     </div>
                     
                     <!-- Cột 2: Form Links -->
-                    <div class="form-actions">
+                    <div class="view-actions">
                         <!-- <h4><i class="fas fa-file-text"></i> Forms</h4> -->
                         <?php
                         // Show assigned form links
