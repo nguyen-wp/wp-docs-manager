@@ -331,7 +331,7 @@ class LIFT_Docs_Frontend_Login {
 
                   <!-- Header Section - Two Column Layout -->
                 <div class="document-form-title">
-                    <div class="title-grid">
+                    <div class="document-form-header">
                         <!-- Left Column: Form Info -->
                         <div class="form-info-column">
                             <h1><?php echo esc_html($form->name); ?></h1>
@@ -430,12 +430,12 @@ class LIFT_Docs_Frontend_Login {
                                 </div>
                             <?php endif; ?>
                             
-                            <?php if ($is_form_disabled): ?>
+                            <!-- <?php if ($is_form_disabled): ?>
                                 <div class="status-warning">
                                     <i class="fas fa-exclamation-triangle"></i>
                                     <span><?php printf(__('Status: %s', 'lift-docs-system'), '<strong>' . ucfirst($document_status) . '</strong>'); ?></span>
                                 </div>
-                            <?php endif; ?>
+                            <?php endif; ?> -->
                         </div>
                         
                         <!-- Right Column: Action Buttons -->
