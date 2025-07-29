@@ -720,41 +720,6 @@ class LIFT_Forms {
         <div class="wrap">
             <h1><?php _e('Form Submissions', 'lift-docs-system'); ?></h1>
             
-            <div class="submissions-filters">
-                <form method="get">
-                    <input type="hidden" name="page" value="lift-forms-submissions">
-                    
-                    <select name="form_id" onchange="this.form.submit()">
-                        <option value=""><?php _e('All Forms', 'lift-docs-system'); ?></option>
-                        <?php foreach ($forms as $form): ?>
-                            <option value="<?php echo $form->id; ?>" <?php selected($form_id, $form->id); ?>>
-                                <?php echo esc_html($form->name); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    
-                    <select name="user_filter" onchange="this.form.submit()">
-                        <option value=""><?php _e('All Users', 'lift-docs-system'); ?></option>
-                        <option value="logged_in" <?php selected($user_filter, 'logged_in'); ?>><?php _e('Logged In Users', 'lift-docs-system'); ?></option>
-                        <option value="guest" <?php selected($user_filter, 'guest'); ?>><?php _e('Guest Users', 'lift-docs-system'); ?></option>
-                    </select>
-                    
-                    <select name="status_filter" onchange="this.form.submit()">
-                        <option value=""><?php _e('All Status', 'lift-docs-system'); ?></option>
-                        <option value="unread" <?php selected($status_filter, 'unread'); ?>><?php _e('Unread', 'lift-docs-system'); ?></option>
-                        <option value="read" <?php selected($status_filter, 'read'); ?>><?php _e('Read', 'lift-docs-system'); ?></option>
-                    </select>
-                    
-                    <input type="number" name="document_id" value="<?php echo $document_id; ?>" placeholder="<?php _e('Document ID', 'lift-docs-system'); ?>" min="1" style="width: 120px;" onchange="this.form.submit()">
-                    
-                    <?php if ($form_id || $user_filter || $document_id || $status_filter): ?>
-                        <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions'); ?>" class="button">
-                            <?php _e('Clear Filters', 'lift-docs-system'); ?>
-                        </a>
-                    <?php endif; ?>
-                </form>
-            </div>
-            
             <?php if (empty($submissions)): ?>
                 <div class="lift-empty-state">
                     <h2><?php _e('No Submissions Yet', 'lift-docs-system'); ?></h2>
