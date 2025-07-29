@@ -362,6 +362,19 @@ class LIFT_Docs_Frontend_Login {
                                         </small>
                                     </div>
                                 </div>
+                            <?php else: ?>
+                                <div class="submit-mode-notice">
+                                    <div class="notice-header">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <strong><?php _e('New Submission', 'lift-docs-system'); ?></strong>
+                                    </div>
+                                    <div class="notice-content">
+                                        <?php _e('Fill out the form below to submit your information.', 'lift-docs-system'); ?>
+                                        <small class="form-info">
+                                            <?php _e('All required fields must be completed.', 'lift-docs-system'); ?>
+                                        </small>
+                                    </div>
+                                </div>
                             <?php endif; ?>
                             
                             <?php if ($is_form_disabled): ?>
