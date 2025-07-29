@@ -367,6 +367,68 @@ class LIFT_Docs_Frontend_Login {
             wp_head(); 
             ?>
             <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/secure-frontend.css'; ?>">
+            <style>
+                /* Admin View Styles for File and Signature Display */
+                .admin-view-file-display,
+                .admin-view-signature-display {
+                    padding: 10px;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 4px;
+                    background-color: #f9f9f9;
+                    text-align: center;
+                }
+                
+                .file-image-link,
+                .signature-image-link {
+                    display: inline-block;
+                    text-decoration: none;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .file-image-link:hover,
+                .signature-image-link:hover {
+                    opacity: 0.8;
+                }
+                
+                .file-image-link img,
+                .signature-image-link img {
+                    transition: transform 0.3s ease;
+                }
+                
+                .file-image-link:hover img,
+                .signature-image-link:hover img {
+                    transform: scale(1.05);
+                }
+                
+                .file-download-link {
+                    display: inline-block;
+                    padding: 8px 16px;
+                    background-color: #0073aa;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 4px;
+                    transition: background-color 0.3s ease;
+                }
+                
+                .file-download-link:hover {
+                    background-color: #005a87;
+                    color: white;
+                    text-decoration: none;
+                }
+                
+                .no-signature {
+                    color: #666;
+                    font-style: italic;
+                }
+                
+                .admin-view-file-display .field-description,
+                .admin-view-signature-display .field-description {
+                    display: block;
+                    margin-top: 8px;
+                    color: #666;
+                    font-size: 12px;
+                }
+            </style>
         </head>
         <body class="lift-secure-page document-form-page">
             <div class="lift-docs-custom-layout">
@@ -494,7 +556,7 @@ class LIFT_Docs_Frontend_Login {
                             }
                             // Form is disabled only for admin view (not admin edit) or when document status prevents editing
                             $form_fields_disabled = ($is_admin_view && !$is_admin_edit) || $is_form_disabled;
-                            $this->render_form_builder_layout($form_fields, $render_data, $form_fields_disabled); 
+                            $this->render_form_builder_layout($form_fields, $render_data, $form_fields_disabled, $is_admin_view); 
                             ?>
                         </div>
                     </form>
@@ -645,7 +707,7 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Render form field
      */
-    private function render_form_field($field, $existing_data = array(), $is_disabled = false) {
+    private function render_form_field($field, $existing_data = array(), $is_disabled = false, $is_admin_view = false) {
         if (!is_array($field) || !isset($field['id']) || !isset($field['type'])) {
             return;
         }
@@ -758,36 +820,97 @@ class LIFT_Docs_Frontend_Login {
                 break;
                 
             case 'file':
-                ?>
-                <input type="file" 
-                       id="<?php echo $field_id; ?>" 
-                       name="<?php echo $field_name; ?>" 
-                       class="form-control"
-                       <?php if (isset($field['accept'])): ?>accept="<?php echo esc_attr($field['accept']); ?>"<?php endif; ?>
-                       <?php echo $required; ?>
-                       <?php echo $disabled; ?>>
-                <?php if ($field_value): ?>
-                    <small class="current-file"><?php printf(__('Current file: %s', 'lift-docs-system'), esc_html($field_value)); ?></small>
-                <?php endif; ?>
-                <?php
+                if ($is_admin_view && $field_value) {
+                    // In admin view, only show image with click to open in new tab
+                    $file_url = $field_value;
+                    if (filter_var($file_url, FILTER_VALIDATE_URL) || strpos($file_url, '/') !== false) {
+                        // Check if it's an image file
+                        $image_extensions = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp');
+                        $file_extension = strtolower(pathinfo($file_url, PATHINFO_EXTENSION));
+                        
+                        if (in_array($file_extension, $image_extensions)) {
+                            ?>
+                            <div class="admin-view-file-display">
+                                <a href="<?php echo esc_url($file_url); ?>" target="_blank" class="file-image-link">
+                                    <img src="<?php echo esc_url($file_url); ?>" 
+                                         alt="<?php _e('Uploaded file', 'lift-docs-system'); ?>" 
+                                         style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                                </a>
+                                <small class="field-description"><?php _e('Click to view full size', 'lift-docs-system'); ?></small>
+                            </div>
+                            <?php
+                        } else {
+                            ?>
+                            <div class="admin-view-file-display">
+                                <a href="<?php echo esc_url($file_url); ?>" target="_blank" class="file-download-link">
+                                    <i class="fas fa-file"></i> <?php _e('View/Download File', 'lift-docs-system'); ?>
+                                </a>
+                            </div>
+                            <?php
+                        }
+                    } else {
+                        ?>
+                        <div class="admin-view-file-display">
+                            <span><?php echo esc_html($field_value); ?></span>
+                        </div>
+                        <?php
+                    }
+                } else {
+                    // Normal file input for non-admin view or when no file exists
+                    ?>
+                    <input type="file" 
+                           id="<?php echo $field_id; ?>" 
+                           name="<?php echo $field_name; ?>" 
+                           class="form-control"
+                           <?php if (isset($field['accept'])): ?>accept="<?php echo esc_attr($field['accept']); ?>"<?php endif; ?>
+                           <?php echo $required; ?>
+                           <?php echo $disabled; ?>>
+                    <?php if ($field_value): ?>
+                        <small class="current-file"><?php printf(__('Current file: %s', 'lift-docs-system'), esc_html($field_value)); ?></small>
+                    <?php endif; ?>
+                    <?php
+                }
                 break;
                 
             case 'signature':
-                ?>
-                <input type="hidden" 
-                       id="<?php echo $field_id; ?>" 
-                       name="<?php echo $field_name; ?>" 
-                       class="form-control"
-                       value="<?php echo esc_attr($field_value); ?>"
-                       <?php echo $required; ?>
-                       <?php echo $disabled; ?>>
-                <?php if ($field_value): ?>
-                    <div class="current-signature">
-                        <img src="<?php echo esc_url($field_value); ?>" alt="<?php _e('Current signature', 'lift-docs-system'); ?>" style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
-                        <small class="field-description"><?php _e('Current signature', 'lift-docs-system'); ?></small>
-                    </div>
-                <?php endif; ?>
-                <?php
+                if ($is_admin_view) {
+                    // In admin view, only show signature image (if exists) with click to open in new tab
+                    if ($field_value) {
+                        ?>
+                        <div class="admin-view-signature-display">
+                            <a href="<?php echo esc_url($field_value); ?>" target="_blank" class="signature-image-link">
+                                <img src="<?php echo esc_url($field_value); ?>" 
+                                     alt="<?php _e('Signature', 'lift-docs-system'); ?>" 
+                                     style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                            </a>
+                            <small class="field-description"><?php _e('Click to view full size', 'lift-docs-system'); ?></small>
+                        </div>
+                        <?php
+                    } else {
+                        ?>
+                        <div class="admin-view-signature-display">
+                            <span class="no-signature"><?php _e('No signature provided', 'lift-docs-system'); ?></span>
+                        </div>
+                        <?php
+                    }
+                } else {
+                    // Normal signature field for non-admin view
+                    ?>
+                    <input type="hidden" 
+                           id="<?php echo $field_id; ?>" 
+                           name="<?php echo $field_name; ?>" 
+                           class="form-control"
+                           value="<?php echo esc_attr($field_value); ?>"
+                           <?php echo $required; ?>
+                           <?php echo $disabled; ?>>
+                    <?php if ($field_value): ?>
+                        <div class="current-signature">
+                            <img src="<?php echo esc_url($field_value); ?>" alt="<?php _e('Current signature', 'lift-docs-system'); ?>" style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
+                            <small class="field-description"><?php _e('Current signature', 'lift-docs-system'); ?></small>
+                        </div>
+                    <?php endif; ?>
+                    <?php
+                }
                 break;
                 
             case 'date':
@@ -833,7 +956,7 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Render form builder layout with rows, columns, and fields
      */
-    private function render_form_builder_layout($form_fields, $existing_data = array(), $is_disabled = false) {
+    private function render_form_builder_layout($form_fields, $existing_data = array(), $is_disabled = false, $is_admin_view = false) {
         if (empty($form_fields)) {
             echo '<p>' . __('This form has no fields configured.', 'lift-docs-system') . '</p>';
             return;
@@ -841,10 +964,10 @@ class LIFT_Docs_Frontend_Login {
         
         // Check if fields are organized in rows/columns structure
         if ($this->has_layout_structure($form_fields)) {
-            $this->render_structured_layout($form_fields, $existing_data, $is_disabled);
+            $this->render_structured_layout($form_fields, $existing_data, $is_disabled, $is_admin_view);
         } else {
             // Fallback to simple linear layout
-            $this->render_simple_layout($form_fields, $existing_data, $is_disabled);
+            $this->render_simple_layout($form_fields, $existing_data, $is_disabled, $is_admin_view);
         }
     }
     
@@ -864,7 +987,7 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Render structured layout with rows and columns
      */
-    private function render_structured_layout($form_fields, $existing_data = array(), $is_disabled = false) {
+    private function render_structured_layout($form_fields, $existing_data = array(), $is_disabled = false, $is_admin_view = false) {
         // Group fields by rows
         $rows = array();
         foreach ($form_fields as $field) {
@@ -899,7 +1022,7 @@ class LIFT_Docs_Frontend_Login {
                 echo '<div class="form-column ' . esc_attr($column_width) . '" data-column="' . esc_attr($col_index) . '">';
                 
                 foreach ($col_fields as $field) {
-                    $this->render_field_container($field, $existing_data, $is_disabled);
+                    $this->render_field_container($field, $existing_data, $is_disabled, $is_admin_view);
                 }
                 
                 echo '</div>';
@@ -912,12 +1035,12 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Render simple linear layout (fallback)
      */
-    private function render_simple_layout($form_fields, $existing_data = array(), $is_disabled = false) {
+    private function render_simple_layout($form_fields, $existing_data = array(), $is_disabled = false, $is_admin_view = false) {
         echo '<div class="form-row">';
         echo '<div class="form-column col-1">';
         
         foreach ($form_fields as $field) {
-            $this->render_field_container($field, $existing_data, $is_disabled);
+            $this->render_field_container($field, $existing_data, $is_disabled, $is_admin_view);
         }
         
         echo '</div>';
@@ -949,7 +1072,7 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Render field container with label and field
      */
-    private function render_field_container($field, $existing_data = array(), $is_disabled = false) {
+    private function render_field_container($field, $existing_data = array(), $is_disabled = false, $is_admin_view = false) {
         if (!is_array($field) || !isset($field['id']) || !isset($field['type'])) {
             return;
         }
@@ -970,7 +1093,7 @@ class LIFT_Docs_Frontend_Login {
         }
         
         // Render the actual field
-        $this->render_form_field($field, $existing_data, $is_disabled);
+        $this->render_form_field($field, $existing_data, $is_disabled, $is_admin_view);
         
         // Add field description if available
         if (isset($field['description']) && !empty($field['description'])) {
