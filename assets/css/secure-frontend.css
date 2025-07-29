@@ -372,8 +372,104 @@ select.form-control {
     background: #f8f9fa;
     border-style: dashed;
 }
-    cursor: not-allowed;
-    opacity: 0.7;
+
+/* ========================================
+   Input Groups & Field Enhancements
+   ======================================== */
+
+.input-group {
+    display: flex;
+    width: 100%;
+}
+
+.input-group .form-control {
+    border-radius: 0;
+    border-right: none;
+}
+
+.input-group .form-control:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.input-group .form-control:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-right: 2px solid #e9ecef;
+}
+
+.input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-left: none;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* ========================================
+   Form Validation & States
+   ======================================== */
+
+.form-field.is-invalid .form-control {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.form-field.is-valid .form-control {
+    border-color: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+}
+
+.invalid-feedback,
+.valid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.invalid-feedback {
+    color: #e74c3c;
+}
+
+.valid-feedback {
+    color: #27ae60;
+}
+
+/* Field help text */
+.form-field .help-text {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+/* ========================================
+   Form Actions & Layout
+   ======================================== */
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid #e9ecef;
+    flex-wrap: wrap;
+}
+
+.form-actions .btn {
+    min-width: 120px;
+}
+
+.form-actions .btn-primary {
+    order: -1; /* Primary button appears first */
 }
 
 /* Checkbox and Radio Fields */
@@ -783,5 +879,60 @@ select.form-control {
     
     .lift-secure-page .file-info {
         justify-content: center;
+    }
+}
+
+/* ========================================
+   Enhanced Form Responsive Design
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .form-container {
+        margin: 20px;
+    }
+    
+    .form-row {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .form-header-section {
+        padding: 20px;
+    }
+    
+    .form-control {
+        padding: 12px 14px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .btn {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+    
+    .notice {
+        padding: 12px 16px;
+        margin-bottom: 20px;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control,
+    .input-group-text {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+    }
+    
+    .input-group .form-control:not(:last-child) {
+        margin-bottom: 10px;
     }
 }
