@@ -3,49 +3,50 @@
  * Shared functionality for secure pages and document forms
  */
 
-jQuery(document).ready(function($) {
-    'use strict';
-    
-    // Initialize secure frontend features
-    LIFT_SecureFrontend.init();
-});
-
-var LIFT_SecureFrontend = {
-    
-    init: function() {
-        this.initDownloadTracking();
-        this.initFormValidation();
-        this.initAccessibilityFeatures();
-        this.initPrintSupport();
-    },
-    
-    /**
-     * Track download events
-     */
-    initDownloadTracking: function() {
-        $('.lift-download-btn').on('click', function(e) {
-            var $btn = $(this);
-            var fileName = $btn.closest('.file-item').find('.file-name').text();
-            
-            // Add loading state
-            $btn.addClass('downloading');
-            $btn.find('.dashicons').removeClass('dashicons-download').addClass('dashicons-update');
-            
-            // Analytics tracking (if available)
-            if (typeof gtag !== 'undefined') {
-                gtag('event', 'download', {
-                    'event_category': 'Document',
-                    'event_label': fileName
-                });
-            }
-            
-            // Remove loading state after a delay
-            setTimeout(function() {
-                $btn.removeClass('downloading');
-                $btn.find('.dashicons').removeClass('dashicons-update').addClass('dashicons-download');
-            }, 2000);
-        });
-    },
+// Ensure jQuery is available
+if (typeof jQuery === 'undefined') {
+    console.error('LIFT Docs: jQuery is required but not loaded');
+} else {
+    jQuery(document).ready(function($) {
+        'use strict';
+        
+        // Initialize secure frontend features
+        var LIFT_SecureFrontend = {
+        
+        init: function() {
+            this.initDownloadTracking();
+            this.initFormValidation();
+            this.initAccessibilityFeatures();
+            this.initPrintSupport();
+        },
+        
+        /**
+         * Track download events
+         */
+        initDownloadTracking: function() {
+            $('.lift-download-btn').on('click', function(e) {
+                var $btn = $(this);
+                var fileName = $btn.closest('.file-item').find('.file-name').text();
+                
+                // Add loading state
+                $btn.addClass('downloading');
+                $btn.find('.dashicons').removeClass('dashicons-download').addClass('dashicons-update');
+                
+                // Analytics tracking (if available)
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'download', {
+                        'event_category': 'Document',
+                        'event_label': fileName
+                    });
+                }
+                
+                // Remove loading state after a delay
+                setTimeout(function() {
+                    $btn.removeClass('downloading');
+                    $btn.find('.dashicons').removeClass('dashicons-update').addClass('dashicons-download');
+                }, 2000);
+            });
+        },
     
     /**
      * Enhanced form validation
@@ -225,9 +226,17 @@ var LIFT_SecureFrontend = {
             });
         }, 3000);
     }
-};
-
-// Export for use by other scripts
-if (typeof window.LIFT_SecureFrontend === 'undefined') {
-    window.LIFT_SecureFrontend = LIFT_SecureFrontend;
-}
+    
+    }; // End of LIFT_SecureFrontend object
+    
+    // Initialize the frontend functionality
+    LIFT_SecureFrontend.init();
+    
+    // Export for use by other scripts
+    if (typeof window.LIFT_SecureFrontend === 'undefined') {
+        window.LIFT_SecureFrontend = LIFT_SecureFrontend;
+    }
+    
+    }); // End of jQuery document ready
+    
+} // End of jQuery availability check
