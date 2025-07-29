@@ -1027,29 +1027,3 @@
     width: 120px;
     text-align: center;
 }
-
-/* Archive column styles */
-.wp-list-table th.column-archived,
-.wp-list-table td.column-archived {
-    width: 100px;
-    text-align: center;
-}
-
-.lift-archive-toggle {
-    user-select: none;
-    transition: all 0.3s ease;
-}
-
-.lift-archive-toggle:hover {
-    transform: scale(1.05);
-}
-
-.lift-archive-checkbox {
-    transform: scale(1.2);
-    cursor: pointer;
-}
-
-.lift-archive-checkbox:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
