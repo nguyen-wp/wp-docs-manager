@@ -859,14 +859,424 @@ select.form-control:focus {
 }
 
 /* ========================================
+   File Upload & Signature Fields - Enhanced Styling
+   ======================================== */
+
+/* File Upload Container */
+.file-upload-container {
+    margin-top: 6px;
+}
+
+.file-drop-zone {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    background: #f9fafb;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone.drag-over {
+    border-color: #1976d2;
+    background: #f0f9ff;
+}
+
+.drop-zone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.drop-zone-content .dashicons {
+    font-size: 32px;
+    color: #6b7280;
+}
+
+.drop-zone-text {
+    margin: 0;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.browse-link {
+    color: #1976d2;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.browse-link:hover {
+    color: #1565c0;
+}
+
+.drop-zone-hint {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.file-upload-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.file-browse-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+/* File Preview Area */
+.file-preview-area {
+    display: none;
+    margin-top: 12px;
+}
+
+.file-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.file-preview-item:last-child {
+    margin-bottom: 0;
+}
+
+.image-preview {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.file-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-icon .dashicons {
+    font-size: 20px;
+    color: #6b7280;
+}
+
+.file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.file-size {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.upload-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #1976d2;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.progress-fill.success {
+    background: #10b981;
+}
+
+.progress-text {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.download-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #1976d2;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.download-link:hover {
+    background: #f0f9ff;
+    color: #1565c0;
+}
+
+.remove-file {
+    padding: 4px;
+    min-width: auto;
+    height: auto;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    color: #6b7280;
+}
+
+.remove-file:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+/* Signature Container */
+.signature-container {
+    margin-top: 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.signature-canvas {
+    display: block;
+    width: 100%;
+    height: 200px;
+    border: none;
+    cursor: crosshair;
+    background: #fff;
+}
+
+.signature-actions {
+    padding: 12px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.signature-actions .btn {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+.clear-signature {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.clear-signature:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.save-signature {
+    background: #1976d2;
+    color: #fff;
+    border: 1px solid #1976d2;
+}
+
+.save-signature:hover:not(:disabled) {
+    background: #1565c0;
+    border-color: #1565c0;
+}
+
+.save-signature:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Form Messages */
+.lift-form-error-message,
+.lift-form-success-message {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.lift-form-error-message {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.lift-form-success-message {
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    color: #059669;
+}
+
+.lift-form-error-message .dashicons,
+.lift-form-success-message .dashicons {
+    font-size: 16px;
+    margin-top: 1px;
+}
+
+/* Field Type Specific Styling */
+.lift-field-file .form-control[type="file"],
+.lift-field-signature .form-control {
+    display: none; /* Hide original inputs */
+}
+
+.lift-field-file label,
+.lift-field-signature label {
+    margin-bottom: 8px;
+    display: block;
+    font-weight: 500;
+    color: #333;
+    font-size: 13px;
+}
+
+/* Ensure form fields have consistent structure */
+.lift-form-field {
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.lift-form-field.lift-field-file,
+.lift-form-field.lift-field-signature {
+    margin-bottom: 20px;
+}
+
+/* Mobile Responsive for Upload/Signature */
+@media (max-width: 768px) {
+    .file-drop-zone {
+        padding: 20px 16px;
+    }
+    
+    .drop-zone-content .dashicons {
+        font-size: 28px;
+    }
+    
+    .file-preview-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+    
+    .file-info {
+        order: 1;
+    }
+    
+    .image-preview {
+        order: 2;
+        width: 80px;
+        height: 80px;
+    }
+    
+    .file-actions {
+        order: 3;
+        justify-content: center;
+    }
+    
+    .signature-canvas {
+        height: 150px;
+    }
+    
+    .signature-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .signature-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .drop-zone-text {
+        font-size: 13px;
+    }
+    
+    .drop-zone-hint {
+        font-size: 11px;
+    }
+    
+    .file-browse-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .signature-canvas {
+        height: 120px;
+    }
+}
+
+/* ========================================
    Print Styles
    ======================================== */
 
 @media print {
     .form-actions,
     .lift-download-btn,
-    .btn {
+    .btn,
+    .file-upload-container,
+    .signature-actions {
         display: none !important;
+    }
+    
+    .signature-canvas {
+        border: 1px solid #ddd;
     }
     
     .document-form-wrapper,

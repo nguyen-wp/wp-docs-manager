@@ -40,6 +40,12 @@ class LIFT_Forms {
         add_action('wp_ajax_lift_form_builder_load', array($this, 'ajax_load_form_schema'));
         add_action('wp_ajax_lift_form_builder_preview', array($this, 'ajax_preview_form'));
         
+        // File upload and signature AJAX handlers
+        add_action('wp_ajax_lift_upload_file', array($this, 'ajax_upload_file'));
+        add_action('wp_ajax_nopriv_lift_upload_file', array($this, 'ajax_upload_file'));
+        add_action('wp_ajax_lift_save_signature', array($this, 'ajax_save_signature'));
+        add_action('wp_ajax_nopriv_lift_save_signature', array($this, 'ajax_save_signature'));
+        
         // Register shortcode
         add_shortcode('lift_form', array($this, 'render_form_shortcode'));
     }
@@ -51,6 +57,7 @@ class LIFT_Forms {
         $this->create_tables();
         $this->register_post_type();
         $this->setup_capabilities();
+        $this->create_upload_directories();
         
         // Force check for missing columns on every init
         $this->maybe_add_user_id_column();
@@ -308,6 +315,15 @@ class LIFT_Forms {
             true
         );
         
+        // File upload and signature functionality
+        wp_enqueue_script(
+            'lift-file-upload-signature',
+            plugin_dir_url(__FILE__) . '../assets/js/file-upload-signature.js',
+            array('jquery'),
+            '1.0.0',
+            true
+        );
+        
         wp_enqueue_style(
             'lift-forms-frontend',
             plugin_dir_url(__FILE__) . '../assets/css/forms-frontend.css',
@@ -332,6 +348,23 @@ class LIFT_Forms {
                 'error' => __('An error occurred. Please try again.', 'lift-docs-system'),
                 'requiredField' => __('This field is required.', 'lift-docs-system'),
                 'invalidEmail' => __('Please enter a valid email address.', 'lift-docs-system'),
+            )
+        ));
+        
+        // Localize for file upload and signature script
+        wp_localize_script('lift-file-upload-signature', 'liftFormsFrontend', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('lift_forms_submit_nonce'),
+            'uploadDir' => wp_upload_dir()['url'],
+            'maxFileSize' => 5 * 1024 * 1024, // 5MB
+            'allowedTypes' => array('image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+            'strings' => array(
+                'uploadError' => __('Error uploading file', 'lift-docs-system'),
+                'signatureError' => __('Error saving signature', 'lift-docs-system'),
+                'fileTooLarge' => __('File is too large. Maximum size is 5MB.', 'lift-docs-system'),
+                'invalidFileType' => __('Invalid file type. Please select a supported format.', 'lift-docs-system'),
+                'signatureSaved' => __('Signature saved successfully!', 'lift-docs-system'),
+                'fileUploaded' => __('File uploaded successfully!', 'lift-docs-system'),
             )
         ));
     }
@@ -1745,17 +1778,17 @@ class LIFT_Forms {
             case 'number':
             case 'date':
                 $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
-                $html .= '<input type="' . esc_attr($type) . '" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" placeholder="' . esc_attr($field['placeholder'] ?? '') . '" ' . $required . '>';
+                $html .= '<input type="' . esc_attr($type) . '" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" placeholder="' . esc_attr($field['placeholder'] ?? '') . '" ' . $required . '>';
                 break;
                 
             case 'textarea':
                 $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
-                $html .= '<textarea id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" placeholder="' . esc_attr($field['placeholder'] ?? '') . '" ' . $required . '></textarea>';
+                $html .= '<textarea id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" placeholder="' . esc_attr($field['placeholder'] ?? '') . '" ' . $required . '></textarea>';
                 break;
                 
             case 'select':
                 $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
-                $html .= '<select id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" ' . $required . '>';
+                $html .= '<select id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" ' . $required . '>';
                 $html .= '<option value="">' . __('Please select...', 'lift-docs-system') . '</option>';
                 if (!empty($field['options'])) {
                     foreach ($field['options'] as $option) {
@@ -1766,28 +1799,28 @@ class LIFT_Forms {
                 break;
                 
             case 'radio':
-                $html .= '<fieldset>';
+                $html .= '<fieldset class="radio-group">';
                 $html .= '<legend>' . esc_html($field['label']) . $required_asterisk . '</legend>';
                 if (!empty($field['options'])) {
                     foreach ($field['options'] as $i => $option) {
-                        $html .= '<label class="radio-label">';
-                        $html .= '<input type="radio" name="' . esc_attr($field['name']) . '" value="' . esc_attr($option['value']) . '" ' . $required . '>';
-                        $html .= '<span>' . esc_html($option['label']) . '</span>';
-                        $html .= '</label>';
+                        $html .= '<div class="radio-option">';
+                        $html .= '<input type="radio" id="' . esc_attr($field['id'] . '_' . $i) . '" name="' . esc_attr($field['name']) . '" value="' . esc_attr($option['value']) . '" class="form-control" ' . $required . '>';
+                        $html .= '<label for="' . esc_attr($field['id'] . '_' . $i) . '">' . esc_html($option['label']) . '</label>';
+                        $html .= '</div>';
                     }
                 }
                 $html .= '</fieldset>';
                 break;
                 
             case 'checkbox':
-                $html .= '<fieldset>';
+                $html .= '<fieldset class="checkbox-group">';
                 $html .= '<legend>' . esc_html($field['label']) . $required_asterisk . '</legend>';
                 if (!empty($field['options'])) {
                     foreach ($field['options'] as $i => $option) {
-                        $html .= '<label class="checkbox-label">';
-                        $html .= '<input type="checkbox" name="' . esc_attr($field['name']) . '[]" value="' . esc_attr($option['value']) . '">';
-                        $html .= '<span>' . esc_html($option['label']) . '</span>';
-                        $html .= '</label>';
+                        $html .= '<div class="checkbox-field">';
+                        $html .= '<input type="checkbox" id="' . esc_attr($field['id'] . '_' . $i) . '" name="' . esc_attr($field['name']) . '[]" value="' . esc_attr($option['value']) . '" class="form-control">';
+                        $html .= '<label for="' . esc_attr($field['id'] . '_' . $i) . '">' . esc_html($option['label']) . '</label>';
+                        $html .= '</div>';
                     }
                 }
                 $html .= '</fieldset>';
@@ -1795,10 +1828,13 @@ class LIFT_Forms {
                 
             case 'file':
                 $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
-                $html .= '<input type="file" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" ' . $required . '>';
-                if (!empty($field['accept'])) {
-                    $html .= ' accept="' . esc_attr($field['accept']) . '"';
-                }
+                $accept = !empty($field['accept']) ? ' accept="' . esc_attr($field['accept']) . '"' : ' accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"';
+                $html .= '<input type="file" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" ' . $required . $accept . '>';
+                break;
+                
+            case 'signature':
+                $html .= '<label for="' . esc_attr($field['id']) . '">' . esc_html($field['label']) . $required_asterisk . '</label>';
+                $html .= '<input type="hidden" id="' . esc_attr($field['id']) . '" name="' . esc_attr($field['name']) . '" class="form-control" ' . $required . '>';
                 break;
                 
             case 'html':
@@ -1820,13 +1856,23 @@ class LIFT_Forms {
         
         foreach ($fields as $field) {
             $field_name = $field['name'] ?? '';
+            $field_type = $field['type'] ?? 'text';
             $field_value = $form_data[$field_name] ?? '';
             $is_required = isset($field['required']) && $field['required'];
             
             // Check required fields
             if ($is_required && empty($field_value)) {
-                $errors[$field_name] = sprintf(__('%s is required', 'lift-docs-system'), $field['label'] ?? $field_name);
-                continue;
+                // For file uploads, also check for the _url version
+                if ($field_type === 'file') {
+                    $file_url_value = $form_data[$field_name . '_url'] ?? '';
+                    if (empty($file_url_value)) {
+                        $errors[$field_name] = sprintf(__('%s is required', 'lift-docs-system'), $field['label'] ?? $field_name);
+                        continue;
+                    }
+                } else {
+                    $errors[$field_name] = sprintf(__('%s is required', 'lift-docs-system'), $field['label'] ?? $field_name);
+                    continue;
+                }
             }
             
             // Skip validation if field is empty and not required
@@ -1835,7 +1881,7 @@ class LIFT_Forms {
             }
             
             // Type-specific validation
-            switch ($field['type'] ?? 'text') {
+            switch ($field_type) {
                 case 'email':
                     if (!is_email($field_value)) {
                         $errors[$field_name] = __('Please enter a valid email address', 'lift-docs-system');
@@ -1853,6 +1899,21 @@ class LIFT_Forms {
                         $errors[$field_name] = __('Please enter a valid date', 'lift-docs-system');
                     }
                     break;
+                    
+                case 'signature':
+                    // Validate signature URL format
+                    if (!empty($field_value) && strpos($field_value, '/signatures/') === false) {
+                        $errors[$field_name] = __('Invalid signature format', 'lift-docs-system');
+                    }
+                    break;
+                    
+                case 'file':
+                    // Validate file URL if present
+                    $file_url = $form_data[$field_name . '_url'] ?? '';
+                    if (!empty($file_url) && !filter_var($file_url, FILTER_VALIDATE_URL)) {
+                        $errors[$field_name] = __('Invalid file upload', 'lift-docs-system');
+                    }
+                    break;
             }
         }
         
@@ -1860,9 +1921,34 @@ class LIFT_Forms {
     }
     
     private function process_form_uploads($form_data) {
-        // Handle file uploads here
-        // For now, return data as-is
-        return $form_data;
+        $processed_data = array();
+        
+        foreach ($form_data as $key => $value) {
+            // Handle file upload URLs (these come from AJAX uploads)
+            if (strpos($key, '_url') !== false && !empty($value)) {
+                // File was uploaded via AJAX, URL is already stored
+                $processed_data[$key] = sanitize_url($value);
+                
+                // Also store the original field name without _url suffix
+                $original_key = str_replace('_url', '', $key);
+                $processed_data[$original_key] = basename($value);
+            }
+            // Handle signature data (already processed via AJAX)
+            elseif (strpos($value, '/signatures/') !== false) {
+                // Signature URL from AJAX save
+                $processed_data[$key] = sanitize_url($value);
+            }
+            // Handle regular form data
+            else {
+                if (is_array($value)) {
+                    $processed_data[$key] = array_map('sanitize_text_field', $value);
+                } else {
+                    $processed_data[$key] = sanitize_text_field($value);
+                }
+            }
+        }
+        
+        return $processed_data;
     }
     
     private function send_submission_notification($form, $data) {
@@ -1898,6 +1984,158 @@ class LIFT_Forms {
             }
         }
         return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    }
+
+    /**
+     * AJAX handler for file uploads
+     */
+    public function ajax_upload_file() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_submit_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+
+        // Check if file was uploaded
+        if (!isset($_FILES['file'])) {
+            wp_send_json_error(__('No file uploaded', 'lift-docs-system'));
+        }
+
+        $file = $_FILES['file'];
+        
+        // Basic validation
+        $max_size = 5 * 1024 * 1024; // 5MB
+        $allowed_types = array(
+            'image/jpeg',
+            'image/png', 
+            'image/gif',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        );
+
+        if ($file['size'] > $max_size) {
+            wp_send_json_error(__('File is too large. Maximum size is 5MB.', 'lift-docs-system'));
+        }
+
+        if (!in_array($file['type'], $allowed_types)) {
+            wp_send_json_error(__('Invalid file type.', 'lift-docs-system'));
+        }
+
+        // Handle the upload
+        if (!function_exists('wp_handle_upload')) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+        }
+
+        $upload_overrides = array(
+            'test_form' => false,
+            'unique_filename_callback' => array($this, 'unique_filename_callback')
+        );
+
+        $uploaded_file = wp_handle_upload($file, $upload_overrides);
+
+        if (isset($uploaded_file['error'])) {
+            wp_send_json_error($uploaded_file['error']);
+        }
+
+        // Return success with file URL
+        wp_send_json_success(array(
+            'url' => $uploaded_file['url'],
+            'file' => $uploaded_file['file'],
+            'type' => $uploaded_file['type']
+        ));
+    }
+
+    /**
+     * AJAX handler for saving signatures
+     */
+    public function ajax_save_signature() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_submit_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+
+        if (!isset($_POST['signature']) || !isset($_POST['field_id'])) {
+            wp_send_json_error(__('Missing signature data', 'lift-docs-system'));
+        }
+
+        $signature_data = $_POST['signature'];
+        $field_id = sanitize_text_field($_POST['field_id']);
+
+        // Validate base64 data
+        if (strpos($signature_data, 'data:image/png;base64,') !== 0) {
+            wp_send_json_error(__('Invalid signature format', 'lift-docs-system'));
+        }
+
+        // Remove the data URL prefix
+        $image_data = str_replace('data:image/png;base64,', '', $signature_data);
+        $image_data = str_replace(' ', '+', $image_data);
+        $decoded_data = base64_decode($image_data);
+
+        if ($decoded_data === false) {
+            wp_send_json_error(__('Invalid signature data', 'lift-docs-system'));
+        }
+
+        // Create signature directory if it doesn't exist
+        $upload_dir = wp_upload_dir();
+        $signature_dir = $upload_dir['basedir'] . '/signatures';
+        
+        if (!file_exists($signature_dir)) {
+            wp_mkdir_p($signature_dir);
+        }
+
+        // Generate MD5 hash for filename
+        $hash = md5($field_id . current_time('timestamp') . get_current_user_id());
+        $filename = $hash . '.png';
+        $file_path = $signature_dir . '/' . $filename;
+
+        // Save the file
+        if (file_put_contents($file_path, $decoded_data) === false) {
+            wp_send_json_error(__('Failed to save signature', 'lift-docs-system'));
+        }
+
+        // Return success with file URL
+        $file_url = $upload_dir['baseurl'] . '/signatures/' . $filename;
+        
+        wp_send_json_success(array(
+            'url' => $file_url,
+            'path' => $file_path,
+            'hash' => $hash
+        ));
+    }
+
+    /**
+     * Custom filename callback for uploads
+     */
+    public function unique_filename_callback($dir, $name, $ext) {
+        // Generate MD5 hash for filename
+        $hash = md5($name . current_time('timestamp') . get_current_user_id());
+        return $hash . $ext;
+    }
+
+    /**
+     * Create uploads directory structure
+     */
+    private function create_upload_directories() {
+        $upload_dir = wp_upload_dir();
+        
+        // Create signatures directory
+        $signature_dir = $upload_dir['basedir'] . '/signatures';
+        if (!file_exists($signature_dir)) {
+            wp_mkdir_p($signature_dir);
+            
+            // Add .htaccess to protect direct access
+            $htaccess_content = "# Protect signature files\n";
+            $htaccess_content .= "Order deny,allow\n";
+            $htaccess_content .= "Deny from all\n";
+            $htaccess_content .= "# Allow only through WordPress\n";
+            file_put_contents($signature_dir . '/.htaccess', $htaccess_content);
+        }
+        
+        // Create form uploads directory  
+        $form_uploads_dir = $upload_dir['basedir'] . '/form-uploads';
+        if (!file_exists($form_uploads_dir)) {
+            wp_mkdir_p($form_uploads_dir);
+        }
     }
     
     /**
