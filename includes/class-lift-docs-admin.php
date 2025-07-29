@@ -35,6 +35,12 @@ class LIFT_Docs_Admin {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('admin_footer', array($this, 'add_document_details_modal'));
         
+        // Filter to exclude archived documents from default admin list
+        add_action('pre_get_posts', array($this, 'exclude_archived_documents_from_admin'));
+        
+        // Add admin notice for archived documents view
+        add_action('admin_notices', array($this, 'show_archived_documents_notice'));
+        
         // Clean up old layout settings on first load
         add_action('admin_init', array($this, 'cleanup_old_layout_settings'), 5);
         
@@ -57,6 +63,7 @@ class LIFT_Docs_Admin {
         add_action('wp_ajax_generate_user_code', array($this, 'ajax_generate_user_code'));
         add_action('wp_ajax_get_admin_document_details', array($this, 'ajax_get_admin_document_details'));
         add_action('wp_ajax_update_document_status', array($this, 'ajax_update_document_status'));
+        add_action('wp_ajax_toggle_document_archive', array($this, 'ajax_toggle_document_archive'));
         
         // Add script for users list
         add_action('admin_footer', array($this, 'add_users_list_script'));
@@ -90,6 +97,14 @@ class LIFT_Docs_Admin {
             __('Categories', 'lift-docs-system'),
             'manage_options',
             'edit-tags.php?taxonomy=lift_doc_category&post_type=lift_document'
+        );
+        
+        add_submenu_page(
+            'edit.php?post_type=lift_document',
+            __('Archived Documents', 'lift-docs-system'),
+            __('Archived', 'lift-docs-system'),
+            'manage_options',
+            'edit.php?post_type=lift_document&archived=1'
         );
         
      
@@ -296,10 +311,84 @@ class LIFT_Docs_Admin {
         $new_columns['category'] = __('Category', 'lift-docs-system');
         $new_columns['status'] = __('Status', 'lift-docs-system');
         $new_columns['assignments'] = __('Assigned Users', 'lift-docs-system');
+        $new_columns['archived'] = __('Archive', 'lift-docs-system');
         $new_columns['date'] = $columns['date'];
         $new_columns['document_details'] = __('Details', 'lift-docs-system');
         
         return $new_columns;
+    }
+    
+    /**
+     * Exclude archived documents from admin list by default
+     */
+    public function exclude_archived_documents_from_admin($query) {
+        // Only apply to admin area
+        if (!is_admin()) {
+            return;
+        }
+        
+        // Only apply to main query for lift_document post type
+        if (!$query->is_main_query() || $query->get('post_type') !== 'lift_document') {
+            return;
+        }
+        
+        // Don't apply if specifically viewing archived documents
+        if (isset($_GET['archived']) && $_GET['archived'] === '1') {
+            // Show only archived documents
+            $query->set('meta_query', array(
+                array(
+                    'key' => '_lift_doc_archived',
+                    'value' => '1',
+                    'compare' => '='
+                )
+            ));
+            return;
+        }
+        
+        // Exclude archived documents by default
+        $meta_query = $query->get('meta_query') ?: array();
+        $meta_query[] = array(
+            'relation' => 'OR',
+            array(
+                'key' => '_lift_doc_archived',
+                'compare' => 'NOT EXISTS'
+            ),
+            array(
+                'key' => '_lift_doc_archived',
+                'value' => '1',
+                'compare' => '!='
+            )
+        );
+        
+        $query->set('meta_query', $meta_query);
+    }
+    
+    /**
+     * Show notice when viewing archived documents
+     */
+    public function show_archived_documents_notice() {
+        $current_screen = get_current_screen();
+        
+        // Only show on document list page
+        if (!$current_screen || $current_screen->id !== 'edit-lift_document') {
+            return;
+        }
+        
+        // Only show when viewing archived documents
+        if (isset($_GET['archived']) && $_GET['archived'] === '1') {
+            ?>
+            <div class="notice notice-info">
+                <p>
+                    <span class="dashicons dashicons-archive" style="vertical-align: middle; margin-right: 5px;"></span>
+                    <strong><?php _e('You are viewing archived documents.', 'lift-docs-system'); ?></strong>
+                    <?php _e('These documents are hidden from the default list and frontend pages.', 'lift-docs-system'); ?>
+                    <a href="<?php echo admin_url('edit.php?post_type=lift_document'); ?>" style="margin-left: 10px;">
+                        <?php _e('View active documents', 'lift-docs-system'); ?>
+                    </a>
+                </p>
+            </div>
+            <?php
+        }
     }
     
     /**
@@ -326,6 +415,10 @@ class LIFT_Docs_Admin {
                 
             case 'assignments':
                 $this->render_assignments_column($post_id);
+                break;
+                
+            case 'archived':
+                $this->render_archive_column($post_id);
                 break;
                 
             case 'document_details':
@@ -365,6 +458,27 @@ class LIFT_Docs_Admin {
                 </option>
             <?php endforeach; ?>
         </select>
+        <?php
+    }
+
+    /**
+     * Render archive column with toggle
+     */
+    private function render_archive_column($post_id) {
+        $is_archived = get_post_meta($post_id, '_lift_doc_archived', true);
+        $is_archived = ($is_archived === '1' || $is_archived === 1);
+        
+        ?>
+        <label class="lift-archive-toggle" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" 
+                   class="lift-archive-checkbox" 
+                   data-post-id="<?php echo esc_attr($post_id); ?>" 
+                   <?php checked($is_archived); ?>
+                   style="margin: 0;">
+            <span style="font-size: 12px; color: <?php echo $is_archived ? '#e74c3c' : '#27ae60'; ?>;">
+                <?php echo $is_archived ? __('Archived', 'lift-docs-system') : __('Active', 'lift-docs-system'); ?>
+            </span>
+        </label>
         <?php
     }
 
@@ -586,6 +700,15 @@ class LIFT_Docs_Admin {
             'lift_document',
             'side',
             'high'
+        );
+        
+        add_meta_box(
+            'lift-docs-archive',
+            __('Archive Settings', 'lift-docs-system'),
+            array($this, 'document_archive_meta_box'),
+            'lift_document',
+            'side',
+            'low'
         );
     }
     
@@ -1794,6 +1917,61 @@ class LIFT_Docs_Admin {
     }
     
     /**
+     * Archive settings meta box
+     */
+    public function document_archive_meta_box($post) {
+        wp_nonce_field('lift_docs_archive_meta_box', 'lift_docs_archive_meta_box_nonce');
+        
+        $is_archived = get_post_meta($post->ID, '_lift_doc_archived', true);
+        $is_archived = ($is_archived === '1' || $is_archived === 1);
+        ?>
+        <div style="padding: 10px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" 
+                       name="_lift_doc_archived" 
+                       value="1" 
+                       <?php checked($is_archived); ?>
+                       style="transform: scale(1.2);">
+                <span style="font-weight: 500; color: <?php echo $is_archived ? '#e74c3c' : '#27ae60'; ?>;">
+                    <?php if ($is_archived): ?>
+                        <span class="dashicons dashicons-archive" style="vertical-align: middle; margin-right: 5px;"></span>
+                        <?php _e('This document is archived', 'lift-docs-system'); ?>
+                    <?php else: ?>
+                        <span class="dashicons dashicons-yes-alt" style="vertical-align: middle; margin-right: 5px;"></span>
+                        <?php _e('This document is active', 'lift-docs-system'); ?>
+                    <?php endif; ?>
+                </span>
+            </label>
+            
+            <div style="margin-top: 10px; padding: 10px; background: #f7f7f7; border-left: 4px solid #0073aa; font-size: 13px;">
+                <strong><?php _e('Note:', 'lift-docs-system'); ?></strong>
+                <?php _e('Archived documents will not appear in the default document list or frontend pages. They can only be accessed directly or viewed in the Archived Documents section.', 'lift-docs-system'); ?>
+            </div>
+            
+            <script>
+            jQuery(document).ready(function($) {
+                $('input[name="_lift_doc_archived"]').on('change', function() {
+                    var $this = $(this);
+                    var $span = $this.next('span');
+                    var $icon = $span.find('.dashicons');
+                    
+                    if ($this.is(':checked')) {
+                        $span.css('color', '#e74c3c');
+                        $icon.removeClass('dashicons-yes-alt').addClass('dashicons-archive');
+                        $span.find('text').text('<?php _e('This document is archived', 'lift-docs-system'); ?>');
+                    } else {
+                        $span.css('color', '#27ae60');
+                        $icon.removeClass('dashicons-archive').addClass('dashicons-yes-alt');
+                        $span.find('text').text('<?php _e('This document is active', 'lift-docs-system'); ?>');
+                    }
+                });
+            });
+            </script>
+        </div>
+        <?php
+    }
+    
+    /**
      * Save meta boxes
      */
     public function save_meta_boxes($post_id) {
@@ -1874,6 +2052,20 @@ class LIFT_Docs_Admin {
                         update_post_meta($post_id, '_lift_doc_assigned_forms', $valid_forms);
                     } else {
                         delete_post_meta($post_id, '_lift_doc_assigned_forms');
+                    }
+                }
+            }
+        }
+        
+        // Check document archive nonce
+        if (isset($_POST['lift_docs_archive_meta_box_nonce']) && wp_verify_nonce($_POST['lift_docs_archive_meta_box_nonce'], 'lift_docs_archive_meta_box')) {
+            if (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) {
+                if (current_user_can('edit_post', $post_id)) {
+                    // Handle archive status
+                    if (isset($_POST['_lift_doc_archived']) && $_POST['_lift_doc_archived'] === '1') {
+                        update_post_meta($post_id, '_lift_doc_archived', '1');
+                    } else {
+                        update_post_meta($post_id, '_lift_doc_archived', '0');
                     }
                 }
             }
@@ -2055,6 +2247,7 @@ class LIFT_Docs_Admin {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('get_admin_document_details'),
             'statusNonce' => wp_create_nonce('update_document_status'),
+            'archiveNonce' => wp_create_nonce('toggle_document_archive'),
             'strings' => array(
                 'documentDetails' => __('Document Details', 'lift-docs-system'),
                 'viewDetails' => __('Document Details', 'lift-docs-system'),
@@ -2071,7 +2264,11 @@ class LIFT_Docs_Admin {
                 'viewOnline' => __('View Online', 'lift-docs-system'),
                 'close' => __('Close', 'lift-docs-system'),
                 'statusUpdated' => __('Status updated successfully', 'lift-docs-system'),
-                'statusUpdateError' => __('Error updating status', 'lift-docs-system')
+                'statusUpdateError' => __('Error updating status', 'lift-docs-system'),
+                'archiveUpdated' => __('Archive status updated successfully', 'lift-docs-system'),
+                'archiveUpdateError' => __('Error updating archive status', 'lift-docs-system'),
+                'archived' => __('Archived', 'lift-docs-system'),
+                'active' => __('Active', 'lift-docs-system')
             )
         ));
         
@@ -2124,6 +2321,62 @@ class LIFT_Docs_Admin {
                         },
                         complete: function() {
                             $dropdown.prop("disabled", false);
+                        }
+                    });
+                });
+                
+                // Handle archive checkbox change
+                $(document).on("change", ".lift-archive-checkbox", function() {
+                    var $checkbox = $(this);
+                    var postId = $checkbox.data("post-id");
+                    var isArchived = $checkbox.is(":checked");
+                    var $label = $checkbox.closest(".lift-archive-toggle").find("span");
+                    var oldText = $label.text();
+                    var oldColor = $label.css("color");
+                    
+                    // Update label immediately
+                    $label.text(isArchived ? liftDocsAdmin.strings.archived : liftDocsAdmin.strings.active);
+                    $label.css("color", isArchived ? "#e74c3c" : "#27ae60");
+                    
+                    // Show loading state
+                    $checkbox.prop("disabled", true);
+                    
+                    $.ajax({
+                        url: liftDocsAdmin.ajaxUrl,
+                        type: "POST",
+                        data: {
+                            action: "toggle_document_archive",
+                            document_id: postId,
+                            archived: isArchived ? "true" : "false",
+                            nonce: liftDocsAdmin.archiveNonce
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Show success message
+                                var successMsg = $("<div class=\"notice notice-success is-dismissible\" style=\"position: fixed; top: 32px; right: 20px; z-index: 9999; max-width: 300px;\"><p>" + liftDocsAdmin.strings.archiveUpdated + "</p></div>");
+                                $("body").append(successMsg);
+                                
+                                // Auto-dismiss after 3 seconds
+                                setTimeout(function() {
+                                    successMsg.fadeOut().remove();
+                                }, 3000);
+                            } else {
+                                // Revert on error
+                                $checkbox.prop("checked", !isArchived);
+                                $label.text(oldText);
+                                $label.css("color", oldColor);
+                                alert(response.data || liftDocsAdmin.strings.archiveUpdateError);
+                            }
+                        },
+                        error: function() {
+                            // Revert on error
+                            $checkbox.prop("checked", !isArchived);
+                            $label.text(oldText);
+                            $label.css("color", oldColor);
+                            alert(liftDocsAdmin.strings.archiveUpdateError);
+                        },
+                        complete: function() {
+                            $checkbox.prop("disabled", false);
                         }
                     });
                 });
@@ -3233,6 +3486,38 @@ class LIFT_Docs_Admin {
             'status' => $new_status,
             'label' => $status_options[$new_status],
             'color' => $status_colors[$new_status]
+        ));
+    }
+    
+    /**
+     * AJAX handler for toggling document archive status
+     */
+    public function ajax_toggle_document_archive() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'toggle_document_archive')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+        
+        // Check user permissions
+        if (!current_user_can('manage_options') && !current_user_can('edit_lift_documents')) {
+            wp_send_json_error(__('Access denied', 'lift-docs-system'));
+        }
+        
+        $document_id = intval($_POST['document_id']);
+        $is_archived = isset($_POST['archived']) && $_POST['archived'] === 'true';
+        
+        $document = get_post($document_id);
+        if (!$document || $document->post_type !== 'lift_document') {
+            wp_send_json_error(__('Document not found', 'lift-docs-system'));
+        }
+        
+        // Update archive status
+        update_post_meta($document_id, '_lift_doc_archived', $is_archived ? '1' : '0');
+        
+        wp_send_json_success(array(
+            'archived' => $is_archived,
+            'label' => $is_archived ? __('Archived', 'lift-docs-system') : __('Active', 'lift-docs-system'),
+            'color' => $is_archived ? '#e74c3c' : '#27ae60'
         ));
     }
 }

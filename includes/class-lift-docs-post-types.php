@@ -27,6 +27,7 @@ class LIFT_Docs_Post_Types {
         add_action('init', array($this, 'register_post_types'));
         add_action('init', array($this, 'register_taxonomies'));
         add_action('template_redirect', array($this, 'track_document_view'));
+        add_action('pre_get_posts', array($this, 'exclude_archived_documents_from_frontend'));
         
         // Disable Gutenberg for lift_document post type
         add_filter('use_block_editor_for_post_type', array($this, 'disable_gutenberg_for_documents'), 10, 2);
@@ -318,5 +319,43 @@ class LIFT_Docs_Post_Types {
         }
         
         return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    }
+    
+    /**
+     * Exclude archived documents from frontend queries
+     */
+    public function exclude_archived_documents_from_frontend($query) {
+        // Only apply to frontend
+        if (is_admin()) {
+            return;
+        }
+        
+        // Only apply to main query for lift_document post type
+        if (!$query->is_main_query()) {
+            return;
+        }
+        
+        // Apply to archive pages and search results
+        if ($query->is_post_type_archive('lift_document') || 
+            ($query->is_search() && $query->get('post_type') === 'lift_document') ||
+            $query->is_tax(array('lift_doc_category', 'lift_doc_tag'))) {
+            
+            // Exclude archived documents
+            $meta_query = $query->get('meta_query') ?: array();
+            $meta_query[] = array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_lift_doc_archived',
+                    'compare' => 'NOT EXISTS'
+                ),
+                array(
+                    'key' => '_lift_doc_archived',
+                    'value' => '1',
+                    'compare' => '!='
+                )
+            );
+            
+            $query->set('meta_query', $meta_query);
+        }
     }
 }
