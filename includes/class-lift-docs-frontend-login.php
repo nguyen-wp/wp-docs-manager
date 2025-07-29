@@ -35,6 +35,9 @@ class LIFT_Docs_Frontend_Login {
         
         // Hide admin bar for specific pages
         add_action('wp', array($this, 'maybe_hide_admin_bar'));
+        
+        // Add post states for special pages
+        add_filter('display_post_states', array($this, 'add_display_post_states'), 10, 2);
     }
     
     /**
@@ -2465,7 +2468,8 @@ class LIFT_Docs_Frontend_Login {
     public function login_form_shortcode($atts) {
         // Parse attributes
         $atts = shortcode_atts(array(
-            'redirect_to' => '' // Custom redirect URL after login
+            'redirect_to' => '', // Custom redirect URL after login
+            'show_state' => 'true' // Show login state indicator
         ), $atts);
         
         // Check if user is already logged in - redirect to dashboard
@@ -3184,6 +3188,45 @@ class LIFT_Docs_Frontend_Login {
             remove_action('wp_head', '_admin_bar_bump_cb');
             return;
         }
+    }
+    
+    /**
+     * Add custom post states for Document Dashboard and Document Login pages
+     */
+    public function add_display_post_states($post_states, $post) {
+        // Check if this is the Document Login page
+        if ($post->post_name === 'document-login' || 
+            (strpos($post->post_content, '[docs_login_form]') !== false)) {
+            $post_states['docs_login'] = __('Document Login', 'lift-docs-system');
+        }
+        
+        // Check if this is the Document Dashboard page  
+        if ($post->post_name === 'document-dashboard' || 
+            (strpos($post->post_content, '[docs_dashboard]') !== false)) {
+            $post_states['docs_dashboard'] = __('Document Dashboard', 'lift-docs-system');
+        }
+        
+        // Check if this page contains document form shortcode
+        if (strpos($post->post_content, '[document_form]') !== false) {
+            $post_states['docs_form'] = __('Document Form', 'lift-docs-system');
+        }
+        
+        // Check for any LIFT Docs related shortcodes
+        $shortcodes = array('[docs_login_form]', '[docs_dashboard]', '[document_form]');
+        $has_docs_shortcode = false;
+        foreach ($shortcodes as $shortcode) {
+            if (strpos($post->post_content, $shortcode) !== false) {
+                $has_docs_shortcode = true;
+                break;
+            }
+        }
+        
+        if ($has_docs_shortcode && !isset($post_states['docs_login']) && 
+            !isset($post_states['docs_dashboard']) && !isset($post_states['docs_form'])) {
+            $post_states['docs_page'] = __('LIFT Docs Page', 'lift-docs-system');
+        }
+        
+        return $post_states;
     }
 }
 
