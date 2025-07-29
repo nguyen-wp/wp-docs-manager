@@ -75,14 +75,14 @@
         $dropZone.html(`
             <div class="drop-zone-content">
                 <i class="dashicons dashicons-upload"></i>
-                <p class="drop-zone-text">Drop files here or <span class="browse-link">choose file</span></p>
+                <p class="drop-zone-text">Drop files here</p>
                 <p class="drop-zone-hint">Supports: JPG, PNG, PDF, DOC, DOCX (Max: 5MB)</p>
             </div>
         `);
         
-        // Setup upload button
+        // Setup upload button (hidden)
         $uploadButton.html(`
-            <button type="button" class="btn btn-secondary file-browse-btn">
+            <button type="button" class="btn btn-secondary file-browse-btn" style="display: none;">
                 <i class="dashicons dashicons-plus"></i>
                 Choose File
             </button>

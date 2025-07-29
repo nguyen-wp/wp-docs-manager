@@ -1103,6 +1103,7 @@ body.document-form-page .upload-overlay .dashicons {
 }
 
 .browse-link {
+    display: none !important;
     color: #316ac5;
     text-decoration: underline;
     cursor: pointer;
@@ -1128,7 +1129,7 @@ body.document-form-page .upload-overlay .dashicons {
 }
 
 .file-browse-btn {
-    display: inline-flex;
+    display: none !important;
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
