@@ -74,7 +74,7 @@
         // Setup drop zone
         $dropZone.html(`
             <div class="drop-zone-content">
-                <i class="dashicons dashicons-upload"></i>
+                <i class="fas fa-upload"></i>
                 <p class="drop-zone-text">Drop files here</p>
                 <p class="drop-zone-hint">Supports: JPG, PNG, PDF, DOC, DOCX (Max: 5MB)</p>
             </div>
@@ -83,7 +83,7 @@
         // Setup upload button (hidden)
         $uploadButton.html(`
             <button type="button" class="btn btn-secondary file-browse-btn" style="display: none;">
-                <i class="dashicons dashicons-plus"></i>
+                <i class="fas fa-plus"></i>
                 Choose File
             </button>
         `);
@@ -187,7 +187,7 @@
                 
                 // Add remove button overlay
                 const $removeOverlay = $('<button type="button" class="remove-file-overlay" title="Remove file">');
-                $removeOverlay.html('<i class="dashicons dashicons-no"></i>');
+                $removeOverlay.html('<i class="fas fa-times"></i>');
                 $preview.append($removeOverlay);
                 
                 // Remove file handler
@@ -203,23 +203,23 @@
             reader.readAsDataURL(file);
         } else {
             // For non-image files, show file icon
-            let iconClass = 'dashicons-media-default';
+            let iconClass = 'fa-file';
             if (file.type === 'application/pdf') {
-                iconClass = 'dashicons-pdf';
+                iconClass = 'fa-file-pdf';
             } else if (file.type.includes('word')) {
-                iconClass = 'dashicons-media-text';
+                iconClass = 'fa-file-word';
             }
             
             const $fileIcon = $('<div class="file-icon-large">');
             $fileIcon.html(`
-                <i class="dashicons ${iconClass}"></i>
+                <i class="fas ${iconClass}"></i>
                 <div class="file-name-overlay">${file.name}</div>
             `);
             $preview.append($fileIcon);
             
             // Add remove button overlay
             const $removeOverlay = $('<button type="button" class="remove-file-overlay" title="Remove file">');
-            $removeOverlay.html('<i class="dashicons dashicons-no"></i>');
+            $removeOverlay.html('<i class="fas fa-times"></i>');
             $preview.append($removeOverlay);
             
             // Remove file handler
@@ -310,7 +310,7 @@
                 
                 $img.on('error', function() {
                     console.warn('Failed to load image:', fileUrl);
-                    $imagePreview.html('<div class="image-error"><i class="dashicons dashicons-warning"></i> Could not load image preview</div>');
+                    $imagePreview.html('<div class="image-error"><i class="fas fa-exclamation-triangle"></i> Could not load image preview</div>');
                 });
                 
                 $img.attr('src', fileUrl);
@@ -318,16 +318,16 @@
                 $preview.append($imagePreview);
             } else {
                 // File icon for non-image files
-                let iconClass = 'dashicons-media-default';
+                let iconClass = 'fa-file';
                 if (fileExt === 'pdf') {
-                    iconClass = 'dashicons-pdf';
+                    iconClass = 'fa-file-pdf';
                 } else if (['doc', 'docx'].includes(fileExt)) {
-                    iconClass = 'dashicons-media-text';
+                    iconClass = 'fa-file-word';
                 }
                 
                 const $fileIcon = $('<div class="file-icon-large">');
                 $fileIcon.html(`
-                    <i class="dashicons ${iconClass}"></i>
+                    <i class="fas ${iconClass}"></i>
                     <div class="file-name-overlay">${filename}</div>
                 `);
                 $preview.append($fileIcon);
@@ -335,7 +335,7 @@
             
             // Add remove button overlay
             const $removeOverlay = $('<button type="button" class="remove-file-overlay" title="Remove file">');
-            $removeOverlay.html('<i class="dashicons dashicons-no"></i>');
+            $removeOverlay.html('<i class="fas fa-times"></i>');
             $preview.append($removeOverlay);
             
             $previewArea.append($preview).show();
@@ -402,7 +402,7 @@
                     
                     // Update preview with download link
                     const $downloadLink = $('<a class="download-link" href="' + response.data.url + '" target="_blank">');
-                    $downloadLink.html('<i class="dashicons dashicons-download"></i> Download');
+                    $downloadLink.html('<i class="fas fa-download"></i> Download');
                     $preview.find('.file-actions').prepend($downloadLink);
                 } else {
                     showError(response.data || 'File upload error');

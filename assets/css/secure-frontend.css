@@ -4,6 +4,13 @@
  */
 
 /* ========================================
+   Font Awesome Integration
+   ======================================== */
+
+/* Font Awesome CDN - Replace with local version if needed */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+/* ========================================
    Global Styles & Reset
    ======================================== */
 
@@ -280,7 +287,9 @@ body.document-form-page .form-header {
     border: 1px solid #e9ecef;
 }
 
-.meta-item .dashicons,
+.meta-item .fas,
+.meta-item .far,
+.meta-item .fab,
 .meta-item i {
     margin-right: 6px;
     font-size: 16px;
@@ -319,7 +328,9 @@ body.document-form-page .form-header {
     font-weight: 500;
 }
 
-.secure-access-notice .dashicons,
+.secure-access-notice .fas,
+.secure-access-notice .far,
+.secure-access-notice .fab,
 .secure-access-notice i {
     margin-right: 8px;
     vertical-align: middle;
@@ -356,7 +367,9 @@ body.document-form-page .form-header {
     gap: 8px;
 }
 
-.download-section-title .dashicons {
+.download-section-title .fas,
+.download-section-title .far,
+.download-section-title .fab {
     color: #0073aa;
 }
 
@@ -877,7 +890,9 @@ body.document-form-page .btn-primary:hover {
     color: white;
 }
 
-.lift-download-btn .dashicons {
+.lift-download-btn .fas,
+.lift-download-btn .far,
+.lift-download-btn .fab {
     font-size: 16px;
 }
 
@@ -1067,7 +1082,9 @@ body.document-form-page .upload-overlay {
     font-size: 16px;
 }
 
-body.document-form-page .upload-overlay .dashicons {
+body.document-form-page .upload-overlay .fas,
+body.document-form-page .upload-overlay .far,
+body.document-form-page .upload-overlay .fab {
     font-size: 32px;
     margin-bottom: 8px;
 }
@@ -1079,7 +1096,9 @@ body.document-form-page .upload-overlay .dashicons {
     gap: 4px;
 }
 
-.drop-zone-content .dashicons {
+.drop-zone-content .fas,
+.drop-zone-content .far,
+.drop-zone-content .fab {
     font-size: 16px;
     color: #316ac5;
 }
@@ -1251,7 +1270,9 @@ body.document-form-page .remove-file-overlay:hover {
     transform: scale(1.1);
 }
 
-body.document-form-page .remove-file-overlay .dashicons {
+body.document-form-page .remove-file-overlay .fas,
+body.document-form-page .remove-file-overlay .far,
+body.document-form-page .remove-file-overlay .fab {
     font-size: 14px;
     color: white;
     line-height: 1;
@@ -1268,7 +1289,9 @@ body.document-form-page .file-icon-large {
     max-width: 200px;
 }
 
-body.document-form-page .file-icon-large .dashicons {
+body.document-form-page .file-icon-large .fas,
+body.document-form-page .file-icon-large .far,
+body.document-form-page .file-icon-large .fab {
     font-size: 64px;
     color: #666;
     margin-bottom: 12px;
@@ -1293,7 +1316,9 @@ body.document-form-page .file-icon-large .file-name-overlay {
     justify-content: center;
 }
 
-.file-icon .dashicons {
+.file-icon .fas,
+.file-icon .far,
+.file-icon .fab {
     font-size: 20px;
     color: #6b7280;
 }
@@ -1491,8 +1516,12 @@ body.document-form-page .save-signature:disabled {
     color: #059669;
 }
 
-.lift-form-error-message .dashicons,
-.lift-form-success-message .dashicons {
+.lift-form-error-message .fas,
+.lift-form-error-message .far,
+.lift-form-error-message .fab,
+.lift-form-success-message .fas,
+.lift-form-success-message .far,
+.lift-form-success-message .fab {
     font-size: 16px;
     margin-top: 1px;
 }
@@ -1530,7 +1559,9 @@ body.document-form-page .lift-form-field.lift-field-signature {
         min-height: 100px;
     }
     
-    body.document-form-page .upload-overlay .dashicons {
+    body.document-form-page .upload-overlay .fas,
+    body.document-form-page .upload-overlay .far,
+    body.document-form-page .upload-overlay .fab {
         font-size: 40px;
     }
     
@@ -1637,7 +1668,9 @@ body.document-form-page .lift-form-field.lift-field-signature {
     gap: 10px;
 }
 
-.lift-secure-page .download-section-title .dashicons {
+.lift-secure-page .download-section-title .fas,
+.lift-secure-page .download-section-title .far,
+.lift-secure-page .download-section-title .fab {
     color: #667eea;
     font-size: 22px;
 }
@@ -1721,7 +1754,9 @@ body.document-form-page .lift-form-field.lift-field-signature {
     transform: translateY(-1px);
 }
 
-.lift-secure-page .lift-download-btn .dashicons {
+.lift-secure-page .lift-download-btn .fas,
+.lift-secure-page .lift-download-btn .far,
+.lift-secure-page .lift-download-btn .fab {
     font-size: 16px;
 }
 
