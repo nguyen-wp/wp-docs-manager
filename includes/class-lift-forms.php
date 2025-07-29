@@ -1702,10 +1702,12 @@ class LIFT_Forms {
         $document_id = intval($_POST['document_id'] ?? 0);
         $form_data = $_POST['form_fields'] ?? $_POST['form_data'] ?? array();
         $is_edit = isset($_POST['is_edit']) && $_POST['is_edit'] == '1';
+        $is_admin_edit = isset($_POST['is_admin_edit']) && $_POST['is_admin_edit'] == '1';
         $submission_id = intval($_POST['submission_id'] ?? 0);
+        $original_user_id = intval($_POST['original_user_id'] ?? 0);
         
         // Debug logging
-        error_log('LIFT Forms Submit - is_edit: ' . ($is_edit ? 'true' : 'false') . ', submission_id: ' . $submission_id);
+        error_log('LIFT Forms Submit - is_edit: ' . ($is_edit ? 'true' : 'false') . ', is_admin_edit: ' . ($is_admin_edit ? 'true' : 'false') . ', submission_id: ' . $submission_id);
         
         if (!$form_id) {
             wp_send_json_error(__('Invalid form', 'lift-docs-system'));
@@ -1734,13 +1736,13 @@ class LIFT_Forms {
                 }
             }
             
-            // Check document status - only allow submission/editing if status is 'pending'
+            // Check document status - only allow submission/editing if status is 'pending' (unless admin edit)
             $document_status = get_post_meta($document_id, '_lift_doc_status', true);
             if (empty($document_status)) {
                 $document_status = 'pending';
             }
             
-            if ($document_status !== 'pending') {
+            if ($document_status !== 'pending' && !$is_admin_edit) {
                 $status_messages = array(
                     'processing' => __('Cannot submit form - document is currently being processed', 'lift-docs-system'),
                     'done' => __('Cannot submit form - document has been completed', 'lift-docs-system'),
@@ -1788,42 +1790,69 @@ class LIFT_Forms {
         // Define submissions table
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
 
-        // If editing, validate that submission exists and belongs to current user
-        if ($is_edit && $submission_id) {
-            if ($current_user_id === null) {
-                // Guest users cannot edit submissions
+        // If editing, validate that submission exists and user has permission
+        if (($is_edit || $is_admin_edit) && $submission_id) {
+            if ($current_user_id === null && !$is_admin_edit) {
+                // Guest users cannot edit submissions (unless admin edit)
                 wp_send_json_error(__('You must be logged in to edit submissions', 'lift-docs-system'));
             }
             
-            $existing_submission = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM {$submissions_table} WHERE id = %d AND user_id = %d",
-                $submission_id,
-                $current_user_id
-            ));
-            
-            if (!$existing_submission) {
-                error_log('Edit validation failed - submission not found or user mismatch. Submission ID: ' . $submission_id . ', User ID: ' . $current_user_id);
-                wp_send_json_error(__('You do not have permission to edit this submission', 'lift-docs-system'));
+            if ($is_admin_edit) {
+                // Admin edit: verify admin permission and submission exists
+                if (!current_user_can('manage_options')) {
+                    wp_send_json_error(__('You do not have admin permission', 'lift-docs-system'));
+                }
+                
+                $existing_submission = $wpdb->get_row($wpdb->prepare(
+                    "SELECT * FROM {$submissions_table} WHERE id = %d",
+                    $submission_id
+                ));
+                
+                if (!$existing_submission) {
+                    error_log('Admin edit validation failed - submission not found. Submission ID: ' . $submission_id);
+                    wp_send_json_error(__('Submission not found', 'lift-docs-system'));
+                }
+                
+                error_log('Admin edit validation passed - Admin can edit any submission ID: ' . $submission_id);
+            } else {
+                // Regular edit: verify ownership
+                $existing_submission = $wpdb->get_row($wpdb->prepare(
+                    "SELECT * FROM {$submissions_table} WHERE id = %d AND user_id = %d",
+                    $submission_id,
+                    $current_user_id
+                ));
+                
+                if (!$existing_submission) {
+                    error_log('Edit validation failed - submission not found or user mismatch. Submission ID: ' . $submission_id . ', User ID: ' . $current_user_id);
+                    wp_send_json_error(__('You do not have permission to edit this submission', 'lift-docs-system'));
+                }
+                
+                error_log('Edit validation passed - User can edit submission ID: ' . $submission_id);
             }
-            
-            error_log('Edit validation passed - User can edit submission ID: ' . $submission_id);
         }
         
         $submission_data = array(
             'form_id' => $form_id,
             'form_data' => json_encode($processed_data),
-            'user_id' => $current_user_id,
+            'user_id' => $is_admin_edit ? $original_user_id : $current_user_id, // Keep original user for admin edit
             'user_ip' => $this->get_client_ip(),
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? ''
         );
         
-        if ($is_edit && $submission_id) {
+        // Add admin edit metadata
+        if ($is_admin_edit) {
+            $processed_data['_admin_edited_by'] = wp_get_current_user()->display_name;
+            $processed_data['_admin_edited_at'] = current_time('mysql');
+            $submission_data['form_data'] = json_encode($processed_data);
+        }
+        
+        if (($is_edit || $is_admin_edit) && $submission_id) {
             // Update existing submission
             $submission_data['updated_at'] = current_time('mysql');
             
             // Debug: Log the submission data
             error_log('Update submission data: ' . print_r($submission_data, true));
-            error_log('Submission ID: ' . $submission_id . ', User ID: ' . $current_user_id);
+            error_log('Submission ID: ' . $submission_id . ', User ID: ' . $current_user_id . ', Is Admin Edit: ' . ($is_admin_edit ? 'true' : 'false'));
             
             // Build format array dynamically based on actual data
             $formats = array();
@@ -1874,7 +1903,7 @@ class LIFT_Forms {
                 error_log('Update successful. Rows affected: ' . $result);
             }
             
-            $success_message = __('Form updated successfully!', 'lift-docs-system');
+            $success_message = $is_admin_edit ? __('Submission updated by admin successfully!', 'lift-docs-system') : __('Form updated successfully!', 'lift-docs-system');
         } else {
             // Insert new submission
             $submission_data['submitted_at'] = current_time('mysql');
@@ -1882,9 +1911,9 @@ class LIFT_Forms {
             $success_message = __('Form submitted successfully!', 'lift-docs-system');
         }
 
-        if ($result !== false && ($result > 0 || !$is_edit)) {
-            // Send notification email if configured (only for new submissions)
-            if (!$is_edit) {
+        if ($result !== false && ($result > 0 || !($is_edit || $is_admin_edit))) {
+            // Send notification email if configured (only for new submissions, not edits)
+            if (!$is_edit && !$is_admin_edit) {
                 $this->send_submission_notification($form, $processed_data);
             }
             
@@ -1896,10 +1925,10 @@ class LIFT_Forms {
             
             wp_send_json_success($response_data);
         } else {
-            if ($is_edit && $result === 0) {
+            if (($is_edit || $is_admin_edit) && $result === 0) {
                 wp_send_json_error(__('No changes were made to the submission', 'lift-docs-system'));
             } else {
-                wp_send_json_error($is_edit ? __('Failed to update form', 'lift-docs-system') : __('Failed to submit form', 'lift-docs-system'));
+                wp_send_json_error(($is_edit || $is_admin_edit) ? __('Failed to update form', 'lift-docs-system') : __('Failed to submit form', 'lift-docs-system'));
             }
         }
     }

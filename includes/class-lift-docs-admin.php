@@ -3085,9 +3085,15 @@ class LIFT_Docs_Admin {
                                     } else {
                                         $view_form_url .= '?admin_view=1';
                                     }
+                                    
+                                    // Build edit form URL for admin
+                                    $edit_form_url = home_url('/document-form/' . $document_id . '/' . $form_info['id'] . '/');
+                                    if ($form_info['has_submission'] && $form_info['submission_id']) {
+                                        $edit_form_url .= '?admin_edit=1&submission_id=' . $form_info['submission_id'];
+                                    }
                                     ?>
                                     <a href="<?php echo esc_url($view_form_url); ?>" 
-                                       class="button button-primary" 
+                                       class="button button-secondary" 
                                        target="_blank">
                                         <?php 
                                         if ($form_info['has_submission']) {
@@ -3097,6 +3103,14 @@ class LIFT_Docs_Admin {
                                         }
                                         ?>
                                     </a>
+                                    <?php if ($form_info['has_submission'] && $form_info['submission_id']): ?>
+                                        <a href="<?php echo esc_url($edit_form_url); ?>" 
+                                           class="button button-primary" 
+                                           target="_blank">
+                                            <span class="dashicons dashicons-edit"></span>
+                                            <?php _e('Edit Submission', 'lift-docs-system'); ?>
+                                        </a>
+                                    <?php endif; ?>
                                     <?php if ($form_info['has_submission']): ?>
                                         <button type="button" 
                                                 class="button view-submission-btn" 

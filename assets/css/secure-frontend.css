@@ -2575,3 +2575,121 @@ body.document-form-page .status-info {
         color: #000 !important;
     }
 }
+
+/* ========================================
+   Admin Edit Mode Styles
+   ======================================== */
+
+/* Admin Edit Mode Indicator */
+.mode-indicator.admin-edit-mode {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+    border: 2px solid #e65100;
+    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+}
+
+.mode-indicator.admin-edit-mode .mode-header i {
+    color: #fff3e0;
+}
+
+.mode-indicator.admin-edit-mode .mode-title {
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Admin Edit Form Styling */
+.admin-edit-form .lift-form-field {
+    background: #fff3e0;
+    border: 2px solid #ff9800;
+    border-radius: 6px;
+    position: relative;
+}
+
+.admin-edit-form .lift-form-field::before {
+    content: "ADMIN EDIT";
+    position: absolute;
+    top: -8px;
+    right: 8px;
+    background: #ff9800;
+    color: white;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 3px;
+    z-index: 10;
+}
+
+.admin-edit-form .form-control {
+    border: 2px solid #ff9800;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.admin-edit-form .form-control:focus {
+    border-color: #f57c00;
+    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+    background: #fff3e0;
+}
+
+/* Admin Edit Button Styling */
+.btn.action-submit[disabled] {
+    background: #9e9e9e;
+    border-color: #757575;
+    color: #ffffff;
+    cursor: not-allowed;
+}
+
+.admin-edit-mode .btn.action-submit:not([disabled]) {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    border-color: #e65100;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.admin-edit-mode .btn.action-submit:not([disabled]):hover {
+    background: linear-gradient(135deg, #f57c00, #e65100);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+/* Admin View Notice Styling for Edit Mode */
+.admin-view-notice {
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-view-notice::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #0073aa;
+}
+
+/* Admin Edit Notice has orange accent */
+.admin-view-notice:has(strong:contains("Admin Edit")) {
+    background: #fff3cd !important;
+    border-color: #f39c12 !important;
+}
+
+.admin-view-notice:has(strong:contains("Admin Edit"))::before {
+    background: #f39c12 !important;
+}
+
+/* Print styles for admin edit */
+@media print {
+    .admin-edit-form .lift-form-field::before {
+        content: "EDITED BY ADMIN";
+        background: #000;
+        color: white;
+    }
+    
+    .mode-indicator.admin-edit-mode {
+        background: #000 !important;
+        color: white !important;
+        border-color: #000 !important;
+    }
+}
