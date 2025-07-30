@@ -74,6 +74,9 @@ class LIFT_Docs_Admin {
         // Add filter for assigned users in documents list
         add_action('restrict_manage_posts', array($this, 'add_assigned_user_filter'));
         add_filter('parse_query', array($this, 'filter_documents_by_assigned_user'));
+        
+        // AJAX handlers for user search
+        add_action('wp_ajax_search_document_users', array($this, 'ajax_search_document_users'));
     }
     
     /**
@@ -2987,6 +2990,74 @@ class LIFT_Docs_Admin {
     }
     
     /**
+     * AJAX handler for searching document users
+     */
+    public function ajax_search_document_users() {
+        // Check nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'search_document_users')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        // Check permissions
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
+        $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
+        $per_page = 20; // Number of results per page
+        
+        $args = array(
+            'meta_query' => array(
+                array(
+                    'key' => 'wp_capabilities',
+                    'value' => 'documents_user',
+                    'compare' => 'LIKE'
+                )
+            ),
+            'orderby' => 'display_name',
+            'order' => 'ASC',
+            'number' => $per_page,
+            'offset' => ($page - 1) * $per_page
+        );
+        
+        // Add search functionality
+        if (!empty($search)) {
+            $args['search'] = '*' . $search . '*';
+            $args['search_columns'] = array('display_name', 'user_login', 'user_email');
+        }
+        
+        $users = get_users($args);
+        $results = array();
+        
+        foreach ($users as $user) {
+            $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
+            
+            $results[] = array(
+                'id' => $user->ID,
+                'text' => $user->display_name . ' (' . $user->user_login . ')',
+                'display_name' => $user->display_name,
+                'user_login' => $user->user_login,
+                'user_email' => $user->user_email,
+                'user_code' => $user_code ? $user_code : ''
+            );
+        }
+        
+        // Check if there are more results
+        $total_args = $args;
+        unset($total_args['number']);
+        unset($total_args['offset']);
+        $total_users = get_users($total_args);
+        $more = count($total_users) > ($page * $per_page);
+        
+        wp_send_json_success(array(
+            'results' => $results,
+            'more' => $more,
+            'total' => count($total_users)
+        ));
+    }
+    
+    /**
      * Add JavaScript for users list generate code buttons
      */
     public function add_users_list_script() {
@@ -3519,30 +3590,166 @@ class LIFT_Docs_Admin {
             return;
         }
         
-        // Get all users with documents_user role
-        $document_users = get_users(array(
-            'meta_query' => array(
-                array(
-                    'key' => 'wp_capabilities',
-                    'value' => 'documents_user',
-                    'compare' => 'LIKE'
-                )
-            ),
-            'orderby' => 'display_name',
-            'order' => 'ASC'
-        ));
-        
         $selected_user = isset($_GET['assigned_user']) ? $_GET['assigned_user'] : '';
+        $selected_user_data = null;
+        
+        // If a user is selected, get their data for initial display
+        if ($selected_user) {
+            $user = get_user_by('id', $selected_user);
+            if ($user && in_array('documents_user', $user->roles)) {
+                $selected_user_data = array(
+                    'id' => $user->ID,
+                    'text' => $user->display_name . ' (' . $user->user_login . ')'
+                );
+            }
+        }
         
         ?>
-        <select name="assigned_user" id="assigned_user_filter">
+        <select name="assigned_user" id="assigned_user_filter" class="lift-user-select2" style="min-width: 200px;">
             <option value=""><?php _e('All Assigned Users', 'lift-docs-system'); ?></option>
-            <?php foreach ($document_users as $user): ?>
-                <option value="<?php echo $user->ID; ?>" <?php selected($selected_user, $user->ID); ?>>
-                    <?php echo esc_html($user->display_name . ' (' . $user->user_login . ')'); ?>
+            <?php if ($selected_user_data): ?>
+                <option value="<?php echo $selected_user_data['id']; ?>" selected>
+                    <?php echo esc_html($selected_user_data['text']); ?>
                 </option>
-            <?php endforeach; ?>
+            <?php endif; ?>
         </select>
+        
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            if (typeof $.fn.select2 === 'undefined') {
+                // Load Select2 if not available
+                $('head').append('<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />');
+                $.getScript('https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', function() {
+                    initUserSelect2();
+                });
+            } else {
+                initUserSelect2();
+            }
+            
+            function initUserSelect2() {
+                $('#assigned_user_filter').select2({
+                    placeholder: '<?php _e('Search and select user...', 'lift-docs-system'); ?>',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: ajaxurl,
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                action: 'search_document_users',
+                                search: params.term || '',
+                                page: params.page || 1,
+                                nonce: '<?php echo wp_create_nonce('search_document_users'); ?>'
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            
+                            return {
+                                results: data.results || [],
+                                pagination: {
+                                    more: data.more || false
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    templateResult: function(user) {
+                        if (user.loading) return user.text;
+                        
+                        var markup = '<div class="select2-result-user">';
+                        markup += '<div class="select2-result-user__name">' + user.display_name + '</div>';
+                        if (user.user_login) {
+                            markup += '<div class="select2-result-user__login">@' + user.user_login + '</div>';
+                        }
+                        if (user.user_code) {
+                            markup += '<div class="select2-result-user__code">Code: ' + user.user_code + '</div>';
+                        }
+                        markup += '</div>';
+                        
+                        return markup;
+                    },
+                    templateSelection: function(user) {
+                        return user.display_name || user.text;
+                    },
+                    escapeMarkup: function(markup) {
+                        return markup;
+                    }
+                });
+                
+                // Auto-submit form when selection changes
+                $('#assigned_user_filter').on('select2:select select2:clear', function() {
+                    $(this).closest('form').submit();
+                });
+            }
+        });
+        </script>
+        
+        <style type="text/css">
+        .select2-result-user__name {
+            font-weight: bold;
+            color: #0073aa;
+        }
+        
+        .select2-result-user__login {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .select2-result-user__code {
+            font-size: 11px;
+            color: #999;
+            font-family: monospace;
+            margin-top: 2px;
+        }
+        
+        .select2-container {
+            vertical-align: middle;
+        }
+        
+        .select2-container .select2-selection--single {
+            height: 30px;
+            line-height: 28px;
+        }
+        
+        .select2-container .select2-selection--single .select2-selection__rendered {
+            padding-left: 8px;
+            padding-right: 20px;
+        }
+        
+        .select2-container .select2-selection--single .select2-selection__arrow {
+            height: 28px;
+            right: 3px;
+        }
+        
+        .select2-dropdown {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .select2-search--dropdown .select2-search__field {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 6px 8px;
+        }
+        
+        .select2-results__option {
+            padding: 8px 12px;
+        }
+        
+        .select2-results__option--highlighted {
+            background-color: #0073aa !important;
+            color: white !important;
+        }
+        
+        .select2-results__option--highlighted .select2-result-user__name,
+        .select2-results__option--highlighted .select2-result-user__login,
+        .select2-results__option--highlighted .select2-result-user__code {
+            color: white !important;
+        }
+        </style>
         <?php
     }
     
