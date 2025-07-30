@@ -3524,11 +3524,52 @@ class LIFT_Forms {
         }
 
         // Prepare export data
+        $form_fields_data = json_decode($form->form_fields, true);
+        
+        // Debug export data
+        error_log('LIFT Forms Export: Form form_fields column: ' . $form->form_fields);
+        error_log('LIFT Forms Export: Decoded form_fields: ' . print_r($form_fields_data, true));
+        
+        // Extract layout and fields from form_fields data
+        $layout_data = null;
+        $fields_data = null;
+        
+        if (is_array($form_fields_data)) {
+            if (isset($form_fields_data['layout'])) {
+                $layout_data = $form_fields_data['layout'];
+            }
+            if (isset($form_fields_data['fields'])) {
+                $fields_data = $form_fields_data['fields'];
+            } else {
+                // If no separate fields, use the entire form_fields as fields
+                $fields_data = $form_fields_data;
+            }
+        }
+        
+        // If layout is null, create a simple default structure
+        if ($layout_data === null && $fields_data !== null) {
+            $layout_data = array(
+                'rows' => array(
+                    array(
+                        'id' => 'row_1',
+                        'type' => 'row',
+                        'columns' => array(
+                            array(
+                                'id' => 'col_1_1',
+                                'width' => 12,
+                                'fields' => array_keys($fields_data)
+                            )
+                        )
+                    )
+                )
+            );
+        }
+        
         $export_data = array(
             'name' => $form->name,
             'description' => $form->description,
-            'layout' => json_decode($form->layout, true),
-            'fields' => json_decode($form->form_fields, true),
+            'layout' => $layout_data,
+            'fields' => $fields_data,
             'export_info' => array(
                 'exported_at' => current_time('mysql'),
                 'exported_by' => wp_get_current_user()->display_name,
@@ -3536,6 +3577,11 @@ class LIFT_Forms {
                 'wp_version' => get_bloginfo('version')
             )
         );
+        
+        // Debug final export data
+        error_log('LIFT Forms Export: Final export data keys: ' . implode(', ', array_keys($export_data)));
+        error_log('LIFT Forms Export: Layout null check: ' . ($export_data['layout'] === null ? 'NULL' : 'NOT NULL'));
+        error_log('LIFT Forms Export: Fields null check: ' . ($export_data['fields'] === null ? 'NULL' : 'NOT NULL'));
 
         // Set headers for download
         $filename = 'lift-form-' . sanitize_file_name($form->name) . '-' . date('Y-m-d') . '.json';
@@ -3585,11 +3631,48 @@ class LIFT_Forms {
         );
 
         foreach ($forms as $form) {
+            $form_fields_data = json_decode($form->form_fields, true);
+            
+            // Extract layout and fields from form_fields data
+            $layout_data = null;
+            $fields_data = null;
+            
+            if (is_array($form_fields_data)) {
+                if (isset($form_fields_data['layout'])) {
+                    $layout_data = $form_fields_data['layout'];
+                }
+                if (isset($form_fields_data['fields'])) {
+                    $fields_data = $form_fields_data['fields'];
+                } else {
+                    // If no separate fields, use the entire form_fields as fields
+                    $fields_data = $form_fields_data;
+                }
+            }
+            
+            // If layout is null, create a simple default structure
+            if ($layout_data === null && $fields_data !== null) {
+                $layout_data = array(
+                    'rows' => array(
+                        array(
+                            'id' => 'row_1',
+                            'type' => 'row',
+                            'columns' => array(
+                                array(
+                                    'id' => 'col_1_1',
+                                    'width' => 12,
+                                    'fields' => array_keys($fields_data)
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+            
             $export_data['forms'][] = array(
                 'name' => $form->name,
                 'description' => $form->description,
-                'layout' => json_decode($form->layout, true),
-                'fields' => json_decode($form->form_fields, true),
+                'layout' => $layout_data,
+                'fields' => $fields_data,
                 'status' => $form->status,
                 'created_at' => $form->created_at
             );
@@ -3618,7 +3701,8 @@ class LIFT_Forms {
         }
         
         // Debug: Log the received data structure
-        error_log('LIFT Forms Import Debug: ' . print_r(array_keys($data), true));
+        error_log('LIFT Forms Import Debug: Available keys: ' . print_r(array_keys($data), true));
+        error_log('LIFT Forms Import Debug: Data structure: ' . print_r($data, true));
         
         // Check if it's a single form or multiple forms backup
         if (isset($data['forms']) && is_array($data['forms'])) {
@@ -3629,21 +3713,28 @@ class LIFT_Forms {
         $required_fields = array('name', 'layout', 'fields');
         
         foreach ($required_fields as $field) {
-            if (!isset($data[$field])) {
+            if (!array_key_exists($field, $data)) {
                 error_log("LIFT Forms Import: Missing field '$field'. Available fields: " . implode(', ', array_keys($data)));
+                error_log("LIFT Forms Import: Checking field '$field' - isset: " . (isset($data[$field]) ? 'true' : 'false') . ", array_key_exists: " . (array_key_exists($field, $data) ? 'true' : 'false'));
                 return array('valid' => false, 'error' => sprintf(__('Missing required field: %s. Available fields: %s', 'lift-docs-system'), $field, implode(', ', array_keys($data))));
             }
         }
 
         // Validate layout structure
-        if (!is_array($data['layout']) || !isset($data['layout']['rows'])) {
-            error_log('LIFT Forms Import: Invalid layout structure. Layout: ' . print_r($data['layout'], true));
+        if (!is_array($data['layout'])) {
+            error_log('LIFT Forms Import: Layout is not an array. Layout type: ' . gettype($data['layout']));
+            error_log('LIFT Forms Import: Layout content: ' . print_r($data['layout'], true));
+            return array('valid' => false, 'error' => __('Invalid layout structure - layout must be an array', 'lift-docs-system'));
+        }
+        
+        if (!isset($data['layout']['rows']) && !array_key_exists('rows', $data['layout'])) {
+            error_log('LIFT Forms Import: Layout missing rows. Layout keys: ' . implode(', ', array_keys($data['layout'])));
             return array('valid' => false, 'error' => __('Invalid layout structure - layout must contain rows array', 'lift-docs-system'));
         }
 
         // Validate fields structure
         if (!is_array($data['fields'])) {
-            error_log('LIFT Forms Import: Invalid fields structure. Fields: ' . print_r($data['fields'], true));
+            error_log('LIFT Forms Import: Fields is not an array. Fields type: ' . gettype($data['fields']));
             return array('valid' => false, 'error' => __('Invalid fields structure - fields must be an array', 'lift-docs-system'));
         }
 
@@ -3666,24 +3757,38 @@ class LIFT_Forms {
             $data['name'] .= ' (Imported ' . date('Y-m-d H:i:s') . ')';
         }
 
+        // Combine layout and fields into form_fields for database storage
+        $form_fields_data = array();
+        
+        if (isset($data['layout'])) {
+            $form_fields_data['layout'] = $data['layout'];
+        }
+        
+        if (isset($data['fields'])) {
+            $form_fields_data['fields'] = $data['fields'];
+        }
+
         // Prepare data for insertion
         $insert_data = array(
             'name' => sanitize_text_field($data['name']),
             'description' => isset($data['description']) ? sanitize_textarea_field($data['description']) : '',
-            'layout' => json_encode($data['layout']),
-            'form_fields' => json_encode($data['fields']),
+            'form_fields' => json_encode($form_fields_data),
             'status' => isset($data['status']) ? sanitize_text_field($data['status']) : 'draft',
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql')
         );
 
+        error_log('LIFT Forms Import: Inserting data: ' . print_r($insert_data, true));
+
         // Insert form
         $result = $wpdb->insert($forms_table, $insert_data);
 
         if ($result === false) {
-            return array('success' => false, 'error' => __('Failed to insert form into database', 'lift-docs-system'));
+            error_log('LIFT Forms Import: Database insert failed. Error: ' . $wpdb->last_error);
+            return array('success' => false, 'error' => __('Failed to insert form into database', 'lift-docs-system') . ': ' . $wpdb->last_error);
         }
 
+        error_log('LIFT Forms Import: Successfully inserted form with ID: ' . $wpdb->insert_id);
         return array('success' => true, 'form_id' => $wpdb->insert_id);
     }
 }
