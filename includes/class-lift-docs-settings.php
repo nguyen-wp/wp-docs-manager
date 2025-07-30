@@ -411,7 +411,7 @@ class LIFT_Docs_Settings {
                     </a>
                     <a href="#license" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'license' ? 'nav-tab-active' : ''; ?>" data-tab="license">
                         <i class="fas fa-certificate"></i>
-                        <?php _e('License', 'lift-docs-system'); ?>
+                        <?php _e('About', 'lift-docs-system'); ?>
                     </a>
                 </div>
 
@@ -1712,12 +1712,7 @@ class LIFT_Docs_Settings {
                             <div class="contact-item">
                                 <i class="fas fa-envelope"></i>
                                 <strong><?php _e('Email:', 'lift-docs-system'); ?></strong>
-                                <a href="mailto:info@liftcreations.com">info@liftcreations.com</a>
-                            </div>
-                            <div class="contact-item">
-                                <i class="fab fa-github"></i>
-                                <strong><?php _e('GitHub:', 'lift-docs-system'); ?></strong>
-                                <a href="https://github.com/liftcreations" target="_blank">github.com/liftcreations</a>
+                                <a href="mailto:hello@liftcreations.com">hello@liftcreations.com</a>
                             </div>
                         </div>
                     </div>
@@ -1732,7 +1727,6 @@ class LIFT_Docs_Settings {
                 </div>
                 <div class="license-footer-logo">
                     <strong>LIFT Creations</strong>
-                    <small><?php _e('Elevating Digital Experiences', 'lift-docs-system'); ?></small>
                 </div>
             </div>
 
