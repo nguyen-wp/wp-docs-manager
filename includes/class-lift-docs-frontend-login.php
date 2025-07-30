@@ -290,23 +290,64 @@ class LIFT_Docs_Frontend_Login {
         $form_fields = array();
         $raw_form_data = $form->form_fields;
 
+        // DEBUG: Add temporary debug output (remove after debugging)
+        if (isset($_GET['debug_form_data'])) {
+            echo "<!-- DEBUG: Raw form data -->\n";
+            echo "<!-- " . htmlspecialchars($raw_form_data) . " -->\n";
+        }
+
         if (!empty($raw_form_data)) {
             $parsed_data = json_decode($raw_form_data, true);
+
+            // DEBUG: Add temporary debug output (remove after debugging)
+            if (isset($_GET['debug_form_data'])) {
+                echo "<!-- DEBUG: Parsed data structure -->\n";
+                echo "<!-- " . htmlspecialchars(print_r($parsed_data, true)) . " -->\n";
+            }
 
             if (is_array($parsed_data)) {
                 // Check if it's the new hierarchical structure with layout
                 if (isset($parsed_data['layout']) && isset($parsed_data['layout']['rows'])) {
+                    // DEBUG: Add temporary debug output (remove after debugging)
+                    if (isset($_GET['debug_form_data'])) {
+                        echo "<!-- DEBUG: Found layout.rows structure -->\n";
+                    }
+                    
                     // New structure - extract fields with row/column information preserved
                     foreach ($parsed_data['layout']['rows'] as $row_index => $row) {
                         if (isset($row['columns'])) {
                             foreach ($row['columns'] as $col_index => $column) {
+                                // DEBUG: Add temporary debug output (remove after debugging)
+                                if (isset($_GET['debug_form_data'])) {
+                                    $raw_width = isset($column['width']) ? $column['width'] : 'NO WIDTH';
+                                    echo "<!-- DEBUG: Column $col_index raw width: $raw_width -->\n";
+                                    
+                                    if (isset($column['width'])) {
+                                        $width_value = $column['width'];
+                                        if (is_string($width_value) && strpos($width_value, ' ') !== false) {
+                                            $parts = explode(' ', trim($width_value));
+                                            $parsed_width = $parts[0];
+                                            echo "<!-- DEBUG: Column $col_index parsed from CSS '$width_value' to '$parsed_width' -->\n";
+                                        } else {
+                                            echo "<!-- DEBUG: Column $col_index using direct value '$width_value' -->\n";
+                                        }
+                                    }
+                                }
+                                
                                 if (isset($column['fields'])) {
                                     foreach ($column['fields'] as $field) {
                                         // Add row/column information to field
                                         $field['row'] = $row_index;
                                         $field['column'] = $col_index;
                                         if (isset($column['width'])) {
-                                            $field['width'] = $column['width'];
+                                            // Parse width value - could be numeric (0.16) or CSS style (0.16 1 0%)
+                                            $width_value = $column['width'];
+                                            if (is_string($width_value) && strpos($width_value, ' ') !== false) {
+                                                // Extract first number from CSS flex shorthand "0.16 1 0%"
+                                                $parts = explode(' ', trim($width_value));
+                                                $width_value = $parts[0];
+                                            }
+                                            $field['width'] = $width_value;
                                         }
                                         $form_fields[] = $field;
                                     }
@@ -315,9 +356,17 @@ class LIFT_Docs_Frontend_Login {
                         }
                     }
                 } elseif (isset($parsed_data[0]) && is_array($parsed_data[0])) {
+                    // DEBUG: Add temporary debug output (remove after debugging)
+                    if (isset($_GET['debug_form_data'])) {
+                        echo "<!-- DEBUG: Using direct array structure -->\n";
+                    }
                     // Direct array of fields
                     $form_fields = $parsed_data;
                 } else {
+                    // DEBUG: Add temporary debug output (remove after debugging)
+                    if (isset($_GET['debug_form_data'])) {
+                        echo "<!-- DEBUG: Using legacy/other structure -->\n";
+                    }
                     // Legacy or other structure - try to extract fields
                     $form_fields = $parsed_data;
                 }
@@ -1002,6 +1051,7 @@ class LIFT_Docs_Frontend_Login {
         ksort($rows);
 
         foreach ($rows as $row_index => $row_fields) {
+            // Always use flexbox layout like form builder backend
             echo '<div class="form-row" data-row="' . esc_attr($row_index) . '">';
 
             // Group fields by columns within this row
@@ -1018,8 +1068,42 @@ class LIFT_Docs_Frontend_Login {
             ksort($columns);
 
             foreach ($columns as $col_index => $col_fields) {
-                $column_width = $this->calculate_column_width(count($columns), $col_fields);
-                echo '<div class="form-column ' . esc_attr($column_width) . '" data-column="' . esc_attr($col_index) . '">';
+                // Always use flexbox with width values like form builder backend
+                $column_width = 1; // Default flex value as number
+                
+                // Check if any field in this column has a custom width value
+                foreach ($col_fields as $field) {
+                    if (isset($field['width']) && is_numeric($field['width'])) {
+                        $column_width = floatval($field['width']);
+                        break;
+                    }
+                }
+                
+                // DEBUG: Add temporary debug output (remove after debugging)
+                if (isset($_GET['debug_form_data'])) {
+                    echo "<!-- DEBUG: Column $col_index - Raw width: ";
+                    foreach ($col_fields as $field) {
+                        if (isset($field['width'])) {
+                            echo $field['width'] . " ";
+                        } else {
+                            echo "NO_WIDTH ";
+                        }
+                    }
+                    echo "Final width: $column_width -->\n";
+                }
+                
+                // Calculate default width based on number of columns if no custom width
+                if ($column_width == 1 && count($columns) > 1) {
+                    $column_width = 1 / count($columns);
+                }
+                
+                // Format for clean output - remove unnecessary decimals
+                $flex_grow = ($column_width == intval($column_width)) ? intval($column_width) : rtrim(rtrim(number_format($column_width, 6), '0'), '.');
+                
+                // Use full flex notation like backend: flex-grow flex-shrink flex-basis
+                $flex_style = "flex: {$flex_grow} 1 0%; position: relative;";
+                
+                echo '<div class="form-column" data-column="' . esc_attr($col_index) . '" style="' . esc_attr($flex_style) . '">';
 
                 foreach ($col_fields as $field) {
                     $this->render_field_container($field, $existing_data, $is_disabled, $is_admin_view);
