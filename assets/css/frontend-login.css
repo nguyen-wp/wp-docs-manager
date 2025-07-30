@@ -261,7 +261,6 @@
 /* DASHBOARD PAGE STYLES */
 .lift-docs-dashboard-container {
     background: #f8f9fa;
-    min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 .lift-docs-dashboard-wrapper {
