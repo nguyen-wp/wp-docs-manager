@@ -37,6 +37,11 @@ class LIFT_Forms {
         add_action('wp_ajax_lift_forms_update_status', array($this, 'ajax_update_form_status'));
         add_action('wp_ajax_lift_forms_update_submission_status', array($this, 'ajax_update_submission_status'));
 
+        // Import/Export AJAX handlers
+        add_action('wp_ajax_lift_forms_import', array($this, 'ajax_import_form'));
+        add_action('wp_ajax_lift_forms_export', array($this, 'ajax_export_form'));
+        add_action('wp_ajax_lift_forms_export_all', array($this, 'ajax_export_all_forms'));
+
         // BPMN.io form builder AJAX actions
         add_action('wp_ajax_lift_form_builder_save', array($this, 'ajax_save_form_schema'));
         add_action('wp_ajax_lift_form_builder_load', array($this, 'ajax_load_form_schema'));
@@ -244,6 +249,14 @@ class LIFT_Forms {
             '3.0.0'
         );
 
+        // Import/Export styles
+        wp_enqueue_style(
+            'lift-forms-import-export',
+            plugin_dir_url(__FILE__) . '../assets/css/forms-import-export.css',
+            array('lift-forms-forms-admin'),
+            '3.0.0'
+        );
+
         wp_enqueue_style(
             'lift-forms-admin-modal',
             plugin_dir_url(__FILE__) . '../assets/css/admin-modal.css',
@@ -435,6 +448,16 @@ class LIFT_Forms {
             <a href="<?php echo admin_url('admin.php?page=lift-forms-builder'); ?>" class="page-title-action">
                 <?php _e('Add New Form', 'lift-docs-system'); ?>
             </a>
+            
+            <!-- Import/Export Section -->
+            <div class="lift-forms-import-export">
+                <button type="button" class="page-title-action lift-import-btn" id="lift-import-form-btn">
+                    <?php _e('Import Form', 'lift-docs-system'); ?>
+                </button>
+                <button type="button" class="page-title-action lift-export-all-btn" id="lift-export-all-forms-btn">
+                    <?php _e('Export All Forms', 'lift-docs-system'); ?>
+                </button>
+            </div>
 
             <div class="lift-forms-overview">
                 <div class="lift-forms-stats">
@@ -508,6 +531,9 @@ class LIFT_Forms {
                                         <a href="<?php echo admin_url('admin.php?page=lift-forms-builder&id=' . $form->id); ?>" class="button">
                                             <?php _e('Edit', 'lift-docs-system'); ?>
                                         </a>
+                                        <button type="button" class="button lift-export-single-btn" data-form-id="<?php echo $form->id; ?>" data-form-name="<?php echo esc_attr($form->name); ?>">
+                                            <?php _e('Export', 'lift-docs-system'); ?>
+                                        </button>
                                         <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=lift-forms&action=delete&id=' . $form->id), 'delete_form_' . $form->id); ?>"
                                            class="button button-link-delete"
                                            onclick="return confirm('<?php _e('Are you sure you want to delete this form?', 'lift-docs-system'); ?>')">
@@ -522,8 +548,140 @@ class LIFT_Forms {
             </div>
         </div>
 
+        <!-- Import Form Modal -->
+        <div id="lift-import-modal" class="lift-modal" style="display: none;">
+            <div class="lift-modal-content">
+                <div class="lift-modal-header">
+                    <h2><?php _e('Import Form', 'lift-docs-system'); ?></h2>
+                    <span class="lift-modal-close">&times;</span>
+                </div>
+                <div class="lift-modal-body">
+                    <form id="lift-import-form" enctype="multipart/form-data">
+                        <div class="lift-form-field">
+                            <label for="lift-import-file"><?php _e('Select JSON File', 'lift-docs-system'); ?></label>
+                            <input type="file" id="lift-import-file" name="import_file" accept=".json" required>
+                            <p class="description"><?php _e('Upload a JSON file exported from LIFT Forms', 'lift-docs-system'); ?></p>
+                        </div>
+                        <div class="lift-form-field">
+                            <label for="lift-import-name"><?php _e('Form Name (Optional)', 'lift-docs-system'); ?></label>
+                            <input type="text" id="lift-import-name" name="form_name" placeholder="<?php _e('Leave empty to use original name', 'lift-docs-system'); ?>">
+                        </div>
+                        <div class="lift-form-actions">
+                            <button type="submit" class="button button-primary">
+                                <?php _e('Import Form', 'lift-docs-system'); ?>
+                            </button>
+                            <button type="button" class="button lift-modal-cancel">
+                                <?php _e('Cancel', 'lift-docs-system'); ?>
+                            </button>
+                        </div>
+                        <div id="lift-import-progress" style="display: none;">
+                            <div class="lift-progress-bar">
+                                <div class="lift-progress-fill"></div>
+                            </div>
+                            <p><?php _e('Importing form...', 'lift-docs-system'); ?></p>
+                        </div>
+                        <div id="lift-import-result" style="display: none;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script type="text/javascript">
         jQuery(document).ready(function($) {
+            // Import/Export functionality
+            var importModal = $('#lift-import-modal');
+
+            // Import button click
+            $('#lift-import-form-btn').on('click', function() {
+                importModal.show();
+            });
+
+            // Close modal
+            $('.lift-modal-close, .lift-modal-cancel').on('click', function() {
+                importModal.hide();
+                resetImportForm();
+            });
+
+            // Click outside modal to close
+            $(window).on('click', function(e) {
+                if (e.target === importModal[0]) {
+                    importModal.hide();
+                    resetImportForm();
+                }
+            });
+
+            // Reset import form
+            function resetImportForm() {
+                $('#lift-import-form')[0].reset();
+                $('#lift-import-progress, #lift-import-result').hide();
+            }
+
+            // Handle import form submission
+            $('#lift-import-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                var formData = new FormData(this);
+                formData.append('action', 'lift_forms_import');
+                formData.append('nonce', '<?php echo wp_create_nonce('lift_forms_import_nonce'); ?>');
+
+                $('#lift-import-progress').show();
+                $('#lift-import-result').hide();
+
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#lift-import-progress').hide();
+                        if (response.success) {
+                            $('#lift-import-result')
+                                .html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>')
+                                .show();
+                            
+                            // Reload page after 2 seconds
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 2000);
+                        } else {
+                            $('#lift-import-result')
+                                .html('<div class="notice notice-error"><p>' + response.data + '</p></div>')
+                                .show();
+                        }
+                    },
+                    error: function() {
+                        $('#lift-import-progress').hide();
+                        $('#lift-import-result')
+                            .html('<div class="notice notice-error"><p><?php _e('An error occurred during import', 'lift-docs-system'); ?></p></div>')
+                            .show();
+                    }
+                });
+            });
+
+            // Export single form
+            $('.lift-export-single-btn').on('click', function() {
+                var formId = $(this).data('form-id');
+                var formName = $(this).data('form-name');
+                
+                var link = document.createElement('a');
+                link.href = ajaxurl + '?action=lift_forms_export&form_id=' + formId + '&nonce=' + '<?php echo wp_create_nonce('lift_forms_export_nonce'); ?>';
+                link.download = 'lift-form-' + formName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '.json';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // Export all forms
+            $('#lift-export-all-forms-btn').on('click', function() {
+                var link = document.createElement('a');
+                link.href = ajaxurl + '?action=lift_forms_export_all&nonce=' + '<?php echo wp_create_nonce('lift_forms_export_nonce'); ?>';
+                link.download = 'lift-forms-backup-' + new Date().toISOString().slice(0,10) + '.json';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
             // Handle form status updates
             $('.form-status-select').on('change', function() {
                 var $select = $(this);
@@ -3250,6 +3408,241 @@ class LIFT_Forms {
             'label' => $status_labels[$new_status],
             'message' => sprintf(__('Submission status updated to %s', 'lift-docs-system'), $status_labels[$new_status])
         ));
+    }
+
+    /**
+     * AJAX handler for importing forms from JSON
+     */
+    public function ajax_import_form() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_import_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
+        }
+
+        // Check if file was uploaded
+        if (!isset($_FILES['import_file']) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK) {
+            wp_send_json_error(__('No file uploaded or upload error', 'lift-docs-system'));
+        }
+
+        $file = $_FILES['import_file'];
+        
+        // Validate file type
+        if ($file['type'] !== 'application/json' && pathinfo($file['name'], PATHINFO_EXTENSION) !== 'json') {
+            wp_send_json_error(__('Please upload a valid JSON file', 'lift-docs-system'));
+        }
+
+        // Read and parse JSON
+        $json_content = file_get_contents($file['tmp_name']);
+        $form_data = json_decode($json_content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            wp_send_json_error(__('Invalid JSON format: ', 'lift-docs-system') . json_last_error_msg());
+        }
+
+        // Validate form structure
+        $validation_result = $this->validate_form_import_data($form_data);
+        if (!$validation_result['valid']) {
+            wp_send_json_error(__('Invalid form structure: ', 'lift-docs-system') . $validation_result['error']);
+        }
+
+        // Use custom name if provided
+        $custom_name = sanitize_text_field($_POST['form_name']);
+        if (!empty($custom_name)) {
+            $form_data['name'] = $custom_name;
+        }
+
+        // Import the form
+        $import_result = $this->import_form_from_data($form_data);
+        
+        if ($import_result['success']) {
+            wp_send_json_success(array(
+                'message' => sprintf(__('Form "%s" imported successfully!', 'lift-docs-system'), $form_data['name']),
+                'form_id' => $import_result['form_id']
+            ));
+        } else {
+            wp_send_json_error($import_result['error']);
+        }
+    }
+
+    /**
+     * AJAX handler for exporting single form
+     */
+    public function ajax_export_form() {
+        // Check nonce
+        if (!wp_verify_nonce($_GET['nonce'], 'lift_forms_export_nonce')) {
+            wp_die(__('Security check failed', 'lift-docs-system'));
+        }
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
+        }
+
+        $form_id = intval($_GET['form_id']);
+        
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        
+        $form = $wpdb->get_row($wpdb->prepare("SELECT * FROM $forms_table WHERE id = %d", $form_id));
+        
+        if (!$form) {
+            wp_die(__('Form not found', 'lift-docs-system'));
+        }
+
+        // Prepare export data
+        $export_data = array(
+            'name' => $form->name,
+            'description' => $form->description,
+            'layout' => json_decode($form->layout, true),
+            'fields' => json_decode($form->form_fields, true),
+            'export_info' => array(
+                'exported_at' => current_time('mysql'),
+                'exported_by' => wp_get_current_user()->display_name,
+                'plugin_version' => '1.0.0',
+                'wp_version' => get_bloginfo('version')
+            )
+        );
+
+        // Set headers for download
+        $filename = 'lift-form-' . sanitize_file_name($form->name) . '-' . date('Y-m-d') . '.json';
+        
+        header('Content-Type: application/json');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
+
+        echo json_encode($export_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    /**
+     * AJAX handler for exporting all forms
+     */
+    public function ajax_export_all_forms() {
+        // Check nonce
+        if (!wp_verify_nonce($_GET['nonce'], 'lift_forms_export_nonce')) {
+            wp_die(__('Security check failed', 'lift-docs-system'));
+        }
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
+        }
+
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+        
+        $forms = $wpdb->get_results("SELECT * FROM $forms_table ORDER BY created_at DESC");
+        
+        if (empty($forms)) {
+            wp_die(__('No forms found', 'lift-docs-system'));
+        }
+
+        // Prepare export data
+        $export_data = array(
+            'forms' => array(),
+            'export_info' => array(
+                'exported_at' => current_time('mysql'),
+                'exported_by' => wp_get_current_user()->display_name,
+                'plugin_version' => '1.0.0',
+                'wp_version' => get_bloginfo('version'),
+                'total_forms' => count($forms)
+            )
+        );
+
+        foreach ($forms as $form) {
+            $export_data['forms'][] = array(
+                'name' => $form->name,
+                'description' => $form->description,
+                'layout' => json_decode($form->layout, true),
+                'fields' => json_decode($form->form_fields, true),
+                'status' => $form->status,
+                'created_at' => $form->created_at
+            );
+        }
+
+        // Set headers for download
+        $filename = 'lift-forms-backup-' . date('Y-m-d-H-i-s') . '.json';
+        
+        header('Content-Type: application/json');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
+
+        echo json_encode($export_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    /**
+     * Validate form import data structure
+     */
+    private function validate_form_import_data($data) {
+        // Check if it's a single form or multiple forms backup
+        if (isset($data['forms']) && is_array($data['forms'])) {
+            return array('valid' => false, 'error' => __('Multiple forms backup detected. Please import forms one by one.', 'lift-docs-system'));
+        }
+
+        // Required fields for single form
+        $required_fields = array('name', 'layout', 'fields');
+        
+        foreach ($required_fields as $field) {
+            if (!isset($data[$field])) {
+                return array('valid' => false, 'error' => sprintf(__('Missing required field: %s', 'lift-docs-system'), $field));
+            }
+        }
+
+        // Validate layout structure
+        if (!is_array($data['layout']) || !isset($data['layout']['rows'])) {
+            return array('valid' => false, 'error' => __('Invalid layout structure', 'lift-docs-system'));
+        }
+
+        // Validate fields structure
+        if (!is_array($data['fields'])) {
+            return array('valid' => false, 'error' => __('Invalid fields structure', 'lift-docs-system'));
+        }
+
+        return array('valid' => true);
+    }
+
+    /**
+     * Import form from validated data
+     */
+    private function import_form_from_data($data) {
+        global $wpdb;
+        $forms_table = $wpdb->prefix . 'lift_forms';
+
+        // Check if form name already exists
+        $existing_form = $wpdb->get_var($wpdb->prepare("SELECT id FROM $forms_table WHERE name = %s", $data['name']));
+        
+        if ($existing_form) {
+            // Add timestamp to make name unique
+            $data['name'] .= ' (Imported ' . date('Y-m-d H:i:s') . ')';
+        }
+
+        // Prepare data for insertion
+        $insert_data = array(
+            'name' => sanitize_text_field($data['name']),
+            'description' => isset($data['description']) ? sanitize_textarea_field($data['description']) : '',
+            'layout' => json_encode($data['layout']),
+            'form_fields' => json_encode($data['fields']),
+            'status' => isset($data['status']) ? sanitize_text_field($data['status']) : 'draft',
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql')
+        );
+
+        // Insert form
+        $result = $wpdb->insert($forms_table, $insert_data);
+
+        if ($result === false) {
+            return array('success' => false, 'error' => __('Failed to insert form into database', 'lift-docs-system'));
+        }
+
+        return array('success' => true, 'form_id' => $wpdb->insert_id);
     }
 }
 

@@ -1,0 +1,93 @@
+{
+  "name": "Basic Contact Form",
+  "description": "A simple contact form for testing import functionality",
+  "layout": {
+    "rows": [
+      {
+        "id": "row_1",
+        "type": "row",
+        "columns": [
+          {
+            "id": "col_1_1",
+            "width": 6,
+            "fields": ["field_name"]
+          },
+          {
+            "id": "col_1_2", 
+            "width": 6,
+            "fields": ["field_email"]
+          }
+        ]
+      },
+      {
+        "id": "row_2",
+        "type": "row",
+        "columns": [
+          {
+            "id": "col_2_1",
+            "width": 12,
+            "fields": ["field_message"]
+          }
+        ]
+      },
+      {
+        "id": "row_3",
+        "type": "row",
+        "columns": [
+          {
+            "id": "col_3_1",
+            "width": 12,
+            "fields": ["field_submit"]
+          }
+        ]
+      }
+    ]
+  },
+  "fields": {
+    "field_name": {
+      "id": "field_name",
+      "type": "text",
+      "label": "Full Name",
+      "placeholder": "Enter your full name",
+      "required": true,
+      "validation": {
+        "min_length": 2,
+        "max_length": 100
+      }
+    },
+    "field_email": {
+      "id": "field_email",
+      "type": "email",
+      "label": "Email Address",
+      "placeholder": "Enter your email",
+      "required": true,
+      "validation": {
+        "email": true
+      }
+    },
+    "field_message": {
+      "id": "field_message",
+      "type": "textarea",
+      "label": "Message",
+      "placeholder": "Enter your message here...",
+      "required": true,
+      "rows": 5,
+      "validation": {
+        "min_length": 10,
+        "max_length": 1000
+      }
+    },
+    "field_submit": {
+      "id": "field_submit",
+      "type": "submit",
+      "label": "Send Message",
+      "css_class": "btn-primary"
+    }
+  },
+  "export_info": {
+    "exported_at": "2024-01-15 10:30:00",
+    "exported_by": "LIFT Forms System",
+    "plugin_version": "1.0.0",
+    "wp_version": "6.4.2"
+  }
+}

@@ -1,0 +1,300 @@
+/**
+ * LIFT Forms Import/Export Styles
+ */
+
+/* Import/Export Buttons */
+.lift-forms-import-export {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.lift-import-btn,
+.lift-export-all-btn {
+    background: #0073aa;
+    color: white;
+    border: none;
+    margin-left: 5px;
+}
+
+.lift-import-btn:hover,
+.lift-export-all-btn:hover {
+    background: #005a87;
+    color: white;
+}
+
+.lift-export-single-btn {
+    background: #00a32a;
+    color: white;
+    border: none;
+    margin-left: 5px;
+}
+
+.lift-export-single-btn:hover {
+    background: #007c20;
+    color: white;
+}
+
+/* Modal Styles */
+.lift-modal {
+    position: fixed;
+    z-index: 100000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.lift-modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.lift-modal-header {
+    padding: 20px 30px 15px;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.lift-modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.lift-modal-close {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 28px;
+    font-weight: 300;
+    color: #999;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.lift-modal-close:hover {
+    color: #d63638;
+}
+
+.lift-modal-body {
+    padding: 30px;
+}
+
+.lift-form-field {
+    margin-bottom: 20px;
+}
+
+.lift-form-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.lift-form-field input[type="file"],
+.lift-form-field input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.lift-form-field input[type="file"]:focus,
+.lift-form-field input[type="text"]:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.1);
+}
+
+.lift-form-field .description {
+    margin-top: 5px;
+    color: #666;
+    font-size: 13px;
+    font-style: italic;
+}
+
+.lift-form-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: right;
+}
+
+.lift-form-actions .button {
+    margin-left: 10px;
+}
+
+.lift-modal-cancel {
+    background: #f1f1f1;
+    color: #555;
+    border-color: #ccc;
+}
+
+.lift-modal-cancel:hover {
+    background: #e1e1e1;
+    color: #333;
+}
+
+/* Progress Bar */
+#lift-import-progress {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.lift-progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.lift-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0073aa, #005a87);
+    width: 0%;
+    animation: progressFill 2s ease-in-out infinite;
+    border-radius: 10px;
+}
+
+@keyframes progressFill {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+#lift-import-progress p {
+    margin: 0;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Result Messages */
+#lift-import-result .notice {
+    margin: 20px 0 0 0;
+    padding: 12px 15px;
+    border-radius: 4px;
+}
+
+#lift-import-result .notice-success {
+    background: #d1e7dd;
+    border-left: 4px solid #00a32a;
+    color: #0f5132;
+}
+
+#lift-import-result .notice-error {
+    background: #f8d7da;
+    border-left: 4px solid #d63638;
+    color: #842029;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .lift-modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+    
+    .lift-modal-header,
+    .lift-modal-body {
+        padding: 20px;
+    }
+    
+    .lift-forms-import-export {
+        display: block;
+        margin: 10px 0;
+    }
+    
+    .lift-form-actions {
+        text-align: center;
+    }
+    
+    .lift-form-actions .button {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+    }
+}
+
+/* Enhanced Button Styles */
+.lift-import-btn,
+.lift-export-all-btn,
+.lift-export-single-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.lift-import-btn:before,
+.lift-export-all-btn:before,
+.lift-export-single-btn:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.lift-import-btn:hover:before,
+.lift-export-all-btn:hover:before,
+.lift-export-single-btn:hover:before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Loading State */
+.lift-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.lift-loading:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
