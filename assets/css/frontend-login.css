@@ -1,8 +1,6 @@
 /**
  * Frontend Login Styles for Lift Documents
  */
-
-
  /* Reset and Base Styles */
 .lift-docs-login-container *,
 .lift-docs-dashboard-container * {
@@ -922,11 +920,11 @@
         align-items: flex-start;
         gap: 4px;
     }
-    
+
     .archived-notice {
         margin-left: 0;
     }
-    
+
     .admin-archived-access {
         flex-direction: column;
         text-align: center;

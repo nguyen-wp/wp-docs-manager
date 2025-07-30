@@ -1037,8 +1037,6 @@
     border-top: 2px solid currentColor;
     border-radius: 50%;
 }
-
-
 /* Form builder messages */
 .lift-form-message {
     padding: 12px 15px !important;
@@ -1139,7 +1137,7 @@
     }
 }
 @media (max-width: 768px) {
-   
+
     .form-basic-settings {
         flex-direction: column;
         gap: 15px;
@@ -1164,7 +1162,7 @@
     }
 }
 @media (max-width: 768px) {
-   
+
     .form-basic-settings {
         flex-direction: column;
     }
@@ -1175,8 +1173,6 @@
         max-height: 200px;
     }
 }
-
-
 .copyright-type-buttons {
     display: flex;
     gap: 10px;

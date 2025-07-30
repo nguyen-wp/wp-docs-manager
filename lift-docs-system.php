@@ -36,12 +36,12 @@ register_deactivation_hook(__FILE__, array('LIFT_Docs_Activator', 'deactivate'))
  * Main LIFT Docs System Class
  */
 class LIFT_Docs_System {
-    
+
     /**
      * Single instance of the class
      */
     private static $instance = null;
-    
+
     /**
      * Get instance
      */
@@ -51,31 +51,31 @@ class LIFT_Docs_System {
         }
         return self::$instance;
     }
-    
+
     /**
      * Constructor
      */
     private function __construct() {
         $this->init();
     }
-    
+
     /**
      * Initialize the plugin
      */
     public function init() {
         // Load required files
         $this->load_dependencies();
-        
+
         // Initialize classes
         $this->init_classes();
-        
+
         // Initialize hooks
         $this->init_hooks();
-        
+
         // Load text domain
         add_action('plugins_loaded', array($this, 'load_textdomain'));
     }
-    
+
     /**
      * Load required files
      */
@@ -91,9 +91,9 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-frontend-login.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-forms.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'lib/emergency-json-fixer.php';
-        
+
     }
-    
+
     /**
      * Initialize classes
      */
@@ -103,38 +103,38 @@ class LIFT_Docs_System {
             LIFT_Docs_Admin::get_instance();
             LIFT_Docs_Settings::get_instance();
         }
-        
+
         LIFT_Docs_Post_Types::get_instance();
         LIFT_Docs_Frontend::get_instance();
         LIFT_Docs_Ajax::get_instance();
         LIFT_Docs_Secure_Links::get_instance();
         LIFT_Docs_Layout::get_instance();
-        
+
         // Initialize frontend login system
         new LIFT_Docs_Frontend_Login();
-        
+
         // Initialize LIFT Forms
         new LIFT_Forms();
     }
-    
+
     /**
      * Initialize hooks
      */
     private function init_hooks() {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
-        
+
         // Flush rewrite rules on plugin activation
         add_action('init', array($this, 'maybe_flush_rewrite_rules'));
     }
-    
+
     /**
      * Load text domain
      */
     public function load_textdomain() {
         load_plugin_textdomain('lift-docs-system', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
-    
+
     /**
      * Enqueue frontend scripts and styles
      */
@@ -145,7 +145,7 @@ class LIFT_Docs_System {
             array(),
             LIFT_DOCS_VERSION
         );
-        
+
         wp_enqueue_script(
             'lift-docs-frontend',
             LIFT_DOCS_PLUGIN_URL . 'assets/js/frontend.js',
@@ -153,14 +153,14 @@ class LIFT_Docs_System {
             LIFT_DOCS_VERSION,
             true
         );
-        
+
         // Localize script
         wp_localize_script('lift-docs-frontend', 'lift_docs_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('lift_docs_nonce')
         ));
     }
-    
+
     /**
      * Enqueue admin scripts and styles
      */
@@ -171,7 +171,7 @@ class LIFT_Docs_System {
             array(),
             LIFT_DOCS_VERSION
         );
-        
+
         wp_enqueue_script(
             'lift-docs-admin',
             LIFT_DOCS_PLUGIN_URL . 'assets/js/admin.js',
@@ -179,7 +179,7 @@ class LIFT_Docs_System {
             LIFT_DOCS_VERSION,
             true
         );
-        
+
         // Localize script for admin
         wp_localize_script('lift-docs-admin', 'lift_admin_vars', array(
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -187,7 +187,7 @@ class LIFT_Docs_System {
             'secure_link_nonce' => wp_create_nonce('lift_secure_link_nonce')
         ));
     }
-    
+
     /**
      * Maybe flush rewrite rules
      */

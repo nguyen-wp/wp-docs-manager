@@ -38,7 +38,7 @@ body.document-form-page {
 /* PDF-style document form page */
 body.document-form-page {
     background: #f5f5f5;
-    
+
     color: #000;
     line-height: 1.6;
 }
@@ -727,8 +727,6 @@ select.form-control:focus {
     min-width: 120px;
     height: 36px;
 }
-
-
 /* Checkbox and Radio Fields - Compact OS-style */
 .checkbox-field,
 .radio-group {
@@ -961,39 +959,39 @@ body.document-form-page .btn-primary:hover {
     body.lift-secure-page {
         padding: 20px 0;
     }
-    
+
     .lift-docs-custom-layout .container {
         margin: 0 10px;
         padding: 20px;
     }
-    
+
     .document-form-wrapper {
         flex-direction: column;
         margin: 10px;
         padding: 0;
     }
-    
+
     .document-form-title {
         flex: none;
         order: 2;
         margin-top: 20px;
         padding: 15px 20px;
     }
-    
+
     .document-form-title .title-grid {
         grid-template-columns: 1fr;
         gap: 12px;
     }
-    
+
     .document-form-title .status-info-column {
         align-items: flex-start;
         order: 2;
     }
-    
+
     .document-form-title .form-info-column {
         order: 1;
     }
-    
+
     .document-form-title .edit-mode-notice,
     .document-form-title .submit-mode-notice,
     .document-form-title .status-disabled-notice {
@@ -1001,56 +999,56 @@ body.document-form-page .btn-primary:hover {
         align-self: flex-start;
         min-width: auto;
     }
-    
+
     .form-content-section {
         padding: 20px;
         order: 1;
     }
-    
+
     .document-title {
         font-size: 1.8em;
     }
-    
+
     .document-meta {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .form-row {
         flex-direction: column;
     }
-    
+
     .form-column {
         flex: none !important;
         width: 100% !important;
     }
-    
+
     .form-actions {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .btn {
         width: 100%;
         text-align: center;
         justify-content: center;
     }
-    
+
     .file-item {
         flex-direction: column;
         gap: 15px;
         text-align: center;
     }
-    
+
     .file-info {
         justify-content: center;
     }
-    
+
     .lift-download-btn {
         width: 100%;
         justify-content: center;
     }
-    
+
     .files-list {
         gap: 20px;
     }
@@ -1320,8 +1318,6 @@ body.document-form-page .file-icon-large .file-name-overlay {
     font-size: 20px;
     color: #6b7280;
 }
-
-
 .file-details {
     display: flex;
     flex-direction: column;
@@ -1565,43 +1561,43 @@ body.document-form-page .lift-form-field.lift-field-signature {
         padding: 30px 20px;
         min-height: 100px;
     }
-    
+
     body.document-form-page .upload-overlay .fas,
     body.document-form-page .upload-overlay .far,
     body.document-form-page .upload-overlay .fab {
         font-size: 40px;
     }
-    
+
     body.document-form-page .image-preview {
         max-width: 100%;
     }
-    
+
     body.document-form-page .image-preview img {
         max-height: 150px;
     }
-    
+
     /* Show remove button on mobile always */
     body.document-form-page .remove-file-overlay {
         opacity: 0.8;
         visibility: visible;
     }
-    
+
     body.document-form-page .signature-canvas {
         padding-bottom: 40%; /* Adjust aspect ratio for mobile */
     }
-    
+
     body.document-form-page .signature-actions {
         flex-direction: row;
         gap: 8px;
         padding: 10px;
     }
-    
+
     body.document-form-page .signature-actions .btn {
         flex: 1;
         justify-content: center;
         min-width: auto;
     }
-    
+
     body.document-form-page .form-content-section {
         padding: 20px 25px;
     }
@@ -1611,16 +1607,16 @@ body.document-form-page .lift-form-field.lift-field-signature {
     .drop-zone-text {
         font-size: 13px;
     }
-    
+
     .drop-zone-hint {
         font-size: 11px;
     }
-    
+
     .file-browse-btn {
         width: 100%;
         justify-content: center;
     }
-    
+
     .signature-canvas {
         height: 120px;
     }
@@ -1638,24 +1634,22 @@ body.document-form-page .lift-form-field.lift-field-signature {
     .signature-actions {
         display: none !important;
     }
-    
+
     .signature-canvas {
         border: 1px solid #ddd;
     }
-    
+
     .document-form-wrapper,
     .lift-docs-custom-layout .container {
         box-shadow: none;
         border: 1px solid #ddd;
     }
-    
+
     body.lift-secure-page {
         background: #fff !important;
         padding: 0 !important;
     }
 }
-
-
 /* Dashboard-style download section */
 .lift-secure-page .download-section {
     background: white;
@@ -1773,7 +1767,7 @@ body.document-form-page .lift-form-field.lift-field-signature {
     .document-form-page .document-form-wrapper {
         padding: 15px;
     }
-    
+
     .lift-secure-page .document-header,
     .lift-secure-page .secure-access-notice,
     .lift-secure-page .document-description,
@@ -1784,18 +1778,18 @@ body.document-form-page .lift-form-field.lift-field-signature {
         padding: 20px;
         margin-bottom: 20px;
     }
-    
+
     .lift-secure-page .document-title,
     .document-form-page .document-form-title h1 {
         font-size: 24px;
     }
-    
+
     .lift-secure-page .file-item {
         flex-direction: column;
         gap: 15px;
         text-align: center;
     }
-    
+
     .lift-secure-page .file-info {
         justify-content: center;
     }
@@ -1810,7 +1804,7 @@ body.document-form-page .lift-form-field.lift-field-signature {
         margin: 15px;
         max-width: 100%;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
         gap: 12px;
@@ -1822,16 +1816,16 @@ body.document-form-page .lift-form-field.lift-field-signature {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
+
     .document-form-title .status-info-column {
         align-items: flex-start;
         order: 2;
     }
-    
+
     .document-form-title .form-info-column {
         order: 1;
     }
-    
+
     .document-form-title .edit-mode-notice,
     .document-form-title .submit-mode-notice,
     .document-form-title .status-disabled-notice {
@@ -1846,58 +1840,58 @@ body.document-form-page .lift-form-field.lift-field-signature {
     body.document-form-page {
         padding: 10px 0;
     }
-    
+
     .lift-docs-custom-layout {
         padding: 0 15px;
     }
-    
+
     .document-form-wrapper {
         margin: 10px;
     }
-    
+
     .form-content-section {
         padding: 16px;
     }
-    
+
     .document-form-title {
         padding: 12px 16px;
     }
-    
+
     .document-form-title .title-grid {
         grid-template-columns: 1fr;
         gap: 12px;
     }
-    
+
     .document-form-title h1 {
         font-size: 16px;
     }
-    
+
     .document-form-title .info-label {
         font-size: 11px;
     }
-    
+
     .document-form-title .info-value {
         font-size: 12px;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
         gap: 12px;
     }
-    
+
     .form-column.col-2,
     .form-column.col-3,
     .form-column.col-4 {
         grid-column: span 1;
     }
-    
+
     .form-actions {
         flex-direction: column;
         gap: 8px;
         margin-top: 20px;
         padding-top: 12px;
     }
-    
+
     .form-actions .btn {
         width: 100%;
         min-width: auto;
@@ -1909,53 +1903,53 @@ body.document-form-page .lift-form-field.lift-field-signature {
     .lift-docs-custom-layout {
         padding: 0 10px;
     }
-    
+
     .form-content-section {
         padding: 15px;
     }
-    
+
     .document-form-title {
         padding: 10px 15px;
     }
-    
+
     .document-form-title .title-grid {
         gap: 8px;
         grid-template-columns: 1fr;
     }
-    
+
     .document-form-title h1 {
         font-size: 12px;
         margin-bottom: 6px;
     }
-    
+
     .document-form-title .info-label {
         font-size: 8px;
     }
-    
+
     .document-form-title .info-value {
         font-size: 10px;
     }
-    
+
     .document-form-title .notice-header strong {
         font-size: 9px;
     }
-    
+
     .document-form-title .notice-content {
         font-size: 8px;
     }
-    
+
     .document-form-title .edit-mode-notice,
     .document-form-title .submit-mode-notice,
     .document-form-title .status-disabled-notice {
         padding: 6px 8px;
         font-size: 9px;
     }
-    
+
     .form-control {
         padding: 10px 12px;
         font-size: 16px; /* Prevents zoom on iOS */
     }
-    
+
     .btn {
         padding: 10px 16px;
         font-size: 14px;
@@ -2252,19 +2246,19 @@ body.document-form-page .action-cancel:hover {
         padding: 16px 20px;
         text-align: center;
     }
-    
+
     body.document-form-page .mode-indicator {
         width: 100%;
         text-align: center;
         justify-content: center;
     }
-    
+
     body.document-form-page .action-buttons-column {
         flex-direction: column;
         gap: 8px;
         width: 100%;
     }
-    
+
     body.document-form-page .action-submit,
     body.document-form-page .action-cancel {
         width: 100%;
@@ -2276,11 +2270,11 @@ body.document-form-page .action-cancel:hover {
     body.document-form-page .action-bar-content {
         padding: 12px 16px;
     }
-    
+
     body.document-form-page .mode-title {
         font-size: 14px;
     }
-    
+
     body.document-form-page .mode-description {
         font-size: 12px;
     }
@@ -2439,15 +2433,15 @@ body.document-form-page .status-info {
         padding: 16px 20px;
         text-align: center;
     }
-    
+
     body.document-form-page .form-info-column {
         text-align: center;
     }
-    
+
     body.document-form-page .status-info-column {
         justify-content: center;
     }
-    
+
     body.document-form-page .status-disabled-notice,
     body.document-form-page .status-active-notice,
     body.document-form-page .status-done-notice,
@@ -2462,11 +2456,11 @@ body.document-form-page .status-info {
     body.document-form-page .document-form-header {
         padding: 12px 16px;
     }
-    
+
     body.document-form-page .form-info-column h1 {
         font-size: 14px;
     }
-    
+
     body.document-form-page .document-info,
     body.document-form-page .form-description {
         font-size: 12px;
@@ -2551,14 +2545,14 @@ body.document-form-page .status-info {
     .admin-form-actions {
         display: none !important;
     }
-    
+
     .document-form-wrapper {
         box-shadow: none !important;
         border: none !important;
         margin: 0 !important;
         padding: 0 !important;
     }
-    
+
     .admin-readonly-form .readonly-value {
         border: 1px solid #000 !important;
         background: white !important;
@@ -2676,7 +2670,7 @@ body.document-form-page .status-info {
         background: #000;
         color: white;
     }
-    
+
     .mode-indicator.admin-edit-mode {
         background: #000 !important;
         color: white !important;
@@ -2762,15 +2756,15 @@ h6.form-header-field {
     h1.form-header-field {
         font-size: 1.8em;
     }
-    
+
     h2.form-header-field {
         font-size: 1.5em;
     }
-    
+
     h3.form-header-field {
         font-size: 1.3em;
     }
-    
+
     .form-paragraph-field {
         padding: 10px 12px;
         font-size: 13px;

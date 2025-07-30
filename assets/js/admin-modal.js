@@ -4,24 +4,24 @@
 
 (function($) {
     'use strict';
-    
+
     $(document).ready(function() {
-        
+
         // Handle details button click
         $(document).on('click', '.lift-details-btn', function(e) {
             e.preventDefault();
-            
+
             var $button = $(this);
             var documentId = $button.data('document-id') || $button.data('post-id');
-            
+
             if (!documentId) {
                 console.error('No document ID found');
                 return;
             }
-            
+
             // Show loading modal
             showModalLoading();
-            
+
             // Make AJAX request to get document details
             $.ajax({
                 url: liftDocsAdmin.ajaxUrl,
@@ -35,10 +35,10 @@
                     if (response.success) {
                         // Populate modal with detailed content
                         $('#lift-modal-body').html(response.data.content);
-                        
+
                         // Update modal title if needed
                         $('#lift-modal-title').text(liftDocsAdmin.strings.documentDetails || 'Document Details');
-                        
+
                         // Show modal
                         showModal();
                     } else {
@@ -52,29 +52,29 @@
                 }
             });
         });
-        
+
         // Handle modal close
         $(document).on('click', '.lift-modal-close, .lift-modal-backdrop', function(e) {
             e.preventDefault();
             hideModal();
         });
-        
+
         // Handle submission view button click
         $(document).on('click', '.view-submission-btn', function(e) {
             e.preventDefault();
-            
+
             var $button = $(this);
             var submissionId = $button.data('submission-id');
             var nonce = $button.data('nonce');
-            
+
             if (!submissionId) {
                 console.error('No submission ID found');
                 return;
             }
-            
+
             // Show loading in submission modal
             showSubmissionModalLoading();
-            
+
             // Make AJAX request to get submission details
             $.ajax({
                 url: liftDocsAdmin.ajaxUrl,
@@ -88,7 +88,7 @@
                     if (response.success) {
                         // Populate submission modal with detailed content
                         $('#submission-detail-content-from-doc').html(response.data);
-                        
+
                         // Show submission modal
                         showSubmissionModal();
                     } else {
@@ -102,16 +102,16 @@
                 }
             });
         });
-        
+
         // Handle copy buttons
         $(document).on('click', '.lift-copy-btn', function(e) {
             e.preventDefault();
-            
+
             var $button = $(this);
             var target = $button.data('target');
             var targetText = $button.data('target-text');
             var textToCopy = '';
-            
+
             if (targetText) {
                 // Use direct text
                 textToCopy = targetText;
@@ -122,7 +122,7 @@
                     textToCopy = $input.val();
                 }
             }
-            
+
             if (textToCopy) {
                 // Copy to clipboard using modern API if available
                 if (navigator.clipboard && window.isSecureContext) {
@@ -136,19 +136,19 @@
                 }
             }
         });
-        
+
         /**
          * Show copy feedback
          */
         function showCopyFeedback($button) {
             var originalText = $button.text();
             $button.addClass('copied').text(liftDocsAdmin.strings.copied);
-            
+
             setTimeout(function() {
                 $button.removeClass('copied').text(originalText);
             }, 2000);
         }
-        
+
         /**
          * Fallback copy method for older browsers
          */
@@ -160,10 +160,10 @@
                 $temp.val(text).select();
                 document.execCommand('copy');
                 $temp.remove();
-                
+
                 showCopyFeedback($button);
             } catch (err) {
-                
+
                 // Show error feedback
                 var originalText = $button.text();
                 $button.addClass('copy-error').text('Error');
@@ -172,29 +172,29 @@
                 }, 2000);
             }
         }
-        
+
         // Handle ESC key
         $(document).on('keydown', function(e) {
             if (e.keyCode === 27 && $('#lift-document-details-modal').is(':visible')) {
                 hideModal();
             }
         });
-        
+
         /**
          * Populate modal with document data
          */
         function populateModal(data) {
-            
+
             // Set Attached files and preview link
             $('#lift-view-url').val(data.viewUrl || '');
             $('#lift-view-preview').attr('href', data.viewUrl || '#');
-            
+
             // Get files count and parse multiple URLs
             var filesCount = parseInt(data.filesCount) || 0;
             var downloadUrls = [];
             var onlineViewUrls = [];
             var secureDownloadUrls = [];
-            
+
             // Parse JSON data if available
             try {
                 if (data.downloadUrls && typeof data.downloadUrls === 'string') {
@@ -208,7 +208,7 @@
                 }
             } catch (e) {
             }
-            
+
             // Set view description
             if (filesCount > 1) {
                 $('#lift-view-description').html('<i class="fas fa-file"></i> Xem trang document với ' + filesCount + ' files được đính kèm').show();
@@ -217,13 +217,13 @@
             } else {
                 $('#lift-view-description').text('⚠️ Chưa có file nào được upload').show();
             }
-            
+
             // Handle download URLs
             if (downloadUrls.length > 1) {
                 // Multiple files - show list
                 $('#lift-single-download').hide();
                 $('#lift-multiple-downloads').show();
-                
+
                 var downloadHtml = '<div class="multiple-files-list">';
                 downloadUrls.forEach(function(fileData, index) {
                     var fileIcon = getFileIcon(fileData.name);
@@ -235,7 +235,7 @@
                     downloadHtml += '<div class="lift-input-group">';
                     downloadHtml += '<input type="text" value="' + fileData.url + '" readonly onclick="this.select()" style="font-size: 12px;" />';
                     downloadHtml += '<button type="button" class="button lift-copy-btn" data-target-text="' + fileData.url + '">Copy</button>';
-                    
+
                     // Find corresponding online Attached files
                     var onlineViewUrl = onlineViewUrls.find(function(ovData) {
                         return ovData.index === fileData.index;
@@ -243,26 +243,26 @@
                     if (onlineViewUrl && onlineViewUrl.url) {
                         downloadHtml += '<a href="' + onlineViewUrl.url + '" class="button" target="_blank">View Online</a>';
                     }
-                    
+
                     downloadHtml += '</div>';
                     downloadHtml += '</div>';
                 });
                 downloadHtml += '</div>';
                 $('#lift-multiple-downloads').html(downloadHtml);
-                
+
             } else if (downloadUrls.length === 1) {
                 // Single file - use single input
                 $('#lift-single-download').show();
                 $('#lift-multiple-downloads').hide();
                 $('#lift-download-url').val(downloadUrls[0].url || '');
-                
+
                 // Set online view link for single file
                 if (onlineViewUrls.length > 0 && onlineViewUrls[0].url) {
                     $('#lift-online-view').attr('href', onlineViewUrls[0].url).show();
                 } else {
                     $('#lift-online-view').hide();
                 }
-                
+
             } else {
                 // No files
                 $('#lift-single-download').show();
@@ -270,15 +270,15 @@
                 $('#lift-download-url').val('');
                 $('#lift-online-view').hide();
             }
-            
+
             // Handle secure download URLs - always use multiple files layout for consistency
             if (secureDownloadUrls.length > 0) {
                 $('#lift-secure-download-group').show();
-                
+
                 // Always use multiple files layout for consistent UI
                 $('#lift-single-secure-download').hide();
                 $('#lift-multiple-secure-downloads').show();
-                
+
                 var secureHtml = '<div class="multiple-files-list">';
                 secureDownloadUrls.forEach(function(fileData, index) {
                     var fileIcon = getFileIcon(fileData.name);
@@ -299,23 +299,23 @@
             } else {
                 $('#lift-secure-download-group').hide();
             }
-            
+
             // Set shortcode
             $('#lift-shortcode').val(data.shortcode || '');
-            
+
             // Set statistics
             $('#lift-views').text(data.views || '0');
             $('#lift-downloads').text(data.downloads || '0');
             $('#lift-file-size').text(data.fileSize || '—');
             $('#lift-files-count').text(filesCount);
         }
-        
+
         /**
          * Get file icon based on file name
          */
         function getFileIcon(fileName) {
             if (!fileName) return '<i class="fas fa-file"></i>';
-            
+
             const extension = fileName.split('.').pop().toLowerCase();
             const icons = {
                 // Images
@@ -332,10 +332,10 @@
                 // Archives
                 'zip': '<i class="fas fa-file-archive"></i>', 'rar': '<i class="fas fa-file-archive"></i>', '7z': '<i class="fas fa-file-archive"></i>', 'tar': '<i class="fas fa-file-archive"></i>', 'gz': '<i class="fas fa-file-archive"></i>'
             };
-            
+
             return icons[extension] || '<i class="fas fa-file"></i>';
         }
-        
+
         /**
          * Show modal with loading state
          */
@@ -344,7 +344,7 @@
             $('#lift-modal-body').html('<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #0073aa;"></i><br><br>Loading document details...</div>');
             showModal();
         }
-        
+
         /**
          * Show modal
          */
@@ -353,7 +353,7 @@
             $('#lift-modal-backdrop').fadeIn(200);
             $('#lift-document-details-modal').fadeIn(200);
         }
-        
+
         /**
          * Hide modal
          */
@@ -362,7 +362,7 @@
             $('#lift-document-details-modal').fadeOut(200);
             $('#lift-modal-backdrop').fadeOut(200);
         }
-        
+
         /**
          * Show submission modal loading
          */
@@ -370,7 +370,7 @@
             $('#submission-detail-content-from-doc').html('<div class="submission-loading"><div class="spinner is-active"></div><p>Loading submission details...</p></div>');
             showSubmissionModal();
         }
-        
+
         /**
          * Show submission modal
          */
@@ -378,7 +378,7 @@
             $('body').addClass('modal-open');
             $('#submission-detail-modal-from-doc').fadeIn(200);
         }
-        
+
         /**
          * Hide submission modal
          */
@@ -386,7 +386,7 @@
             $('body').removeClass('modal-open');
             $('#submission-detail-modal-from-doc').fadeOut(200);
         }
-        
+
         /**
          * Add some body styles when modal is open
          */
@@ -395,11 +395,11 @@
             .html('body.modal-open { overflow: hidden; }')
             .appendTo('head');
     });
-    
+
     // Global functions for onclick attributes
     window.closeSubmissionModalFromDoc = function() {
         $('body').removeClass('modal-open');
         $('#submission-detail-modal-from-doc').fadeOut(200);
     };
-    
+
 })(jQuery);

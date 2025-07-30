@@ -9,24 +9,24 @@ if (!defined('ABSPATH')) {
 }
 
 class LIFT_Docs_Admin {
-    
+
     private static $instance = null;
-    
+
     public static function get_instance() {
         if (null === self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
     }
-    
+
     private function __construct() {
         $this->init_hooks();
     }
-    
+
     private function init_hooks() {
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'init_admin'));
-        add_action('admin_init', array($this, 'block_restricted_admin_access')); // Block admin access 
+        add_action('admin_init', array($this, 'block_restricted_admin_access')); // Block admin access
         add_action('template_redirect', array($this, 'check_frontend_access'), 1); // Check frontend redirects
         add_filter('manage_lift_document_posts_columns', array($this, 'set_custom_columns'));
         add_action('manage_lift_document_posts_custom_column', array($this, 'custom_column_content'), 10, 2);
@@ -34,23 +34,23 @@ class LIFT_Docs_Admin {
         add_action('save_post', array($this, 'save_meta_boxes'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('admin_footer', array($this, 'add_document_details_modal'));
-        
+
         // Filter to exclude archived documents from default admin list
         add_action('pre_get_posts', array($this, 'exclude_archived_documents_from_admin'));
-        
+
         // Add admin notice for archived documents view
         add_action('admin_notices', array($this, 'show_archived_documents_notice'));
-        
+
         // Add bulk actions for archive/unarchive
         add_filter('bulk_actions-edit-lift_document', array($this, 'add_bulk_actions'));
         add_filter('handle_bulk_actions-edit-lift_document', array($this, 'handle_bulk_actions'), 10, 3);
-        
+
         // Clean up old layout settings on first load
         add_action('admin_init', array($this, 'cleanup_old_layout_settings'), 5);
-        
+
         // Create custom roles and capabilities
         add_action('init', array($this, 'create_document_roles'));
-        
+
         // User management hooks
         add_action('show_user_profile', array($this, 'add_user_code_field'));
         add_action('edit_user_profile', array($this, 'add_user_code_field'));
@@ -58,27 +58,27 @@ class LIFT_Docs_Admin {
         add_action('edit_user_profile_update', array($this, 'save_user_code_field'));
         add_action('user_register', array($this, 'generate_user_code_on_register'));
         add_action('set_user_role', array($this, 'generate_user_code_on_role_change'), 10, 3);
-        
+
         // Add user code column to users list
         add_filter('manage_users_columns', array($this, 'add_user_code_column'));
         add_filter('manage_users_custom_column', array($this, 'show_user_code_column'), 10, 3);
-        
+
         // AJAX handlers
         add_action('wp_ajax_generate_user_code', array($this, 'ajax_generate_user_code'));
         add_action('wp_ajax_get_admin_document_details', array($this, 'ajax_get_admin_document_details'));
         add_action('wp_ajax_update_document_status', array($this, 'ajax_update_document_status'));
-        
+
         // Add script for users list
         add_action('admin_footer', array($this, 'add_users_list_script'));
-        
+
         // Add filter for assigned users in documents list
         add_action('restrict_manage_posts', array($this, 'add_assigned_user_filter'));
         add_filter('parse_query', array($this, 'filter_documents_by_assigned_user'));
-        
+
         // AJAX handlers for user search
         add_action('wp_ajax_search_document_users', array($this, 'ajax_search_document_users'));
     }
-    
+
     /**
      * Add admin menu
      */
@@ -92,7 +92,7 @@ class LIFT_Docs_Admin {
             'dashicons-media-document',
             30
         );
-        
+
         add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Add New Document', 'lift-docs-system'),
@@ -100,7 +100,7 @@ class LIFT_Docs_Admin {
             'manage_options',
             'post-new.php?post_type=lift_document'
         );
-        
+
         add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Categories', 'lift-docs-system'),
@@ -108,7 +108,7 @@ class LIFT_Docs_Admin {
             'manage_options',
             'edit-tags.php?taxonomy=lift_doc_category&post_type=lift_document'
         );
-        
+
         add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Archived Documents', 'lift-docs-system'),
@@ -116,10 +116,6 @@ class LIFT_Docs_Admin {
             'manage_options',
             'edit.php?post_type=lift_document&archived=1'
         );
-        
-     
-        
-      
         // LIFT Forms submenu
         add_submenu_page(
             'edit.php?post_type=lift_document',
@@ -129,7 +125,7 @@ class LIFT_Docs_Admin {
             'lift-forms',
             array($this, 'forms_admin_page')
         );
-        
+
         add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Form Builder', 'lift-docs-system'),
@@ -138,7 +134,7 @@ class LIFT_Docs_Admin {
             'lift-forms-builder',
             array($this, 'forms_builder_page')
         );
-        
+
         add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Form Submissions', 'lift-docs-system'),
@@ -165,17 +161,15 @@ class LIFT_Docs_Admin {
             'lift-docs-settings',
             array($this, 'settings_page')
         );
-        
-
     }
-    
+
     /**
      * Initialize admin
      */
     public function init_admin() {
         // Additional admin initialization if needed
     }
-    
+
     /**
      * Block admin access for documents_user and subscriber with smart redirect
      */
@@ -184,16 +178,16 @@ class LIFT_Docs_Admin {
         if (!is_admin() || wp_doing_ajax()) {
             return;
         }
-        
+
         // Check if user is logged in
         if (!is_user_logged_in()) {
             return;
         }
-        
+
         $current_user = wp_get_current_user();
         $blocked_roles = array('documents_user', 'subscriber');
         $user_roles = $current_user->roles;
-        
+
         // Check if user has any of the blocked roles
         $has_blocked_role = false;
         foreach ($blocked_roles as $blocked_role) {
@@ -202,15 +196,15 @@ class LIFT_Docs_Admin {
                 break;
             }
         }
-        
+
         if ($has_blocked_role) {
             global $pagenow;
-            
+
             // Allow admin-ajax.php and admin-post.php
             if ($pagenow === 'admin-ajax.php' || $pagenow === 'admin-post.php') {
                 return;
             }
-            
+
             // Block all other admin pages including profile.php
             // If user is documents_user, redirect to Document Dashboard instead of logging out
             if (in_array('documents_user', $user_roles)) {
@@ -224,33 +218,33 @@ class LIFT_Docs_Admin {
             }
         }
     }
-    
+
     /**
      * Check frontend access and handle redirects for logged-in restricted users
      */
     public function check_frontend_access() {
         $current_url = $_SERVER['REQUEST_URI'] ?? '';
-        
+
         // Check if user is logged in and trying to access document-login page
         if (is_user_logged_in()) {
             // Redirect logged-in users from document-login to document-dashboard
-            if (strpos($current_url, '/document-login/') !== false || 
+            if (strpos($current_url, '/document-login/') !== false ||
                 (is_page() && get_post_field('post_name') === 'document-login')) {
                 $dashboard_url = home_url('/document-dashboard/');
                 wp_safe_redirect($dashboard_url);
                 exit;
             }
         }
-        
+
         // Check if user is logged in for other restrictions
         if (!is_user_logged_in()) {
             return;
         }
-        
+
         $current_user = wp_get_current_user();
         $blocked_roles = array('documents_user', 'subscriber');
         $user_roles = $current_user->roles;
-        
+
         // Check if user has any of the blocked roles
         $has_blocked_role = false;
         foreach ($blocked_roles as $blocked_role) {
@@ -259,7 +253,7 @@ class LIFT_Docs_Admin {
                 break;
             }
         }
-        
+
         if ($has_blocked_role) {
             // Check if trying to access wp-login.php via frontend
             if (strpos($current_url, '/wp-login.php') !== false) {
@@ -276,7 +270,7 @@ class LIFT_Docs_Admin {
             }
         }
     }
-    
+
     /**
      * Document Users management page
      */
@@ -284,7 +278,7 @@ class LIFT_Docs_Admin {
         ?>
         <div class="wrap">
             <h1><?php _e('Document Users Management', 'lift-docs-system'); ?></h1>
-            
+
             <div class="lift-docs-users-management">
                 <div class="users-with-documents-role">
                     <h2><?php _e('Users with Documents Access', 'lift-docs-system'); ?></h2>
@@ -294,7 +288,7 @@ class LIFT_Docs_Admin {
         </div>
         <?php
     }
-    
+
     /**
      * Settings page
      */
@@ -323,10 +317,10 @@ class LIFT_Docs_Admin {
         $new_columns['assignments'] = __('Assigned Users', 'lift-docs-system');
         $new_columns['date'] = $columns['date'];
         $new_columns['document_details'] = __('Details', 'lift-docs-system');
-        
+
         return $new_columns;
     }
-    
+
     /**
      * Exclude archived documents from admin list by default
      */
@@ -335,12 +329,12 @@ class LIFT_Docs_Admin {
         if (!is_admin()) {
             return;
         }
-        
+
         // Only apply to main query for lift_document post type
         if (!$query->is_main_query() || $query->get('post_type') !== 'lift_document') {
             return;
         }
-        
+
         // Don't apply if specifically viewing archived documents
         if (isset($_GET['archived']) && $_GET['archived'] === '1') {
             // Show only archived documents
@@ -353,7 +347,7 @@ class LIFT_Docs_Admin {
             ));
             return;
         }
-        
+
         // Exclude archived documents by default
         $meta_query = $query->get('meta_query') ?: array();
         $meta_query[] = array(
@@ -368,21 +362,21 @@ class LIFT_Docs_Admin {
                 'compare' => '!='
             )
         );
-        
+
         $query->set('meta_query', $meta_query);
     }
-    
+
     /**
      * Show notice when viewing archived documents or after bulk actions
      */
     public function show_archived_documents_notice() {
         $current_screen = get_current_screen();
-        
+
         // Only show on document list page
         if (!$current_screen || $current_screen->id !== 'edit-lift_document') {
             return;
         }
-        
+
         // Show bulk action results
         if (isset($_GET['archived_bulk'])) {
             $count = intval($_GET['archived_bulk']);
@@ -395,7 +389,7 @@ class LIFT_Docs_Admin {
             </div>
             <?php
         }
-        
+
         if (isset($_GET['unarchived_bulk'])) {
             $count = intval($_GET['unarchived_bulk']);
             ?>
@@ -407,7 +401,7 @@ class LIFT_Docs_Admin {
             </div>
             <?php
         }
-        
+
         // Only show when viewing archived documents
         if (isset($_GET['archived']) && $_GET['archived'] === '1') {
             ?>
@@ -424,7 +418,7 @@ class LIFT_Docs_Admin {
             <?php
         }
     }
-    
+
     /**
      * Add bulk actions for archive/unarchive
      */
@@ -433,7 +427,7 @@ class LIFT_Docs_Admin {
         $bulk_actions['unarchive_documents'] = __('Unarchive', 'lift-docs-system');
         return $bulk_actions;
     }
-    
+
     /**
      * Handle bulk actions for archive/unarchive
      */
@@ -451,7 +445,7 @@ class LIFT_Docs_Admin {
         }
         return $redirect_to;
     }
-    
+
     /**
      * Custom column content
      */
@@ -464,7 +458,7 @@ class LIFT_Docs_Admin {
                     echo '<span class="dashicons dashicons-archive" style="color: #e74c3c; margin-right: 5px;" title="' . __('Archived Document', 'lift-docs-system') . '"></span>';
                 }
                 break;
-                
+
             case 'category':
                 $terms = get_the_terms($post_id, 'lift_doc_category');
                 if ($terms && !is_wp_error($terms)) {
@@ -477,15 +471,15 @@ class LIFT_Docs_Admin {
                     echo '—';
                 }
                 break;
-                
+
             case 'status':
                 $this->render_status_column($post_id);
                 break;
-                
+
             case 'assignments':
                 $this->render_assignments_column($post_id);
                 break;
-                
+
             case 'document_details':
                 $this->render_document_details_button($post_id);
                 break;
@@ -500,21 +494,21 @@ class LIFT_Docs_Admin {
         if (empty($current_status)) {
             $current_status = 'pending';
         }
-        
+
         $status_options = array(
             'pending' => __('Pending', 'lift-docs-system'),
             'processing' => __('Processing', 'lift-docs-system'),
             'done' => __('Done', 'lift-docs-system'),
             'cancelled' => __('Cancelled', 'lift-docs-system')
         );
-        
+
         $status_colors = array(
             'pending' => '#f39c12',
             'processing' => '#3498db',
             'done' => '#27ae60',
             'cancelled' => '#e74c3c'
         );
-        
+
         ?>
         <select class="lift-status-dropdown" data-post-id="<?php echo esc_attr($post_id); ?>" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; background-color: <?php echo esc_attr($status_colors[$current_status]); ?>; color: white; font-weight: 500;">
             <?php foreach ($status_options as $value => $label): ?>
@@ -541,17 +535,17 @@ class LIFT_Docs_Admin {
                 $file_urls = array();
             }
         }
-        
+
         // Filter out empty URLs
         $file_urls = array_filter($file_urls);
-        
+
         // Collect all data
         $view_url = '';
         $view_label = '';
-        
+
         // Get frontend instance to check permissions
         $frontend = LIFT_Docs_Frontend::get_instance();
-        
+
         // Check if user can view document before generating Attached files
         $can_view = false;
         if ($frontend && method_exists($frontend, 'can_user_view_document')) {
@@ -563,7 +557,7 @@ class LIFT_Docs_Admin {
             // Fallback check
             $can_view = !LIFT_Docs_Settings::get_setting('require_login_to_view', false) || is_user_logged_in();
         }
-        
+
         if ($can_view) {
             if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
                 $view_url = LIFT_Docs_Settings::generate_secure_link($post_id);
@@ -576,7 +570,7 @@ class LIFT_Docs_Admin {
             $view_url = wp_login_url(get_permalink($post_id));
             $view_label = __('Login Required for View', 'lift-docs-system');
         }
-        
+
         // Check if user can download before generating download URLs
         $can_download = false;
         if ($frontend && method_exists($frontend, 'can_user_download_document')) {
@@ -588,17 +582,17 @@ class LIFT_Docs_Admin {
             // Fallback check
             $can_download = !LIFT_Docs_Settings::get_setting('require_login_to_download', false) || is_user_logged_in();
         }
-        
+
         // Generate multiple download URLs and secure URLs
         $download_urls = array();
         $online_view_urls = array();
         $secure_download_urls = array();
-        
+
         foreach ($file_urls as $index => $file_url) {
             if (!$file_url) continue;
-            
+
             $file_name = basename(parse_url($file_url, PHP_URL_PATH));
-            
+
             if ($can_download) {
                 // Regular download URL with file index
                 $download_urls[] = array(
@@ -610,7 +604,7 @@ class LIFT_Docs_Admin {
                     'name' => $file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1),
                     'index' => $index
                 );
-                
+
                 // Online Attached files with file index
                 $online_view_urls[] = array(
                     'url' => add_query_arg(array(
@@ -621,7 +615,7 @@ class LIFT_Docs_Admin {
                     'name' => $file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1),
                     'index' => $index
                 );
-                
+
                 // Secure download URL if enabled
                 if (LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
                     $secure_download_urls[] = array(
@@ -650,12 +644,12 @@ class LIFT_Docs_Admin {
                 );
             }
         }
-        
+
         $views = get_post_meta($post_id, '_lift_doc_views', true);
         $downloads = get_post_meta($post_id, '_lift_doc_downloads', true);
-        
+
         ?>
-        <button type="button" class="button button-primary lift-details-btn" 
+        <button type="button" class="button button-primary lift-details-btn"
                 data-post-id="<?php echo esc_attr($post_id); ?>"
                 data-view-url="<?php echo esc_attr($view_url); ?>"
                 data-view-label="<?php echo esc_attr($view_label); ?>"
@@ -671,21 +665,21 @@ class LIFT_Docs_Admin {
         </button>
         <?php
     }
-    
+
     /**
      * Render assignments column content
      */
     private function render_assignments_column($post_id) {
         $assigned_users = get_post_meta($post_id, '_lift_doc_assigned_users', true);
-        
+
         if (empty($assigned_users) || !is_array($assigned_users)) {
             echo '<span style="color: #d63638; font-weight: 500;">' . __('Admin & Editor Only', 'lift-docs-system') . '</span>';
             return;
         }
-        
+
         $user_count = count($assigned_users);
         $total_document_users = count(get_users(array('role' => 'documents_user')));
-        
+
         if ($user_count === 0) {
             echo '<span style="color: #d63638;">' . __('No Access', 'lift-docs-system') . '</span>';
         } elseif ($user_count === $total_document_users) {
@@ -693,14 +687,14 @@ class LIFT_Docs_Admin {
         } else {
             $user_names = array();
             $max_display = 3;
-            
+
             for ($i = 0; $i < min($user_count, $max_display); $i++) {
                 $user = get_user_by('id', $assigned_users[$i]);
                 if ($user) {
                     $user_names[] = $user->display_name;
                 }
             }
-            
+
             if ($user_count > $max_display) {
                 $remaining = $user_count - $max_display;
                 echo '<span style="color: #135e96; font-weight: 500;">';
@@ -710,11 +704,11 @@ class LIFT_Docs_Admin {
             } else {
                 echo '<span style="color: #135e96; font-weight: 500;">' . esc_html(implode(', ', $user_names)) . '</span>';
             }
-            
+
             // echo '<br><small style="color: #666;">' . sprintf(__('%d of %d users', 'lift-docs-system'), $user_count, $total_document_users) . '</small>';
         }
     }
-    
+
     /**
      * Add meta boxes
      */
@@ -727,7 +721,7 @@ class LIFT_Docs_Admin {
             'normal',
             'high'
         );
-        
+
         add_meta_box(
             'lift-docs-forms',
             __('Assigned Forms', 'lift-docs-system'),
@@ -736,7 +730,7 @@ class LIFT_Docs_Admin {
             'side',
             'high'
         );
-        
+
         add_meta_box(
             'lift-docs-assignments',
             __('Document Access Assignment', 'lift-docs-system'),
@@ -745,7 +739,7 @@ class LIFT_Docs_Admin {
             'side',
             'high'
         );
-        
+
         add_meta_box(
             'lift-docs-archive',
             __('Archive Settings', 'lift-docs-system'),
@@ -755,13 +749,13 @@ class LIFT_Docs_Admin {
             'low'
         );
     }
-    
+
     /**
      * Document details meta box
      */
     public function document_details_meta_box($post) {
         wp_nonce_field('lift_docs_meta_box', 'lift_docs_meta_box_nonce');
-        
+
         // Handle multiple files
         $file_urls = get_post_meta($post->ID, '_lift_doc_file_urls', true);
         if (empty($file_urls)) {
@@ -773,7 +767,7 @@ class LIFT_Docs_Admin {
                 $file_urls = array();
             }
         }
-        
+
         ?>
         <table class="form-table">
             <tr>
@@ -804,7 +798,7 @@ class LIFT_Docs_Admin {
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
-                    
+
                     <div style="margin-top: 15px;">
                         <button type="button" class="button button-secondary" id="add_file_button">
                             <?php _e('Add Another File', 'lift-docs-system'); ?>
@@ -813,16 +807,16 @@ class LIFT_Docs_Admin {
                             <?php _e('Clear All', 'lift-docs-system'); ?>
                         </button>
                     </div>
-                    
+
                     <p class="description">
                         <?php _e('You can add multiple files of any type. Each file will have its own secure download link. Supported: Documents (PDF, DOC, XLS), Images (JPG, PNG), Videos (MP4, AVI), Audio (MP3, WAV), Archives (ZIP, RAR) and more.', 'lift-docs-system'); ?>
                     </p>
                 </td>
             </tr>
-            
-            <?php 
+
+            <?php
             // Include Secure Links section if enabled
-            if (class_exists('LIFT_Docs_Settings') && LIFT_Docs_Settings::get_setting('enable_secure_links', false)): 
+            if (class_exists('LIFT_Docs_Settings') && LIFT_Docs_Settings::get_setting('enable_secure_links', false)):
                 $secure_link = LIFT_Docs_Settings::generate_secure_link($post->ID);
             ?>
             <tr>
@@ -844,7 +838,7 @@ class LIFT_Docs_Admin {
                     </button>
                 </td>
             </tr>
-            
+
             <?php if (!empty($file_urls) && !empty(array_filter($file_urls))): ?>
             <tr>
                 <th scope="row">
@@ -852,8 +846,8 @@ class LIFT_Docs_Admin {
                 </th>
                 <td>
                     <?php if (count(array_filter($file_urls)) === 1): ?>
-                        <?php 
-                        $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0); 
+                        <?php
+                        $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0);
                         ?>
                         <textarea readonly class="large-text code" rows="2" onclick="this.select()"><?php echo esc_textarea($download_link); ?></textarea>
                         <p class="description"><?php _e('Direct secure download link (never expires)', 'lift-docs-system'); ?></p>
@@ -863,7 +857,7 @@ class LIFT_Docs_Admin {
                     <?php else: ?>
                         <div class="multiple-download-links">
                             <?php foreach (array_filter($file_urls) as $index => $url): ?>
-                                <?php 
+                                <?php
                                 $file_name = basename(parse_url($url, PHP_URL_PATH));
                                 $download_link = LIFT_Docs_Settings::generate_secure_download_link($post->ID, 0, $index);
                                 ?>
@@ -892,7 +886,7 @@ class LIFT_Docs_Admin {
                 </td>
             </tr>
             <?php endif; ?>
-            
+
             <?php elseif (class_exists('LIFT_Docs_Settings')): ?>
             <tr>
                 <th colspan="2" style="padding-top: 25px; border-top: 1px solid #ddd;">
@@ -909,15 +903,15 @@ class LIFT_Docs_Admin {
             </tr>
             <?php endif; ?>
         </table>
-        
+
         <script type="text/javascript">
         jQuery(document).ready(function($) {
             let fileIndex = <?php echo count($file_urls); ?>;
-            
+
             // Ensure wp.media is available
             if (typeof wp !== 'undefined' && wp.media && wp.media.editor) {
                 // WordPress Media Library is available
-                
+
                 // Add new file input
                 $('#add_file_button').click(function() {
                     const container = $('#lift_doc_files_container');
@@ -933,13 +927,13 @@ class LIFT_Docs_Admin {
                     fileIndex++;
                     updateRemoveButtons();
                 });
-                
+
                 // Remove file input
                 $(document).on('click', '.remove-file-button', function() {
                     $(this).closest('.file-input-row').remove();
                     updateRemoveButtons();
                 });
-                
+
                 // Update remove buttons visibility
                 function updateRemoveButtons() {
                     const rows = $('.file-input-row');
@@ -949,15 +943,15 @@ class LIFT_Docs_Admin {
                         $('.remove-file-button').show();
                     }
                 }
-                
+
                 // WordPress Media Library Upload Handler
                 $(document).on('click', '.upload-file-button', function(e) {
                     e.preventDefault();
-                    
+
                     const button = $(this);
                     const input = button.siblings('.file-url-input');
                     const sizeDisplay = button.siblings('.file-size-display');
-                    
+
                     // Create new media uploader for each button click
                     const mediaUploader = wp.media({
                         title: '<?php _e('Select Document File', 'lift-docs-system'); ?>',
@@ -970,19 +964,19 @@ class LIFT_Docs_Admin {
                             type: [] // Empty array means all file types
                         }
                     });
-                    
+
                     // When file is selected
                     mediaUploader.on('select', function() {
                         const attachment = mediaUploader.state().get('selection').first().toJSON();
-                        
+
                         // Set file URL
                         input.val(attachment.url);
-                        
+
                         // Display file info
                         const fileName = attachment.filename || attachment.title;
                         const fileSize = attachment.filesizeHumanReadable || formatFileSize(attachment.filesize || 0);
                         const fileType = attachment.subtype || attachment.type || 'file';
-                        
+
                         // Choose appropriate icon based on file type
                         let fileIcon = '<i class="fas fa-file"></i>'; // Default document icon
                         if (attachment.type === 'image') {
@@ -1002,19 +996,19 @@ class LIFT_Docs_Admin {
                         } else if (fileType.includes('zip') || fileType.includes('rar')) {
                             fileIcon = '<i class="fas fa-file-archive"></i>';
                         }
-                        
+
                         sizeDisplay.html(`
                             <span style="color: #0073aa; font-weight: 500;">
                                 ${fileIcon} ${fileName} (${fileSize})
                             </span>
                         `);
-                        
+
                         // Add uploaded class for visual feedback
                         button.closest('.file-input-row').addClass('uploaded');
                         setTimeout(function() {
                             button.closest('.file-input-row').removeClass('uploaded');
                         }, 2000);
-                        
+
                         // Show success feedback
                         const originalText = button.text();
                         button.html('<i class="fas fa-check"></i> <?php _e('Uploaded', 'lift-docs-system'); ?>');
@@ -1022,11 +1016,11 @@ class LIFT_Docs_Admin {
                             button.text(originalText);
                         }, 2000);
                     });
-                    
+
                     // Open media uploader
                     mediaUploader.open();
                 });
-                
+
                 // Format file size
                 function formatFileSize(bytes) {
                     if (bytes === 0) return '0 Bytes';
@@ -1035,10 +1029,10 @@ class LIFT_Docs_Admin {
                     const i = Math.floor(Math.log(bytes) / Math.log(k));
                     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
                 }
-                
+
                 // Initialize remove buttons
                 updateRemoveButtons();
-                
+
                 // Clear all files button
                 $('#clear_all_files').click(function() {
                     if (confirm('<?php _e('Are you sure you want to remove all files?', 'lift-docs-system'); ?>')) {
@@ -1057,10 +1051,10 @@ class LIFT_Docs_Admin {
                         updateRemoveButtons();
                     }
                 });
-                
+
             } else {
                 // Fallback if Media Library is not available
-                
+
                 // Add new file input
                 $('#add_file_button').click(function() {
                     const container = $('#lift_doc_files_container');
@@ -1076,13 +1070,13 @@ class LIFT_Docs_Admin {
                     fileIndex++;
                     updateRemoveButtons();
                 });
-                
+
                 // Remove file input
                 $(document).on('click', '.remove-file-button', function() {
                     $(this).closest('.file-input-row').remove();
                     updateRemoveButtons();
                 });
-                
+
                 // Update remove buttons visibility
                 function updateRemoveButtons() {
                     const rows = $('.file-input-row');
@@ -1092,24 +1086,24 @@ class LIFT_Docs_Admin {
                         $('.remove-file-button').show();
                     }
                 }
-                
+
                 // Fallback file selection
                 $(document).on('click', '.upload-file-button', function() {
                     const button = $(this);
                     const input = button.siblings('.file-url-input');
                     const sizeDisplay = button.siblings('.file-size-display');
-                    
+
                     const fileInput = $('<input type="file" style="display: none;" />');
                     $('body').append(fileInput);
                     fileInput.click();
-                    
+
                     fileInput.change(function() {
                         const file = this.files[0];
                         if (file) {
                             // Show file info even in fallback mode
                             const fileName = file.name;
                             const fileSize = formatFileSize(file.size);
-                            
+
                             // Choose appropriate icon based on file type
                             let fileIcon = '<i class="fas fa-file"></i>'; // Default document icon
                             const fileType = file.type.toLowerCase();
@@ -1130,44 +1124,44 @@ class LIFT_Docs_Admin {
                             } else if (fileType.includes('zip') || fileType.includes('rar')) {
                                 fileIcon = '<i class="fas fa-file-archive"></i>';
                             }
-                            
+
                             sizeDisplay.html(`
                                 <span style="color: #ff9800; font-weight: 500;">
                                     ${fileIcon} ${fileName} (${fileSize}) - <?php _e('Not uploaded to media library', 'lift-docs-system'); ?>
                                 </span>
                             `);
-                            
+
                             alert('<?php _e('Please upload this file to your media library first, then paste the URL here. Or drag and drop the file into the WordPress media uploader.', 'lift-docs-system'); ?>');
                         }
                         fileInput.remove();
                     });
                 });
-                
+
                 // Initialize remove buttons
                 updateRemoveButtons();
             }
         });
-        
+
         function copySecureLink(button) {
             var row = button.closest('tr');
             var textarea = row.querySelector('textarea');
             textarea.select();
             document.execCommand('copy');
-            
+
             var originalText = button.textContent;
             button.textContent = '<?php _e("Copied!", "lift-docs-system"); ?>';
             setTimeout(function() {
                 button.textContent = originalText;
             }, 2000);
         }
-        
+
         function copyDownloadLink(button) {
             var row = button.closest('tr, .download-link-item');
             var textarea = row.querySelector('textarea');
             if (textarea) {
                 textarea.select();
                 document.execCommand('copy');
-                
+
                 var originalText = button.textContent;
                 button.textContent = '<?php _e("Copied!", "lift-docs-system"); ?>';
                 setTimeout(function() {
@@ -1176,9 +1170,9 @@ class LIFT_Docs_Admin {
             }
         }
         </script>
-        
+
         <style type="text/css">
-       
+
         /* File Size Display */
         .file-size-display {
             min-width: 150px;
@@ -1190,14 +1184,14 @@ class LIFT_Docs_Admin {
             border: 1px solid #e9ecef;
             display: none;
         }
-        
+
         .file-size-display:empty {
             background: transparent;
             border: none;
             min-width: 0;
             padding: 0;
         }
-        
+
         .file-size-display span[style*="color: #0073aa"] {
             background: #e3f2fd;
             color: #0d47a1 !important;
@@ -1207,7 +1201,7 @@ class LIFT_Docs_Admin {
             font-weight: 500;
             display: inline-block;
         }
-        
+
         .file-size-display span[style*="color: #ff9800"] {
             background: #fff3e0;
             color: #e65100 !important;
@@ -1221,7 +1215,7 @@ class LIFT_Docs_Admin {
         .file-input-row {
             margin-bottom: 10px;
         }
-        
+
         /* File Row Number Badge */
         /* row.file-input-::before {
             content: attr(data-index);
@@ -1236,11 +1230,11 @@ class LIFT_Docs_Admin {
             border-radius: 12px;
             display: none;
         } */
-        
+
         /* .file-input-row:nth-child(n+2)::before {
             display: block;
         } */
-        
+
         /* Action Buttons Container */
         .file-actions-container {
             margin-top: 20px;
@@ -1250,14 +1244,12 @@ class LIFT_Docs_Admin {
             gap: 12px;
             align-items: center;
         }
-        
-        
         /* Upload Success Animation */
         .file-input-row.uploaded {
             background: #d4edda;
             border-color: #46b450;
         }
-        
+
         /* Empty State */
         #lift_doc_files_container:empty::before {
             content: "<?php _e('No files added yet. Click "Add Another File" below to get started.', 'lift-docs-system'); ?>";
@@ -1271,25 +1263,25 @@ class LIFT_Docs_Admin {
             border-radius: 8px;
             font-size: 14px;
         }
-        
+
         /* Loading States */
         .file-input-row.uploading {
             background: #e3f2fd;
             border-color: #2196f3;
         }
-        
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .file-input-row {
                 flex-wrap: wrap;
             }
-            
+
             .file-input-row .file-url-input {
                 min-width: 200px;
                 flex: 1 1 auto;
             }
         }
-        
+
         @media (max-width: 768px) {
             .file-input-row {
                 flex-direction: column;
@@ -1297,48 +1289,48 @@ class LIFT_Docs_Admin {
                 gap: 12px;
                 padding: 16px;
             }
-            
+
             .file-input-row .file-url-input {
                 min-width: auto;
                 width: 100%;
             }
-            
+
             .file-input-row .upload-file-button,
             .file-input-row .remove-file-button {
                 width: 100%;
                 justify-content: center;
                 min-width: auto;
             }
-            
+
             .file-actions-container {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             /* #add_file_button,
             #clear_all_files {
                 width: 100%;
                 justify-content: center;
             } */
-            
+
             .file-size-display {
                 min-width: auto;
                 text-align: center;
             }
         }
-        
+
         /* Focus Management */
         .file-input-row:focus-within {
             border-color: #0073aa;
             box-shadow: 0 0 0 3px rgba(0,115,170,0.1);
         }
-        
+
         /* Responsive Design Media Queries */
         @media (max-width: 768px) {
             .file-input-row button {
                 width: 100%;
             }
-            
+
             #add_file_button,
             #clear_all_files {
                 width: 100%;
@@ -1348,26 +1340,26 @@ class LIFT_Docs_Admin {
         </style>
         <?php
     }
-    
+
     /**
      * Document assignments meta box
      */
     public function document_assignments_meta_box($post) {
         wp_nonce_field('lift_docs_assignments_meta_box', 'lift_docs_assignments_meta_box_nonce');
-        
+
         // Get assigned users
         $assigned_users = get_post_meta($post->ID, '_lift_doc_assigned_users', true);
         if (!is_array($assigned_users)) {
             $assigned_users = array();
         }
-        
+
         // Get all users with Documents User role
         $document_users = get_users(array(
             'role' => 'documents_user',
             'orderby' => 'display_name',
             'order' => 'ASC'
         ));
-        
+
         // Prepare user data for JavaScript to prevent undefined values
         $users_for_js = array();
         foreach ($document_users as $user) {
@@ -1420,11 +1412,11 @@ class LIFT_Docs_Admin {
                 <div class="add-users-container">
                     <label for="user-search-input"><strong><?php _e('Add Users:', 'lift-docs-system'); ?></strong></label>
                     <input type="text" id="user-search-input" placeholder="<?php _e('Search users by name, email, or user code...', 'lift-docs-system'); ?>" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px;">
-                    
+
                     <div class="users-search-results" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 3px; background: #fff; display: none;">
                         <?php foreach ($document_users as $user): ?>
                             <?php $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true); ?>
-                            <div class="user-search-item" 
+                            <div class="user-search-item"
                                  data-user-id="<?php echo esc_attr($user->ID); ?>"
                                  data-user-name="<?php echo esc_attr(strtolower($user->display_name)); ?>"
                                  data-user-email="<?php echo esc_attr(strtolower($user->user_email)); ?>"
@@ -1443,7 +1435,7 @@ class LIFT_Docs_Admin {
                         <?php endforeach; ?>
                     </div>
                 </div>
-                
+
                 <div style="margin-top: 10px;">
                     <button type="button" id="select-all-users" class="button button-secondary" style="margin-right: 10px;">
                         <?php _e('Select All', 'lift-docs-system'); ?>
@@ -1452,7 +1444,7 @@ class LIFT_Docs_Admin {
                         <?php _e('Clear All', 'lift-docs-system'); ?>
                     </button>
                 </div>
-                
+
                 <p class="description" style="margin-top: 10px;">
                     <span id="users-count">
                         <?php printf(
@@ -1464,29 +1456,29 @@ class LIFT_Docs_Admin {
                 </p>
             <?php endif; ?>
         </div>
-        
+
         <script>
         jQuery(document).ready(function($) {
             var allUsers = <?php echo json_encode($users_for_js); ?>;
             var totalUsers = allUsers.length;
-            
+
             // Search functionality
             $('#user-search-input').on('input', function() {
                 var searchTerm = $(this).val().toLowerCase();
                 var $results = $('.users-search-results');
                 var $items = $('.user-search-item');
-                
+
                 if (searchTerm.length > 0) {
                     $results.show();
-                    
+
                     $items.each(function() {
                         var $item = $(this);
                         var userName = $item.data('user-name');
                         var userEmail = $item.data('user-email');
                         var userCode = $item.data('user-code');
-                        
-                        if (userName.includes(searchTerm) || 
-                            userEmail.includes(searchTerm) || 
+
+                        if (userName.includes(searchTerm) ||
+                            userEmail.includes(searchTerm) ||
                             (userCode && userCode.includes(searchTerm))) {
                             $item.show();
                         } else {
@@ -1497,53 +1489,47 @@ class LIFT_Docs_Admin {
                     $results.hide();
                 }
             });
-            
+
             // Hide search results when clicking outside
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('.add-users-container').length) {
                     $('.users-search-results').hide();
                 }
             });
-            
+
             // Add user when clicked
             $(document).on('click', '.user-search-item', function() {
                 var $item = $(this);
                 var userId = $item.data('user-id');
                 var userName = $item.find('div:first span:first').text();
                 var userCode = $item.data('user-code');
-                
+
                 addUser(userId, userName, userCode);
                 $item.hide();
                 $('#user-search-input').val('');
                 $('.users-search-results').hide();
             });
-            
+
             // Remove user when X is clicked
             $(document).on('click', '.remove-user', function() {
                 var $tag = $(this).closest('.selected-user-tag');
                 var userId = $tag.data('user-id');
-                
+
                 removeUser(userId);
             });
-            
+
             // Select all users
             $('#select-all-users').on('click', function() {
-                console.log('Select All Users clicked. Total users:', allUsers.length);
-                console.log('Users data:', allUsers);
-                
                 allUsers.forEach(function(user) {
                     // Validate user object before processing
                     if (user && user.ID && user.display_name && !isUserSelected(user.ID)) {
                         var userCode = user.lift_docs_user_code || '';
-                        console.log('Adding user:', user.ID, user.display_name, userCode);
                         addUser(user.ID, user.display_name, userCode);
-                    } else {
-                        console.log('Skipping user (already selected or invalid):', user);
                     }
                 });
                 updateSearchResults();
             });
-            
+
             // Clear all users
             $('#clear-all-users').on('click', function() {
                 $('.selected-user-tag').remove();
@@ -1551,42 +1537,42 @@ class LIFT_Docs_Admin {
                 updateNoUsersMessage();
                 updateUsersCount();
             });
-            
+
             function addUser(userId, userName, userCode) {
                 // Validate input parameters to prevent undefined values
                 if (!userId || !userName) {
                     console.warn('addUser called with invalid parameters:', userId, userName, userCode);
                     return;
                 }
-                
+
                 if (isUserSelected(userId)) {
                     return;
                 }
-                
+
                 var userCodeDisplay = userCode ? '<small style="opacity: 0.8; margin-left: 4px; font-family: monospace;">(' + userCode + ')</small>' : '';
-                
+
                 var userTag = $('<span class="selected-user-tag" data-user-id="' + userId + '" style="display: inline-block; background: #0073aa; color: #fff; padding: 4px 8px; margin: 2px; border-radius: 3px; font-size: 12px;">' +
                     userName + userCodeDisplay +
                     '<span class="remove-user" style="margin-left: 5px; cursor: pointer; font-weight: bold;">&times;</span>' +
                     '<input type="hidden" name="lift_doc_assigned_users[]" value="' + userId + '">' +
                     '</span>');
-                
+
                 $('.selected-users-list').append(userTag);
                 updateNoUsersMessage();
                 updateUsersCount();
             }
-            
+
             function removeUser(userId) {
                 $('.selected-user-tag[data-user-id="' + userId + '"]').remove();
                 $('.user-search-item[data-user-id="' + userId + '"]').show();
                 updateNoUsersMessage();
                 updateUsersCount();
             }
-            
+
             function isUserSelected(userId) {
                 return $('.selected-user-tag[data-user-id="' + userId + '"]').length > 0;
             }
-            
+
             function updateNoUsersMessage() {
                 var selectedCount = $('.selected-user-tag').length;
                 if (selectedCount > 0) {
@@ -1595,12 +1581,12 @@ class LIFT_Docs_Admin {
                     $('.no-users-selected').show();
                 }
             }
-            
+
             function updateUsersCount() {
                 var selectedCount = $('.selected-user-tag').length;
                 $('#users-count').text('<?php _e('Total Document Users:', 'lift-docs-system'); ?> ' + totalUsers + ' | <?php _e('Selected:', 'lift-docs-system'); ?> ' + selectedCount);
             }
-            
+
             function updateSearchResults() {
                 $('.user-search-item').each(function() {
                     var userId = $(this).data('user-id');
@@ -1611,60 +1597,60 @@ class LIFT_Docs_Admin {
                     }
                 });
             }
-            
+
             // Initialize
             updateNoUsersMessage();
             updateUsersCount();
             updateSearchResults();
         });
         </script>
-        
+
         <style>
         .user-search-item:hover {
             background-color: #f0f8ff;
         }
-        
+
         .selected-user-tag {
             /* No animation */
         }
-        
+
         /* Animation removed */
-        
+
         .remove-user:hover {
             background-color: rgba(255,255,255,0.2);
             border-radius: 50%;
         }
-        
+
         #user-search-input:focus {
             border-color: #0073aa;
             box-shadow: 0 0 2px rgba(0, 115, 170, 0.8);
             outline: none;
         }
-        
+
         .users-search-results {
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         </style>
         <?php
     }
-    
+
     /**
      * Document forms meta box
      */
     public function document_forms_meta_box($post) {
         wp_nonce_field('lift_docs_forms_meta_box', 'lift_docs_forms_meta_box_nonce');
-        
+
         // Get assigned forms
         $assigned_forms = get_post_meta($post->ID, '_lift_doc_assigned_forms', true);
         if (!is_array($assigned_forms)) {
             $assigned_forms = array();
         }
-        
+
         // Get all available forms
         global $wpdb;
         $forms_table = $wpdb->prefix . 'lift_forms';
         $available_forms = $wpdb->get_results("SELECT id, name, description FROM $forms_table WHERE status = 'active' ORDER BY name ASC");
-        
+
         ?>
         <div class="document-forms">
             <p><strong><?php _e('Assign Forms to Document', 'lift-docs-system'); ?></strong></p>
@@ -1684,17 +1670,17 @@ class LIFT_Docs_Admin {
                         <span class="no-forms-selected" style="color: #666; font-style: italic;"><?php _e('No forms selected', 'lift-docs-system'); ?></span>
                     </div>
                 </div>
-                
+
                 <!-- Search and Add Forms -->
                 <div class="add-forms-container">
                     <label for="form-search-input"><strong><?php _e('Add Forms:', 'lift-docs-system'); ?></strong></label>
                     <input type="text" id="form-search-input" placeholder="<?php _e('Search forms by name or description...', 'lift-docs-system'); ?>" style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px;">
-                    
+
                     <div class="forms-search-results" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 3px; background: #fff; display: none;">
                         <!-- Search results will be populated here -->
                     </div>
                 </div>
-                
+
                 <div style="margin-top: 10px;">
                     <button type="button" id="select-all-forms" class="button button-secondary" style="margin-right: 10px;">
                         <?php _e('Select All', 'lift-docs-system'); ?>
@@ -1703,7 +1689,7 @@ class LIFT_Docs_Admin {
                         <?php _e('Clear All', 'lift-docs-system'); ?>
                     </button>
                 </div>
-                
+
                 <p class="description" style="margin-top: 10px;">
                     <span id="forms-count">
                         <?php printf(
@@ -1715,33 +1701,33 @@ class LIFT_Docs_Admin {
                 </p>
             <?php endif; ?>
         </div>
-        
+
         <script>
         jQuery(document).ready(function($) {
             var allForms = <?php echo json_encode($available_forms); ?>;
             var totalForms = allForms.length;
             var selectedForms = <?php echo json_encode($assigned_forms); ?>;
-            
+
             // Initialize selected forms display
             updateSelectedFormsDisplay();
             updateFormsCount();
-            
+
             // Search functionality
             $('#form-search-input').on('input', function() {
                 var searchTerm = $(this).val().toLowerCase();
                 var results = $('.forms-search-results');
-                
+
                 if (searchTerm.length === 0) {
                     results.hide();
                     return;
                 }
-                
+
                 var filteredForms = allForms.filter(function(form) {
-                    return !isFormSelected(form.id) && 
-                           (form.name.toLowerCase().includes(searchTerm) || 
+                    return !isFormSelected(form.id) &&
+                           (form.name.toLowerCase().includes(searchTerm) ||
                             (form.description && form.description.toLowerCase().includes(searchTerm)));
                 });
-                
+
                 if (filteredForms.length > 0) {
                     var html = '';
                     filteredForms.forEach(function(form) {
@@ -1756,26 +1742,26 @@ class LIFT_Docs_Admin {
                     });
                     results.html(html).show();
                 } else {
-                    results.html('<div style="padding: 10px; color: #666; font-style: italic;">' + 
+                    results.html('<div style="padding: 10px; color: #666; font-style: italic;">' +
                                 '<?php _e('No forms found or all forms already selected', 'lift-docs-system'); ?></div>').show();
                 }
             });
-            
+
             // Hide search results when clicking outside
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('.add-forms-container').length) {
                     $('.forms-search-results').hide();
                 }
             });
-            
+
             // Add form when clicked
             $(document).on('click', '.form-search-item', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 var formId = parseInt($(this).data('form-id'));
                 var formData = allForms.find(function(f) { return f.id == formId; });
-                
+
                 if (formData && !isFormSelected(formId)) {
                     selectedForms.push(formId);
                     updateSelectedFormsDisplay();
@@ -1784,12 +1770,12 @@ class LIFT_Docs_Admin {
                     $('.forms-search-results').hide();
                 }
             });
-            
+
             // Remove form when X is clicked
             $(document).on('click', '.remove-form', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 var formId = parseInt($(this).data('form-id'));
                 selectedForms = selectedForms.filter(function(id) {
                     return id != formId;
@@ -1797,7 +1783,7 @@ class LIFT_Docs_Admin {
                 updateSelectedFormsDisplay();
                 updateFormsCount();
             });
-            
+
             // Select all forms
             $('#select-all-forms').on('click', function() {
                 allForms.forEach(function(form) {
@@ -1808,14 +1794,14 @@ class LIFT_Docs_Admin {
                 updateSelectedFormsDisplay();
                 updateFormsCount();
             });
-            
+
             // Clear all forms
             $('#clear-all-forms').on('click', function() {
                 selectedForms = [];
                 updateSelectedFormsDisplay();
                 updateFormsCount();
             });
-            
+
             function addForm(formId, formName, formDescription) {
                 formId = parseInt(formId);
                 if (!isFormSelected(formId)) {
@@ -1824,7 +1810,7 @@ class LIFT_Docs_Admin {
                     updateFormsCount();
                 }
             }
-            
+
             function removeForm(formId) {
                 formId = parseInt(formId);
                 selectedForms = selectedForms.filter(function(id) {
@@ -1833,25 +1819,25 @@ class LIFT_Docs_Admin {
                 updateSelectedFormsDisplay();
                 updateFormsCount();
             }
-            
+
             function isFormSelected(formId) {
                 return selectedForms.some(function(id) {
                     return id == formId;
                 });
             }
-            
+
             function updateSelectedFormsDisplay() {
                 var container = $('.selected-forms-list');
                 var noFormsMessage = $('.no-forms-selected');
-                
+
                 // Clear existing tags and hidden inputs
                 container.find('.selected-form-tag').remove();
-                
+
                 if (selectedForms.length === 0) {
                     noFormsMessage.show();
                 } else {
                     noFormsMessage.hide();
-                    
+
                     selectedForms.forEach(function(formId) {
                         var formData = allForms.find(function(f) { return f.id == formId; });
                         if (formData) {
@@ -1865,40 +1851,40 @@ class LIFT_Docs_Admin {
                     });
                 }
             }
-            
+
             function updateFormsCount() {
                 $('#forms-count').html('<?php _e('Total Forms:', 'lift-docs-system'); ?> ' + totalForms + ' | <?php _e('Selected:', 'lift-docs-system'); ?> ' + selectedForms.length);
             }
         });
         </script>
-        
+
         <style>
         .form-search-item {
             transition: background-color 0.2s ease;
         }
-        
+
         .form-search-item:hover {
             background: #f0f0f1 !important;
         }
-        
+
         .form-search-item:active {
             background: #e0e0e0 !important;
         }
-        
+
         .remove-form {
             transition: color 0.2s ease;
         }
-        
+
         .remove-form:hover {
             color: #dc3232 !important;
             transform: scale(1.2);
         }
-        
+
         #form-search-input:focus {
             border-color: #0073aa;
             box-shadow: 0 0 0 1px #0073aa;
         }
-        
+
         .forms-search-results {
             border: 1px solid #ddd;
             border-radius: 3px;
@@ -1908,15 +1894,15 @@ class LIFT_Docs_Admin {
             position: relative;
             z-index: 1000;
         }
-        
+
         .add-forms-container {
             position: relative;
         }
-        
+
         .selected-forms-container {
             margin-bottom: 15px;
         }
-        
+
         .selected-forms-list {
             min-height: 40px;
             border: 1px solid #ddd;
@@ -1925,13 +1911,13 @@ class LIFT_Docs_Admin {
             background: #f9f9f9;
             line-height: 1.4;
         }
-        
+
         .no-forms-selected {
             color: #666;
             font-style: italic;
             display: block;
         }
-        
+
         .selected-form-tag {
             display: inline-block;
             background: #0073aa;
@@ -1942,7 +1928,7 @@ class LIFT_Docs_Admin {
             font-size: 12px;
             cursor: default;
         }
-        
+
         .selected-form-tag .remove-form {
             margin-left: 5px;
             cursor: pointer;
@@ -1950,7 +1936,7 @@ class LIFT_Docs_Admin {
             user-select: none;
         }
         }
-        
+
         .no-forms-selected {
             color: #666;
             font-style: italic;
@@ -1959,21 +1945,21 @@ class LIFT_Docs_Admin {
         </style>
         <?php
     }
-    
+
     /**
      * Archive settings meta box
      */
     public function document_archive_meta_box($post) {
         wp_nonce_field('lift_docs_archive_meta_box', 'lift_docs_archive_meta_box_nonce');
-        
+
         $is_archived = get_post_meta($post->ID, '_lift_doc_archived', true);
         $is_archived = ($is_archived === '1' || $is_archived === 1);
         ?>
         <div style="padding: 10px;">
             <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" 
-                       name="_lift_doc_archived" 
-                       value="1" 
+                <input type="checkbox"
+                       name="_lift_doc_archived"
+                       value="1"
                        <?php checked($is_archived); ?>
                        style="transform: scale(1.2);">
                 <span style="font-weight: 500; color: <?php echo $is_archived ? '#e74c3c' : '#27ae60'; ?>;">
@@ -1986,19 +1972,19 @@ class LIFT_Docs_Admin {
                     <?php endif; ?>
                 </span>
             </label>
-            
+
             <div style="margin-top: 10px; padding: 10px; background: #f7f7f7; border-left: 4px solid #0073aa; font-size: 13px;">
                 <strong><?php _e('Note:', 'lift-docs-system'); ?></strong>
                 <?php _e('Archived documents will not appear in the default document list or frontend pages. They can only be accessed directly or viewed in the Archived Documents section.', 'lift-docs-system'); ?>
             </div>
-            
+
             <script>
             jQuery(document).ready(function($) {
                 $('input[name="_lift_doc_archived"]').on('change', function() {
                     var $this = $(this);
                     var $span = $this.next('span');
                     var $icon = $span.find('.dashicons');
-                    
+
                     if ($this.is(':checked')) {
                         $span.css('color', '#e74c3c');
                         $icon.removeClass('dashicons-yes-alt').addClass('dashicons-archive');
@@ -2014,7 +2000,7 @@ class LIFT_Docs_Admin {
         </div>
         <?php
     }
-    
+
     /**
      * Save meta boxes
      */
@@ -2026,10 +2012,10 @@ class LIFT_Docs_Admin {
                     // Handle multiple file URLs
                     if (isset($_POST['lift_doc_file_urls']) && is_array($_POST['lift_doc_file_urls'])) {
                         $file_urls = array_filter(array_map('sanitize_url', $_POST['lift_doc_file_urls']));
-                        
+
                         // Save multiple URLs
                         update_post_meta($post_id, '_lift_doc_file_urls', $file_urls);
-                        
+
                         // For backward compatibility, also save first URL as single file URL
                         if (!empty($file_urls)) {
                             update_post_meta($post_id, '_lift_doc_file_url', $file_urls[0]);
@@ -2043,7 +2029,7 @@ class LIFT_Docs_Admin {
                 }
             }
         }
-        
+
         // Check document assignments nonce
         if (isset($_POST['lift_docs_assignments_meta_box_nonce']) && wp_verify_nonce($_POST['lift_docs_assignments_meta_box_nonce'], 'lift_docs_assignments_meta_box')) {
             if (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) {
@@ -2051,7 +2037,7 @@ class LIFT_Docs_Admin {
                     // Handle assigned users
                     if (isset($_POST['lift_doc_assigned_users']) && is_array($_POST['lift_doc_assigned_users'])) {
                         $assigned_users = array_map('intval', $_POST['lift_doc_assigned_users']);
-                        
+
                         // Validate that all assigned users have the documents_user role
                         $valid_users = array();
                         foreach ($assigned_users as $user_id) {
@@ -2060,7 +2046,7 @@ class LIFT_Docs_Admin {
                                 $valid_users[] = $user_id;
                             }
                         }
-                        
+
                         update_post_meta($post_id, '_lift_doc_assigned_users', $valid_users);
                     } else {
                         delete_post_meta($post_id, '_lift_doc_assigned_users');
@@ -2068,7 +2054,7 @@ class LIFT_Docs_Admin {
                 }
             }
         }
-        
+
         // Check document forms nonce
         if (isset($_POST['lift_docs_forms_meta_box_nonce']) && wp_verify_nonce($_POST['lift_docs_forms_meta_box_nonce'], 'lift_docs_forms_meta_box')) {
             if (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) {
@@ -2076,23 +2062,23 @@ class LIFT_Docs_Admin {
                     // Handle assigned forms
                     if (isset($_POST['lift_doc_assigned_forms']) && is_array($_POST['lift_doc_assigned_forms'])) {
                         $assigned_forms = array_map('intval', $_POST['lift_doc_assigned_forms']);
-                        
+
                         // Validate that all assigned forms exist
                         $valid_forms = array();
                         global $wpdb;
                         $forms_table = $wpdb->prefix . 'lift_forms';
-                        
+
                         foreach ($assigned_forms as $form_id) {
                             $form_exists = $wpdb->get_var($wpdb->prepare(
                                 "SELECT COUNT(*) FROM $forms_table WHERE id = %d AND status = 'active'",
                                 $form_id
                             ));
-                            
+
                             if ($form_exists) {
                                 $valid_forms[] = $form_id;
                             }
                         }
-                        
+
                         update_post_meta($post_id, '_lift_doc_assigned_forms', $valid_forms);
                     } else {
                         delete_post_meta($post_id, '_lift_doc_assigned_forms');
@@ -2100,7 +2086,7 @@ class LIFT_Docs_Admin {
                 }
             }
         }
-        
+
         // Check document archive nonce
         if (isset($_POST['lift_docs_archive_meta_box_nonce']) && wp_verify_nonce($_POST['lift_docs_archive_meta_box_nonce'], 'lift_docs_archive_meta_box')) {
             if (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) {
@@ -2115,7 +2101,7 @@ class LIFT_Docs_Admin {
             }
         }
     }
-    
+
     /**
      * Clean up old layout settings meta (since they're now global)
      */
@@ -2124,16 +2110,16 @@ class LIFT_Docs_Admin {
         if (get_option('lift_docs_layout_cleanup_done', false)) {
             return;
         }
-        
+
         global $wpdb;
-        
+
         // Remove all _lift_doc_layout_settings meta
         $wpdb->delete(
             $wpdb->postmeta,
             array('meta_key' => '_lift_doc_layout_settings'),
             array('%s')
         );
-        
+
         // Mark cleanup as done
         update_option('lift_docs_layout_cleanup_done', true);
     }
@@ -2146,7 +2132,7 @@ class LIFT_Docs_Admin {
         if (get_option('lift_docs_roles_created', false)) {
             return;
         }
-        
+
         // Create Documents role with specific capabilities
         $documents_capabilities = array(
             'read' => true,
@@ -2155,15 +2141,15 @@ class LIFT_Docs_Admin {
             'read_lift_document' => true,
             'read_private_lift_documents' => true,
         );
-        
+
         add_role(
             'documents_user',
             __('Documents User', 'lift-docs-system'),
             $documents_capabilities
         );
-        
+
         // Add document capabilities to existing roles
-        
+
         // Editor role - can manage documents
         $editor = get_role('editor');
         if ($editor) {
@@ -2185,7 +2171,7 @@ class LIFT_Docs_Admin {
             $editor->add_cap('delete_lift_doc_categories');
             $editor->add_cap('assign_lift_doc_categories');
         }
-        
+
         // Administrator role - full access
         $admin = get_role('administrator');
         if ($admin) {
@@ -2209,7 +2195,7 @@ class LIFT_Docs_Admin {
             $admin->add_cap('delete_lift_doc_categories');
             $admin->add_cap('assign_lift_doc_categories');
         }
-        
+
         // Mark roles as created
         update_option('lift_docs_roles_created', true);
     }
@@ -2220,14 +2206,14 @@ class LIFT_Docs_Admin {
     private function get_total_views() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
+
         $total = $wpdb->get_var(
             "SELECT COUNT(*) FROM $table_name WHERE action = 'view'"
         );
-        
+
         return $total ? $total : 0;
     }
-    
+
     /**
      * Display recent documents
      */
@@ -2237,7 +2223,7 @@ class LIFT_Docs_Admin {
             'posts_per_page' => 5,
             'post_status' => 'publish'
         ));
-        
+
         if ($recent_docs) {
             echo '<ul>';
             foreach ($recent_docs as $doc) {
@@ -2251,22 +2237,22 @@ class LIFT_Docs_Admin {
             echo '<p>' . __('No documents found.', 'lift-docs-system') . '</p>';
         }
     }
-    
+
     /**
      * Enqueue admin scripts and styles
      */
     public function enqueue_admin_scripts($hook) {
         global $pagenow, $post_type;
-        
+
         // Enqueue Font Awesome for all admin pages of this plugin
         wp_enqueue_style('font-awesome-6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
-        
+
         // Enqueue LIFT Forms scripts on forms pages
         if (strpos($hook, 'lift-forms') !== false && class_exists('LIFT_Forms')) {
             $lift_forms = new LIFT_Forms();
             $lift_forms->enqueue_admin_scripts($hook);
         }
-        
+
         // Load on document edit/add pages for media uploader
         if (($pagenow == 'post.php' || $pagenow == 'post-new.php') && $post_type == 'lift_document') {
             // Enqueue WordPress Media Library
@@ -2275,18 +2261,18 @@ class LIFT_Docs_Admin {
             wp_enqueue_script('thickbox');
             wp_enqueue_style('thickbox');
         }
-        
+
         // Only load modal scripts on document list page
         if ('edit.php' !== $hook || !isset($_GET['post_type']) || $_GET['post_type'] !== 'lift_document') {
             return;
         }
-        
+
         // Enqueue admin styles for document list
         wp_enqueue_style('lift-docs-admin', plugin_dir_url(__FILE__) . '../assets/css/admin.css', array(), '1.0.0');
-        
+
         wp_enqueue_script('lift-docs-admin-modal', plugin_dir_url(__FILE__) . '../assets/js/admin-modal.js', array('jquery'), '1.0.0', true);
         wp_enqueue_style('lift-docs-admin-modal', plugin_dir_url(__FILE__) . '../assets/css/admin-modal.css', array(), '1.0.0');
-        
+
         wp_localize_script('lift-docs-admin-modal', 'liftDocsAdmin', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('get_admin_document_details'),
@@ -2310,7 +2296,7 @@ class LIFT_Docs_Admin {
                 'statusUpdateError' => __('Error updating status', 'lift-docs-system')
             )
         ));
-        
+
         // Add inline script for status dropdown functionality
         wp_add_inline_script('lift-docs-admin-modal', '
             jQuery(document).ready(function($) {
@@ -2321,13 +2307,13 @@ class LIFT_Docs_Admin {
                     var newStatus = $dropdown.val();
                     var oldColor = $dropdown.css("background-color");
                     var newColor = $dropdown.find("option:selected").data("color");
-                    
+
                     // Update dropdown color immediately
                     $dropdown.css("background-color", newColor);
-                    
+
                     // Show loading state
                     $dropdown.prop("disabled", true);
-                    
+
                     $.ajax({
                         url: liftDocsAdmin.ajaxUrl,
                         type: "POST",
@@ -2342,7 +2328,7 @@ class LIFT_Docs_Admin {
                                 // Show success message
                                 var successMsg = $("<div class=\"notice notice-success is-dismissible\" style=\"position: fixed; top: 32px; right: 20px; z-index: 9999; max-width: 300px;\"><p>" + liftDocsAdmin.strings.statusUpdated + "</p></div>");
                                 $("body").append(successMsg);
-                                
+
                                 // Auto-dismiss after 3 seconds
                                 setTimeout(function() {
                                     successMsg.fadeOut().remove();
@@ -2366,19 +2352,19 @@ class LIFT_Docs_Admin {
             });
         ');
     }
-    
+
     /**
      * Add document details modal to admin footer
      */
     public function add_document_details_modal() {
         $current_screen = get_current_screen();
-        
+
         // Only add modal on document list page
         if (!$current_screen || $current_screen->id !== 'edit-lift_document') {
             return;
         }
         ?>
-        
+
         <!-- Document Details Modal -->
         <div id="lift-document-details-modal" class="lift-modal" style="display: none;">
             <div class="lift-modal-content">
@@ -2386,7 +2372,7 @@ class LIFT_Docs_Admin {
                     <h2 id="lift-modal-title"><?php _e('Document Details', 'lift-docs-system'); ?></h2>
                     <button type="button" class="lift-modal-close">&times;</button>
                 </div>
-                
+
                 <div class="lift-modal-body" id="lift-modal-body">
                     <!-- Content will be loaded via AJAX -->
                     <div style="text-align: center; padding: 40px;">
@@ -2394,7 +2380,7 @@ class LIFT_Docs_Admin {
                         Loading document details...
                     </div>
                 </div>
-                
+
                 <div class="lift-modal-footer">
                     <button type="button" class="button button-primary" onclick="jQuery('#lift-document-details-modal').hide(); jQuery('#lift-modal-backdrop').hide();">
                         <?php _e('Close', 'lift-docs-system'); ?>
@@ -2402,9 +2388,9 @@ class LIFT_Docs_Admin {
                 </div>
             </div>
         </div>
-        
+
         <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
-        
+
         <!-- Submission Details Modal (WordPress Style) -->
         <div id="submission-detail-modal-from-doc" class="wp-core-ui" style="display: none;">
             <div class="media-modal wp-core-ui">
@@ -2438,10 +2424,10 @@ class LIFT_Docs_Admin {
             </div>
             <div class="media-modal-backdrop"></div>
         </div>
-        
+
         <?php
     }
-    
+
     /**
      * Handle user role update
      */
@@ -2449,17 +2435,17 @@ class LIFT_Docs_Admin {
         if (!current_user_can('manage_options')) {
             wp_die(__('You do not have permission to manage users.', 'lift-docs-system'));
         }
-        
+
         if (!isset($_POST['user_id']) || !isset($_POST['new_role'])) {
             add_action('admin_notices', function() {
                 echo '<div class="notice notice-error"><p>' . __('Invalid request.', 'lift-docs-system') . '</p></div>';
             });
             return;
         }
-        
+
         $user_id = intval($_POST['user_id']);
         $new_role = sanitize_text_field($_POST['new_role']);
-        
+
         $user = get_user_by('id', $user_id);
         if (!$user) {
             add_action('admin_notices', function() {
@@ -2467,27 +2453,27 @@ class LIFT_Docs_Admin {
             });
             return;
         }
-        
+
         // Verify nonce
         if (!wp_verify_nonce($_POST['_wpnonce'], 'update_user_role_' . $user_id)) {
             wp_die(__('Security check failed.', 'lift-docs-system'));
         }
-        
+
         $user->set_role($new_role);
-        
+
         add_action('admin_notices', function() use ($user) {
-            echo '<div class="notice notice-success"><p>' . 
-                 sprintf(__('User %s role updated successfully.', 'lift-docs-system'), $user->display_name) . 
+            echo '<div class="notice notice-success"><p>' .
+                 sprintf(__('User %s role updated successfully.', 'lift-docs-system'), $user->display_name) .
                  '</p></div>';
         });
     }
-    
+
     /**
      * Display users summary
      */
     private function display_users_summary() {
         $users_by_role = array();
-        
+
         // Get all users with document-related capabilities
         $document_users = get_users(array(
             'meta_query' => array(
@@ -2498,10 +2484,10 @@ class LIFT_Docs_Admin {
                 )
             )
         ));
-        
+
         $admin_users = get_users(array('role' => 'administrator'));
         $editor_users = get_users(array('role' => 'editor'));
-        
+
         ?>
         <div class="users-stats">
             <div class="stat-item">
@@ -2519,7 +2505,7 @@ class LIFT_Docs_Admin {
         </div>
         <?php
     }
-    
+
     /**
      * Display users with documents role
      */
@@ -2533,12 +2519,12 @@ class LIFT_Docs_Admin {
                 )
             )
         ));
-        
+
         if (empty($document_users)) {
             echo '<p>' . __('No users with Documents role found.', 'lift-docs-system') . '</p>';
             return;
         }
-        
+
         ?>
         <table class="wp-list-table widefat fixed striped">
             <thead>
@@ -2553,9 +2539,9 @@ class LIFT_Docs_Admin {
             </thead>
             <tbody>
                 <?php foreach ($document_users as $user): ?>
-                <?php 
+                <?php
                 $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
-                
+
                 // Count assigned documents for this user
                 $assigned_docs = get_posts(array(
                     'post_type' => 'lift_document',
@@ -2582,15 +2568,15 @@ class LIFT_Docs_Admin {
                         <div id="user-code-cell-<?php echo $user->ID; ?>">
                             <?php if ($user_code): ?>
                                 <strong style="color: #0073aa; font-family: monospace;"><?php echo esc_html($user_code); ?></strong><br>
-                                <button type="button" class="button button-secondary generate-user-code-btn-mgmt" 
-                                        data-user-id="<?php echo $user->ID; ?>" 
+                                <button type="button" class="button button-secondary generate-user-code-btn-mgmt"
+                                        data-user-id="<?php echo $user->ID; ?>"
                                         style="margin-top: 5px; font-size: 11px;">
                                     <?php _e('Generate New Code', 'lift-docs-system'); ?>
                                 </button>
                             <?php else: ?>
                                 <span style="color: #d63638; font-style: italic;"><?php _e('No Code', 'lift-docs-system'); ?></span><br>
-                                <button type="button" class="button button-primary generate-user-code-btn-mgmt" 
-                                        data-user-id="<?php echo $user->ID; ?>" 
+                                <button type="button" class="button button-primary generate-user-code-btn-mgmt"
+                                        data-user-id="<?php echo $user->ID; ?>"
                                         style="margin-top: 5px; font-size: 11px;">
                                     <?php _e('Generate Code', 'lift-docs-system'); ?>
                                 </button>
@@ -2617,8 +2603,8 @@ class LIFT_Docs_Admin {
                             <a href="<?php echo get_edit_user_link($user->ID); ?>" class="button">
                                 <?php _e('Edit User', 'lift-docs-system'); ?>
                             </a>
-                            <a href="<?php echo admin_url('edit.php?post_type=lift_document&assigned_user=' . $user->ID); ?>" 
-                               class="button button-primary" 
+                            <a href="<?php echo admin_url('edit.php?post_type=lift_document&assigned_user=' . $user->ID); ?>"
+                               class="button button-primary"
                                style="background: #0073aa; border-color: #0073aa; color: white;"
                                title="<?php echo sprintf(__('View all %d documents assigned to %s', 'lift-docs-system'), $assigned_count, $user->display_name); ?>">
                                 <span class="dashicons dashicons-text-page" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;"></span>
@@ -2630,19 +2616,19 @@ class LIFT_Docs_Admin {
                 <?php endforeach; ?>
             </tbody>
         </table>
-        
+
         <script type="text/javascript">
         jQuery(document).ready(function($) {
             // Handle Generate User Code button click in Document Users Management
             $(document).on('click', '.generate-user-code-btn-mgmt', function(e) {
                 e.preventDefault();
-                
+
                 var $button = $(this);
                 var userId = $button.data('user-id');
                 var $cell = $('#user-code-cell-' + userId);
                 var isRegenerate = $button.hasClass('button-secondary');
                 var originalText = $button.text();
-                
+
                 // Confirm if regenerating existing code
                 if (isRegenerate) {
                     var confirmMessage = '<?php _e("Are you sure you want to generate a new User Code? This will replace the existing code and may affect document access.", "lift-docs-system"); ?>';
@@ -2650,10 +2636,10 @@ class LIFT_Docs_Admin {
                         return;
                     }
                 }
-                
+
                 // Disable button and show loading
                 $button.prop('disabled', true).text('<?php _e("Generating...", "lift-docs-system"); ?>');
-                
+
                 // AJAX request to generate code
                 $.ajax({
                     url: ajaxurl,
@@ -2670,21 +2656,21 @@ class LIFT_Docs_Admin {
                                          '<button type="button" class="button button-secondary generate-user-code-btn-mgmt" ' +
                                          'data-user-id="' + userId + '" ' +
                                          'style="margin-top: 5px; font-size: 11px;"><?php _e("Generate New Code", "lift-docs-system"); ?></button>';
-                            
+
                             $cell.html(newHtml);
-                            
+
                             // Show success message
-                            var message = isRegenerate ? 
-                                '<?php _e("User Code regenerated successfully!", "lift-docs-system"); ?>' : 
+                            var message = isRegenerate ?
+                                '<?php _e("User Code regenerated successfully!", "lift-docs-system"); ?>' :
                                 '<?php _e("User Code generated successfully!", "lift-docs-system"); ?>';
                             var successMsg = $('<div class="notice notice-success is-dismissible" style="position: fixed; top: 32px; right: 20px; z-index: 9999; max-width: 300px;"><p>' + message + '</p></div>');
                             $('body').append(successMsg);
-                            
+
                             // Auto-dismiss success message after 3 seconds
                             setTimeout(function() {
                                 successMsg.hide().remove();
                             }, 3000);
-                            
+
                         } else {
                             // Show error message
                             var errorMsg = response.data || '<?php _e("Error generating User Code. Please try again.", "lift-docs-system"); ?>';
@@ -2702,7 +2688,7 @@ class LIFT_Docs_Admin {
             });
         });
         </script>
-        
+
         <style type="text/css">
         .generate-user-code-btn-mgmt {
             font-size: 11px !important;
@@ -2710,31 +2696,31 @@ class LIFT_Docs_Admin {
             height: auto !important;
             line-height: 1.2 !important;
         }
-        
+
         /* Primary button for users without code */
         .generate-user-code-btn-mgmt.button-primary {
             background: #00a32a !important;
             border-color: #00a32a !important;
             color: #fff !important;
         }
-        
+
         .generate-user-code-btn-mgmt.button-primary:hover {
             background: #008a20 !important;
             border-color: #008a20 !important;
         }
-        
+
         /* Secondary button for users with existing code */
         .generate-user-code-btn-mgmt.button-secondary {
             background: #f39c12 !important;
             border-color: #f39c12 !important;
             color: #fff !important;
         }
-        
+
         .generate-user-code-btn-mgmt.button-secondary:hover {
             background: #e67e22 !important;
             border-color: #e67e22 !important;
         }
-        
+
         .generate-user-code-btn-mgmt:disabled {
             background: #ddd !important;
             border-color: #ddd !important;
@@ -2744,7 +2730,7 @@ class LIFT_Docs_Admin {
         </style>
         <?php
     }
-    
+
     /**
      * Display user role form
      */
@@ -2752,24 +2738,24 @@ class LIFT_Docs_Admin {
         // Get all users except those who already have documents access
         $all_users = get_users();
         $available_users = array();
-        
+
         foreach ($all_users as $user) {
             if (!user_can($user->ID, 'view_lift_documents') && !in_array('documents_user', $user->roles)) {
                 $available_users[] = $user;
             }
         }
-        
+
         if (empty($available_users)) {
             echo '<p>' . __('All users already have document access or higher roles.', 'lift-docs-system') . '</p>';
             return;
         }
-        
+
         ?>
         <form method="post">
             <?php wp_nonce_field('update_user_role_bulk'); ?>
             <input type="hidden" name="action" value="update_user_role">
             <input type="hidden" name="new_role" value="documents_user">
-            
+
             <table class="form-table">
                 <tr>
                     <th scope="row">
@@ -2790,10 +2776,10 @@ class LIFT_Docs_Admin {
                     </td>
                 </tr>
             </table>
-            
+
             <?php submit_button(__('Grant Document Access', 'lift-docs-system')); ?>
         </form>
-        
+
         <div style="margin-top: 30px; padding: 15px; background: #f0f8ff; border-left: 4px solid #0073aa;">
             <h4><?php _e('Documents User Role Capabilities:', 'lift-docs-system'); ?></h4>
             <ul>
@@ -2805,38 +2791,38 @@ class LIFT_Docs_Admin {
         </div>
         <?php
     }
-    
+
     /**
      * Generate unique user code
      */
     public function generate_unique_user_code() {
         $attempts = 0;
         $max_attempts = 50;
-        
+
         do {
             // Generate random code: 6-8 characters, alphanumeric
             $length = rand(6, 8);
             $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             $code = '';
-            
+
             for ($i = 0; $i < $length; $i++) {
                 $code .= $characters[rand(0, strlen($characters) - 1)];
             }
-            
+
             // Check if code already exists
             $existing_user = get_users(array(
                 'meta_key' => 'lift_docs_user_code',
                 'meta_value' => $code,
                 'meta_compare' => '='
             ));
-            
+
             $attempts++;
-            
+
         } while (!empty($existing_user) && $attempts < $max_attempts);
-        
+
         return $code;
     }
-    
+
     /**
      * Add user code field to user profile (removed - managed only in users list)
      */
@@ -2845,7 +2831,7 @@ class LIFT_Docs_Admin {
         // Now handled only in Users list page
         return;
     }
-    
+
     /**
      * Save user code field
      */
@@ -2853,10 +2839,10 @@ class LIFT_Docs_Admin {
         if (!current_user_can('edit_user', $user_id)) {
             return false;
         }
-        
+
         if (isset($_POST['lift_docs_user_code'])) {
             $user_code = sanitize_text_field($_POST['lift_docs_user_code']);
-            
+
             // Validate code format (6-8 alphanumeric characters)
             if (preg_match('/^[A-Z0-9]{6,8}$/', $user_code)) {
                 // Check for duplicates (excluding current user)
@@ -2866,7 +2852,7 @@ class LIFT_Docs_Admin {
                     'meta_compare' => '=',
                     'exclude' => array($user_id)
                 ));
-                
+
                 if (empty($existing_user)) {
                     update_user_meta($user_id, 'lift_docs_user_code', $user_code);
                 } else {
@@ -2881,7 +2867,7 @@ class LIFT_Docs_Admin {
             }
         }
     }
-    
+
     /**
      * Generate user code when user registers
      */
@@ -2891,7 +2877,7 @@ class LIFT_Docs_Admin {
             $this->generate_and_save_user_code($user_id);
         }
     }
-    
+
     /**
      * Generate user code when role changes to documents_user
      */
@@ -2903,7 +2889,7 @@ class LIFT_Docs_Admin {
             }
         }
     }
-    
+
     /**
      * Generate and save user code
      */
@@ -2911,7 +2897,7 @@ class LIFT_Docs_Admin {
         $user_code = $this->generate_unique_user_code();
         update_user_meta($user_id, 'lift_docs_user_code', $user_code);
     }
-    
+
     /**
      * Add user code column to users list
      */
@@ -2919,7 +2905,7 @@ class LIFT_Docs_Admin {
         $columns['lift_docs_user_code'] = __('User Code', 'lift-docs-system');
         return $columns;
     }
-    
+
     /**
      * Show user code in users list column
      */
@@ -2929,7 +2915,7 @@ class LIFT_Docs_Admin {
             if ($user && in_array('documents_user', $user->roles)) {
                 $user_code = get_user_meta($user_id, 'lift_docs_user_code', true);
                 $nonce = wp_create_nonce('generate_user_code');
-                
+
                 if ($user_code) {
                     // User has a code - show code with regenerate button
                     return '<div id="user-code-cell-' . $user_id . '">' .
@@ -2953,7 +2939,7 @@ class LIFT_Docs_Admin {
         }
         return $value;
     }
-    
+
     /**
      * AJAX handler for generating user code
      */
@@ -2962,33 +2948,33 @@ class LIFT_Docs_Admin {
         if (!isset($_POST['user_id']) || !isset($_POST['nonce'])) {
             wp_send_json_error('Invalid request - missing parameters');
         }
-        
+
         $user_id = intval($_POST['user_id']);
         $nonce = $_POST['nonce'];
-        
+
         // Verify nonce - only support users list context now
         if (!wp_verify_nonce($nonce, 'generate_user_code')) {
             wp_send_json_error('Security check failed');
         }
-        
+
         // Check permissions
         if (!current_user_can('edit_users')) {
             wp_send_json_error('Insufficient permissions');
         }
-        
+
         // Check if user exists and has documents_user role
         $user = get_user_by('id', $user_id);
         if (!$user || !in_array('documents_user', $user->roles)) {
             wp_send_json_error('Invalid user or user does not have Documents User role');
         }
-        
+
         // Generate new code (overwrite existing if any)
         $user_code = $this->generate_unique_user_code();
         update_user_meta($user_id, 'lift_docs_user_code', $user_code);
-        
+
         wp_send_json_success(array('code' => $user_code, 'message' => 'User code generated successfully'));
     }
-    
+
     /**
      * AJAX handler for searching document users
      */
@@ -2997,36 +2983,36 @@ class LIFT_Docs_Admin {
         while (ob_get_level()) {
             ob_end_clean();
         }
-        
+
         // Get request data from either POST or GET
         $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-        
+
         // Check if we have the basic required data
         if (!isset($request_data['action']) || $request_data['action'] !== 'search_document_users') {
             wp_send_json_error('Invalid action');
         }
-        
+
         // Check nonce
         $nonce_valid = false;
         $nonce_received = isset($request_data['nonce']) ? $request_data['nonce'] : '';
-        
+
         if (!empty($nonce_received)) {
             $nonce_valid = wp_verify_nonce($nonce_received, 'search_document_users');
         }
-        
+
         if (!$nonce_valid) {
             wp_send_json_error('Security check failed');
         }
-        
+
         // Check permissions
         if (!current_user_can('edit_posts')) {
             wp_send_json_error('Insufficient permissions');
         }
-        
+
         $search = isset($request_data['search']) ? sanitize_text_field($request_data['search']) : '';
         $page = isset($request_data['page']) ? intval($request_data['page']) : 1;
         $per_page = 20; // Number of results per page
-        
+
         $args = array(
             'meta_query' => array(
                 array(
@@ -3040,19 +3026,19 @@ class LIFT_Docs_Admin {
             'number' => $per_page,
             'offset' => ($page - 1) * $per_page
         );
-        
+
         // Add search functionality
         if (!empty($search)) {
             $args['search'] = '*' . $search . '*';
             $args['search_columns'] = array('display_name', 'user_login', 'user_email');
         }
-        
+
         $users = get_users($args);
         $results = array();
-        
+
         foreach ($users as $user) {
             $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
-            
+
             $results[] = array(
                 'id' => $user->ID,
                 'text' => $user->display_name . ' (' . $user->user_login . ')',
@@ -3062,46 +3048,46 @@ class LIFT_Docs_Admin {
                 'user_code' => $user_code ? $user_code : ''
             );
         }
-        
+
         // Check if there are more results
         $total_args = $args;
         unset($total_args['number']);
         unset($total_args['offset']);
         $total_users = get_users($total_args);
         $more = count($total_users) > ($page * $per_page);
-        
+
         wp_send_json_success(array(
             'results' => $results,
             'more' => $more,
             'total' => count($total_users)
         ));
     }
-    
+
     /**
      * Add JavaScript for users list generate code buttons
      */
     public function add_users_list_script() {
         $current_screen = get_current_screen();
-        
+
         // Only add script on users list page
         if (!$current_screen || $current_screen->id !== 'users') {
             return;
         }
         ?>
-        
+
         <script type="text/javascript">
         jQuery(document).ready(function($) {
             // Handle Generate User Code button click in users list
             $(document).on('click', '.generate-user-code-btn-list', function(e) {
                 e.preventDefault();
-                
+
                 var $button = $(this);
                 var userId = $button.data('user-id');
                 var nonce = $button.data('nonce');
                 var $cell = $('#user-code-cell-' + userId);
                 var isRegenerate = $button.hasClass('button-secondary');
                 var originalText = $button.text();
-                
+
                 // Confirm if regenerating existing code
                 if (isRegenerate) {
                     var confirmMessage = '<?php _e("Are you sure you want to generate a new User Code? This will replace the existing code and may affect document access.", "lift-docs-system"); ?>';
@@ -3109,10 +3095,10 @@ class LIFT_Docs_Admin {
                         return;
                     }
                 }
-                
+
                 // Disable button and show loading
                 $button.prop('disabled', true).text('<?php _e("Generating...", "lift-docs-system"); ?>');
-                
+
                 // AJAX request to generate code
                 $.ajax({
                     url: ajaxurl,
@@ -3129,21 +3115,21 @@ class LIFT_Docs_Admin {
                                          '<button type="button" class="button button-secondary generate-user-code-btn-list" ' +
                                          'data-user-id="' + userId + '" data-nonce="' + nonce + '" ' +
                                          'style="margin-top: 5px; font-size: 11px;"><?php _e("Generate New Code", "lift-docs-system"); ?></button>';
-                            
+
                             $cell.html(newHtml);
-                            
+
                             // Show success message
-                            var message = isRegenerate ? 
-                                '<?php _e("User Code regenerated successfully!", "lift-docs-system"); ?>' : 
+                            var message = isRegenerate ?
+                                '<?php _e("User Code regenerated successfully!", "lift-docs-system"); ?>' :
                                 '<?php _e("User Code generated successfully!", "lift-docs-system"); ?>';
                             var successMsg = $('<div class="notice notice-success is-dismissible" style="margin: 10px 0; position: fixed; top: 32px; right: 20px; z-index: 9999; max-width: 300px;"><p>' + message + '</p></div>');
                             $('body').append(successMsg);
-                            
+
                             // Auto-dismiss success message after 3 seconds
                             setTimeout(function() {
                                 successMsg.hide().remove();
                             }, 3000);
-                            
+
                         } else {
                             // Show error message
                             var errorMsg = response.data || '<?php _e("Error generating User Code. Please try again.", "lift-docs-system"); ?>';
@@ -3161,7 +3147,7 @@ class LIFT_Docs_Admin {
             });
         });
         </script>
-        
+
         <style type="text/css">
         .generate-user-code-btn-list {
             font-size: 11px !important;
@@ -3169,31 +3155,31 @@ class LIFT_Docs_Admin {
             height: auto !important;
             line-height: 1.2 !important;
         }
-        
+
         /* Primary button for users without code */
         .generate-user-code-btn-list.button-primary {
             background: #00a32a !important;
             border-color: #00a32a !important;
             color: #fff !important;
         }
-        
+
         .generate-user-code-btn-list.button-primary:hover {
             background: #008a20 !important;
             border-color: #008a20 !important;
         }
-        
+
         /* Secondary button for users with existing code */
         .generate-user-code-btn-list.button-secondary {
             background: #f39c12 !important;
             border-color: #f39c12 !important;
             color: #fff !important;
         }
-        
+
         .generate-user-code-btn-list.button-secondary:hover {
             background: #e67e22 !important;
             border-color: #e67e22 !important;
         }
-        
+
         .generate-user-code-btn-list:disabled {
             background: #ddd !important;
             border-color: #ddd !important;
@@ -3201,10 +3187,10 @@ class LIFT_Docs_Admin {
             cursor: not-allowed !important;
         }
         </style>
-        
+
         <?php
     }
-    
+
     /**
      * LIFT Forms admin page
      */
@@ -3217,7 +3203,7 @@ class LIFT_Docs_Admin {
             echo '<div class="wrap"><h1>LIFT Forms</h1><p>LIFT Forms class not found. Please check if the forms module is properly loaded.</p></div>';
         }
     }
-    
+
     /**
      * LIFT Forms builder page
      */
@@ -3230,7 +3216,7 @@ class LIFT_Docs_Admin {
             echo '<div class="wrap"><h1>Form Builder</h1><p>LIFT Forms class not found. Please check if the forms module is properly loaded.</p></div>';
         }
     }
-    
+
     /**
      * LIFT Forms submissions page
      */
@@ -3243,7 +3229,7 @@ class LIFT_Docs_Admin {
             echo '<div class="wrap"><h1>Form Submissions</h1><p>LIFT Forms class not found. Please check if the forms module is properly loaded.</p></div>';
         }
     }
-    
+
     /**
      * Get admin document details for modal (AJAX handler)
      */
@@ -3252,49 +3238,49 @@ class LIFT_Docs_Admin {
         if (!wp_verify_nonce($_POST['nonce'], 'get_admin_document_details')) {
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
-        
+
         // Check user permissions
         if (!current_user_can('manage_options') && !current_user_can('edit_lift_documents')) {
             wp_send_json_error(__('Access denied', 'lift-docs-system'));
         }
-        
+
         $document_id = intval($_POST['document_id']);
         $document = get_post($document_id);
-        
+
         if (!$document || $document->post_type !== 'lift_document') {
             wp_send_json_error(__('Document not found', 'lift-docs-system'));
         }
-        
+
         // Get document data
         $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
         $assigned_users = is_array($assigned_users) ? $assigned_users : array();
-        
+
         $assigned_forms = get_post_meta($document->ID, '_lift_doc_assigned_forms', true);
         $assigned_forms = is_array($assigned_forms) ? $assigned_forms : array();
-        
+
         $views = get_post_meta($document->ID, '_lift_doc_views', true);
         $downloads = get_post_meta($document->ID, '_lift_doc_downloads', true);
-        
+
         // Get document status
         $current_status = get_post_meta($document->ID, '_lift_doc_status', true);
         if (empty($current_status)) {
             $current_status = 'pending';
         }
-        
+
         // Get file URLs
         $file_urls = get_post_meta($document->ID, '_lift_doc_file_urls', true);
         if (empty($file_urls)) {
             $file_urls = array(get_post_meta($document->ID, '_lift_doc_file_url', true));
         }
         $file_urls = array_filter($file_urls);
-        
+
         // Generate Attached files
         if (class_exists('LIFT_Docs_Settings') && LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
             $view_url = LIFT_Docs_Settings::generate_secure_link($document->ID);
         } else {
             $view_url = get_permalink($document->ID);
         }
-        
+
         // Get user details
         $user_details = array();
         if (!empty($assigned_users)) {
@@ -3309,14 +3295,14 @@ class LIFT_Docs_Admin {
                 }
             }
         }
-        
+
         // Get form details with submission information
         $form_details = array();
         if (!empty($assigned_forms)) {
             global $wpdb;
             $forms_table = $wpdb->prefix . 'lift_forms';
             $submissions_table = $wpdb->prefix . 'lift_form_submissions';
-            
+
             foreach ($assigned_forms as $form_id) {
                 $form = $wpdb->get_row($wpdb->prepare(
                     "SELECT id, name, description FROM $forms_table WHERE id = %d AND status = 'active'",
@@ -3325,13 +3311,13 @@ class LIFT_Docs_Admin {
                 if ($form) {
                     // Check for submissions for this document and form (all users)
                     $submission = $wpdb->get_row($wpdb->prepare(
-                        "SELECT id, submitted_at, user_id FROM $submissions_table 
-                         WHERE form_id = %d AND form_data LIKE %s 
+                        "SELECT id, submitted_at, user_id FROM $submissions_table
+                         WHERE form_id = %d AND form_data LIKE %s
                          ORDER BY submitted_at DESC LIMIT 1",
                         $form_id,
                         '%"_document_id":' . $document_id . '%'
                     ));
-                    
+
                     $form_details[] = array(
                         'id' => $form->id,
                         'name' => $form->name,
@@ -3344,7 +3330,7 @@ class LIFT_Docs_Admin {
                 }
             }
         }
-        
+
         ob_start();
         ?>
         <div class="modal-body-grid">
@@ -3369,17 +3355,13 @@ class LIFT_Docs_Admin {
                         </div>
                     </div>
                 </div>
-
-               
                 <div class="modal-section">
                     <h3><?php _e('Created', 'lift-docs-system'); ?></h3>
                     <p style="margin: 0; color: #646970; font-size: 12px;">
-                        <?php echo get_the_date('M j, Y g:i A', $document->ID); ?> - 
+                        <?php echo get_the_date('M j, Y g:i A', $document->ID); ?> -
                         <?php _e('by', 'lift-docs-system'); ?> <?php echo get_the_author_meta('display_name', $document->post_author); ?>
                     </p>
                 </div>
-
-                
                 <div class="modal-section">
                     <h3><?php _e('Attached files', 'lift-docs-system'); ?></h3>
                     <div class="view-url-box">
@@ -3388,10 +3370,8 @@ class LIFT_Docs_Admin {
                         </a>
                     </div>
                 </div>
-           
-
             </div>
-            
+
             <div class="modal-column-right">
                 <?php if (!empty($file_urls)): ?>
                 <div class="modal-section">
@@ -3460,7 +3440,7 @@ class LIFT_Docs_Admin {
                                 </div>
                                 <div class="form-item">
                                     <div class="form-actions">
-                                        <?php 
+                                        <?php
                                         // Build view form URL with submission data for admin
                                         $view_form_url = home_url('/document-form/' . $document_id . '/' . $form_info['id'] . '/');
                                         if ($form_info['has_submission'] && $form_info['submission_id']) {
@@ -3468,17 +3448,17 @@ class LIFT_Docs_Admin {
                                         } else {
                                             $view_form_url .= '?admin_view=1';
                                         }
-                                        
+
                                         // Build edit form URL for admin
                                         $edit_form_url = home_url('/document-form/' . $document_id . '/' . $form_info['id'] . '/');
                                         if ($form_info['has_submission'] && $form_info['submission_id']) {
                                             $edit_form_url .= '?admin_edit=1&submission_id=' . $form_info['submission_id'];
                                         }
                                         ?>
-                                        <a href="<?php echo esc_url($view_form_url); ?>" 
-                                        class="button button-secondary" 
+                                        <a href="<?php echo esc_url($view_form_url); ?>"
+                                        class="button button-secondary"
                                         target="_blank">
-                                            <?php 
+                                            <?php
                                             if ($form_info['has_submission']) {
                                                 _e('View Submission', 'lift-docs-system');
                                             } else {
@@ -3487,15 +3467,15 @@ class LIFT_Docs_Admin {
                                             ?>
                                         </a>
                                         <?php if ($form_info['has_submission'] && $form_info['submission_id']): ?>
-                                            <a href="<?php echo esc_url($edit_form_url); ?>" 
-                                            class="button" 
+                                            <a href="<?php echo esc_url($edit_form_url); ?>"
+                                            class="button"
                                             target="_blank">
                                                 <?php _e('Edit Submission', 'lift-docs-system'); ?>
                                             </a>
                                         <?php endif; ?>
                                         <?php if ($form_info['has_submission']): ?>
-                                            <button type="button" 
-                                                    class="button view-submission-btn" 
+                                            <button type="button"
+                                                    class="button view-submission-btn"
                                                     data-submission-id="<?php echo esc_attr($form_info['submission_id']); ?>"
                                                     data-nonce="<?php echo wp_create_nonce('lift_forms_get_submission'); ?>">
                                                 <?php _e('View Data', 'lift-docs-system'); ?>
@@ -3522,7 +3502,7 @@ class LIFT_Docs_Admin {
                         'done' => __('Done', 'lift-docs-system'),
                         'cancelled' => __('Cancelled', 'lift-docs-system')
                     );
-                    
+
                     $status_colors = array(
                         'pending' => '#f39c12',
                         'processing' => '#3498db',
@@ -3543,12 +3523,12 @@ class LIFT_Docs_Admin {
         </div>
         <?php
         $content = ob_get_clean();
-        
+
         wp_send_json_success(array(
             'content' => $content
         ));
     }
-    
+
     /**
      * AJAX handler for updating document status
      */
@@ -3557,29 +3537,29 @@ class LIFT_Docs_Admin {
         if (!wp_verify_nonce($_POST['nonce'], 'update_document_status')) {
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
-        
+
         // Check user permissions
         if (!current_user_can('manage_options') && !current_user_can('edit_lift_documents')) {
             wp_send_json_error(__('Access denied', 'lift-docs-system'));
         }
-        
+
         $document_id = intval($_POST['document_id']);
         $new_status = sanitize_text_field($_POST['status']);
-        
+
         // Validate status
         $valid_statuses = array('pending', 'processing', 'done', 'cancelled');
         if (!in_array($new_status, $valid_statuses)) {
             wp_send_json_error(__('Invalid status', 'lift-docs-system'));
         }
-        
+
         $document = get_post($document_id);
         if (!$document || $document->post_type !== 'lift_document') {
             wp_send_json_error(__('Document not found', 'lift-docs-system'));
         }
-        
+
         // Update status
         update_post_meta($document_id, '_lift_doc_status', $new_status);
-        
+
         // Get status label and color
         $status_options = array(
             'pending' => __('Pending', 'lift-docs-system'),
@@ -3587,21 +3567,21 @@ class LIFT_Docs_Admin {
             'done' => __('Done', 'lift-docs-system'),
             'cancelled' => __('Cancelled', 'lift-docs-system')
         );
-        
+
         $status_colors = array(
             'pending' => '#f39c12',
             'processing' => '#3498db',
             'done' => '#27ae60',
             'cancelled' => '#e74c3c'
         );
-        
+
         wp_send_json_success(array(
             'status' => $new_status,
             'label' => $status_options[$new_status],
             'color' => $status_colors[$new_status]
         ));
     }
-    
+
     /**
      * Add assigned user filter dropdown to documents list
      */
@@ -3609,10 +3589,10 @@ class LIFT_Docs_Admin {
         if ($post_type != 'lift_document') {
             return;
         }
-        
+
         $selected_user = isset($_GET['assigned_user']) ? $_GET['assigned_user'] : '';
         $selected_user_data = null;
-        
+
         // If a user is selected, get their data for initial display
         if ($selected_user) {
             $user = get_user_by('id', $selected_user);
@@ -3623,7 +3603,7 @@ class LIFT_Docs_Admin {
                 );
             }
         }
-        
+
         ?>
         <select name="assigned_user" id="assigned_user_filter" class="lift-user-select2" style="min-width: 200px;">
             <option value=""><?php _e('All Assigned Users', 'lift-docs-system'); ?></option>
@@ -3633,7 +3613,7 @@ class LIFT_Docs_Admin {
                 </option>
             <?php endif; ?>
         </select>
-        
+
         <script type="text/javascript">
         jQuery(document).ready(function($) {
             if (typeof $.fn.select2 === 'undefined') {
@@ -3645,10 +3625,10 @@ class LIFT_Docs_Admin {
             } else {
                 initUserSelect2();
             }
-            
+
             function initUserSelect2() {
                 var searchNonce = '<?php echo wp_create_nonce('search_document_users'); ?>';
-                
+
                 $('#assigned_user_filter').select2({
                     placeholder: '<?php _e('Search and select user...', 'lift-docs-system'); ?>',
                     allowClear: true,
@@ -3668,7 +3648,7 @@ class LIFT_Docs_Admin {
                         },
                         processResults: function (data, params) {
                             params.page = params.page || 1;
-                            
+
                             // Handle error responses
                             if (!data.success) {
                                 return {
@@ -3676,7 +3656,7 @@ class LIFT_Docs_Admin {
                                     pagination: { more: false }
                                 };
                             }
-                            
+
                             return {
                                 results: data.data.results || [],
                                 pagination: {
@@ -3691,7 +3671,7 @@ class LIFT_Docs_Admin {
                     },
                     templateResult: function(user) {
                         if (user.loading) return user.text;
-                        
+
                         var markup = '<div class="select2-result-user">';
                         markup += '<div class="select2-result-user__name">' + user.display_name + '</div>';
                         if (user.user_login) {
@@ -3701,7 +3681,7 @@ class LIFT_Docs_Admin {
                             markup += '<div class="select2-result-user__code">Code: ' + user.user_code + '</div>';
                         }
                         markup += '</div>';
-                        
+
                         return markup;
                     },
                     templateSelection: function(user) {
@@ -3711,7 +3691,7 @@ class LIFT_Docs_Admin {
                         return markup;
                     }
                 });
-                
+
                 // Auto-submit form when selection changes
                 $('#assigned_user_filter').on('select2:select select2:clear', function() {
                     $(this).closest('form').submit();
@@ -3719,65 +3699,65 @@ class LIFT_Docs_Admin {
             }
         });
         </script>
-        
+
         <style type="text/css">
         .select2-result-user__name {
             font-weight: bold;
             color: #0073aa;
         }
-        
+
         .select2-result-user__login {
             font-size: 12px;
             color: #666;
             margin-top: 2px;
         }
-        
+
         .select2-result-user__code {
             font-size: 11px;
             color: #999;
             font-family: monospace;
             margin-top: 2px;
         }
-        
+
         .select2-container {
             vertical-align: middle;
         }
-        
+
         .select2-container .select2-selection--single {
             height: 30px;
             line-height: 28px;
         }
-        
+
         .select2-container .select2-selection--single .select2-selection__rendered {
             padding-left: 8px;
             padding-right: 20px;
         }
-        
+
         .select2-container .select2-selection--single .select2-selection__arrow {
             height: 28px;
             right: 3px;
         }
-        
+
         .select2-dropdown {
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        
+
         .select2-search--dropdown .select2-search__field {
             border: 1px solid #ddd;
             border-radius: 4px;
             padding: 6px 8px;
         }
-        
+
         .select2-results__option {
             padding: 8px 12px;
         }
-        
+
         .select2-results__option--highlighted {
             background-color: #0073aa !important;
             color: white !important;
         }
-        
+
         .select2-results__option--highlighted .select2-result-user__name,
         .select2-results__option--highlighted .select2-result-user__login,
         .select2-results__option--highlighted .select2-result-user__code {
@@ -3786,23 +3766,23 @@ class LIFT_Docs_Admin {
         </style>
         <?php
     }
-    
+
     /**
      * Filter documents by assigned user
      */
     public function filter_documents_by_assigned_user($query) {
         global $pagenow;
-        
+
         if (!is_admin() || $pagenow != 'edit.php' || !isset($_GET['post_type']) || $_GET['post_type'] != 'lift_document') {
             return;
         }
-        
+
         if (!isset($_GET['assigned_user']) || empty($_GET['assigned_user'])) {
             return;
         }
-        
+
         $user_id = intval($_GET['assigned_user']);
-        
+
         if ($user_id > 0) {
             $meta_query = array(
                 array(
@@ -3811,7 +3791,7 @@ class LIFT_Docs_Admin {
                     'compare' => 'LIKE'
                 )
             );
-            
+
             $query->set('meta_query', $meta_query);
         }
     }

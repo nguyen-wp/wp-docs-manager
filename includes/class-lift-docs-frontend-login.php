@@ -1,7 +1,7 @@
 <?php
 /**
  * Frontend Login System for Lift Documents
- * 
+ *
  * Handles custom login page and user authentication
  */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
 }
 
 class LIFT_Docs_Frontend_Login {
-    
+
     /**
      * Constructor
      */
@@ -21,39 +21,39 @@ class LIFT_Docs_Frontend_Login {
         add_action('wp_ajax_docs_login', array($this, 'handle_ajax_login'));
         add_action('wp_ajax_nopriv_docs_logout', array($this, 'handle_ajax_logout'));
         add_action('wp_ajax_docs_logout', array($this, 'handle_ajax_logout'));
-        
+
         // Register shortcodes for regular pages
         add_shortcode('docs_login_form', array($this, 'login_form_shortcode'));
         add_shortcode('docs_dashboard', array($this, 'dashboard_shortcode'));
         add_shortcode('document_form', array($this, 'document_form_shortcode'));
-        
+
         // Handle form display
         add_action('template_redirect', array($this, 'handle_form_display'));
         add_action('wp_loaded', array($this, 'check_dashboard_access'), 10);
         add_action('init', array($this, 'check_admin_access'), 1);
         add_action('query_vars', array($this, 'add_query_vars'));
-        
+
         // Hide admin bar for specific pages
         add_action('wp', array($this, 'maybe_hide_admin_bar'));
-        
+
         // Add post states for special pages
         add_filter('display_post_states', array($this, 'add_display_post_states'), 10, 2);
     }
-    
+
     /**
      * Initialize
      */
     public function init() {
         // Add rewrite rule for document forms with new URL structure
         add_rewrite_rule('^document-form/([0-9]+)/([0-9]+)/?$', 'index.php?document_form=1&document_id=$matches[1]&form_id=$matches[2]', 'top');
-        
+
         // Also keep the old rule for backward compatibility
         add_rewrite_rule('^document-form/?$', 'index.php?document_form=1', 'top');
-        
+
         // Flush rewrite rules if needed
         $this->maybe_flush_rewrite_rules();
     }
-    
+
     /**
      * Maybe flush rewrite rules
      */
@@ -65,7 +65,7 @@ class LIFT_Docs_Frontend_Login {
             update_option('lift_docs_form_rewrite_version', LIFT_DOCS_VERSION . '_v3_archived');
         }
     }
-    
+
     /**
      * Add custom query vars
      */
@@ -75,7 +75,7 @@ class LIFT_Docs_Frontend_Login {
         $vars[] = 'form_id';
         return $vars;
     }
-    
+
     /**
      * Check admin access early - on init hook
      */
@@ -84,14 +84,14 @@ class LIFT_Docs_Frontend_Login {
         if (!is_user_logged_in()) {
             return;
         }
-        
+
         $current_user = wp_get_current_user();
-        
+
         // Check if user has documents_user role but NOT admin capabilities
         if (in_array('documents_user', $current_user->roles) && !current_user_can('manage_options')) {
             // Check the current page being accessed
             $request_uri = $_SERVER['REQUEST_URI'] ?? '';
-            
+
             // If accessing wp-admin pages
             if (strpos($request_uri, '/wp-admin/') !== false) {
                 // Allow specific pages/endpoints
@@ -99,7 +99,7 @@ class LIFT_Docs_Frontend_Login {
                     '/wp-admin/admin-ajax.php',
                     '/wp-admin/admin-post.php'
                 );
-                
+
                 $is_allowed = false;
                 foreach ($allowed_patterns as $pattern) {
                     if (strpos($request_uri, $pattern) !== false) {
@@ -107,7 +107,7 @@ class LIFT_Docs_Frontend_Login {
                         break;
                     }
                 }
-                
+
                 // If not allowed, redirect to dashboard
                 if (!$is_allowed) {
                     $dashboard_url = home_url('/document-dashboard/');
@@ -117,15 +117,15 @@ class LIFT_Docs_Frontend_Login {
             }
         }
     }
-    
+
     /**
      * Check if current user has document access
      */
     private function user_has_docs_access() {
-        return current_user_can('view_lift_documents') || 
+        return current_user_can('view_lift_documents') ||
                in_array('documents_user', wp_get_current_user()->roles);
     }
-    
+
     /**
      * Handle form display and dashboard redirect
      */
@@ -135,7 +135,7 @@ class LIFT_Docs_Frontend_Login {
             $this->display_form_page();
             exit;
         }
-        
+
         // Handle login page redirect for logged-in users
         global $post;
         if ($post && $post->post_name === 'document-login') {
@@ -145,7 +145,7 @@ class LIFT_Docs_Frontend_Login {
                 exit;
             }
         }
-        
+
         // Handle dashboard redirect for non-logged users
         if ($post && $post->post_name === 'document-dashboard') {
             if (!is_user_logged_in() || !$this->user_has_docs_access()) {
@@ -155,7 +155,7 @@ class LIFT_Docs_Frontend_Login {
             }
         }
     }
-    
+
     /**
      * Check dashboard access early
      */
@@ -164,7 +164,7 @@ class LIFT_Docs_Frontend_Login {
         if (is_admin()) {
             return;
         }
-        
+
         // Check if we're on the dashboard page
         $request_uri = $_SERVER['REQUEST_URI'] ?? '';
         if (strpos($request_uri, '/document-dashboard') !== false) {
@@ -175,7 +175,7 @@ class LIFT_Docs_Frontend_Login {
             }
         }
     }
-    
+
     /**
      * Display form page
      */
@@ -185,32 +185,32 @@ class LIFT_Docs_Frontend_Login {
             wp_redirect(wp_login_url(home_url('/document-form/')));
             exit;
         }
-        
+
         // Get document_id and form_id from query vars (URL segments) or fallback to $_GET
         $document_id = intval(get_query_var('document_id', $_GET['document_id'] ?? 0));
         $form_id = intval(get_query_var('form_id', $_GET['form_id'] ?? 0));
-        
+
         if (!$document_id || !$form_id) {
             wp_die(__('Invalid parameters.', 'lift-docs-system'), __('Error', 'lift-docs-system'));
         }
-        
+
         // Verify user has access to the document
         if (!$this->user_can_view_document($document_id)) {
             wp_die(__('You do not have access to this document.', 'lift-docs-system'), __('Access Denied', 'lift-docs-system'));
         }
-        
+
         // Additional check: Verify document is not archived (except for admin)
         $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
         if (($is_archived === '1' || $is_archived === 1) && !current_user_can('manage_options')) {
             wp_die(__('This document has been archived and is no longer accessible.', 'lift-docs-system'), __('Document Archived', 'lift-docs-system'));
         }
-        
+
         // Verify form is assigned to document
         $assigned_forms = get_post_meta($document_id, '_lift_doc_assigned_forms', true);
         if (!is_array($assigned_forms) || !in_array($form_id, $assigned_forms)) {
             wp_die(__('This form is not assigned to the document.', 'lift-docs-system'), __('Access Denied', 'lift-docs-system'));
         }
-        
+
         // Get form data
         global $wpdb;
         $forms_table = $wpdb->prefix . 'lift_forms';
@@ -233,34 +233,32 @@ class LIFT_Docs_Frontend_Login {
         $current_user_id = get_current_user_id();
         $existing_submission = null;
         $is_edit_mode = false;
-        
+
         // ADMIN VIEW DEBUG - Add here where form rendering happens
         // Check for both admin view and admin edit modes
         $is_admin_view = isset($_GET['admin_view']) && $_GET['admin_view'] == '1';
         $is_admin_edit = isset($_GET['admin_edit']) && $_GET['admin_edit'] == '1';
-        
+
         if (($is_admin_view || $is_admin_edit) && !current_user_can('manage_options')) {
             $is_admin_view = false;
             $is_admin_edit = false;
         }
-        
+
         $submission_data = array();
         $submission_info = null;
-        
+
         if (($is_admin_view || $is_admin_edit) && isset($_GET['submission_id'])) {
             $submission_id = intval($_GET['submission_id']);
-            
+
             if ($submission_id) {
                 $submissions_table = $wpdb->prefix . 'lift_form_submissions';
                 $submission_info = $wpdb->get_row($wpdb->prepare(
-                    "SELECT s.*, u.display_name as user_name, u.user_email as user_email 
-                     FROM $submissions_table s 
+                    "SELECT s.*, u.display_name as user_name, u.user_email as user_email
+                     FROM $submissions_table s
                      LEFT JOIN {$wpdb->users} u ON s.user_id = u.ID
                      WHERE s.id = %d",
                     $submission_id
                 ));
-                
-                
                 if ($submission_info) {
                     $submission_data = json_decode($submission_info->form_data, true);
                     if (!is_array($submission_data)) {
@@ -270,7 +268,7 @@ class LIFT_Docs_Frontend_Login {
                 }
             }
         }
-        
+
         if ($current_user_id > 0) {
             // Get LIFT_Forms instance to check for existing submission
             $lift_forms = new LIFT_Forms();
@@ -281,20 +279,20 @@ class LIFT_Docs_Frontend_Login {
         // Render form page
         $this->render_form_page($document, $form, $existing_submission, $is_edit_mode, $is_admin_view, $submission_data, $submission_info, $is_admin_edit);
     }
-    
+
     /**
      * Render form page
      */
     private function render_form_page($document, $form, $existing_submission = null, $is_edit_mode = false, $is_admin_view = false, $submission_data = array(), $submission_info = null, $is_admin_edit = false) {
         $current_user = wp_get_current_user();
-        
+
         // Parse form fields - handle different data structures from Form Builder
         $form_fields = array();
         $raw_form_data = $form->form_fields;
-        
+
         if (!empty($raw_form_data)) {
             $parsed_data = json_decode($raw_form_data, true);
-            
+
             if (is_array($parsed_data)) {
                 // Check if it's the new hierarchical structure with layout
                 if (isset($parsed_data['layout']) && isset($parsed_data['layout']['rows'])) {
@@ -325,17 +323,17 @@ class LIFT_Docs_Frontend_Login {
                 }
             }
         }
-        
+
         // Check document status - prevent form access if status restricts it
         $document_status = get_post_meta($document->ID, '_lift_doc_status', true);
         if (empty($document_status)) {
             $document_status = 'pending';
         }
-        
+
         // Only allow edit/submit if document status is 'pending' OR admin is editing
         $is_form_disabled = ($document_status !== 'pending') && !$is_admin_edit;
         $status_message = '';
-        
+
         if ($is_form_disabled) {
             $status_messages = array(
                 'processing' => __('This form is view-only - document is being processed', 'lift-docs-system'),
@@ -344,7 +342,7 @@ class LIFT_Docs_Frontend_Login {
             );
             $status_message = isset($status_messages[$document_status]) ? $status_messages[$document_status] : __('This form is view-only', 'lift-docs-system');
         }
-        
+
         // Parse existing form data if in edit mode
         $existing_data = array();
         if ($is_edit_mode && $existing_submission) {
@@ -353,10 +351,10 @@ class LIFT_Docs_Frontend_Login {
                 $existing_data = array();
             }
         }
-        
+
         // Disable admin bar for this page
         add_filter('show_admin_bar', '__return_false');
-        
+
         ?>
         <!DOCTYPE html>
         <html <?php language_attributes(); ?>>
@@ -364,10 +362,10 @@ class LIFT_Docs_Frontend_Login {
             <meta charset="<?php bloginfo('charset'); ?>">
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title><?php echo esc_html($form->name); ?> - <?php echo esc_html($document->post_title); ?></title>
-            <?php 
+            <?php
             // Remove admin bar from wp_head
             remove_action('wp_head', '_admin_bar_bump_cb');
-            wp_head(); 
+            wp_head();
             ?>
             <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/secure-frontend.css'; ?>">
             <style>
@@ -378,12 +376,12 @@ class LIFT_Docs_Frontend_Login {
                     text-decoration: none;
                     transition: opacity 0.3s ease;
                 }
-                
+
                 .file-image-link:hover,
                 .signature-image-link:hover {
                     opacity: 0.8;
                 }
-                
+
                 .file-download-link {
                     display: inline-block;
                     padding: 8px 16px;
@@ -393,18 +391,18 @@ class LIFT_Docs_Frontend_Login {
                     border-radius: 4px;
                     transition: background-color 0.3s ease;
                 }
-                
+
                 .file-download-link:hover {
                     background-color: #005a87;
                     color: white;
                     text-decoration: none;
                 }
-                
+
                 .no-signature {
                     color: #666;
                     font-style: italic;
                 }
-                
+
                 .admin-view-file-display .field-description,
                 .admin-view-signature-display .field-description {
                     display: block;
@@ -415,8 +413,6 @@ class LIFT_Docs_Frontend_Login {
         </head>
         <body class="lift-secure-page document-form-page">
             <div class="lift-docs-custom-layout">
-
-
                   <!-- Header Section - Two Column Layout -->
                 <div class="document-form-title">
                     <div class="document-form-header">
@@ -434,28 +430,28 @@ class LIFT_Docs_Frontend_Login {
                                 </div>
                             <?php endif; ?>
                         </div>
-                        
+
                         <!-- Right Column: Document Status Info -->
                         <div class="status-info-column">
                             <?php if ($is_form_disabled): ?>
                                 <?php
                                 $status_class_map = array(
                                     'processing' => 'status-processing-notice',
-                                    'done' => 'status-done-notice', 
+                                    'done' => 'status-done-notice',
                                     'cancelled' => 'status-cancelled-notice'
                                 );
                                 $status_class = isset($status_class_map[$document_status]) ? $status_class_map[$document_status] : 'status-disabled-notice';
-                                
+
                                 $status_icon_map = array(
                                     'processing' => 'fas fa-cog fa-spin',
                                     'done' => 'fas fa-check-circle',
                                     'cancelled' => 'fas fa-ban'
                                 );
                                 $status_icon = isset($status_icon_map[$document_status]) ? $status_icon_map[$document_status] : 'fas fa-exclamation-triangle';
-                                
+
                                 $status_title_map = array(
                                     'processing' => __('Document Processing', 'lift-docs-system'),
-                                    'done' => __('Document Completed', 'lift-docs-system'), 
+                                    'done' => __('Document Completed', 'lift-docs-system'),
                                     'cancelled' => __('Document Cancelled', 'lift-docs-system')
                                 );
                                 $status_title = isset($status_title_map[$document_status]) ? $status_title_map[$document_status] : __('Form Access Restricted', 'lift-docs-system');
@@ -488,8 +484,6 @@ class LIFT_Docs_Frontend_Login {
                         </div>
                     </div>
                 </div>
-              
-                
                 <!-- Form Content Section - Main Area -->
                 <div class="form-content-section">
                     <?php if ($is_admin_edit && $submission_info): ?>
@@ -514,7 +508,7 @@ class LIFT_Docs_Frontend_Login {
                             <small>The specified submission could not be found.</small>
                         </div>
                     <?php endif; ?>
-                    <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" 
+                    <form id="document-form" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>"
                           class="<?php echo $is_admin_edit ? 'admin-edit-form' : ''; ?>"
                           <?php if ($is_form_disabled): ?>style="opacity: 0.6; pointer-events: none;"<?php endif; ?>>
                         <input type="hidden" name="action" value="lift_forms_submit">
@@ -529,9 +523,9 @@ class LIFT_Docs_Frontend_Login {
                             <input type="hidden" name="is_admin_edit" value="1">
                             <input type="hidden" name="original_user_id" value="<?php echo esc_attr($submission_info->user_id); ?>">
                         <?php endif; ?>
-                        
+
                         <div class="form-builder-content">
-                            <?php 
+                            <?php
                             // Pass admin view data to form renderer
                             $render_data = $existing_data;
                             if (($is_admin_view || $is_admin_edit) && !empty($submission_data)) {
@@ -539,7 +533,7 @@ class LIFT_Docs_Frontend_Login {
                             }
                             // Form is disabled only for admin view (not admin edit) or when document status prevents editing
                             $form_fields_disabled = ($is_admin_view && !$is_admin_edit) || $is_form_disabled;
-                            $this->render_form_builder_layout($form_fields, $render_data, $form_fields_disabled, $is_admin_view); 
+                            $this->render_form_builder_layout($form_fields, $render_data, $form_fields_disabled, $is_admin_view);
                             ?>
                         </div>
                     </form>
@@ -558,7 +552,7 @@ class LIFT_Docs_Frontend_Login {
                                     </div>
                                     <div class="mode-details">
                                         <small class="submission-timestamp">
-                                            <?php printf(__('User: %s | %s', 'lift-docs-system'), 
+                                            <?php printf(__('User: %s | %s', 'lift-docs-system'),
                                                 esc_html($submission_info->user_name ?: 'Guest'),
                                                 date_i18n('M j, Y g:i A', strtotime($submission_info->submitted_at))); ?>
                                         </small>
@@ -595,11 +589,11 @@ class LIFT_Docs_Frontend_Login {
                                 </div>
                             <?php endif; ?>
                         </div>
-                        
+
                         <!-- Right Column: Action Buttons -->
                         <div class="action-buttons-column">
                             <button type="submit" form="document-form" class="btn btn-primary action-submit" <?php if ($form_fields_disabled && !$is_admin_edit): ?>disabled<?php endif; ?>>
-                                <?php 
+                                <?php
                                 if ($is_admin_edit) {
                                     echo '<i class="fas fa-user-edit"></i> ' . __('Update as Admin', 'lift-docs-system');
                                 } elseif ($form_fields_disabled) {
@@ -617,7 +611,7 @@ class LIFT_Docs_Frontend_Login {
                                 }
                                 ?>
                             </button>
-                            
+
                             <a href="<?php echo home_url('/document-dashboard/'); ?>" class="btn btn-secondary action-cancel">
                                 <i class="fas fa-arrow-left"></i> <?php _e('Back to Dashboard', 'lift-docs-system'); ?>
                             </a>
@@ -627,20 +621,20 @@ class LIFT_Docs_Frontend_Login {
                 </div>
 
             </div>
-            
+
             <script>
             jQuery(document).ready(function($) {
                 $('#document-form').on('submit', function(e) {
                     e.preventDefault();
-                    
+
                     // Check if form is disabled (but allow admin edit)
                     <?php if ($form_fields_disabled && !$is_admin_edit): ?>
                     alert('<?php echo esc_js($status_message); ?>');
                     return false;
                     <?php endif; ?>
-                    
+
                     var formData = $(this).serialize();
-                    
+
                     // Show different messages for admin edit
                     <?php if ($is_admin_edit): ?>
                     var confirmMsg = '<?php _e('Are you sure you want to update this submission as admin?', 'lift-docs-system'); ?>';
@@ -648,7 +642,7 @@ class LIFT_Docs_Frontend_Login {
                         return false;
                     }
                     <?php endif; ?>
-                    
+
                     $.post($(this).attr('action'), formData, function(response) {
                         if (response.success) {
                             var message = '';
@@ -659,9 +653,9 @@ class LIFT_Docs_Frontend_Login {
                             <?php else: ?>
                                 message = '<?php _e('Form submitted successfully!', 'lift-docs-system'); ?>';
                             <?php endif; ?>
-                            
+
                             alert(message);
-                            
+
                             // Redirect to dashboard if redirect URL is provided, otherwise go back
                             if (response.data && response.data.redirect_url) {
                                 window.location.href = response.data.redirect_url;
@@ -677,13 +671,13 @@ class LIFT_Docs_Frontend_Login {
                 });
             });
             </script>
-            
+
             <?php wp_footer(); ?>
         </body>
         </html>
         <?php
     }
-    
+
     /**
      * Render form field
      */
@@ -691,15 +685,15 @@ class LIFT_Docs_Frontend_Login {
         if (!is_array($field) || !isset($field['id']) || !isset($field['type'])) {
             return;
         }
-        
+
         $field_id = 'field_' . esc_attr($field['id']);
         $field_name = 'form_fields[' . esc_attr($field['id']) . ']';
         $required = isset($field['required']) && $field['required'] ? 'required' : '';
         $disabled = $is_disabled ? 'disabled' : '';
-        
+
         // Get existing value for this field
         $field_value = isset($existing_data[$field['id']]) ? $existing_data[$field['id']] : '';
-        
+
         // Handle different field types
         switch ($field['type']) {
             case 'text':
@@ -708,9 +702,9 @@ class LIFT_Docs_Frontend_Login {
             case 'url':
             case 'tel':
                 ?>
-                <input type="<?php echo esc_attr($field['type']); ?>" 
-                       id="<?php echo $field_id; ?>" 
-                       name="<?php echo $field_name; ?>" 
+                <input type="<?php echo esc_attr($field['type']); ?>"
+                       id="<?php echo $field_id; ?>"
+                       name="<?php echo $field_name; ?>"
                        value="<?php echo esc_attr($field_value); ?>"
                        placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
                        class="form-control"
@@ -718,11 +712,11 @@ class LIFT_Docs_Frontend_Login {
                        <?php echo $disabled; ?>>
                 <?php
                 break;
-                
+
             case 'textarea':
                 ?>
-                <textarea id="<?php echo $field_id; ?>" 
-                          name="<?php echo $field_name; ?>" 
+                <textarea id="<?php echo $field_id; ?>"
+                          name="<?php echo $field_name; ?>"
                           placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
                           class="form-control"
                           rows="<?php echo esc_attr($field['rows'] ?? '4'); ?>"
@@ -730,23 +724,23 @@ class LIFT_Docs_Frontend_Login {
                           <?php echo $disabled; ?>><?php echo esc_textarea($field_value); ?></textarea>
                 <?php
                 break;
-                
+
             case 'select':
             case 'dropdown':
                 ?>
-                <select id="<?php echo $field_id; ?>" 
-                        name="<?php echo $field_name; ?>" 
+                <select id="<?php echo $field_id; ?>"
+                        name="<?php echo $field_name; ?>"
                         class="form-control"
-                        <?php echo $required; ?> 
+                        <?php echo $required; ?>
                         <?php echo $disabled; ?>>
                     <option value=""><?php echo esc_html($field['placeholder'] ?? __('Please select...', 'lift-docs-system')); ?></option>
                     <?php if (isset($field['options']) && is_array($field['options'])): ?>
                         <?php foreach ($field['options'] as $option): ?>
-                            <?php 
+                            <?php
                             $option_value = is_array($option) ? $option['value'] : $option;
                             $option_label = is_array($option) ? $option['label'] : $option;
                             ?>
-                            <option value="<?php echo esc_attr($option_value); ?>" 
+                            <option value="<?php echo esc_attr($option_value); ?>"
                                     <?php selected($field_value, $option_value); ?>>
                                 <?php echo esc_html($option_label); ?>
                             </option>
@@ -755,14 +749,14 @@ class LIFT_Docs_Frontend_Login {
                 </select>
                 <?php
                 break;
-                
+
             case 'checkbox':
                 ?>
                 <div class="checkbox-field">
                     <label>
-                        <input type="checkbox" 
-                               id="<?php echo $field_id; ?>" 
-                               name="<?php echo $field_name; ?>" 
+                        <input type="checkbox"
+                               id="<?php echo $field_id; ?>"
+                               name="<?php echo $field_name; ?>"
                                value="1"
                                <?php checked($field_value, '1'); ?>
                                <?php echo $required; ?>
@@ -772,21 +766,21 @@ class LIFT_Docs_Frontend_Login {
                 </div>
                 <?php
                 break;
-                
+
             case 'radio':
                 if (isset($field['options']) && is_array($field['options'])):
                     ?>
                     <div class="radio-group">
                         <?php foreach ($field['options'] as $index => $option): ?>
-                            <?php 
+                            <?php
                             $option_value = is_array($option) ? $option['value'] : $option;
                             $option_label = is_array($option) ? $option['label'] : $option;
                             $radio_id = $field_id . '_' . $index;
                             ?>
                             <label class="radio-option">
-                                <input type="radio" 
+                                <input type="radio"
                                        id="<?php echo $radio_id; ?>"
-                                       name="<?php echo $field_name; ?>" 
+                                       name="<?php echo $field_name; ?>"
                                        value="<?php echo esc_attr($option_value); ?>"
                                        <?php checked($field_value, $option_value); ?>
                                        <?php echo $required; ?>
@@ -798,7 +792,7 @@ class LIFT_Docs_Frontend_Login {
                     <?php
                 endif;
                 break;
-                
+
             case 'file':
                 if ($is_admin_view && $field_value) {
                     // In admin view, only show image with click to open in new tab
@@ -807,13 +801,13 @@ class LIFT_Docs_Frontend_Login {
                         // Check if it's an image file
                         $image_extensions = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp');
                         $file_extension = strtolower(pathinfo($file_url, PATHINFO_EXTENSION));
-                        
+
                         if (in_array($file_extension, $image_extensions)) {
                             ?>
                             <div class="admin-view-file-display">
                                 <a href="<?php echo esc_url($file_url); ?>" target="_blank" class="file-image-link">
-                                    <img src="<?php echo esc_url($file_url); ?>" 
-                                         alt="<?php _e('Uploaded file', 'lift-docs-system'); ?>" 
+                                    <img src="<?php echo esc_url($file_url); ?>"
+                                         alt="<?php _e('Uploaded file', 'lift-docs-system'); ?>"
                                          style="height: auto; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
                                 </a>
                                 <small class="field-description"><?php _e('Click to view full size', 'lift-docs-system'); ?></small>
@@ -838,9 +832,9 @@ class LIFT_Docs_Frontend_Login {
                 } else {
                     // Normal file input for non-admin view or when no file exists
                     ?>
-                    <input type="file" 
-                           id="<?php echo $field_id; ?>" 
-                           name="<?php echo $field_name; ?>" 
+                    <input type="file"
+                           id="<?php echo $field_id; ?>"
+                           name="<?php echo $field_name; ?>"
                            class="form-control"
                            <?php if (isset($field['accept'])): ?>accept="<?php echo esc_attr($field['accept']); ?>"<?php endif; ?>
                            <?php echo $required; ?>
@@ -851,7 +845,7 @@ class LIFT_Docs_Frontend_Login {
                     <?php
                 }
                 break;
-                
+
             case 'signature':
                 if ($is_admin_view) {
                     // In admin view, only show signature image (if exists) with click to open in new tab
@@ -864,8 +858,8 @@ class LIFT_Docs_Frontend_Login {
                         </style>
                         <div class="admin-view-signature-display">
                             <a href="<?php echo esc_url($field_value); ?>" target="_blank" class="signature-image-link">
-                                <img src="<?php echo esc_url($field_value); ?>" 
-                                     alt="<?php _e('Signature', 'lift-docs-system'); ?>" 
+                                <img src="<?php echo esc_url($field_value); ?>"
+                                     alt="<?php _e('Signature', 'lift-docs-system'); ?>"
                                      style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
                             </a>
                             <small class="field-description"><?php _e('Click to view full size', 'lift-docs-system'); ?></small>
@@ -880,9 +874,9 @@ class LIFT_Docs_Frontend_Login {
                     }
                 } else {
                     ?>
-                    <input type="hidden" 
-                           id="<?php echo $field_id; ?>" 
-                           name="<?php echo $field_name; ?>" 
+                    <input type="hidden"
+                           id="<?php echo $field_id; ?>"
+                           name="<?php echo $field_name; ?>"
                            class="form-control"
                            value="<?php echo esc_attr($field_value); ?>"
                            <?php echo $required; ?>
@@ -896,31 +890,31 @@ class LIFT_Docs_Frontend_Login {
                     <?php
                 }
                 break;
-                
+
             case 'date':
                 ?>
-                <input type="date" 
-                       id="<?php echo $field_id; ?>" 
-                       name="<?php echo $field_name; ?>" 
+                <input type="date"
+                       id="<?php echo $field_id; ?>"
+                       name="<?php echo $field_name; ?>"
                        value="<?php echo esc_attr($field_value); ?>"
                        class="form-control"
                        <?php echo $required; ?>
                        <?php echo $disabled; ?>>
                 <?php
                 break;
-                
+
             case 'time':
                 ?>
-                <input type="time" 
-                       id="<?php echo $field_id; ?>" 
-                       name="<?php echo $field_name; ?>" 
+                <input type="time"
+                       id="<?php echo $field_id; ?>"
+                       name="<?php echo $field_name; ?>"
                        value="<?php echo esc_attr($field_value); ?>"
                        class="form-control"
                        <?php echo $required; ?>
                        <?php echo $disabled; ?>>
                 <?php
                 break;
-                
+
             case 'header':
                 // Header field - render as heading, not input
                 $heading_level = isset($field['heading_level']) ? intval($field['heading_level']) : 2;
@@ -932,7 +926,7 @@ class LIFT_Docs_Frontend_Login {
                 </h<?php echo $heading_level; ?>>
                 <?php
                 break;
-                
+
             case 'paragraph':
                 // Paragraph field - render as paragraph, not input
                 $paragraph_text = isset($field['text']) ? $field['text'] : ($field['label'] ?? '');
@@ -942,13 +936,13 @@ class LIFT_Docs_Frontend_Login {
                 </p>
                 <?php
                 break;
-                
+
             default:
                 // Fallback for unknown field types
                 ?>
-                <input type="text" 
-                       id="<?php echo $field_id; ?>" 
-                       name="<?php echo $field_name; ?>" 
+                <input type="text"
+                       id="<?php echo $field_id; ?>"
+                       name="<?php echo $field_name; ?>"
                        value="<?php echo esc_attr($field_value); ?>"
                        placeholder="<?php echo esc_attr($field['placeholder'] ?? ''); ?>"
                        class="form-control"
@@ -958,7 +952,7 @@ class LIFT_Docs_Frontend_Login {
                 break;
         }
     }
-    
+
     /**
      * Render form builder layout with rows, columns, and fields
      */
@@ -967,7 +961,7 @@ class LIFT_Docs_Frontend_Login {
             echo '<p>' . __('This form has no fields configured.', 'lift-docs-system') . '</p>';
             return;
         }
-        
+
         // Check if fields are organized in rows/columns structure
         if ($this->has_layout_structure($form_fields)) {
             $this->render_structured_layout($form_fields, $existing_data, $is_disabled, $is_admin_view);
@@ -976,7 +970,7 @@ class LIFT_Docs_Frontend_Login {
             $this->render_simple_layout($form_fields, $existing_data, $is_disabled, $is_admin_view);
         }
     }
-    
+
     /**
      * Check if form fields have layout structure (rows/columns)
      */
@@ -989,7 +983,7 @@ class LIFT_Docs_Frontend_Login {
         }
         return false;
     }
-    
+
     /**
      * Render structured layout with rows and columns
      */
@@ -1003,13 +997,13 @@ class LIFT_Docs_Frontend_Login {
             }
             $rows[$row_index][] = $field;
         }
-        
+
         // Sort rows by index
         ksort($rows);
-        
+
         foreach ($rows as $row_index => $row_fields) {
             echo '<div class="form-row" data-row="' . esc_attr($row_index) . '">';
-            
+
             // Group fields by columns within this row
             $columns = array();
             foreach ($row_fields as $field) {
@@ -1019,40 +1013,40 @@ class LIFT_Docs_Frontend_Login {
                 }
                 $columns[$col_index][] = $field;
             }
-            
+
             // Sort columns by index
             ksort($columns);
-            
+
             foreach ($columns as $col_index => $col_fields) {
                 $column_width = $this->calculate_column_width(count($columns), $col_fields);
                 echo '<div class="form-column ' . esc_attr($column_width) . '" data-column="' . esc_attr($col_index) . '">';
-                
+
                 foreach ($col_fields as $field) {
                     $this->render_field_container($field, $existing_data, $is_disabled, $is_admin_view);
                 }
-                
+
                 echo '</div>';
             }
-            
+
             echo '</div>';
         }
     }
-    
+
     /**
      * Render simple linear layout (fallback)
      */
     private function render_simple_layout($form_fields, $existing_data = array(), $is_disabled = false, $is_admin_view = false) {
         echo '<div class="form-row">';
         echo '<div class="form-column col-1">';
-        
+
         foreach ($form_fields as $field) {
             $this->render_field_container($field, $existing_data, $is_disabled, $is_admin_view);
         }
-        
+
         echo '</div>';
         echo '</div>';
     }
-    
+
     /**
      * Calculate column width class based on number of columns
      */
@@ -1063,7 +1057,7 @@ class LIFT_Docs_Frontend_Login {
                 return 'col-custom';
             }
         }
-        
+
         // Default column width based on total columns in row
         switch ($total_columns) {
             case 1: return 'col-1';
@@ -1074,7 +1068,7 @@ class LIFT_Docs_Frontend_Login {
             default: return 'col-auto';
         }
     }
-    
+
     /**
      * Render field container with label and field
      */
@@ -1082,12 +1076,12 @@ class LIFT_Docs_Frontend_Login {
         if (!is_array($field) || !isset($field['id']) || !isset($field['type'])) {
             return;
         }
-        
+
         // Add specific CSS classes for JavaScript targeting
         $field_classes = 'form-field lift-form-field lift-field-' . esc_attr($field['type']);
-        
+
         echo '<div class="' . $field_classes . '" data-field-type="' . esc_attr($field['type']) . '" data-field-id="' . esc_attr($field['id']) . '">';
-        
+
         // Render label for most field types (except checkbox, header, paragraph which handle their own display)
         if (!in_array($field['type'], ['checkbox', 'header', 'paragraph'])) {
             echo '<label for="field_' . esc_attr($field['id']) . '">';
@@ -1097,18 +1091,18 @@ class LIFT_Docs_Frontend_Login {
             }
             echo '</label>';
         }
-        
+
         // Render the actual field
         $this->render_form_field($field, $existing_data, $is_disabled, $is_admin_view);
-        
+
         // Add field description if available
         if (isset($field['description']) && !empty($field['description'])) {
             echo '<small class="field-description">' . esc_html($field['description']) . '</small>';
         }
-        
+
         echo '</div>';
     }
-    
+
     /**
      * Display login page
      */
@@ -1119,45 +1113,45 @@ class LIFT_Docs_Frontend_Login {
             wp_safe_redirect($dashboard_url);
             exit;
         }
-        
+
         // Get custom settings from Interface tab (prioritize new settings)
         $interface_logo_id = get_option('lift_docs_logo_upload', '');
         $interface_logo_width = get_option('lift_docs_custom_logo_width', '200');
         $interface_title = get_option('lift_docs_login_title', '');
         $interface_description = get_option('lift_docs_login_description', '');
-        
+
         // Fallback to old settings if new ones are not set
         $logo_id = !empty($interface_logo_id) ? $interface_logo_id : get_option('lift_docs_login_logo', '');
         $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
         $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
-        
+
         // Debug: Log logo values for troubleshooting
-        
+
         // Use Interface tab title/description if set, otherwise use defaults
         $display_title = !empty($interface_title) ? $interface_title : __('Document Access Portal', 'lift-docs-system');
         $display_description = !empty($interface_description) ? $interface_description : __('Please log in to access your documents', 'lift-docs-system');
-        
+
         // Get color settings (keep existing)
         $bg_color = get_option('lift_docs_login_bg_color', '#f0f4f8');
         $form_bg = get_option('lift_docs_login_form_bg', '#ffffff');
         $btn_color = get_option('lift_docs_login_btn_color', '#1976d2');
         $input_color = get_option('lift_docs_login_input_color', '#e0e0e0');
         $text_color = get_option('lift_docs_login_text_color', '#333333');
-        
+
         // Function to adjust brightness for gradient colors
         function adjustBrightness($color, $percent) {
             $color = str_replace('#', '', $color);
             $r = hexdec(substr($color, 0, 2));
             $g = hexdec(substr($color, 2, 2));
             $b = hexdec(substr($color, 4, 2));
-            
+
             $r = max(0, min(255, $r + ($r * $percent / 100)));
             $g = max(0, min(255, $g + ($g * $percent / 100)));
             $b = max(0, min(255, $b + ($b * $percent / 100)));
-            
+
             return '#' . str_pad(dechex($r), 2, '0', STR_PAD_LEFT) . str_pad(dechex($g), 2, '0', STR_PAD_LEFT) . str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
         }
-        
+
         // Simple HTML without theme header/footer - Clean standalone login page
         ?>
         <!DOCTYPE html>
@@ -1173,13 +1167,13 @@ class LIFT_Docs_Frontend_Login {
                 body.lift-docs-login-page {
                     box-sizing: border-box;
                 }
-                
+
                 body.lift-docs-login-page html {
                     margin: 0 !important;
                     padding: 0 !important;
                     height: 100%;
                 }
-                
+
                 body.lift-docs-login-page {
                     margin: 0 !important;
                     padding: 0 !important;
@@ -1194,7 +1188,7 @@ class LIFT_Docs_Frontend_Login {
                     overflow-x: hidden;
                     background: linear-gradient(135deg, <?php echo esc_attr($bg_color); ?> 0%, <?php echo esc_attr(adjustBrightness($bg_color, -10)); ?> 100%);
                 }
-                
+
                 /* Hide WordPress admin bar completely on login page */
                 body.lift-docs-login-page #wpadminbar {
                     display: none !important;
@@ -1202,53 +1196,53 @@ class LIFT_Docs_Frontend_Login {
                     height: 0 !important;
                     margin: 0 !important;
                 }
-                
+
                 /* Hide ALL theme elements aggressively - only on login page */
                 body.lift-docs-login-page > *:not(.lift-simple-login-container),
-                body.lift-docs-login-page header, 
-                body.lift-docs-login-page footer, 
-                body.lift-docs-login-page main, 
-                body.lift-docs-login-page aside, 
-                body.lift-docs-login-page section, 
+                body.lift-docs-login-page header,
+                body.lift-docs-login-page footer,
+                body.lift-docs-login-page main,
+                body.lift-docs-login-page aside,
+                body.lift-docs-login-page section,
                 body.lift-docs-login-page article,
-                body.lift-docs-login-page .header, 
-                body.lift-docs-login-page .footer, 
-                body.lift-docs-login-page .main, 
-                body.lift-docs-login-page .content, 
-                body.lift-docs-login-page .container, 
+                body.lift-docs-login-page .header,
+                body.lift-docs-login-page .footer,
+                body.lift-docs-login-page .main,
+                body.lift-docs-login-page .content,
+                body.lift-docs-login-page .container,
                 body.lift-docs-login-page .wrapper,
-                body.lift-docs-login-page nav, 
-                body.lift-docs-login-page .nav, 
-                body.lift-docs-login-page .navigation, 
-                body.lift-docs-login-page .menu, 
+                body.lift-docs-login-page nav,
+                body.lift-docs-login-page .nav,
+                body.lift-docs-login-page .navigation,
+                body.lift-docs-login-page .menu,
                 body.lift-docs-login-page .menubar,
-                body.lift-docs-login-page .sidebar, 
-                body.lift-docs-login-page .widget, 
+                body.lift-docs-login-page .sidebar,
+                body.lift-docs-login-page .widget,
                 body.lift-docs-login-page .widget-area,
-                body.lift-docs-login-page .site-header, 
-                body.lift-docs-login-page .site-footer, 
-                body.lift-docs-login-page .site-content, 
+                body.lift-docs-login-page .site-header,
+                body.lift-docs-login-page .site-footer,
+                body.lift-docs-login-page .site-content,
                 body.lift-docs-login-page .site-main,
-                body.lift-docs-login-page .page-header, 
-                body.lift-docs-login-page .page-footer, 
+                body.lift-docs-login-page .page-header,
+                body.lift-docs-login-page .page-footer,
                 body.lift-docs-login-page .page-content,
-                body.lift-docs-login-page .entry-header, 
-                body.lift-docs-login-page .entry-footer, 
+                body.lift-docs-login-page .entry-header,
+                body.lift-docs-login-page .entry-footer,
                 body.lift-docs-login-page .entry-content,
-                body.lift-docs-login-page .post-header, 
-                body.lift-docs-login-page .post-footer, 
+                body.lift-docs-login-page .post-header,
+                body.lift-docs-login-page .post-footer,
                 body.lift-docs-login-page .post-content,
-                body.lift-docs-login-page [class*="header"], 
-                body.lift-docs-login-page [class*="footer"], 
-                body.lift-docs-login-page [class*="nav"], 
-                body.lift-docs-login-page [class*="menu"], 
-                body.lift-docs-login-page [class*="sidebar"], 
+                body.lift-docs-login-page [class*="header"],
+                body.lift-docs-login-page [class*="footer"],
+                body.lift-docs-login-page [class*="nav"],
+                body.lift-docs-login-page [class*="menu"],
+                body.lift-docs-login-page [class*="sidebar"],
                 body.lift-docs-login-page [class*="widget"],
-                body.lift-docs-login-page [id*="header"], 
-                body.lift-docs-login-page [id*="footer"], 
-                body.lift-docs-login-page [id*="nav"], 
-                body.lift-docs-login-page [id*="menu"], 
-                body.lift-docs-login-page [id*="sidebar"], 
+                body.lift-docs-login-page [id*="header"],
+                body.lift-docs-login-page [id*="footer"],
+                body.lift-docs-login-page [id*="nav"],
+                body.lift-docs-login-page [id*="menu"],
+                body.lift-docs-login-page [id*="sidebar"],
                 body.lift-docs-login-page [id*="widget"] {
                     display: none !important;
                     visibility: hidden !important;
@@ -1260,27 +1254,27 @@ class LIFT_Docs_Frontend_Login {
                     margin: 0 !important;
                     padding: 0 !important;
                 }
-                
+
                 /* Hide other common theme elements - only on login page */
                 body.lift-docs-login-page .scroll-to-top,
-                body.lift-docs-login-page [class*="scroll-top"], 
+                body.lift-docs-login-page [class*="scroll-top"],
                 body.lift-docs-login-page [id*="scroll-top"],
-                body.lift-docs-login-page .breadcrumb, 
-                body.lift-docs-login-page .breadcrumbs, 
+                body.lift-docs-login-page .breadcrumb,
+                body.lift-docs-login-page .breadcrumbs,
                 body.lift-docs-login-page [class*="breadcrumb"],
-                body.lift-docs-login-page .social, 
-                body.lift-docs-login-page .social-links, 
+                body.lift-docs-login-page .social,
+                body.lift-docs-login-page .social-links,
                 body.lift-docs-login-page [class*="social"],
-                body.lift-docs-login-page .search-form, 
-                body.lift-docs-login-page .searchform, 
+                body.lift-docs-login-page .search-form,
+                body.lift-docs-login-page .searchform,
                 body.lift-docs-login-page [class*="search"],
-                body.lift-docs-login-page .comments, 
-                body.lift-docs-login-page .comment, 
+                body.lift-docs-login-page .comments,
+                body.lift-docs-login-page .comment,
                 body.lift-docs-login-page [class*="comment"] {
                     display: none !important;
                     visibility: hidden !important;
                 }
-                
+
                 /* Enhanced form container styling - only on login page */
                 body.lift-docs-login-page .lift-simple-login-container {
                     width: 100%;
@@ -1289,13 +1283,13 @@ class LIFT_Docs_Frontend_Login {
                     position: relative;
                     z-index: 9999;
                 }
-                
+
                 body.lift-docs-login-page .lift-login-logo {
                     text-align: center;
                     margin-bottom: 40px;
                     padding: 15px 0;
                 }
-                
+
                 body.lift-docs-login-page .lift-login-logo img {
                     max-width: <?php echo esc_attr($logo_width); ?>;
                     height: auto;
@@ -1303,23 +1297,23 @@ class LIFT_Docs_Frontend_Login {
                     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
                     /* No animation */
                 }
-                
+
                 body.lift-docs-login-page .lift-login-logo img:hover {
                     /* No hover animation */
                 }
-                
+
                 body.lift-docs-login-page .lift-login-form-wrapper {
                     background: <?php echo esc_attr($form_bg); ?>;
                     padding: 50px 40px;
                     border-radius: 20px;
-                    box-shadow: 
+                    box-shadow:
                         0 10px 30px rgba(0, 0, 0, 0.15),
                         0 1px 8px rgba(0, 0, 0, 0.1);
                     backdrop-filter: blur(10px);
                     position: relative;
                     overflow: hidden;
                 }
-                
+
                 body.lift-docs-login-page .lift-login-form-wrapper::before {
                     content: '';
                     position: absolute;
@@ -1329,7 +1323,7 @@ class LIFT_Docs_Frontend_Login {
                     height: 4px;
                     background: linear-gradient(90deg, <?php echo esc_attr($btn_color); ?>, <?php echo esc_attr(adjustBrightness($btn_color, 20)); ?>);
                 }
-                
+
                 body.lift-docs-login-page .lift-login-title {
                     text-align: center;
                     margin: 0 0 20px 0;
@@ -1338,7 +1332,7 @@ class LIFT_Docs_Frontend_Login {
                     color: <?php echo esc_attr($text_color); ?>;
                     letter-spacing: -0.5px;
                 }
-                
+
                 body.lift-docs-login-page .lift-login-description {
                     text-align: center;
                     margin-bottom: 35px;
@@ -1348,13 +1342,13 @@ class LIFT_Docs_Frontend_Login {
                     line-height: 1.6;
                     font-weight: 400;
                 }
-                
+
                 /* Enhanced form field styling - only on login page */
                 body.lift-docs-login-page .lift-form-group {
                     margin-bottom: 25px;
                     position: relative;
                 }
-                
+
                 body.lift-docs-login-page .lift-form-group label {
                     display: block;
                     margin-bottom: 10px;
@@ -1363,7 +1357,7 @@ class LIFT_Docs_Frontend_Login {
                     font-size: 14px;
                     letter-spacing: 0.3px;
                 }
-                
+
                 body.lift-docs-login-page .lift-form-group input[type="text"],
                 body.lift-docs-login-page .lift-form-group input[type="password"] {
                     width: 100%;
@@ -1377,7 +1371,7 @@ class LIFT_Docs_Frontend_Login {
                     /* No animation */
                     font-weight: 500;
                 }
-                
+
                 .lift-form-group input[type="text"]:focus,
                 .lift-form-group input[type="password"]:focus {
                     outline: none;
@@ -1385,17 +1379,17 @@ class LIFT_Docs_Frontend_Login {
                     box-shadow: 0 0 0 3px <?php echo esc_attr($btn_color); ?>20;
                     /* No transform animation */
                 }
-                
+
                 .lift-form-group input[type="text"]::placeholder,
                 .lift-form-group input[type="password"]::placeholder {
                     color: #aaa;
                     font-weight: 400;
                 }
-                
+
                 .password-field-wrapper {
                     position: relative;
                 }
-                
+
                 .toggle-password {
                     position: absolute;
                     right: 16px;
@@ -1409,12 +1403,12 @@ class LIFT_Docs_Frontend_Login {
                     border-radius: 6px;
                     /* No animation */
                 }
-                
+
                 .toggle-password:hover {
                     background: rgba(0, 0, 0, 0.05);
                     color: <?php echo esc_attr($btn_color); ?>;
                 }
-                
+
                 .form-hint {
                     font-size: 13px;
                     color: #888;
@@ -1423,14 +1417,14 @@ class LIFT_Docs_Frontend_Login {
                     font-weight: 400;
                     line-height: 1.4;
                 }
-                
+
                 /* Enhanced checkbox styling */
                 .checkbox-group {
                     display: flex;
                     align-items: center;
                     margin-bottom: 30px;
                 }
-                
+
                 .checkbox-label {
                     display: flex;
                     align-items: center;
@@ -1442,11 +1436,11 @@ class LIFT_Docs_Frontend_Login {
                     font-weight: 500;
                     transition: all 0.2s ease;
                 }
-                
+
                 .checkbox-label:hover {
                     color: <?php echo esc_attr($btn_color); ?>;
                 }
-                
+
                 .checkbox-label input[type="checkbox"] {
                     appearance: none;
                     width: 22px;
@@ -1460,18 +1454,18 @@ class LIFT_Docs_Frontend_Login {
                     flex-shrink: 0;
                     /* No animation */
                 }
-                
+
                 .checkbox-label input[type="checkbox"]:focus {
                     outline: none;
                     box-shadow: 0 0 0 3px <?php echo esc_attr($btn_color); ?>20;
                 }
-                
+
                 .checkbox-label input[type="checkbox"]:checked {
                     background: <?php echo esc_attr($btn_color); ?>;
                     border-color: <?php echo esc_attr($btn_color); ?>;
                     /* No scale animation */
                 }
-                
+
                 .checkbox-label input[type="checkbox"]:checked::after {
                     content: '✓';
                     color: white;
@@ -1483,14 +1477,14 @@ class LIFT_Docs_Frontend_Login {
                     transform: translate(-50%, -50%);
                     /* No animation */
                 }
-                
+
                 /* Checkmark animation removed */
-                
+
                 .checkbox-label:hover input[type="checkbox"]:not(:checked) {
                     border-color: <?php echo esc_attr($btn_color); ?>;
                     background: #f8f9fa;
                 }
-                
+
                 /* Enhanced button styling */
                 .lift-login-btn {
                     width: 100%;
@@ -1511,24 +1505,24 @@ class LIFT_Docs_Frontend_Login {
                     justify-content: center;
                     white-space: nowrap;
                 }
-                
+
                 .lift-login-btn:hover {
                     /* No hover animation */
                     box-shadow: 0 8px 20px <?php echo esc_attr($btn_color); ?>60;
                 }
-                
+
                 .lift-login-btn:active {
                     /* No active animation */
                     box-shadow: 0 2px 8px <?php echo esc_attr($btn_color); ?>40;
                 }
-                
+
                 .lift-login-btn:disabled {
                     opacity: 0.7;
                     cursor: not-allowed;
                     /* No transform */
                     box-shadow: 0 2px 8px <?php echo esc_attr($btn_color); ?>30;
                 }
-                
+
                 .btn-spinner {
                     display: flex;
                     align-items: center;
@@ -1536,12 +1530,12 @@ class LIFT_Docs_Frontend_Login {
                     gap: 10px;
                     white-space: nowrap;
                 }
-                
+
                 .btn-text {
                     display: inline-flex;
                     align-items: center;
                 }
-                
+
                 .spinner {
                     width: 18px;
                     height: 18px;
@@ -1551,14 +1545,14 @@ class LIFT_Docs_Frontend_Login {
                     flex-shrink: 0;
                     animation: spin 1s linear infinite;
                 }
-                
+
                 @keyframes spin {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
-                
+
                 /* Spinner animation removed */
-                
+
                 /* Enhanced form messages - Login specific styles */
                 .login-error {
                     background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
@@ -1570,7 +1564,7 @@ class LIFT_Docs_Frontend_Login {
                     font-weight: 500;
                     box-shadow: 0 2px 8px rgba(198, 40, 40, 0.1);
                 }
-                
+
                 .login-success {
                     background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
                     color: #2e7d32;
@@ -1581,26 +1575,26 @@ class LIFT_Docs_Frontend_Login {
                     font-weight: 500;
                     box-shadow: 0 2px 8px rgba(46, 125, 50, 0.1);
                 }
-                
+
                 .login-help {
                     text-align: center;
                     margin-top: 35px;
                     font-size: 14px;
                     color: #888;
                 }
-                
+
                 .login-help a {
                     color: <?php echo esc_attr($btn_color); ?>;
                     text-decoration: none;
                     font-weight: 600;
                     /* No animation */
                 }
-                
+
                 .login-help a:hover {
                     color: <?php echo esc_attr(adjustBrightness($btn_color, -15)); ?>;
                     text-decoration: underline;
                 }
-                
+
                 /* Responsive Design */
                 @media (max-width: 768px) {
                     body {
@@ -1608,71 +1602,71 @@ class LIFT_Docs_Frontend_Login {
                         align-items: flex-start;
                         padding-top: 40px;
                     }
-                    
+
                     .lift-simple-login-container {
                         max-width: 100%;
                         margin: 0;
                         width: 100%;
                     }
-                    
+
                     .lift-login-form-wrapper {
                         padding: 35px 25px;
                         border-radius: 16px;
                     }
-                    
+
                     .lift-login-title {
                         font-size: 28px;
                     }
-                    
+
                     .lift-form-group input[type="text"],
                     .lift-form-group input[type="password"] {
                         padding: 14px 16px;
                         font-size: 16px; /* Prevent zoom on iOS */
                     }
-                    
+
                     .lift-login-btn {
                         padding: 16px 20px;
                         font-size: 16px;
                     }
                 }
-                
+
                 @media (max-width: 480px) {
                     .lift-login-form-wrapper {
                         padding: 30px 20px;
                         margin: 0 10px;
                     }
-                    
+
                     .lift-login-title {
                         font-size: 24px;
                     }
-                    
+
                     .lift-login-description {
                         font-size: 14px;
                     }
-                    
+
                     .lift-form-group label {
                         font-size: 13px;
                     }
                 }
-                
+
                 /* Dark mode support */
                 @media (prefers-color-scheme: dark) {
                     body {
                         background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
                     }
-                    
+
                     .lift-login-form-wrapper {
                         background: rgba(30, 30, 30, 0.95);
                         border: 1px solid rgba(255, 255, 255, 0.1);
                     }
-                    
+
                     .lift-form-group input[type="text"],
                     .lift-form-group input[type="password"] {
                         background: rgba(255, 255, 255, 0.05);
                         border-color: rgba(255, 255, 255, 0.2);
                         color: #fff;
                     }
-                    
+
                     .lift-form-group input[type="text"]::placeholder,
                     .lift-form-group input[type="password"]::placeholder {
                         color: rgba(255, 255, 255, 0.5);
@@ -1690,43 +1684,43 @@ class LIFT_Docs_Frontend_Login {
                 <?php else: ?>
                 <!-- No logo: ID empty or URL failed -->
                 <?php endif; ?>
-                
+
                 <div class="lift-login-form-wrapper">
                     <h1 class="lift-login-title"><?php echo esc_html($display_title); ?></h1>
                     <?php if (!empty($display_description)): ?>
                     <p class="lift-login-description" style="text-align: center; margin-bottom: 25px; color: <?php echo esc_attr($text_color); ?>; opacity: 0.8;"><?php echo esc_html($display_description); ?></p>
                     <?php endif; ?>
-                    
+
                     <form id="lift-docs-login-form" class="lift-docs-login-form">
                         <?php wp_nonce_field('docs_login_nonce', 'docs_login_nonce'); ?>
-                        
+
                         <div class="lift-form-group">
                             <label for="docs_username"><?php _e('Username, Email or User Code', 'lift-docs-system'); ?></label>
-                            <input type="text" id="docs_username" name="username" 
-                                   placeholder="<?php _e('Enter username, email or user code...', 'lift-docs-system'); ?>" 
+                            <input type="text" id="docs_username" name="username"
+                                   placeholder="<?php _e('Enter username, email or user code...', 'lift-docs-system'); ?>"
                                    required autocomplete="username">
                             <small class="form-hint"><?php _e('You can use your username, email address, or your unique user code', 'lift-docs-system'); ?></small>
                         </div>
-                        
+
                         <div class="lift-form-group">
                             <label for="docs_password"><?php _e('Password', 'lift-docs-system'); ?></label>
                             <div class="password-field-wrapper">
-                                <input type="password" id="docs_password" name="password" 
-                                       placeholder="<?php _e('Enter your password...', 'lift-docs-system'); ?>" 
+                                <input type="password" id="docs_password" name="password"
+                                       placeholder="<?php _e('Enter your password...', 'lift-docs-system'); ?>"
                                        required autocomplete="current-password">
                                 <button type="button" class="toggle-password" tabindex="-1">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div class="lift-form-group checkbox-group">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="docs_remember" name="remember" value="1">
                                 <?php _e('Remember me', 'lift-docs-system'); ?>
                             </label>
                         </div>
-                        
+
                         <div class="lift-form-group">
                             <button type="submit" class="lift-login-btn">
                                 <span class="btn-text"><?php _e('Sign In', 'lift-docs-system'); ?></span>
@@ -1736,13 +1730,13 @@ class LIFT_Docs_Frontend_Login {
                                 </span>
                             </button>
                         </div>
-                        
+
                         <div class="lift-form-messages">
                             <div class="login-error" style="display: none;"></div>
                             <div class="login-success" style="display: none;"></div>
                         </div>
                     </form>
-                    
+
                     <div class="login-help">
                         <a href="<?php echo wp_lostpassword_url(); ?>">
                             <?php _e('Forgot your password?', 'lift-docs-system'); ?>
@@ -1750,26 +1744,26 @@ class LIFT_Docs_Frontend_Login {
                     </div>
                 </div>
             </div>
-            
+
             <?php wp_footer(); ?>
         </body>
         </html>
         <?php
     }
-    
+
     /**
      * Display dashboard page
      */
     private function display_dashboard_page() {
         // Get theme header
         get_header();
-        
+
         $current_user = wp_get_current_user();
         $user_code = get_user_meta($current_user->ID, 'lift_docs_user_code', true);
-        
+
         // Get user's assigned documents
         $user_documents = $this->get_user_documents($current_user->ID);
-        
+
         ?>
         <div class="lift-docs-dashboard-container">
             <div class="lift-docs-dashboard-wrapper">
@@ -1791,7 +1785,7 @@ class LIFT_Docs_Frontend_Login {
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Dashboard Content -->
                 <div class="lift-docs-dashboard-content">
                     <!-- Quick Stats -->
@@ -1805,7 +1799,7 @@ class LIFT_Docs_Frontend_Login {
                                 <p><?php _e('Documents', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
-                        
+
                         <div class="stat-item">
                             <div class="stat-icon">
                                 <i class="fas fa-download"></i>
@@ -1815,7 +1809,7 @@ class LIFT_Docs_Frontend_Login {
                                 <p><?php _e('Downloads', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
-                        
+
                         <div class="stat-item">
                             <div class="stat-icon">
                                 <i class="fas fa-eye"></i>
@@ -1825,7 +1819,7 @@ class LIFT_Docs_Frontend_Login {
                                 <p><?php _e('Views', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
-                        
+
                         <div class="stat-item">
                             <div class="stat-icon">
                                 <i class="fas fa-calendar-alt"></i>
@@ -1836,13 +1830,13 @@ class LIFT_Docs_Frontend_Login {
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Document Library -->
                     <div class="documents-section">
                         <div class="section-header">
                             <h2><?php _e('Your Document Library', 'lift-docs-system'); ?></h2>
                         </div>
-                        
+
                         <?php if (!empty($user_documents)): ?>
                             <div class="documents-list" id="documents-list">
                                 <?php foreach ($user_documents as $document): ?>
@@ -1859,19 +1853,19 @@ class LIFT_Docs_Frontend_Login {
                 </div>
             </div>
         </div>
-        
+
         <?php
         // Get theme footer
         get_footer();
     }
-    
+
     /**
      * Get documents assigned to user
      */
     private function get_user_documents($user_id) {
         // Check if current user is admin
         $is_admin = current_user_can('manage_options');
-        
+
         // Get all published documents (no meta_query filtering for archive status here)
         $query_args = array(
             'post_type' => 'lift_document',
@@ -1880,67 +1874,67 @@ class LIFT_Docs_Frontend_Login {
             'orderby' => 'date',
             'order' => 'DESC'
         );
-        
+
         $all_documents = get_posts($query_args);
-        
+
         $user_documents = array();
-        
+
         foreach ($all_documents as $document) {
             $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
-            
+
             // If no specific assignments, only admin can see
             if (empty($assigned_users) || !is_array($assigned_users)) {
                 // Only admin can see unassigned documents
                 if (user_can($user_id, 'manage_options')) {
                     $user_documents[] = $document;
                 }
-            } 
+            }
             // Check if user is specifically assigned
             else if (in_array($user_id, $assigned_users)) {
                 $user_documents[] = $document;
             }
         }
-        
+
         return $user_documents;
     }
-    
+
     /**
      * Get user download count
      */
     private function get_user_download_count($user_id) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
+
         $count = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'download'",
             $user_id
         ));
-        
+
         return $count ? $count : 0;
     }
-    
+
     /**
      * Get user view count
      */
     private function get_user_view_count($user_id) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
+
         $count = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'view'",
             $user_id
         ));
-        
+
         return $count ? $count : 0;
     }
-    
+
     /**
      * Generate form URL with new structure
      */
     private function get_form_url($document_id, $form_id) {
         return home_url('/document-form/' . $document_id . '/' . $form_id . '/');
     }
-    
+
     /**
      * Check if user can view document
      */
@@ -1948,7 +1942,7 @@ class LIFT_Docs_Frontend_Login {
         // Use centralized permission checking which includes archive status check
         return LIFT_Docs_Settings::user_can_view_document($document_id);
     }
-    
+
     /**
      * Render document card
      */
@@ -1958,30 +1952,30 @@ class LIFT_Docs_Frontend_Login {
             $file_urls = array(get_post_meta($document->ID, '_lift_doc_file_url', true));
         }
         $file_urls = array_filter($file_urls);
-        
+
         $file_count = count($file_urls);
         $views = get_post_meta($document->ID, '_lift_doc_views', true);
         $downloads = get_post_meta($document->ID, '_lift_doc_downloads', true);
-        
+
         // Check if document is archived
         $is_archived = get_post_meta($document->ID, '_lift_doc_archived', true) === '1';
-        
+
         // Check if current user is admin
         $is_admin = current_user_can('manage_options');
-        
+
         // Get document status
         $document_status = get_post_meta($document->ID, '_lift_doc_status', true);
         if (empty($document_status)) {
             $document_status = 'pending';
         }
-        
+
         // Determine if editing/submitting is disabled based on status or archive status
         // Admin can always access archived documents, regular users cannot
         $archive_restriction = $is_archived && !$is_admin;
         $is_forms_disabled = in_array($document_status, array('processing', 'done', 'cancelled')) || $archive_restriction;
         $is_view_disabled = ($document_status === 'cancelled') || $archive_restriction;
         $is_cancelled = ($document_status === 'cancelled');
-        
+
         // Check if user has downloaded this document
         global $wpdb;
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
@@ -1989,7 +1983,7 @@ class LIFT_Docs_Frontend_Login {
             "SELECT COUNT(*) FROM $table_name WHERE document_id = %d AND user_id = %d AND action = 'download'",
             $document->ID, $user_id
         ));
-        
+
         ?>
         <div class="document-card <?php echo ($is_archived && !$is_admin) ? 'archived-document' : ''; ?> <?php echo ($is_archived && $is_admin) ? 'archived-admin-access' : ''; ?>" data-document-id="<?php echo $document->ID; ?>">
             <div class="document-card-header-meta">
@@ -2048,15 +2042,13 @@ class LIFT_Docs_Frontend_Login {
                     <?php endif; ?>
                 </div>
             </div>
-            
-           
-            
+
             <div class="document-card-actions">
                 <div class="actions-grid">
                     <!-- Cột 1: View Document Links -->
                     <div class="view-actions">
                         <!-- <h4><i class="fas fa-file"></i> Documents</h4> -->
-                        <?php 
+                        <?php
                         // Show Attached files - admin can access archived documents, regular users cannot
                         if ($this->user_can_view_document($document->ID) && (!$is_archived || $is_admin)) {
                             $view_text = __('View Document', 'lift-docs-system');
@@ -2065,17 +2057,17 @@ class LIFT_Docs_Frontend_Login {
                             } else {
                                 $view_url = get_permalink($document->ID);
                             }
-                            
+
                             $link_class = '';
                             $link_style = '';
-                            
+
                             // Add admin notice for archived documents
                             if ($is_archived && $is_admin) {
                                 $view_text .= ' (' . __('Admin Only', 'lift-docs-system') . ')';
                                 $link_class .= ' admin-archived-access';
                                 $link_style = 'border: 2px solid #f39c12; background: #fff3cd; color: #856404;';
                             }
-                            
+
                             if ($is_view_disabled && !$is_archived) {
                                 $link_class .= ' cancelled-link';
                                 $link_style = 'pointer-events: none; opacity: 0.5; text-decoration: line-through; color: #e74c3c;';
@@ -2113,7 +2105,7 @@ class LIFT_Docs_Frontend_Login {
                         }
                         ?>
                     </div>
-                    
+
                     <!-- Cột 2: Form Links -->
                     <div class="view-actions">
                         <!-- <h4><i class="fas fa-file-text"></i> Forms</h4> -->
@@ -2124,13 +2116,13 @@ class LIFT_Docs_Frontend_Login {
                             global $wpdb;
                             $forms_table = $wpdb->prefix . 'lift_forms';
                             $current_user_id = get_current_user_id();
-                            
+
                             foreach ($assigned_forms as $form_id) {
                                 $form = $wpdb->get_row($wpdb->prepare(
                                     "SELECT id, name FROM $forms_table WHERE id = %d AND status = 'active'",
                                     $form_id
                                 ));
-                                
+
                                 if ($form) {
                                     // For archived documents, show form name but no clickable link for regular users only
                                     if ($is_archived && !$is_admin) {
@@ -2143,33 +2135,33 @@ class LIFT_Docs_Frontend_Login {
                                         <?php
                                         continue;
                                     }
-                                    
+
                                     // Use new URL structure: /document-form/document_id/form_id
                                     $form_url = $this->get_form_url($document->ID, $form->id);
-                                    
+
                                     // Check if user has already submitted this form for this document
                                     $has_submitted = false;
                                     $button_text = $form->name;
                                     $button_class = '';
                                     $button_style = '';
-                                    
+
                                     if ($current_user_id > 0) {
                                         $lift_forms = new LIFT_Forms();
                                         $has_submitted = $lift_forms->user_has_submitted_form($current_user_id, $form->id, $document->ID);
-                                        
+
                                         if ($has_submitted) {
                                             $button_text = sprintf(__('Edit %s', 'lift-docs-system'), $form->name);
                                             $button_class = '';
                                         }
                                     }
-                                    
+
                                     // Add admin notice for archived documents
                                     if ($is_archived && $is_admin) {
                                         $button_text .= ' (' . __('Admin Only', 'lift-docs-system') . ')';
                                         $button_class .= ' admin-archived-access';
                                         $button_style = 'border: 2px solid #f39c12; background: #fff3cd; color: #856404;';
                                     }
-                                    
+
                                     // Apply status-based restrictions (but not archive restrictions for admin)
                                     if ($is_forms_disabled && $document_status !== 'cancelled' && !($is_archived && $is_admin)) {
                                         // For processing/done: allow opening form but it will be disabled inside
@@ -2185,8 +2177,8 @@ class LIFT_Docs_Frontend_Login {
                                         $button_text .= ' (' . __('Cancelled', 'lift-docs-system') . ')';
                                     }
                                     ?>
-                                    <a href="<?php echo esc_url($form_url); ?>" 
-                                       class="<?php echo esc_attr($button_class); ?>" 
+                                    <a href="<?php echo esc_url($form_url); ?>"
+                                       class="<?php echo esc_attr($button_class); ?>"
                                        style="<?php echo esc_attr($button_style); ?>"
                                        target="_blank"
                                        <?php if ($is_cancelled): ?>onclick="return false;"<?php endif; ?>>
@@ -2212,7 +2204,7 @@ class LIFT_Docs_Frontend_Login {
         </div>
         <?php
     }
-    
+
     /**
      * Handle AJAX login
      */
@@ -2221,44 +2213,44 @@ class LIFT_Docs_Frontend_Login {
         if (!wp_verify_nonce($_POST['nonce'], 'docs_login_nonce')) {
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
-        
+
         $username = sanitize_text_field($_POST['username']);
         $password = $_POST['password'];
         $remember = isset($_POST['remember']) && $_POST['remember'] === '1';
-        
+
         if (empty($username) || empty($password)) {
             wp_send_json_error(__('Please fill in all required fields.', 'lift-docs-system'));
         }
-        
+
         // Try to find user by username, email, or user code
         $user = $this->find_user_by_login($username);
-        
+
         if (!$user) {
             wp_send_json_error(__('User not found. Please check your credentials.', 'lift-docs-system'));
         }
-        
+
         // Use wp_signon like WordPress login
         $credentials = array(
             'user_login'    => $user->user_login,
             'user_password' => $password,
             'remember'      => $remember
         );
-        
+
         $user_signon = wp_signon($credentials, false);
-        
+
         if (is_wp_error($user_signon)) {
             wp_send_json_error($user_signon->get_error_message());
         }
-        
+
         // Check if user has document access after successful login
         if (!in_array('documents_user', $user_signon->roles) && !user_can($user_signon->ID, 'view_lift_documents')) {
             wp_logout(); // Logout if no access
             wp_send_json_error(__('You do not have permission to access documents.', 'lift-docs-system'));
         }
-        
+
         // Log the login
         $this->log_user_login($user_signon->ID);
-        
+
         // Determine redirect URL
         $redirect_url = '';
         if (!empty($_POST['redirect_to'])) {
@@ -2266,13 +2258,13 @@ class LIFT_Docs_Frontend_Login {
         } else {
             $redirect_url = $this->get_dashboard_url();
         }
-        
+
         wp_send_json_success(array(
             'redirect_url' => $redirect_url,
             'message' => sprintf(__('Welcome, %s!', 'lift-docs-system'), $user->display_name)
         ));
     }
-    
+
     /**
      * Handle AJAX logout
      */
@@ -2282,17 +2274,17 @@ class LIFT_Docs_Frontend_Login {
             wp_logout();
             $this->log_user_logout($user_id);
         }
-        
+
         wp_send_json_success(array(
             'redirect_url' => $this->get_login_url(),
             'message' => __('You have been logged out successfully.', 'lift-docs-system')
         ));
     }
-    
+
     /**
      * Handle AJAX load document content
      */
-    
+
     /**
      * Find user by username, email, or user code
      */
@@ -2300,11 +2292,11 @@ class LIFT_Docs_Frontend_Login {
         // Try username first
         $user = get_user_by('login', $login);
         if ($user) return $user;
-        
+
         // Try email
         $user = get_user_by('email', $login);
         if ($user) return $user;
-        
+
         // Try user code
         $users = get_users(array(
             'meta_key' => 'lift_docs_user_code',
@@ -2312,24 +2304,24 @@ class LIFT_Docs_Frontend_Login {
             'meta_compare' => '=',
             'number' => 1
         ));
-        
+
         return !empty($users) ? $users[0] : false;
     }
-    
+
     /**
      * Public method for debugging - find user by login
      */
     public function debug_find_user($login) {
         return $this->find_user_by_login($login);
     }
-    
+
     /**
      * Log user login
      */
     private function log_user_login($user_id) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
+
         $wpdb->insert(
             $table_name,
             array(
@@ -2342,14 +2334,14 @@ class LIFT_Docs_Frontend_Login {
             array('%d', '%d', '%s', '%s', '%s')
         );
     }
-    
+
     /**
      * Log user logout
      */
     private function log_user_logout($user_id) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
+
         $wpdb->insert(
             $table_name,
             array(
@@ -2362,7 +2354,7 @@ class LIFT_Docs_Frontend_Login {
             array('%d', '%d', '%s', '%s', '%s')
         );
     }
-    
+
     /**
      * Get client IP address
      */
@@ -2380,37 +2372,37 @@ class LIFT_Docs_Frontend_Login {
         }
         return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     }
-    
+
     /**
      * Enqueue scripts and styles
      */
     public function enqueue_scripts() {
         // Load on docs pages OR when shortcodes are present OR on document form pages
         $load_scripts = false;
-        
+
         // Check for URL-based pages
         if (get_query_var('docs_login') || get_query_var('docs_dashboard') || get_query_var('document_form')) {
             $load_scripts = true;
         }
-        
+
         // Check for shortcodes in current page content
         global $post;
         if ($post && (has_shortcode($post->post_content, 'docs_login_form') || has_shortcode($post->post_content, 'docs_dashboard'))) {
             $load_scripts = true;
         }
-        
+
         if (!$load_scripts) {
             return;
         }
-        
+
         // Enqueue secure frontend CSS for document forms
         if (get_query_var('document_form')) {
             wp_enqueue_style('lift-docs-secure-frontend', plugin_dir_url(__FILE__) . '../assets/css/secure-frontend.css', array(), LIFT_DOCS_VERSION);
             wp_enqueue_script('lift-docs-secure-frontend', plugin_dir_url(__FILE__) . '../assets/js/secure-frontend.js', array('jquery'), LIFT_DOCS_VERSION, true);
-            
+
             // Enqueue file upload and signature functionality for document forms
             wp_enqueue_script('lift-file-upload-signature', plugin_dir_url(__FILE__) . '../assets/js/file-upload-signature.js', array('jquery'), '1.0.0', true);
-            
+
             // Localize script for file upload and signature
             wp_localize_script('lift-file-upload-signature', 'liftFormsFrontend', array(
                 'ajaxurl' => admin_url('admin-ajax.php'),
@@ -2428,13 +2420,13 @@ class LIFT_Docs_Frontend_Login {
                 )
             ));
         }
-        
+
         wp_enqueue_script('lift-docs-frontend-login', plugin_dir_url(__FILE__) . '../assets/js/frontend-login.js', array('jquery'), '1.0.0', true);
         wp_enqueue_style('lift-docs-frontend-login', plugin_dir_url(__FILE__) . '../assets/css/frontend-login.css', array(), '1.0.0');
-        
+
         // Enqueue Font Awesome for icons
         wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css', array(), '6.0.0');
-        
+
         // Localize script
         wp_localize_script('lift-docs-frontend-login', 'liftDocsLogin', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
@@ -2452,7 +2444,7 @@ class LIFT_Docs_Frontend_Login {
             )
         ));
     }
-    
+
     /**
      * Get login URL (from page created during activation)
      */
@@ -2468,7 +2460,7 @@ class LIFT_Docs_Frontend_Login {
         }
         return home_url('/document-login/');
     }
-    
+
     /**
      * Get dashboard URL (from page created during activation)
      */
@@ -2484,7 +2476,7 @@ class LIFT_Docs_Frontend_Login {
         }
         return home_url('/document-dashboard/');
     }
-    
+
     /**
      * Login form shortcode
      */
@@ -2494,11 +2486,11 @@ class LIFT_Docs_Frontend_Login {
             'redirect_to' => '', // Custom redirect URL after login
             'show_state' => 'true' // Show login state indicator
         ), $atts);
-        
+
         // Check if user is already logged in - redirect to dashboard
         if (is_user_logged_in() && $this->user_has_docs_access()) {
             $redirect_url = !empty($atts['redirect_to']) ? $atts['redirect_to'] : $this->get_dashboard_url();
-            
+
             // For shortcode, we can't redirect directly, so use JavaScript redirect
             return '<script type="text/javascript">
                 window.location.href = "' . esc_js($redirect_url) . '";
@@ -2507,34 +2499,34 @@ class LIFT_Docs_Frontend_Login {
                 <p>' . sprintf(__('You are already logged in. Redirecting to <a href="%s">Dashboard</a>...', 'lift-docs-system'), $redirect_url) . '</p>
             </div>';
         }
-        
+
         // Get custom settings from Interface tab (prioritize new settings)
         $interface_logo_id = get_option('lift_docs_logo_upload', '');
         $interface_logo_width = get_option('lift_docs_custom_logo_width', '200');
         $interface_title = get_option('lift_docs_login_title', '');
         $interface_description = get_option('lift_docs_login_description', '');
-        
+
         // Fallback to old settings if new ones are not set
         $logo_id = !empty($interface_logo_id) ? $interface_logo_id : get_option('lift_docs_login_logo', '');
         $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
         $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
-        
+
         // Use Interface tab title/description if set, otherwise use defaults
         $display_title = !empty($interface_title) ? $interface_title : __('Documents Login', 'lift-docs-system');
         $display_description = !empty($interface_description) ? $interface_description : __('Access your personal document library', 'lift-docs-system');
-        
+
         // Get color settings (keep existing)
         $bg_color = get_option('lift_docs_login_bg_color', '#f0f4f8');
         $form_bg = get_option('lift_docs_login_form_bg', '#ffffff');
         $btn_color = get_option('lift_docs_login_btn_color', '#1976d2');
         $input_color = get_option('lift_docs_login_input_color', '#e0e0e0');
         $text_color = get_option('lift_docs_login_text_color', '#333333');
-        
+
         // Store redirect URL for AJAX handler
         if (!empty($atts['redirect_to'])) {
             set_transient('docs_login_redirect_' . session_id(), $atts['redirect_to'], 300); // 5 minutes
         }
-        
+
         ob_start();
         ?>
         <style>
@@ -2544,27 +2536,27 @@ class LIFT_Docs_Frontend_Login {
                 display: none !important;
                 visibility: hidden !important;
             }
-            
+
             .lift-docs-login-container.shortcode-version {
                 background-color: <?php echo esc_attr($bg_color); ?>;
                 padding: 40px 20px;
                 border-radius: 12px;
                 margin: 20px 0;
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-login-logo {
                 text-align: center;
                 margin-bottom: 25px;
                 padding: 15px 0;
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-login-logo img {
                 max-width: <?php echo esc_attr($logo_width); ?>;
                 height: auto;
                 border-radius: 8px;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-docs-login-form-container {
                 background: <?php echo esc_attr($form_bg); ?>;
                 padding: 30px;
@@ -2573,32 +2565,32 @@ class LIFT_Docs_Frontend_Login {
                 max-width: 400px;
                 margin: 0 auto;
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-docs-login-header h2 {
                 text-align: center;
                 margin: 0 0 20px 0;
                 color: <?php echo esc_attr($text_color); ?>;
                 font-size: 24px;
             }
-            
+
             .lift-docs-login-container.shortcode-version .description {
                 text-align: center;
                 color: <?php echo esc_attr($text_color); ?>;
                 margin-bottom: 25px;
                 opacity: 0.8;
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-form-group {
                 margin-bottom: 20px;
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-form-group label {
                 display: block;
                 margin-bottom: 6px;
                 font-weight: 500;
                 color: <?php echo esc_attr($text_color); ?>;
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-form-group input[type="text"],
             .lift-docs-login-container.shortcode-version .lift-form-group input[type="password"] {
                 width: 100%;
@@ -2611,12 +2603,12 @@ class LIFT_Docs_Frontend_Login {
                 box-sizing: border-box;
                 transition: none; /* Remove transition animation */
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-form-group input:focus {
                 outline: none;
                 border-color: <?php echo esc_attr($btn_color); ?>;
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-login-btn {
                 width: 100%;
                 padding: 12px;
@@ -2632,24 +2624,24 @@ class LIFT_Docs_Frontend_Login {
                 justify-content: center;
                 white-space: nowrap;
             }
-            
+
             .lift-docs-login-container.shortcode-version .lift-login-btn:hover {
                 opacity: 0.9;
             }
-            
+
             .lift-docs-login-container.shortcode-version .form-hint {
                 font-size: 12px;
                 color: #666;
                 margin-top: 4px;
                 display: block;
             }
-            
+
             .lift-docs-login-container.shortcode-version .checkbox-group {
                 display: flex;
                 align-items: center;
                 margin-bottom: 20px;
             }
-            
+
             .lift-docs-login-container.shortcode-version .checkbox-label {
                 display: flex;
                 align-items: center;
@@ -2659,7 +2651,7 @@ class LIFT_Docs_Frontend_Login {
                 color: <?php echo esc_attr($text_color); ?>;
                 user-select: none;
             }
-            
+
             .lift-docs-login-container.shortcode-version .checkbox-label input[type="checkbox"] {
                 appearance: none;
                 width: 18px;
@@ -2671,12 +2663,12 @@ class LIFT_Docs_Frontend_Login {
                 position: relative;
                 cursor: pointer;
             }
-            
+
             .lift-docs-login-container.shortcode-version .checkbox-label input[type="checkbox"]:checked {
                 background: <?php echo esc_attr($btn_color); ?>;
                 border-color: <?php echo esc_attr($btn_color); ?>;
             }
-            
+
             .lift-docs-login-container.shortcode-version .checkbox-label input[type="checkbox"]:checked::after {
                 content: '✓';
                 color: white;
@@ -2687,18 +2679,18 @@ class LIFT_Docs_Frontend_Login {
                 left: 50%;
                 transform: translate(-50%, -50%);
             }
-            
+
             .lift-docs-login-container.shortcode-version .login-help {
                 text-align: center;
                 margin-top: 20px;
                 font-size: 14px;
             }
-            
+
             .lift-docs-login-container.shortcode-version .login-help a {
                 color: <?php echo esc_attr($btn_color); ?>;
                 text-decoration: none;
             }
-            
+
             .lift-docs-login-container.shortcode-version .login-error {
                 background: #ffebee;
                 color: #c62828;
@@ -2707,7 +2699,7 @@ class LIFT_Docs_Frontend_Login {
                 border-left: 3px solid #c62828;
                 margin-bottom: 10px;
             }
-            
+
             .lift-docs-login-container.shortcode-version .login-success {
                 background: #e8f5e8;
                 color: #2e7d32;
@@ -2717,7 +2709,7 @@ class LIFT_Docs_Frontend_Login {
                 margin-bottom: 10px;
             }
         </style>
-        
+
         <div class="lift-docs-login-container shortcode-version">
             <!-- Shortcode Logo Debug: <?php echo 'ID=' . $logo_id . ', URL=' . $logo_url . ', Time=' . time(); ?> -->
             <?php if ($logo_url): ?>
@@ -2727,7 +2719,7 @@ class LIFT_Docs_Frontend_Login {
             <?php else: ?>
             <!-- No logo in shortcode: ID empty or URL failed -->
             <?php endif; ?>
-            
+
             <div class="lift-docs-login-form-container">
                 <div class="lift-docs-login-header">
                     <h2><?php echo esc_html($display_title); ?></h2>
@@ -2735,38 +2727,38 @@ class LIFT_Docs_Frontend_Login {
                     <p class="description"><?php echo esc_html($display_description); ?></p>
                     <?php endif; ?>
                 </div>
-                
+
                 <form id="lift-docs-login-form" class="lift-docs-login-form">
                     <?php wp_nonce_field('docs_login_nonce', 'docs_login_nonce'); ?>
                     <input type="hidden" name="redirect_to" value="<?php echo esc_attr($atts['redirect_to']); ?>">
-                    
+
                     <div class="lift-form-group">
                         <label for="docs_username"><?php _e('Username, Email or User Code', 'lift-docs-system'); ?></label>
-                        <input type="text" id="docs_username" name="username" 
-                               placeholder="<?php _e('Enter username, email or user code...', 'lift-docs-system'); ?>" 
+                        <input type="text" id="docs_username" name="username"
+                               placeholder="<?php _e('Enter username, email or user code...', 'lift-docs-system'); ?>"
                                required autocomplete="username">
                         <small class="form-hint"><?php _e('You can use your username, email address, or your unique user code', 'lift-docs-system'); ?></small>
                     </div>
-                    
+
                     <div class="lift-form-group">
                         <label for="docs_password"><?php _e('Password', 'lift-docs-system'); ?></label>
                         <div class="password-field-wrapper">
-                            <input type="password" id="docs_password" name="password" 
-                                   placeholder="<?php _e('Enter your password...', 'lift-docs-system'); ?>" 
+                            <input type="password" id="docs_password" name="password"
+                                   placeholder="<?php _e('Enter your password...', 'lift-docs-system'); ?>"
                                    required autocomplete="current-password">
                             <button type="button" class="toggle-password" tabindex="-1">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="lift-form-group checkbox-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="docs_remember" name="remember" value="1">
                             <?php _e('Remember me', 'lift-docs-system'); ?>
                         </label>
                     </div>
-                    
+
                     <div class="lift-form-group">
                         <button type="submit" class="lift-login-btn">
                             <span class="btn-text"><?php _e('Sign In', 'lift-docs-system'); ?></span>
@@ -2776,13 +2768,13 @@ class LIFT_Docs_Frontend_Login {
                             </span>
                         </button>
                     </div>
-                    
+
                     <div class="lift-form-messages">
                         <div class="login-error" style="display: none;"></div>
                         <div class="login-success" style="display: none;"></div>
                     </div>
                 </form>
-                
+
                 <div class="login-help">
                     <a href="<?php echo wp_lostpassword_url(); ?>">
                         <?php _e('Forgot your password?', 'lift-docs-system'); ?>
@@ -2793,7 +2785,7 @@ class LIFT_Docs_Frontend_Login {
         <?php
         return ob_get_clean();
     }
-    
+
     /**
      * Dashboard shortcode
      */
@@ -2805,7 +2797,7 @@ class LIFT_Docs_Frontend_Login {
             'show_activity' => 'true',
             'documents_per_page' => 12
         ), $atts);
-        
+
         // Check if user is logged in and has access
         if (!is_user_logged_in() || !$this->user_has_docs_access()) {
             // If this is not an AJAX request, redirect to login page
@@ -2814,18 +2806,18 @@ class LIFT_Docs_Frontend_Login {
                 wp_redirect($login_url);
                 exit;
             }
-            
+
             // For AJAX requests or other contexts, show login message
             $login_url = $this->get_login_url();
             return '<div class="docs-login-required">
                 <p>' . sprintf(__('Please <a href="%s">login</a> to access your document dashboard.', 'lift-docs-system'), $login_url) . '</p>
             </div>';
         }
-        
+
         $current_user = wp_get_current_user();
         $user_code = get_user_meta($current_user->ID, 'lift_docs_user_code', true);
         $user_documents = $this->get_user_documents($current_user->ID);
-        
+
         ob_start();
         ?>
         <div class="lift-docs-dashboard-container shortcode-version">
@@ -2848,14 +2840,14 @@ class LIFT_Docs_Frontend_Login {
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Dashboard Content -->
                 <div class="lift-docs-dashboard-content">
-                    <?php 
+                    <?php
                     // Check both shortcode attribute and global setting
                     $show_stats_attr = ($atts['show_stats'] === 'true');
                     $show_stats_setting = LIFT_Docs_Settings::get_setting('show_dashboard_stats', true);
-                    if ($show_stats_attr && $show_stats_setting): 
+                    if ($show_stats_attr && $show_stats_setting):
                     ?>
                     <!-- Quick Stats -->
                     <div class="dashboard-stats">
@@ -2868,7 +2860,7 @@ class LIFT_Docs_Frontend_Login {
                                 <p><?php _e('Documents', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
-                        
+
                         <div class="stat-item">
                             <div class="stat-icon">
                                 <i class="fas fa-download"></i>
@@ -2878,7 +2870,7 @@ class LIFT_Docs_Frontend_Login {
                                 <p><?php _e('Downloads', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
-                        
+
                         <div class="stat-item">
                             <div class="stat-icon">
                                 <i class="fas fa-eye"></i>
@@ -2888,7 +2880,7 @@ class LIFT_Docs_Frontend_Login {
                                 <p><?php _e('Views', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
-                        
+
                         <div class="stat-item">
                             <div class="stat-icon">
                                 <i class="fas fa-calendar-alt"></i>
@@ -2900,23 +2892,23 @@ class LIFT_Docs_Frontend_Login {
                         </div>
                     </div>
                     <?php endif; ?>
-                    
+
                     <!-- Document Library -->
                     <div class="documents-section">
                         <div class="section-header">
                             <h3><?php _e('Your Document Library', 'lift-docs-system'); ?></h3>
                         </div>
-                        
+
                         <?php if (!empty($user_documents)): ?>
                             <div class="documents-list" id="documents-list">
-                                <?php 
+                                <?php
                                 $documents_to_show = array_slice($user_documents, 0, intval($atts['documents_per_page']));
-                                foreach ($documents_to_show as $document): 
+                                foreach ($documents_to_show as $document):
                                 ?>
                                     <?php $this->render_document_card($document, $current_user->ID); ?>
                                 <?php endforeach; ?>
                             </div>
-                            
+
                             <?php if (count($user_documents) > intval($atts['documents_per_page'])): ?>
                             <div class="load-more-container">
                                 <button type="button" id="load-more-docs" class="btn btn-secondary">
@@ -2937,7 +2929,7 @@ class LIFT_Docs_Frontend_Login {
         <?php
         return ob_get_clean();
     }
-    
+
     /**
      * Document form shortcode
      */
@@ -2946,14 +2938,14 @@ class LIFT_Docs_Frontend_Login {
             'document_id' => 0,
             'form_id' => 0
         ), $atts);
-        
+
         $document_id = intval($atts['document_id']);
         $form_id = intval($atts['form_id']);
-        
+
         if (!$document_id || !$form_id) {
             return '<div class="error"><p>' . __('Document ID and Form ID are required.', 'lift-docs-system') . '</p></div>';
         }
-        
+
         // Check if user is logged in
         if (!is_user_logged_in() || !$this->user_has_docs_access()) {
             $login_url = $this->get_login_url();
@@ -2961,24 +2953,24 @@ class LIFT_Docs_Frontend_Login {
                 <p>' . sprintf(__('Please <a href="%s">login</a> to access this form.', 'lift-docs-system'), $login_url) . '</p>
             </div>';
         }
-        
+
         // Verify user has access to the document
         if (!$this->user_can_view_document($document_id)) {
             return '<div class="error"><p>' . __('You do not have access to this document.', 'lift-docs-system') . '</p></div>';
         }
-        
+
         // Additional check: Verify document is not archived
         $is_archived = get_post_meta($document_id, '_lift_doc_archived', true);
         if ($is_archived === '1' || $is_archived === 1) {
             return '<div class="error"><p>' . __('This document has been archived and is no longer accessible.', 'lift-docs-system') . '</p></div>';
         }
-        
+
         // Verify form is assigned to document
         $assigned_forms = get_post_meta($document_id, '_lift_doc_assigned_forms', true);
         if (!is_array($assigned_forms) || !in_array($form_id, $assigned_forms)) {
             return '<div class="error"><p>' . __('This form is not assigned to the document.', 'lift-docs-system') . '</p></div>';
         }
-        
+
         // Get form data
         global $wpdb;
         $forms_table = $wpdb->prefix . 'lift_forms';
@@ -2986,19 +2978,19 @@ class LIFT_Docs_Frontend_Login {
             "SELECT * FROM $forms_table WHERE id = %d AND status = 'active'",
             $form_id
         ));
-        
+
         if (!$form) {
             return '<div class="error"><p>' . __('Form not found.', 'lift-docs-system') . '</p></div>';
         }
-        
+
         // Get document data
         $document = get_post($document_id);
         if (!$document || $document->post_type !== 'lift_document') {
             return '<div class="error"><p>' . __('Document not found.', 'lift-docs-system') . '</p></div>';
         }
-        
+
         $form_fields = json_decode($form->form_fields, true);
-        
+
         ob_start();
         ?>
         <div class="document-form-container">
@@ -3011,15 +3003,15 @@ class LIFT_Docs_Frontend_Login {
                     <p class="form-description"><?php echo esc_html($form->description); ?></p>
                 <?php endif; ?>
             </div>
-            
+
             <form id="document-form-shortcode" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>">
                 <input type="hidden" name="action" value="lift_forms_submit">
                 <input type="hidden" name="form_id" value="<?php echo esc_attr($form->id); ?>">
                 <input type="hidden" name="document_id" value="<?php echo esc_attr($document->ID); ?>">
                 <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('lift_forms_submit_nonce'); ?>">
-                
+
                 <div id="form-messages"></div>
-                
+
                 <?php if (!empty($form_fields) && is_array($form_fields)): ?>
                     <?php foreach ($form_fields as $field): ?>
                         <div class="form-field">
@@ -3029,14 +3021,14 @@ class LIFT_Docs_Frontend_Login {
                                     <span class="required">*</span>
                                 <?php endif; ?>
                             </label>
-                            
+
                             <?php $this->render_form_field($field); ?>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <p><?php _e('This form has no fields configured.', 'lift-docs-system'); ?></p>
                 <?php endif; ?>
-                
+
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">
                         <?php _e('Submit Form', 'lift-docs-system'); ?>
@@ -3044,21 +3036,21 @@ class LIFT_Docs_Frontend_Login {
                 </div>
             </form>
         </div>
-        
+
         <script>
         jQuery(document).ready(function($) {
             $('#document-form-shortcode').on('submit', function(e) {
                 e.preventDefault();
-                
+
                 var $form = $(this);
                 var $messages = $('#form-messages');
                 var $button = $form.find('button[type="submit"]');
-                
+
                 $button.prop('disabled', true).text('<?php _e('Submitting...', 'lift-docs-system'); ?>');
                 $messages.html('');
-                
+
                 var formData = $form.serialize();
-                
+
                 $.post($form.attr('action'), formData, function(response) {
                     if (response.success) {
                         $messages.html('<div class="notice notice-success"><p>' + response.data + '</p></div>');
@@ -3074,7 +3066,7 @@ class LIFT_Docs_Frontend_Login {
             });
         });
         </script>
-        
+
         <style>
         .document-form-container {
             max-width: 600px;
@@ -3148,7 +3140,7 @@ class LIFT_Docs_Frontend_Login {
         <?php
         return ob_get_clean();
     }
-    
+
     /**
      * Create default pages on plugin activation
      */
@@ -3163,13 +3155,13 @@ class LIFT_Docs_Frontend_Login {
                 'post_type' => 'page',
                 'post_slug' => 'document-login'
             );
-            
+
             $login_page_id = wp_insert_post($login_page);
             if ($login_page_id) {
                 update_option('lift_docs_login_page_id', $login_page_id);
             }
         }
-        
+
         // Create dashboard page
         $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
         if (!$dashboard_page_id || !get_post($dashboard_page_id)) {
@@ -3180,30 +3172,30 @@ class LIFT_Docs_Frontend_Login {
                 'post_type' => 'page',
                 'post_slug' => 'document-dashboard'
             );
-            
+
             $dashboard_page_id = wp_insert_post($dashboard_page);
             if ($dashboard_page_id) {
                 update_option('lift_docs_dashboard_page_id', $dashboard_page_id);
             }
         }
-        
+
         // Set flag that pages have been created
         update_option('lift_docs_default_pages_created', true);
     }
-    
+
     /**
      * Maybe hide admin bar for specific pages
      */
     public function maybe_hide_admin_bar() {
         $request_uri = $_SERVER['REQUEST_URI'] ?? '';
-        
+
         // Check if this is a document form page
         if (preg_match('/\/document-form\/\d+\/\d+\/?/', $request_uri) || get_query_var('document_form')) {
             add_filter('show_admin_bar', '__return_false');
             remove_action('wp_head', '_admin_bar_bump_cb');
             return;
         }
-        
+
         // Check if this is a secure link page
         if (strpos($request_uri, '/document-files/secure/') !== false && isset($_GET['lift_secure'])) {
             add_filter('show_admin_bar', '__return_false');
@@ -3211,28 +3203,28 @@ class LIFT_Docs_Frontend_Login {
             return;
         }
     }
-    
+
     /**
      * Add custom post states for Document Dashboard and Document Login pages
      */
     public function add_display_post_states($post_states, $post) {
         // Check if this is the Document Login page
-        if ($post->post_name === 'document-login' || 
+        if ($post->post_name === 'document-login' ||
             (strpos($post->post_content, '[docs_login_form]') !== false)) {
             $post_states['docs_login'] = __('Document Login', 'lift-docs-system');
         }
-        
-        // Check if this is the Document Dashboard page  
-        if ($post->post_name === 'document-dashboard' || 
+
+        // Check if this is the Document Dashboard page
+        if ($post->post_name === 'document-dashboard' ||
             (strpos($post->post_content, '[docs_dashboard]') !== false)) {
             $post_states['docs_dashboard'] = __('Document Dashboard', 'lift-docs-system');
         }
-        
+
         // Check if this page contains document form shortcode
         if (strpos($post->post_content, '[document_form]') !== false) {
             $post_states['docs_form'] = __('Document Form', 'lift-docs-system');
         }
-        
+
         // Check for any LIFT Docs related shortcodes
         $shortcodes = array('[docs_login_form]', '[docs_dashboard]', '[document_form]');
         $has_docs_shortcode = false;
@@ -3242,12 +3234,12 @@ class LIFT_Docs_Frontend_Login {
                 break;
             }
         }
-        
-        if ($has_docs_shortcode && !isset($post_states['docs_login']) && 
+
+        if ($has_docs_shortcode && !isset($post_states['docs_login']) &&
             !isset($post_states['docs_dashboard']) && !isset($post_states['docs_form'])) {
             $post_states['docs_page'] = __('LIFT Docs Page', 'lift-docs-system');
         }
-        
+
         return $post_states;
     }
 }

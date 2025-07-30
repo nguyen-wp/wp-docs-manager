@@ -4,85 +4,85 @@
  */
 jQuery(document).ready(function($) {
     'use strict';
-    
-    
+
+
     // Initialize enhanced settings
     initEnhancedSettings();
-    
+
     function initEnhancedSettings() {
         // Add enhanced body class
         $('body').addClass('lift-enhanced-settings');
-        
+
         // Enhanced tab functionality
         initEnhancedTabs();
-        
+
         // Enhanced form controls
         initEnhancedFormControls();
-        
+
         // Enhanced media uploader
         initEnhancedMediaUploader();
-        
+
         // Enhanced color pickers
         initEnhancedColorPickers();
-        
+
         // Enhanced tooltips and help
         initEnhancedTooltips();
-        
+
         // Enhanced form validation
         initEnhancedFormValidation();
-        
+
         // Enhanced save feedback
         initEnhancedSaveFeedback();
     }
-    
+
     function initEnhancedTabs() {
-        
+
         // Get current tab from URL or default to general
         var urlParams = new URLSearchParams(window.location.search);
         var currentTab = urlParams.get('tab') || 'general';
-        
+
         // Function to switch to a specific tab with enhanced animations
         function switchToTab(tabName) {
-            
+
             // Remove active class from all tabs and content
             $('.lift-nav-tab').removeClass('nav-tab-active');
             $('.lift-tab-content').removeClass('active');
-            
+
             // Add loading state
             $('.lift-nav-tab[data-tab="' + tabName + '"]').addClass('loading');
-            
+
             // Hide all tab content with fade out
             $('.lift-tab-content').fadeOut(0, function() {
                 // Add active class to target tab
                 $('.lift-nav-tab[data-tab="' + tabName + '"]').addClass('nav-tab-active').removeClass('loading');
-                
+
                 // Show target content with fade in
                 $('#' + tabName + '-tab').fadeIn(0).addClass('active');
-                
+
                 // Trigger custom event for tab switch
                 $(document).trigger('liftTabSwitch', [tabName]);
             });
         }
-        
+
         // Handle tab switching with enhanced UX
         $('.nav-tab-js').off('click').on('click', function(e) {
             e.preventDefault();
-            
+
             var $clickedTab = $(this);
             var targetTab = $clickedTab.data('tab');
-            
+
             // Don't switch if already active
             if ($clickedTab.hasClass('nav-tab-active')) {
                 return;
             }
-            
+
             switchToTab(targetTab);
-            
+
             // Update URL without page reload
             var newUrl = window.location.origin + window.location.pathname + '?post_type=lift_document&page=lift-docs-settings&tab=' + targetTab;
             window.history.pushState({tab: targetTab}, '', newUrl);
         });
-        
+
         // Handle browser back/forward
         $(window).off('popstate').on('popstate', function(event) {
             if (event.originalEvent.state && event.originalEvent.state.tab) {
@@ -94,14 +94,14 @@ jQuery(document).ready(function($) {
                 switchToTab(tab);
             }
         });
-        
+
         // Initialize - hide all tabs first, then show the correct one
         $('.lift-tab-content').hide().removeClass('active');
         $('.lift-nav-tab').removeClass('nav-tab-active');
-        
+
         // Switch to the current tab (from URL or default)
         switchToTab(currentTab);
-        
+
         // Add smooth hover effects
         $('.lift-nav-tab').hover(
             function() {
@@ -116,9 +116,9 @@ jQuery(document).ready(function($) {
             }
         );
     }
-    
+
     function initEnhancedFormControls() {
-        
+
         // Enhanced form control interactions
         $(document).off('focus blur', '.lift-form-control').on('focus', '.lift-form-control', function() {
             $(this).closest('td').addClass('focused');
@@ -127,16 +127,16 @@ jQuery(document).ready(function($) {
             $(this).closest('td').removeClass('focused');
             $(this).removeClass('lift-form-control-focused');
         });
-        
+
         // Enhanced checkbox interactions
         $(document).off('change', '.lift-checkbox').on('change', '.lift-checkbox', function() {
             var $wrapper = $(this).closest('.lift-checkbox-wrapper');
             var $label = $(this).siblings('.lift-checkbox-label');
-            
+
             if ($(this).is(':checked')) {
                 $wrapper.addClass('checked');
                 $label.addClass('checked');
-                
+
                 // Add animation
                 $(this).addClass('lift-checkbox-animate');
                 setTimeout(() => {
@@ -147,13 +147,13 @@ jQuery(document).ready(function($) {
                 $label.removeClass('checked');
             }
         });
-        
+
         // Initialize checkbox states
         $('.lift-checkbox:checked').each(function() {
             $(this).closest('.lift-checkbox-wrapper').addClass('checked');
             $(this).siblings('.lift-checkbox-label').addClass('checked');
         });
-        
+
         // Enhanced select interactions
         $(document).off('change', '.lift-form-select').on('change', '.lift-form-select', function() {
             $(this).addClass('lift-select-changed');
@@ -162,14 +162,14 @@ jQuery(document).ready(function($) {
             }, 500);
         });
     }
-    
+
     function initEnhancedMediaUploader() {
-        
+
         // Enhanced media upload button styling
         $('.button[id*="upload"]').each(function() {
             if (!$(this).hasClass('lift-button-enhanced')) {
                 $(this).addClass('lift-button lift-button-secondary lift-button-enhanced');
-                
+
                 // Add icon if not present
                 if (!$(this).find('i').length) {
                     $(this).prepend('<i class="fas fa-upload"></i> ');
@@ -177,15 +177,15 @@ jQuery(document).ready(function($) {
             }
         });
     }
-    
+
     function initEnhancedColorPickers() {
-        
+
         // Enhance existing color pickers
         if (typeof $.fn.wpColorPicker !== 'undefined') {
             $('.color-picker').each(function() {
                 if (!$(this).hasClass('wp-color-picker')) {
                     var $input = $(this);
-                    
+
                     $input.addClass('lift-color-picker').wpColorPicker({
                         change: function(event, ui) {
                             // Add change animation
@@ -195,14 +195,14 @@ jQuery(document).ready(function($) {
                             }, 500);
                         }
                     });
-                    
+
                     // Add Clear button after color picker is initialized
                     setTimeout(function() {
                         var $wrapper = $input.closest('.wp-picker-container');
                         if ($wrapper.length && !$wrapper.find('.color-clear-btn').length) {
                             var $clearBtn = $('<button type="button" class="button color-clear-btn" title="Clear Color">Clear</button>');
                             $wrapper.append($clearBtn);
-                            
+
                             // Handle clear button click
                             $clearBtn.on('click', function(e) {
                                 e.preventDefault();
@@ -219,9 +219,9 @@ jQuery(document).ready(function($) {
             });
         }
     }
-    
+
     function initEnhancedTooltips() {
-        
+
         // Add enhanced tooltips to form labels
         $('.form-table th label').each(function() {
             var $this = $(this);
@@ -232,7 +232,7 @@ jQuery(document).ready(function($) {
                 }
             }
         });
-        
+
         // Add help icons to complex fields
         $('.lift-description').each(function() {
             var $this = $(this);
@@ -241,18 +241,18 @@ jQuery(document).ready(function($) {
             }
         });
     }
-    
+
     function initEnhancedFormValidation() {
-        
+
         // Real-time validation for number fields
         $(document).off('input', 'input[type="number"].lift-form-control').on('input', 'input[type="number"].lift-form-control', function() {
             var $this = $(this);
             var value = parseFloat($this.val());
             var min = parseFloat($this.attr('min'));
             var max = parseFloat($this.attr('max'));
-            
+
             $this.removeClass('lift-form-error lift-form-warning');
-            
+
             if (!isNaN(min) && value < min) {
                 $this.addClass('lift-form-error');
             } else if (!isNaN(max) && value > max) {
@@ -264,7 +264,7 @@ jQuery(document).ready(function($) {
                 }, 1000);
             }
         });
-        
+
         // Enhanced required field validation
         $('input[required], select[required], textarea[required]').each(function() {
             if (!$(this).hasClass('lift-form-control')) {
@@ -273,30 +273,30 @@ jQuery(document).ready(function($) {
             $(this).addClass('lift-form-required');
         });
     }
-    
+
     function initEnhancedSaveFeedback() {
-        
+
         // Enhanced form submission feedback
         $('form').off('submit.liftEnhanced').on('submit.liftEnhanced', function() {
             var $form = $(this);
             var $submitBtn = $form.find('.button-primary');
-            
+
             // Add loading state
             $submitBtn.addClass('lift-loading').prop('disabled', true);
-            
+
             // Change button text
             var originalText = $submitBtn.text();
             $submitBtn.text('Saving...');
-            
+
             // Add progress indicator
             if (!$form.find('.lift-save-progress').length) {
                 $form.append('<div class="lift-save-progress"><div class="lift-progress-bar"></div></div>');
             }
-            
+
             // Animate progress bar
             var $progressBar = $('.lift-progress-bar');
             $progressBar.css('width', '0%').animate({width: '100%'}, 2000);
-            
+
             // Re-enable after 5 seconds as fallback
             setTimeout(function() {
                 $submitBtn.removeClass('lift-loading').prop('disabled', false).text(originalText);
@@ -305,7 +305,7 @@ jQuery(document).ready(function($) {
                 });
             }, 5000);
         });
-        
+
         // Check for WordPress admin notices and enhance them
         setTimeout(function() {
             $('.notice.notice-success').each(function() {
@@ -313,7 +313,7 @@ jQuery(document).ready(function($) {
                     $(this).addClass('lift-notice-enhanced lift-success-box');
                 }
             });
-            
+
             $('.notice.notice-error').each(function() {
                 if (!$(this).hasClass('lift-notice-enhanced')) {
                     $(this).addClass('lift-notice-enhanced lift-error-box');
@@ -321,10 +321,10 @@ jQuery(document).ready(function($) {
             });
         }, 500);
     }
-    
+
     // Custom events for extensibility
     $(document).on('liftTabSwitch', function(event, tabName) {
-        
+
         // Trigger any tab-specific initializations
         switch(tabName) {
             case 'interface':
@@ -339,13 +339,13 @@ jQuery(document).ready(function($) {
                 break;
         }
     });
-    
+
     function initHelpContent() {
         // Make help content more interactive
         $('.lift-info-box, .lift-warning-box, .lift-success-box').each(function() {
             if (!$(this).hasClass('lift-interactive')) {
                 $(this).addClass('lift-interactive');
-                
+
                 // Add click to expand/collapse functionality for long content
                 if ($(this).height() > 200) {
                     $(this).addClass('lift-collapsible');
@@ -356,8 +356,8 @@ jQuery(document).ready(function($) {
             }
         });
     }
-    
+
     // Initialize help content on page load
     initHelpContent();
-    
+
 });

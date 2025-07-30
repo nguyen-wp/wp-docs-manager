@@ -19,20 +19,6 @@
             initializeFileUploads();
             initializeSignatureFields();
             setupFormSubmission();
-            
-            // Debug logging
-            if (typeof console !== 'undefined') {
-                console.log('LIFT Forms: File upload and signature functionality initialized');
-                console.log('Found file fields:', $('.lift-form-field.lift-field-file').length);
-                console.log('Found signature fields:', $('.lift-form-field.lift-field-signature').length);
-                
-                // Check for existing files
-                $('.lift-form-field.lift-field-file').each(function(index) {
-                    const $field = $(this);
-                    const $currentFile = $field.find('.current-file');
-                    console.log('Current file text:', $currentFile.text());
-                });
-            }
         }, 100);
     });
 
@@ -43,10 +29,10 @@
         $('.lift-form-field.lift-field-file').each(function() {
             const $field = $(this);
             const $input = $field.find('input[type="file"]');
-            
+
             if ($input.length) {
                 setupFileUpload($input);
-                
+
                 // Check for existing file data
                 const $currentFile = $field.find('.current-file');
                 if ($currentFile.length && $currentFile.text().trim()) {
@@ -62,13 +48,13 @@
     function setupFileUpload($input) {
         const fieldId = $input.attr('id');
         const $container = $input.closest('.lift-form-field');
-        
+
         // Create upload container
         const $uploadContainer = $('<div class="file-upload-container">');
         const $dropZone = $('<div class="file-drop-zone">');
         const $previewArea = $('<div class="file-preview-area">');
         const $uploadButton = $('<div class="file-upload-button">');
-        
+
         // Setup drop zone
         $dropZone.html(`
             <div class="drop-zone-content">
@@ -77,7 +63,7 @@
                 <p class="drop-zone-hint">Supports: JPG, PNG, PDF, DOC, DOCX (Max: 5MB)</p>
             </div>
         `);
-        
+
         // Setup upload button (hidden)
         $uploadButton.html(`
             <button type="button" class="btn btn-secondary file-browse-btn" style="display: none;">
@@ -85,12 +71,12 @@
                 Choose File
             </button>
         `);
-        
+
         // Insert after the original input
         $input.hide();
         $uploadContainer.append($previewArea, $dropZone, $uploadButton);
         $input.after($uploadContainer);
-        
+
         // Bind events
         bindFileUploadEvents($input, $uploadContainer);
     }
@@ -103,36 +89,36 @@
         const $previewArea = $container.find('.file-preview-area');
         const $browseBtn = $container.find('.file-browse-btn');
         const $browseLink = $container.find('.browse-link');
-        
+
         // Click to browse - include preview area
         $browseBtn.add($browseLink).add($previewArea).on('click', function(e) {
             e.preventDefault();
             $input.click();
         });
-        
+
         // File input change
         $input.on('change', function() {
             handleFileSelection(this.files, $previewArea, $input);
         });
-        
+
         // Drag and drop for both drop zone and preview area
         $dropZone.add($previewArea).on('dragover dragenter', function(e) {
             e.preventDefault();
             e.stopPropagation();
             $(this).addClass('drag-over');
         });
-        
+
         $dropZone.add($previewArea).on('dragleave dragend', function(e) {
             e.preventDefault();
             e.stopPropagation();
             $(this).removeClass('drag-over');
         });
-        
+
         $dropZone.add($previewArea).on('drop', function(e) {
             e.preventDefault();
             e.stopPropagation();
             $(this).removeClass('drag-over');
-            
+
             const files = e.originalEvent.dataTransfer.files;
             handleFileSelection(files, $previewArea, $input);
         });
@@ -143,26 +129,26 @@
      */
     function handleFileSelection(files, $previewArea, $input) {
         if (!files || files.length === 0) return;
-        
+
         const file = files[0];
         const maxSize = 5 * 1024 * 1024; // 5MB
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        
+
         // Validate file size
         if (file.size > maxSize) {
             showError('File too large. Maximum size is 5MB.');
             return;
         }
-        
+
         // Validate file type
         if (!allowedTypes.includes(file.type)) {
             showError('File format not supported.');
             return;
         }
-        
+
         // Create preview
         createFilePreview(file, $previewArea, $input);
-        
+
         // Trigger upload
         uploadFile(file, $input);
     }
@@ -172,9 +158,9 @@
      */
     function createFilePreview(file, $previewArea, $input) {
         $previewArea.empty().show();
-        
+
         const $preview = $('<div class="file-preview-item">');
-        
+
         // Image preview for image files
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
@@ -182,25 +168,25 @@
                 const $imagePreview = $('<div class="image-preview">');
                 $imagePreview.html(`<img src="${e.target.result}" alt="Preview">`);
                 $preview.append($imagePreview);
-                
+
                 // Add remove button overlay
                 const $removeOverlay = $('<button type="button" class="remove-file-overlay" title="Remove file">');
                 $removeOverlay.html('<i class="fas fa-times"></i>');
                 $preview.append($removeOverlay);
-                
+
                 // Remove file handler
                 $removeOverlay.on('click', function(e) {
                     e.stopPropagation(); // Prevent triggering file picker
                     $preview.remove();
-                    
+
                     // Get field name and clear all related inputs
                     const fieldName = $input.attr('name');
                     const $field = $input.closest('.lift-form-field');
-                    
+
                     if (fieldName) {
                         clearRelatedInputs($field, fieldName);
                     }
-                    
+
                     if ($previewArea.children().length === 0) {
                         $previewArea.hide();
                     }
@@ -215,38 +201,38 @@
             } else if (file.type.includes('word')) {
                 iconClass = 'fa-file-word';
             }
-            
+
             const $fileIcon = $('<div class="file-icon-large">');
             $fileIcon.html(`
                 <i class="fas ${iconClass}"></i>
                 <div class="file-name-overlay">${file.name}</div>
             `);
             $preview.append($fileIcon);
-            
+
             // Add remove button overlay
             const $removeOverlay = $('<button type="button" class="remove-file-overlay" title="Remove file">');
             $removeOverlay.html('<i class="fas fa-times"></i>');
             $preview.append($removeOverlay);
-            
+
             // Remove file handler
             $removeOverlay.on('click', function(e) {
                 e.stopPropagation(); // Prevent triggering file picker
                 $preview.remove();
-                
+
                 // Get field name and clear all related inputs
                 const fieldName = $input.attr('name');
                 const $field = $input.closest('.lift-form-field');
-                
+
                 if (fieldName) {
                     clearRelatedInputs($field, fieldName);
                 }
-                
+
                 if ($previewArea.children().length === 0) {
                     $previewArea.hide();
                 }
             });
         }
-        
+
         $previewArea.append($preview);
     }
 
@@ -257,32 +243,25 @@
         const $container = $field.find('.file-upload-container');
         const $previewArea = $container.find('.file-preview-area');
         const $input = $field.find('input[type="file"]');
-        
+
         if (!$container.length || !$previewArea.length) return;
-        
+
         // Extract filename from the current file text
         const filename = currentFileText.replace('Current file: ', '').trim();
-        
-        // Debug logging
-        console.log('Loading existing file:', filename);
-        console.log('Current file text:', currentFileText);
-        
+
         // Try to get file URL from hidden input if it exists
         const $hiddenInput = $field.find('input[type="hidden"][name$="_url"]');
         let fileUrl = '';
-        
+
         if ($hiddenInput.length) {
             fileUrl = $hiddenInput.val();
-            console.log('Found hidden input URL:', fileUrl);
         } else {
             // Check if filename is already a full URL
             if (filename.startsWith('http://') || filename.startsWith('https://')) {
                 fileUrl = filename;
-                console.log('Filename appears to be a full URL:', fileUrl);
             } else if (filename.startsWith('/wp-content/uploads/')) {
                 // Relative path from wp-content/uploads
                 fileUrl = window.location.origin + filename;
-                console.log('Constructed full URL from relative path:', fileUrl);
             } else if (filename.includes('/')) {
                 // Might be a relative path, try to construct full URL
                 const uploadDir = liftFormsFrontend.uploadDir || '';
@@ -292,7 +271,6 @@
                     // Fallback to wp-content/uploads
                     fileUrl = window.location.origin + '/wp-content/uploads/' + filename;
                 }
-                console.log('Constructed URL from path:', fileUrl);
             } else {
                 // Just a filename, construct full path
                 const uploadDir = liftFormsFrontend.uploadDir || '';
@@ -302,31 +280,29 @@
                     // Fallback to wp-content/uploads
                     fileUrl = window.location.origin + '/wp-content/uploads/' + filename;
                 }
-                console.log('Constructed URL from filename:', fileUrl, 'from uploadDir:', uploadDir);
             }
         }
-        
+
         if (filename && fileUrl) {
             // Create preview for existing file
             const $preview = $('<div class="file-preview-item existing-file">');
-            
+
             // Determine file type and icon
             const fileExt = filename.split('.').pop().toLowerCase();
-            
+
             if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
                 // Image preview for existing image files
                 const $imagePreview = $('<div class="image-preview">');
                 const $img = $('<img alt="Preview">');
-                
+
                 $img.on('load', function() {
-                    console.log('Image loaded successfully:', fileUrl);
                 });
-                
+
                 $img.on('error', function() {
                     console.warn('Failed to load image:', fileUrl);
                     $imagePreview.html('<div class="image-error"><i class="fas fa-exclamation-triangle"></i> Could not load image preview</div>');
                 });
-                
+
                 $img.attr('src', fileUrl);
                 $imagePreview.append($img);
                 $preview.append($imagePreview);
@@ -338,7 +314,7 @@
                 } else if (['doc', 'docx'].includes(fileExt)) {
                     iconClass = 'fa-file-word';
                 }
-                
+
                 const $fileIcon = $('<div class="file-icon-large">');
                 $fileIcon.html(`
                     <i class="fas ${iconClass}"></i>
@@ -346,33 +322,33 @@
                 `);
                 $preview.append($fileIcon);
             }
-            
+
             // Add remove button overlay
             const $removeOverlay = $('<button type="button" class="remove-file-overlay" title="Remove file">');
             $removeOverlay.html('<i class="fas fa-times"></i>');
             $preview.append($removeOverlay);
-            
+
             $previewArea.append($preview).show();
-            
+
             // Hide current file text
             // $field.find('.current-file').hide();
-            
+
             // Bind remove event
             $removeOverlay.on('click', function(e) {
                 e.stopPropagation(); // Prevent triggering file picker
                 $preview.remove();
-                
+
                 // Get field name and clear all related inputs
                 const fieldName = $input.attr('name');
                 if (fieldName) {
                     clearRelatedInputs($field, fieldName);
                 }
-                
+
                 // Remove the hidden input reference if it exists
                 if ($hiddenInput.length) {
                     $hiddenInput.remove();
                 }
-                
+
                 if ($previewArea.children().length === 0) {
                     $previewArea.hide();
                 }
@@ -388,12 +364,12 @@
         const $preview = $input.closest('.lift-form-field').find('.file-preview-item').last();
         const $progressBar = $preview.find('.progress-fill');
         const $progressText = $preview.find('.progress-text');
-        
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('action', 'lift_upload_file');
         formData.append('nonce', liftFormsFrontend.nonce);
-        
+
         $.ajax({
             url: liftFormsFrontend.ajaxurl,
             type: 'POST',
@@ -415,13 +391,13 @@
                 if (response.success) {
                     $progressText.text('Upload successful!');
                     $progressBar.addClass('success');
-                    
+
                     // Store file URL in hidden input
                     const $hiddenInput = $('<input type="hidden">');
                     $hiddenInput.attr('name', $input.attr('name') + '_url');
                     $hiddenInput.val(response.data.url);
                     $input.after($hiddenInput);
-                    
+
                     // Update preview with download link
                     const $downloadLink = $('<a class="download-link" href="' + response.data.url + '" target="_blank">');
                     $downloadLink.html('<i class="fas fa-download"></i> Download');
@@ -445,7 +421,7 @@
         $('.lift-form-field.lift-field-signature').each(function() {
             const $field = $(this);
             setupSignatureField($field);
-            
+
             // Check for existing signature data
             const $currentSignature = $field.find('.current-signature img');
             if ($currentSignature.length) {
@@ -459,22 +435,22 @@
      */
     function setupSignatureField($field) {
         const fieldId = $field.find('input').attr('id') || 'signature_' + Date.now();
-        
+
         // Create signature container
         const $container = $('<div class="signature-container">');
         const $canvas = $('<canvas class="signature-canvas">');
         const $actions = $('<div class="signature-actions">');
         const $hiddenInput = $('<input type="hidden">');
-        
+
         // Setup canvas
         $canvas.attr('id', fieldId + '_canvas');
         $canvas.attr('width', 400);
         $canvas.attr('height', 200);
-        
+
         // Setup hidden input
         $hiddenInput.attr('name', $field.find('input').attr('name'));
         $hiddenInput.attr('id', fieldId + '_data');
-        
+
         // Setup actions
         $actions.html(`
             <button type="button" class="btn btn-secondary clear-signature" title="Clear signature">
@@ -486,14 +462,14 @@
                 Save
             </button>
         `);
-        
+
         // Build container
         $container.append($canvas, $actions, $hiddenInput);
-        
+
         // Replace original input
         $field.find('input').hide();
         $field.append($container);
-        
+
         // Initialize signature pad
         initializeSignaturePad($canvas[0], fieldId, $actions);
     }
@@ -506,64 +482,64 @@
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
-        
+
         // Set canvas style
         ctx.strokeStyle = '#2c3e50';
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        
+
         // Clear canvas
         function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             updateSaveButtonState(false, 'Signature cleared. Draw to enable saving.');
-            
+
             // Get the field and field name
             const $field = $(canvas).closest('.lift-form-field');
             const originalInputName = $field.find('input[type="hidden"]').first().attr('name');
-            
+
             if (originalInputName) {
                 clearRelatedInputs($field, originalInputName);
             }
-            
+
             // Initialize with white background after clearing
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
-        
+
         // Update save button state helper function
         function updateSaveButtonState(enabled, tooltip) {
             const $saveBtn = $actions.find('.save-signature');
             $saveBtn.prop('disabled', !enabled);
             $saveBtn.attr('title', tooltip);
-            
+
             if (enabled) {
                 $saveBtn.find('i').removeClass('dashicons-saved').addClass('dashicons-yes');
             } else {
                 $saveBtn.find('i').removeClass('dashicons-yes').addClass('dashicons-saved');
             }
         }
-        
+
         // Draw function
         function draw(e) {
             if (!isDrawing) return;
-            
+
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
+
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
             ctx.lineTo(x, y);
             ctx.stroke();
-            
+
             lastX = x;
             lastY = y;
-            
+
             // Enable save button when drawing (signature has been modified)
             updateSaveButtonState(true, 'Click to save signature');
         }
-        
+
         // Mouse events
         $(canvas).on('mousedown', function(e) {
             isDrawing = true;
@@ -571,13 +547,13 @@
             lastX = e.clientX - rect.left;
             lastY = e.clientY - rect.top;
         });
-        
+
         $(canvas).on('mousemove', draw);
-        
+
         $(canvas).on('mouseup mouseout', function() {
             isDrawing = false;
         });
-        
+
         // Touch events for mobile
         $(canvas).on('touchstart', function(e) {
             e.preventDefault();
@@ -587,45 +563,45 @@
             lastY = touch.clientY - rect.top;
             isDrawing = true;
         });
-        
+
         $(canvas).on('touchmove', function(e) {
             e.preventDefault();
             if (!isDrawing) return;
-            
+
             const touch = e.originalEvent.touches[0];
             const rect = canvas.getBoundingClientRect();
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
-            
+
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
             ctx.lineTo(x, y);
             ctx.stroke();
-            
+
             lastX = x;
             lastY = y;
-            
+
             // Enable save button when drawing (signature has been modified)
             updateSaveButtonState(true, 'Click to save signature');
         });
-        
+
         $(canvas).on('touchend', function() {
             isDrawing = false;
         });
-        
+
         // Button events
         $actions.find('.clear-signature').on('click', clearCanvas);
-        
+
         $actions.find('.save-signature').on('click', function() {
             saveSignature(canvas, fieldId);
         });
-        
+
         // Store reference
         signaturePads[fieldId] = {
             canvas: canvas,
             clear: clearCanvas
         };
-        
+
         // Initialize with white background
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -636,7 +612,7 @@
      */
     function saveSignature(canvas, fieldId) {
         const dataURL = canvas.toDataURL('image/png');
-        
+
         // Save to server
         $.ajax({
             url: liftFormsFrontend.ajaxurl,
@@ -651,7 +627,7 @@
                 if (response.success) {
                     $('#' + fieldId + '_data').val(response.data.url);
                     showSuccess('Signature saved successfully!');
-                    
+
                     // Disable save button after successful save
                     const $field = $('#' + fieldId + '_canvas').closest('.lift-form-field');
                     const $actions = $field.find('.signature-actions');
@@ -677,37 +653,37 @@
         const $canvas = $container.find('.signature-canvas');
         const $hiddenInput = $container.find('input[type="hidden"]');
         const $actions = $container.find('.signature-actions');
-        
+
         if (!$container.length || !$canvas.length || !signatureUrl) return;
-        
+
         // Load signature image onto canvas
         const canvas = $canvas[0];
         const ctx = canvas.getContext('2d');
         const img = new Image();
-        
+
         img.onload = function() {
             // Clear canvas and set white background
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             // Draw the signature image
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
+
             // Set the hidden input value
             $hiddenInput.val(signatureUrl);
-            
+
             // Disable the save button since signature is already saved
             $actions.find('.save-signature').prop('disabled', true);
             $actions.find('.save-signature').attr('title', 'Signature already saved. Draw to enable saving again.');
             $actions.find('.save-signature').find('i').removeClass('dashicons-yes').addClass('dashicons-saved');
         };
-        
+
         img.onerror = function() {
             console.warn('Could not load existing signature image:', signatureUrl);
         };
-        
+
         img.src = signatureUrl;
-        
+
         // Hide the current signature display
         $field.find('.current-signature').hide();
     }
@@ -719,19 +695,19 @@
         $('.lift-form').on('submit', function(e) {
             // Validate signatures before submit
             let hasInvalidSignature = false;
-            
+
             $('.signature-container').each(function() {
                 const $container = $(this);
                 const $hiddenInput = $container.find('input[type="hidden"]');
                 const $saveBtn = $container.find('.save-signature');
-                
+
                 if (!$saveBtn.prop('disabled') && !$hiddenInput.val()) {
                     showError('Please save signature before submitting form');
                     hasInvalidSignature = true;
                     return false;
                 }
             });
-            
+
             if (hasInvalidSignature) {
                 e.preventDefault();
                 return false;
@@ -744,19 +720,19 @@
      */
     function clearRelatedInputs($field, fieldName) {
         if (!fieldName) return;
-        
+
         // Clear all inputs with names starting with the field name
         $field.find('input').each(function() {
             const $input = $(this);
             const inputName = $input.attr('name');
             if (inputName && inputName.indexOf(fieldName) === 0) {
                 $input.val('');
-                
+
                 // Also trigger change event to notify other scripts
                 $input.trigger('change');
             }
         });
-        
+
         // Remove any dynamically created hidden inputs (like _url inputs)
         $field.find('input[type="hidden"]').each(function() {
             const $hiddenInput = $(this);
@@ -786,7 +762,7 @@
             $('.lift-form').prepend($errorDiv);
         }
         $errorDiv.html('<i class="dashicons dashicons-warning"></i> ' + message).show();
-        
+
         // Auto hide after 5 seconds
         setTimeout(function() {
             $errorDiv.fadeOut();
@@ -801,7 +777,7 @@
             $('.lift-form').prepend($successDiv);
         }
         $successDiv.html('<i class="dashicons dashicons-yes"></i> ' + message).show();
-        
+
         // Auto hide after 3 seconds
         setTimeout(function() {
             $successDiv.fadeOut();

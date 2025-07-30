@@ -5,13 +5,13 @@
 
 (function($) {
     'use strict';
-    
+
     $(document).ready(function() {
         // Check if we're on the form builder page
         if ($('.lift-form-builder').length === 0) {
             return;
         }
-        
+
         // Auto-hide WordPress notices
         $('.notice.is-dismissible').each(function() {
             const notice = $(this);
@@ -23,12 +23,12 @@
                 }, 5000);
             }
         });
-        
+
         // Basic save form functionality
         $('#save-form').off('click.minimal-admin').on('click.minimal-admin', function(e) {
             // Check if form builder is active (always has row structure now)
-            if ($('#form-fields-list .form-row').length > 0 || 
-                (window.formBuilder && window.formBuilder.formData && 
+            if ($('#form-fields-list .form-row').length > 0 ||
+                (window.formBuilder && window.formBuilder.formData &&
                  typeof window.formBuilder.formData === 'object')) {
                 // Let the form builder handle the save
                 return;
@@ -40,21 +40,21 @@
             const formId = $('#form-id').val();
             const formName = $('#form-name').val().trim();
             const formDescription = $('#form-description').val().trim();
-            
+
             // Enhanced validation for form name
             if (!formName) {
                 showMessage('Please enter a form name before saving.', 'error');
                 $('#form-name').focus().addClass('error');
                 return;
             }
-            
+
             // Check minimum length
             if (formName.length < 3) {
                 showMessage('Form name must be at least 3 characters long.', 'error');
                 $('#form-name').focus().addClass('error');
                 return;
             }
-            
+
             // Check for valid characters (letters, numbers, spaces, basic punctuation)
             const validNamePattern = /^[a-zA-Z0-9\s\-_.()]+$/;
             if (!validNamePattern.test(formName)) {
@@ -62,18 +62,18 @@
                 $('#form-name').focus().addClass('error');
                 return;
             }
-            
+
             // Remove error styling if validation passes
             $('#form-name').removeClass('error');
-            
+
             const $saveBtn = $(this);
             const originalText = $saveBtn.text();
-            
+
             $saveBtn.text('Saving...').prop('disabled', true);
-            
+
             // Get current form fields from form builder if available
             let formFields = [];
-            
+
             // Try to get fields from form builder instance
             if (window.formBuilder && window.formBuilder.formData && window.formBuilder.formData.fields) {
                 formFields = window.formBuilder.formData.fields;
@@ -89,7 +89,7 @@
                     const fieldElement = $(this);
                     const fieldId = fieldElement.data('field-id');
                     const fieldType = fieldElement.data('field-type');
-                    
+
                     if (fieldId && fieldType) {
                         const field = {
                             id: fieldId,
@@ -120,15 +120,15 @@
                     if (response.success) {
                         if (!formId) {
                             $('#form-id').val(response.data.form_id);
-                            
+
                             // Show success message first
                             showMessage('Form created successfully! Redirecting to edit page...', 'success');
-                            
+
                             // Redirect to edit page after short delay
                             setTimeout(function() {
                                 // Try multiple methods to build the correct URL
                                 let editUrl;
-                                
+
                                 // Method 1: Use current location with query string replacement
                                 if (window.location.search) {
                                     // Replace existing query params
@@ -142,7 +142,7 @@
                                     const baseUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
                                     editUrl = baseUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
                                 }
-                                
+
                                 // Try redirect, with fallback
                                 try {
                                     window.location.href = editUrl;
@@ -167,12 +167,12 @@
                 }
             });
         });
-        
+
         // Basic preview functionality
         $('#preview-form').on('click', function() {
             const formName = $('#form-name').val().trim() || 'Untitled Form';
             const formDescription = $('#form-description').val().trim();
-            
+
             let previewHTML = `
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px; background: #fff; border: 1px solid #ddd; border-radius: 4px;">
                     <h2 style="margin-top: 0; color: #333;">${formName}</h2>
@@ -183,25 +183,25 @@
                     </div>
                 </div>
             `;
-            
+
             // Create simple modal
             const modal = $(`
                 <div id="simple-preview-modal" style="
-                    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                    background: rgba(0,0,0,0.7); z-index: 100000; display: flex; 
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.7); z-index: 100000; display: flex;
                     align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
                 ">
                     <div style="
-                        background: #fff; max-width: 800px; width: 100%; max-height: 90vh; 
+                        background: #fff; max-width: 800px; width: 100%; max-height: 90vh;
                         overflow-y: auto; border-radius: 4px; position: relative;
                     ">
                         <div style="
-                            padding: 20px; border-bottom: 1px solid #ddd; 
+                            padding: 20px; border-bottom: 1px solid #ddd;
                             display: flex; justify-content: space-between; align-items: center;
                         ">
                             <h3 style="margin: 0;">Form Preview</h3>
                             <button type="button" id="close-preview" style="
-                                background: none; border: none; font-size: 24px; 
+                                background: none; border: none; font-size: 24px;
                                 cursor: pointer; padding: 0; color: #666;
                             ">&times;</button>
                         </div>
@@ -211,9 +211,9 @@
                     </div>
                 </div>
             `);
-            
+
             $('body').append(modal);
-            
+
             // Close modal events
             $('#close-preview, #simple-preview-modal').on('click', function(e) {
                 if (e.target.id === 'close-preview' || e.target.id === 'simple-preview-modal') {
@@ -221,20 +221,20 @@
                 }
             });
         });
-        
+
         // Show message function
         function showMessage(message, type) {
             // Remove any existing messages
             $('.lift-form-message').remove();
-            
+
             const messageEl = $(`
                 <div class="lift-form-message ${type}">
                     ${message}
                 </div>
             `);
-            
+
             $('.lift-form-builder').before(messageEl);
-            
+
             // Auto-hide success messages after 3 seconds
             if (type === 'success') {
                 setTimeout(function() {
@@ -244,7 +244,7 @@
                 }, 3000);
             }
         }
-        
+
         // Clear error styling when user starts typing
         $('#form-name').on('input', function() {
             $(this).removeClass('error');
@@ -252,7 +252,7 @@
                 $(this).remove();
             });
         });
-        
+
         // Auto-save form name and description on change
         let saveTimeout;
         $('#form-name, #form-description').on('input', function() {
@@ -262,5 +262,5 @@
             }, 1000);
         });
     });
-    
+
 })(jQuery);

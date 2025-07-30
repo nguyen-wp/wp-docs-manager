@@ -9,70 +9,70 @@ if (!defined('ABSPATH')) {
 }
 
 class LIFT_Docs_Activator {
-    
+
     /**
      * Activate plugin
      */
     public static function activate() {
         // Create database tables if needed
         self::create_database_tables();
-        
+
         // Flush rewrite rules to ensure our custom post types work
         flush_rewrite_rules();
-        
+
         // Create roles will be handled by admin class on init
-        
+
         // Set default options
         self::set_default_options();
-        
+
         // Create default login pages
         self::create_default_login_pages();
     }
-    
+
     /**
      * Deactivate plugin
      */
     public static function deactivate() {
         // Flush rewrite rules to clean up
         flush_rewrite_rules();
-        
+
         // Don't remove roles on deactivation as users might still need them
         // Only remove on uninstall
     }
-    
+
     /**
      * Uninstall plugin - remove all data
      */
     public static function uninstall() {
         // Remove custom roles
         self::remove_custom_roles();
-        
+
         // Remove capabilities from existing roles
         self::remove_capabilities_from_roles();
-        
+
         // Remove plugin options
         self::remove_plugin_options();
-        
+
         // Drop custom database tables
         self::drop_database_tables();
-        
+
         // Clean up post meta
         self::cleanup_post_meta();
-        
+
         // Flush rewrite rules
         flush_rewrite_rules();
     }
-    
+
     /**
      * Create database tables
      */
     private static function create_database_tables() {
         global $wpdb;
-        
+
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
+
         $charset_collate = $wpdb->get_charset_collate();
-        
+
         $sql = "CREATE TABLE $table_name (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             document_id bigint(20) NOT NULL,
@@ -87,11 +87,11 @@ class LIFT_Docs_Activator {
             KEY action (action),
             KEY timestamp (timestamp)
         ) $charset_collate;";
-        
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
     }
-    
+
     /**
      * Set default plugin options
      */
@@ -106,13 +106,13 @@ class LIFT_Docs_Activator {
             'show_file_size' => true,
             'enable_online_view' => true,
         );
-        
+
         // Only set defaults if no settings exist
         if (!get_option('lift_docs_settings')) {
             update_option('lift_docs_settings', $default_settings);
         }
     }
-    
+
     /**
      * Create default login pages
      */
@@ -127,7 +127,7 @@ class LIFT_Docs_Activator {
                 'post_type' => 'page',
                 'post_name' => 'document-login'
             );
-            
+
             $login_page_id = wp_insert_post($login_page);
             if ($login_page_id && !is_wp_error($login_page_id)) {
                 update_option('lift_docs_login_page_id', $login_page_id);
@@ -140,7 +140,7 @@ class LIFT_Docs_Activator {
                 }
             }
         }
-        
+
         // Create dashboard page
         $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
         if (!$dashboard_page_id || !get_post($dashboard_page_id)) {
@@ -151,7 +151,7 @@ class LIFT_Docs_Activator {
                 'post_type' => 'page',
                 'post_name' => 'document-dashboard'
             );
-            
+
             $dashboard_page_id = wp_insert_post($dashboard_page);
             if ($dashboard_page_id && !is_wp_error($dashboard_page_id)) {
                 update_option('lift_docs_dashboard_page_id', $dashboard_page_id);
@@ -164,22 +164,22 @@ class LIFT_Docs_Activator {
                 }
             }
         }
-        
+
         // Set flag that pages have been created
         update_option('lift_docs_default_pages_created', true);
-        
+
         // Debug log
         if (defined('WP_DEBUG') && WP_DEBUG) {
         }
     }
-    
+
     /**
      * Remove custom roles
      */
     private static function remove_custom_roles() {
         remove_role('documents_user');
     }
-    
+
     /**
      * Remove capabilities from existing roles
      */
@@ -205,9 +205,9 @@ class LIFT_Docs_Activator {
             'delete_lift_doc_categories',
             'assign_lift_doc_categories',
         );
-        
+
         $roles_to_clean = array('administrator', 'editor');
-        
+
         foreach ($roles_to_clean as $role_name) {
             $role = get_role($role_name);
             if ($role) {
@@ -217,7 +217,7 @@ class LIFT_Docs_Activator {
             }
         }
     }
-    
+
     /**
      * Remove plugin options
      */
@@ -226,37 +226,37 @@ class LIFT_Docs_Activator {
         delete_option('lift_docs_layout_cleanup_done');
         delete_option('lift_docs_roles_created');
         delete_option('lift_docs_default_pages_created');
-        
+
         // Remove default pages
         $login_page_id = get_option('lift_docs_login_page_id');
         if ($login_page_id) {
             wp_delete_post($login_page_id, true);
             delete_option('lift_docs_login_page_id');
         }
-        
+
         $dashboard_page_id = get_option('lift_docs_dashboard_page_id');
         if ($dashboard_page_id) {
             wp_delete_post($dashboard_page_id, true);
             delete_option('lift_docs_dashboard_page_id');
         }
     }
-    
+
     /**
      * Drop database tables
      */
     private static function drop_database_tables() {
         global $wpdb;
-        
+
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
         $wpdb->query("DROP TABLE IF EXISTS $table_name");
     }
-    
+
     /**
      * Clean up post meta
      */
     private static function cleanup_post_meta() {
         global $wpdb;
-        
+
         $meta_keys_to_remove = array(
             '_lift_doc_file_urls',
             '_lift_doc_file_url',
@@ -265,7 +265,7 @@ class LIFT_Docs_Activator {
             '_lift_doc_downloads',
             '_lift_doc_layout_settings',
         );
-        
+
         foreach ($meta_keys_to_remove as $meta_key) {
             $wpdb->delete(
                 $wpdb->postmeta,

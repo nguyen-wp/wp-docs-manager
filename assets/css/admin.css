@@ -896,20 +896,20 @@
 }
 /* Alpha Color Picker Styles */
 .wp-picker-container .iris-alpha-slider {
-    background: linear-gradient(to right, 
-        transparent 0%, 
-        rgba(0,0,0,0.1) 20%, 
-        rgba(0,0,0,0.3) 40%, 
-        rgba(0,0,0,0.5) 50%, 
-        rgba(0,0,0,0.7) 60%, 
-        rgba(0,0,0,0.9) 80%, 
+    background: linear-gradient(to right,
+        transparent 0%,
+        rgba(0,0,0,0.1) 20%,
+        rgba(0,0,0,0.3) 40%,
+        rgba(0,0,0,0.5) 50%,
+        rgba(0,0,0,0.7) 60%,
+        rgba(0,0,0,0.9) 80%,
         rgba(0,0,0,1) 100%
     );
     background-size: 20px 20px;
-    background-image: 
-        linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
-        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
-        linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+    background-image:
+        linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
         linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
     border-radius: 4px;
@@ -944,10 +944,10 @@
 /* Enhanced color result display for alpha colors */
 .wp-color-result-alpha {
     background-size: 20px 20px;
-    background-image: 
-        linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
-        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
-        linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+    background-image:
+        linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
         linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
@@ -1176,40 +1176,40 @@
         flex-wrap: wrap;
         gap: 3px;
     }
-    
+
     .user-actions .button {
         flex: 1;
         min-width: 0;
         font-size: 11px;
         padding: 3px 6px;
     }
-    
+
     .user-actions .button .dashicons {
         font-size: 14px;
         width: 14px;
         height: 14px;
     }
-    
+
     #assigned_user_filter {
         min-width: 150px;
         margin: 2px;
     }
-    
+
     /* Select2 responsive adjustments */
     .select2-container {
         width: 150px !important;
         min-width: 150px !important;
     }
-    
+
     .select2-dropdown {
         width: auto !important;
         min-width: 200px !important;
     }
-    
+
     .select2-result-user__name {
         font-size: 12px;
     }
-    
+
     .select2-result-user__login,
     .select2-result-user__code {
         font-size: 10px;

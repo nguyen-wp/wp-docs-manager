@@ -9,31 +9,31 @@ if (!defined('ABSPATH')) {
 }
 
 class LIFT_Docs_Post_Types {
-    
+
     private static $instance = null;
-    
+
     public static function get_instance() {
         if (null === self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
     }
-    
+
     private function __construct() {
         $this->init_hooks();
     }
-    
+
     private function init_hooks() {
         add_action('init', array($this, 'register_post_types'));
         add_action('init', array($this, 'register_taxonomies'));
         add_action('template_redirect', array($this, 'track_document_view'));
         add_action('template_redirect', array($this, 'redirect_archived_documents'));
         add_action('pre_get_posts', array($this, 'exclude_archived_documents_from_frontend'));
-        
+
         // Disable Gutenberg for lift_document post type
         add_filter('use_block_editor_for_post_type', array($this, 'disable_gutenberg_for_documents'), 10, 2);
     }
-    
+
     /**
      * Register custom post types
      */
@@ -65,11 +65,11 @@ class LIFT_Docs_Post_Types {
             'items_list_navigation' => _x('Documents list navigation', 'Screen reader text for the pagination', 'lift-docs-system'),
             'items_list'            => _x('Documents list', 'Screen reader text for the items list', 'lift-docs-system'),
         );
-        
+
         // Check if secure links are enabled to modify rewrite
         $secure_links_enabled = LIFT_Docs_Settings::get_setting('enable_secure_links', false);
         $rewrite_setting = $secure_links_enabled ? false : array('slug' => 'documents');
-        
+
         $document_args = array(
             'labels'             => $document_labels,
             'public'             => true,
@@ -106,10 +106,10 @@ class LIFT_Docs_Post_Types {
             'rest_base'          => 'documents',
             'rest_controller_class' => 'WP_REST_Posts_Controller',
         );
-        
+
         register_post_type('lift_document', $document_args);
     }
-    
+
     /**
      * Register custom taxonomies
      */
@@ -128,7 +128,7 @@ class LIFT_Docs_Post_Types {
             'new_item_name'     => __('New Category Name', 'lift-docs-system'),
             'menu_name'         => __('Categories', 'lift-docs-system'),
         );
-        
+
         $category_args = array(
             'hierarchical'      => true,
             'labels'            => $category_labels,
@@ -147,9 +147,9 @@ class LIFT_Docs_Post_Types {
                 'assign_terms' => 'assign_lift_doc_categories',
             ),
         );
-        
+
         register_taxonomy('lift_doc_category', array('lift_document'), $category_args);
-        
+
         // Document Tags
         $tag_labels = array(
             'name'                       => _x('Document Tags', 'taxonomy general name', 'lift-docs-system'),
@@ -169,7 +169,7 @@ class LIFT_Docs_Post_Types {
             'not_found'                  => __('No tags found.', 'lift-docs-system'),
             'menu_name'                  => __('Tags', 'lift-docs-system'),
         );
-        
+
         $tag_args = array(
             'hierarchical'          => false,
             'labels'                => $tag_labels,
@@ -183,10 +183,10 @@ class LIFT_Docs_Post_Types {
             'rest_base'             => 'document-tags',
             'rest_controller_class' => 'WP_REST_Terms_Controller',
         );
-        
+
         register_taxonomy('lift_doc_tag', array('lift_document'), $tag_args);
     }
-    
+
     /**
      * Disable Gutenberg block editor for lift_document post type
      */
@@ -197,7 +197,7 @@ class LIFT_Docs_Post_Types {
         }
         return $current_status;
     }
-    
+
     /**
      * Track document views
      */
@@ -205,40 +205,40 @@ class LIFT_Docs_Post_Types {
         if (!is_singular('lift_document')) {
             return;
         }
-        
+
         global $post;
-        
+
         // Check if analytics is enabled
         $settings = get_option('lift_docs_settings', array());
         if (empty($settings['enable_analytics'])) {
             return;
         }
-        
+
         // Don't track admin views
         if (current_user_can('edit_posts')) {
             return;
         }
-        
+
         // Don't track bot views
         if ($this->is_bot()) {
             return;
         }
-        
+
         // Track the view
         $this->record_analytics_event($post->ID, 'view');
-        
+
         // Update view count
         $current_views = get_post_meta($post->ID, '_lift_doc_views', true);
         $current_views = $current_views ? intval($current_views) : 0;
         update_post_meta($post->ID, '_lift_doc_views', $current_views + 1);
     }
-    
+
     /**
      * Check if the current visitor is a bot
      */
     private function is_bot() {
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-        
+
         $bots = array(
             'googlebot',
             'bingbot',
@@ -248,30 +248,30 @@ class LIFT_Docs_Post_Types {
             'bot',
             'facebookexternalhit'
         );
-        
+
         foreach ($bots as $bot) {
             if (stripos($user_agent, $bot) !== false) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Record analytics event
      */
     private function record_analytics_event($document_id, $action) {
         global $wpdb;
-        
+
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
-        
+
         $user_id = get_current_user_id();
         $user_id = $user_id ? $user_id : null;
-        
+
         $ip_address = $this->get_user_ip();
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-        
+
         $wpdb->insert(
             $table_name,
             array(
@@ -292,7 +292,7 @@ class LIFT_Docs_Post_Types {
             )
         );
     }
-    
+
     /**
      * Get user IP address
      */
@@ -306,22 +306,22 @@ class LIFT_Docs_Post_Types {
             'HTTP_FORWARDED',
             'REMOTE_ADDR'
         );
-        
+
         foreach ($ip_keys as $key) {
             if (array_key_exists($key, $_SERVER) === true) {
                 foreach (explode(',', $_SERVER[$key]) as $ip) {
                     $ip = trim($ip);
-                    
+
                     if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
                         return $ip;
                     }
                 }
             }
         }
-        
+
         return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     }
-    
+
     /**
      * Exclude archived documents from frontend queries
      */
@@ -330,19 +330,19 @@ class LIFT_Docs_Post_Types {
         if (is_admin()) {
             return;
         }
-        
+
         // Only apply to main query for lift_document post type
         if (!$query->is_main_query()) {
             return;
         }
-        
+
         // Apply to all lift_document queries including single documents and archive pages
-        if ($query->get('post_type') === 'lift_document' || 
-            $query->is_post_type_archive('lift_document') || 
+        if ($query->get('post_type') === 'lift_document' ||
+            $query->is_post_type_archive('lift_document') ||
             ($query->is_search() && $query->get('post_type') === 'lift_document') ||
             $query->is_tax(array('lift_doc_category', 'lift_doc_tag')) ||
             ($query->is_singular() && isset($query->query_vars['post_type']) && $query->query_vars['post_type'] === 'lift_document')) {
-            
+
             // Exclude archived documents
             $meta_query = $query->get('meta_query') ?: array();
             $meta_query[] = array(
@@ -357,11 +357,11 @@ class LIFT_Docs_Post_Types {
                     'compare' => '!='
                 )
             );
-            
+
             $query->set('meta_query', $meta_query);
         }
     }
-    
+
     /**
      * Redirect archived documents to 404 or home page
      */
@@ -370,9 +370,9 @@ class LIFT_Docs_Post_Types {
         if (!is_singular('lift_document')) {
             return;
         }
-        
+
         global $post;
-        
+
         // Check if document is archived
         $is_archived = get_post_meta($post->ID, '_lift_doc_archived', true);
         if ($is_archived === '1' || $is_archived === 1) {

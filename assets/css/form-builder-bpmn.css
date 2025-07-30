@@ -202,15 +202,11 @@
     border: 1px solid #2271b1;
     text-decoration: none;
 }
-
-
 .builder-actions .button-secondary {
     background: #f8fafc;
     color: #64748b;
     border: 1px solid #cbd5e1;
 }
-
-
 /* Form Fields Area - Enhanced */
 .form-fields-area {
     flex: 1;
@@ -724,7 +720,7 @@
 
 .field-compact-input textarea {
     resize: none;
-    
+
     min-height: 20px;
     height: 20px;
 }
@@ -1402,7 +1398,7 @@
         width: 260px;
         min-width: 260px;
     }
-    
+
     .modern-form-builder {
         height: 70vh;
         min-height: 500px;
@@ -1415,7 +1411,7 @@
         height: auto;
         min-height: 400px;
     }
-    
+
     .form-builder-palette {
         width: 100%;
         min-width: auto;
@@ -1423,7 +1419,7 @@
         border-bottom: 1px solid #ccd0d4;
         max-height: 250px;
     }
-    
+
     .row-layout-buttons,
     .field-type-buttons {
         flex-direction: row;
@@ -1431,7 +1427,7 @@
         gap: 8px;
         padding: 10px;
     }
-    
+
     .row-layout-btn,
     .field-type-btn {
         flex: 1;
@@ -1439,44 +1435,44 @@
         padding: 8px 10px;
         font-size: 12px;
     }
-    
+
     .form-builder-header {
         flex-direction: column;
         gap: 12px;
         align-items: stretch;
         padding: 12px 15px;
     }
-    
+
     .builder-actions {
         justify-content: center;
         flex-wrap: wrap;
     }
-    
+
     .form-fields-area {
         padding: 15px;
     }
-    
+
     #form-fields-list {
         padding: 15px;
     }
-    
+
     .form-row {
         flex-direction: column;
         gap: 12px;
         padding: 12px;
     }
-    
+
     .form-column {
         width: 100%;
     }
-    
+
     .row-controls {
         position: static;
         margin-bottom: 10px;
         opacity: 1;
         justify-content: center;
     }
-    
+
     .row-drag-handle {
         position: static;
         opacity: 1;
@@ -1487,21 +1483,21 @@
         margin-bottom: 10px;
         transform: none;
     }
-    
+
     .row-drag-handle:hover {
         transform: none;
     }
-    
+
     .column-header {
         flex-direction: column;
         gap: 8px;
         align-items: flex-start;
     }
-    
+
     .column-resize-handle {
         display: none;
     }
-    
+
     .field-actions {
         flex-wrap: wrap;
         gap: 4px;

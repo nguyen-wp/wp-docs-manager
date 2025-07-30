@@ -16,7 +16,7 @@
     $(document).ready(function() {
         if ($('#form-builder-container').length) {
             initFormBuilder();
-            
+
             // Expose form builder to global scope for minimal admin access
             window.formBuilder = {
                 formData: formData,
@@ -30,7 +30,7 @@
             };
         }
     });
-    
+
     /**
      * Update global form data variables
      */
@@ -40,7 +40,7 @@
             fields: formData,
             layout: layoutData
         };
-        
+
         window.liftCurrentFormFields = dataToSave;
         if (window.formBuilder) {
             window.formBuilder.formData = dataToSave;
@@ -62,22 +62,22 @@
      */
     function buildLayoutStructure() {
         const rows = [];
-        
+
         $('#form-fields-list .form-row').each(function() {
             const rowElement = $(this);
             const rowId = rowElement.data('row-id');
             const columns = [];
-            
+
             rowElement.find('.form-column').each(function() {
                 const columnElement = $(this);
                 const columnId = columnElement.data('column-id');
                 const fields = [];
-                
+
                 // Get fields in this column
                 columnElement.find('.compact-field-item, .form-field-item').each(function() {
                     const fieldElement = $(this);
                     const fieldId = fieldElement.data('field-id') || fieldElement.find('[data-field-id]').data('field-id');
-                    
+
                     if (fieldId) {
                         const fieldData = formData.find(f => f.id === fieldId);
                         if (fieldData) {
@@ -85,20 +85,20 @@
                         }
                     }
                 });
-                
+
                 columns.push({
                     id: columnId,
                     width: columnElement.css('flex') || '1',
                     fields: fields
                 });
             });
-            
+
             rows.push({
                 id: rowId,
                 columns: columns
             });
         });
-        
+
         return { rows: rows };
     }
 
@@ -108,7 +108,7 @@
     function initFormBuilder() {
         // Get form ID if editing
         currentFormId = parseInt($('#form-id').val()) || 0;
-        
+
         // Load existing form data if editing
         if (currentFormId > 0) {
             loadFormData(currentFormId);
@@ -125,7 +125,7 @@
      */
     function createFormBuilder(existingData = []) {
         const container = $('#form-builder-container');
-        
+
         if (!container.length) {
             return;
         }
@@ -139,7 +139,7 @@
      */
     function createFormBuilderUI(existingData = []) {
         const container = $('#form-builder-container');
-        
+
         const builderHTML = `
             <div class="modern-form-builder">
                 <div class="form-builder-palette">
@@ -166,7 +166,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Field Elements Section -->
                     <div class="palette-section">
                         <div class="palette-header" data-section="fields">
@@ -214,9 +214,9 @@
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
-                
+
                 <div class="form-builder-canvas">
                     <div class="form-builder-header">
                         <div class="builder-actions">
@@ -224,14 +224,14 @@
                             <button type="button" class="button button-secondary" id="clear-form">Clear All</button>
                         </div>
                     </div>
-                    
+
                     <div class="form-fields-area">
                         <div id="form-fields-list">
                             <div class="no-fields-message"><p>No rows added yet. Drag a row layout from the palette to get started.</p></div>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Field Edit Modal -->
                 <div id="field-edit-modal" class="field-modal" style="display: none;">
                     <div class="modal-content">
@@ -273,7 +273,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Column Settings Modal -->
                 <div id="column-settings-modal" class="field-modal" style="display: none;">
                     <div class="modal-content">
@@ -308,7 +308,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Form Preview Modal -->
                 <div id="form-preview-modal" class="field-modal" style="display: none;">
                     <div class="modal-content modal-large">
@@ -333,12 +333,12 @@
         `;
 
         container.html(builderHTML);
-        
+
         // Always ensure we have at least one row with one column
         if (layoutData.rows.length === 0) {
             createDefaultRow();
         }
-        
+
         // Load existing data if any
         if (existingData && existingData.length > 0) {
             // Ensure each field has an ID
@@ -348,7 +348,7 @@
                 }
                 return field;
             });
-            
+
             // If we have form data but no row structure, create default structure
             if ($('#form-fields-list .form-row').length === 0) {
                 loadLayout(layoutData);
@@ -379,7 +379,7 @@
         $(document).on('click', '.edit-field-btn', function() {
             const index = $(this).data('index');
             const fieldId = $(this).data('field-id');
-            
+
             if (index !== undefined) {
                 // Using index-based approach
                 editField(index);
@@ -396,7 +396,7 @@
         $(document).on('click', '.delete-field-btn', function() {
             const index = $(this).data('index');
             const fieldId = $(this).data('field-id');
-            
+
             if (confirm('Are you sure you want to delete this field?')) {
                 if (index !== undefined) {
                     // Using index-based approach
@@ -581,7 +581,7 @@
         const rect = canvas.getBoundingClientRect();
         const clientX = e.type.includes('touch') ? e.originalEvent.touches[0].clientX : e.clientX;
         const clientY = e.type.includes('touch') ? e.originalEvent.touches[0].clientY : e.clientY;
-        
+
         return {
             x: (clientX - rect.left) * (canvas.width / rect.width),
             y: (clientY - rect.top) * (canvas.height / rect.height)
@@ -619,7 +619,7 @@
     function redrawSignature(canvas) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         if (canvas.signatureStrokes) {
             canvas.signatureStrokes.forEach(stroke => {
                 if (stroke.length > 0) {
@@ -718,18 +718,18 @@
         $(document).on('dragstart', '.compact-field-item, .form-field-item', function(e) {
             draggedElement = this;
             $(this).addClass('being-dragged');
-            
+
             // Store the field index and source container
             const index = Array.from(this.parentNode.children).indexOf(this);
             const sourceContainer = $(this).closest('#form-fields-list, .form-column').attr('class') || 'form-fields-list';
-            
+
             // Find field ID from nested elements
             let fieldId = $(this).data('field-id');
             if (!fieldId) {
                 const fieldIdElement = $(this).find('[data-field-id]').first();
                 fieldId = fieldIdElement.data('field-id');
             }
-            
+
             e.originalEvent.dataTransfer.setData('text/plain', JSON.stringify({
                 index: index,
                 sourceContainer: sourceContainer,
@@ -772,12 +772,12 @@
         $(document).on('drop', '.compact-field-item, .form-field-item', function(e) {
             e.preventDefault();
             $(this).removeClass('drag-over');
-            
+
             if (this !== draggedElement) {
                 try {
                     const data = JSON.parse(e.originalEvent.dataTransfer.getData('text/plain'));
                     const dropIndex = Array.from(this.parentNode.children).indexOf(this);
-                    
+
                     // Move the field in the data array
                     moveFieldToPosition(data.index, dropIndex);
                 } catch (ex) {
@@ -789,12 +789,12 @@
         $(document).on('drop', '.form-column', function(e) {
             e.preventDefault();
             $(this).removeClass('drag-over');
-            
+
             // Only handle drops directly on the column, not on field items within
             if (!$(e.target).hasClass('compact-field-item') && !$(e.target).hasClass('form-field-item')) {
                 try {
                     const data = JSON.parse(e.originalEvent.dataTransfer.getData('text/plain'));
-                    
+
                     // Append field to this column
                     appendFieldToColumn(data.fieldId, $(this));
                 } catch (ex) {
@@ -824,7 +824,7 @@
         const fieldIndex = formData.indexOf(field);
         if (fieldIndex > -1) {
             // For now, just log the action - you can implement column-specific logic here
-            
+
             // Field position is handled by drag & drop in the UI
             // No need to re-render as we're using row/column structure
         }
@@ -835,13 +835,13 @@
      */
     function moveFieldToPosition(fromIndex, toIndex) {
         if (fromIndex === toIndex) return;
-        
+
         // Remove field from old position
         const field = formData.splice(fromIndex, 1)[0];
-        
+
         // Insert at new position
         formData.splice(toIndex, 0, field);
-        
+
         // Field position is handled by drag & drop in the UI
         // Trigger update event for other components
         $(document).trigger('fields-updated');
@@ -852,7 +852,7 @@
      */
     function updateFieldOrder() {
         const newOrder = [];
-        
+
         $('#form-fields-list .form-row').each(function() {
             $(this).find('.form-column .compact-field-item').each(function() {
                 const fieldIdElements = $(this).find('[data-field-id]');
@@ -865,7 +865,7 @@
                 }
             });
         });
-        
+
         formData = newOrder;
     }
 
@@ -878,13 +878,13 @@
             alert('Please add a row first before adding fields. Drag a row layout from the palette to get started.');
             return;
         }
-        
+
         // Check if we have any columns to drop fields into
         if ($('#form-fields-list .form-column').length === 0) {
             alert('Please add columns to your rows before adding fields. You need at least one column to place fields.');
             return;
         }
-        
+
         // Don't create the field yet - user should drag from palette to specific column
         alert('Please drag the field from the palette to a specific column in your form.');
     }
@@ -922,7 +922,7 @@
         $('#field-name').val(field.name);
         $('#field-placeholder').val(field.placeholder);
         $('#field-required').prop('checked', field.required);
-        
+
         // Show/hide form fields based on field type
         if (field.type === 'header' || field.type === 'paragraph' || field.type === 'signature') {
             // For header, paragraph, and signature, hide placeholder and required fields
@@ -940,7 +940,7 @@
             $('#field-required').closest('.form-field').show();
             $('#field-name').closest('.form-field').show();
         }
-        
+
         // Show/hide options field based on field type
         if (field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') {
             $('.options-field').show();
@@ -959,7 +959,7 @@
     function saveFieldEdit() {
         const index = $('#field-edit-modal').data('editing-index');
         const field = formData[index];
-        
+
         if (!field) return;
 
         // Update field data
@@ -967,7 +967,7 @@
         field.name = $('#field-name').val();
         field.placeholder = $('#field-placeholder').val();
         field.required = $('#field-required').is(':checked');
-        
+
         // Collect options from dynamic options list
         if ($('.options-field').is(':visible')) {
             field.options = collectOptionsFromField();
@@ -987,7 +987,7 @@
     function populateOptionsField(options) {
         const container = $('#field-options-list');
         container.empty();
-        
+
         if (options && options.length > 0) {
             options.forEach((option, index) => {
                 addOptionItem(option, index);
@@ -1063,7 +1063,7 @@
         const fieldElement = $(`.compact-field-item`).filter(function() {
             return $(this).find(`[data-field-id="${field.id}"]`).length > 0;
         });
-        
+
         if (fieldElement.length) {
             // Replace the entire field element with updated version
             const newFieldHTML = generateFieldPreview(field);
@@ -1077,28 +1077,28 @@
     function deleteField(index) {
         const field = formData[index];
         if (!field) return;
-        
+
         // Remove from DOM first - find by field ID in compact layout
         const fieldElement = $(`.compact-field-item`).filter(function() {
             return $(this).find(`[data-field-id="${field.id}"]`).length > 0;
         });
-        
+
         const parentColumn = fieldElement.closest('.form-column');
-        
+
         fieldElement.remove();
-        
+
         // Check if parent column is now empty
         if (parentColumn.length && parentColumn.find('.compact-field-item, .form-field-item').length === 0) {
             parentColumn.removeClass('has-fields');
             parentColumn.find('.column-placeholder').show();
         }
-        
+
         // Remove from data array
         formData.splice(index, 1);
-        
+
         // Update global variable for minimal admin access
         updateGlobalFormData();
-        
+
         // If no fields remain, show no fields message
         if (formData.length === 0) {
             // Keep the row structure but show placeholder message in empty columns
@@ -1120,10 +1120,10 @@
         } else if (direction === 'down' && index < formData.length - 1) {
             [formData[index], formData[index + 1]] = [formData[index + 1], formData[index]];
         }
-        
+
         // Update global variable for minimal admin access
         updateGlobalFormData();
-        
+
         // Visual reordering is handled by drag & drop
     }
 
@@ -1133,7 +1133,7 @@
     function generateFieldPreview(field) {
         const required = field.required ? ' <span style="color: red;">*</span>' : '';
         const fieldType = field.type.toUpperCase();
-        
+
         switch (field.type) {
             case 'text':
             case 'email':
@@ -1158,7 +1158,7 @@
                         ${required ? '<span class="required-indicator">Required</span>' : ''}
                     </div>
                 `;
-            
+
             case 'textarea':
                 return `
                     <div class="compact-field-item">
@@ -1180,10 +1180,10 @@
                         ${required ? '<span class="required-indicator">Required</span>' : ''}
                     </div>
                 `;
-            
+
             case 'select':
-                const selectOptions = field.options && field.options.length > 0 
-                    ? field.options.map(opt => `<option>${opt}</option>`).join('') 
+                const selectOptions = field.options && field.options.length > 0
+                    ? field.options.map(opt => `<option>${opt}</option>`).join('')
                     : '<option>Option 1</option><option>Option 2</option>';
                 return `
                     <div class="compact-field-item">
@@ -1208,7 +1208,7 @@
                         ${required ? '<span class="required-indicator">Required</span>' : ''}
                     </div>
                 `;
-            
+
             case 'radio':
                 const radioCount = field.options ? field.options.length : 3;
                 return `
@@ -1234,7 +1234,7 @@
                         ${required ? '<span class="required-indicator">Required</span>' : ''}
                     </div>
                 `;
-            
+
             case 'checkbox':
                 const checkboxCount = field.options ? field.options.length : 1;
                 if (field.options && field.options.length > 0) {
@@ -1287,7 +1287,7 @@
                         </div>
                     `;
                 }
-            
+
             case 'date':
                 return `
                     <div class="compact-field-item">
@@ -1309,7 +1309,7 @@
                         ${required ? '<span class="required-indicator">Required</span>' : ''}
                     </div>
                 `;
-            
+
             case 'file':
                 return `
                     <div class="compact-field-item">
@@ -1334,7 +1334,7 @@
                         ${required ? '<span class="required-indicator">Required</span>' : ''}
                     </div>
                 `;
-            
+
             case 'header':
                 return `
                     <div class="compact-field-item">
@@ -1358,7 +1358,7 @@
                         </div>
                     </div>
                 `;
-            
+
             case 'paragraph':
                 return `
                     <div class="compact-field-item">
@@ -1382,7 +1382,7 @@
                         </div>
                     </div>
                 `;
-            
+
             case 'signature':
                 return `
                     <div class="compact-field-item">
@@ -1406,7 +1406,7 @@
                         </div>
                     </div>
                 `;
-            
+
             default:
                 return `
                     <div class="compact-field-item">
@@ -1437,7 +1437,7 @@
      */
     function generateFullFormPreview(field) {
         const required = field.required ? ' <span style="color: red;">*</span>' : '';
-        
+
         switch (field.type) {
             case 'text':
             case 'email':
@@ -1448,7 +1448,7 @@
                         <input type="${field.type}" id="${field.name}" name="${field.name}" placeholder="${field.placeholder || ''}" class="form-control" />
                     </div>
                 `;
-            
+
             case 'textarea':
                 return `
                     <div class="form-group">
@@ -1456,10 +1456,10 @@
                         <textarea id="${field.name}" name="${field.name}" placeholder="${field.placeholder || ''}" class="form-control" rows="4"></textarea>
                     </div>
                 `;
-            
+
             case 'select':
-                const selectOptions = field.options && field.options.length > 0 
-                    ? field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('') 
+                const selectOptions = field.options && field.options.length > 0
+                    ? field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')
                     : '<option value="">No options available</option>';
                 return `
                     <div class="form-group">
@@ -1470,10 +1470,10 @@
                         </select>
                     </div>
                 `;
-            
+
             case 'radio':
                 const radioOptions = field.options && field.options.length > 0
-                    ? field.options.map((opt, i) => 
+                    ? field.options.map((opt, i) =>
                         `<div class="radio-option">
                             <input type="radio" id="${field.name}_${i}" name="${field.name}" value="${opt}" />
                             <label for="${field.name}_${i}">${opt}</label>
@@ -1488,11 +1488,11 @@
                         </div>
                     </div>
                 `;
-            
+
             case 'checkbox':
                 if (field.options && field.options.length > 0) {
                     // Multiple checkboxes (checkbox group)
-                    const checkboxOptions = field.options.map((opt, i) => 
+                    const checkboxOptions = field.options.map((opt, i) =>
                         `<div class="checkbox-option">
                             <input type="checkbox" id="${field.name}_${i}" name="${field.name}[]" value="${opt}" />
                             <label for="${field.name}_${i}">${opt}</label>
@@ -1517,7 +1517,7 @@
                         </div>
                     `;
                 }
-            
+
             case 'date':
                 return `
                     <div class="form-group">
@@ -1525,7 +1525,7 @@
                         <input type="date" id="${field.name}" name="${field.name}" class="form-control" />
                     </div>
                 `;
-            
+
             case 'file':
                 return `
                     <div class="form-group">
@@ -1533,21 +1533,21 @@
                         <input type="file" id="${field.name}" name="${field.name}" class="form-control" />
                     </div>
                 `;
-            
+
             case 'header':
                 return `
                     <div class="form-group">
                         <h3 class="form-header">${field.label}</h3>
                     </div>
                 `;
-            
+
             case 'paragraph':
                 return `
                     <div class="form-group">
                         <p class="form-paragraph">${field.label}</p>
                     </div>
                 `;
-            
+
             case 'signature':
                 return `
                     <div class="form-group">
@@ -1562,7 +1562,7 @@
                         </div>
                     </div>
                 `;
-            
+
             default:
                 return `
                     <div class="form-group">
@@ -1583,23 +1583,23 @@
         }
 
         let previewHTML = '';
-        
+
         // Check if we have row/column structure
         if ($('#form-fields-list .form-row').length > 0) {
             // Generate preview with row/column structure
             previewHTML = '<div class="form-preview-container">';
-            
+
             $('#form-fields-list .form-row').each(function() {
                 const rowElement = $(this);
                 const columns = rowElement.find('.form-column');
-                
+
                 if (columns.length > 0) {
                     previewHTML += '<div class="preview-row">';
-                    
+
                     columns.each(function() {
                         const columnElement = $(this);
                         const columnFields = [];
-                        
+
                         // Get fields in this column
                         columnElement.find('.compact-field-item, .form-field-item').each(function() {
                             const fieldIdElements = $(this).find('[data-field-id]');
@@ -1611,29 +1611,29 @@
                                 }
                             }
                         });
-                        
+
                         // Calculate column width based on flex or data attributes
                         const columnWidth = Math.floor(100 / columns.length);
                         previewHTML += `<div class="preview-column" style="width: ${columnWidth}%; padding: 0 10px;">`;
-                        
+
                         // Add fields in this column
                         columnFields.forEach(field => {
                             previewHTML += generateFullFormPreview(field);
                         });
-                        
+
                         previewHTML += '</div>';
                     });
-                    
+
                     previewHTML += '</div>';
                 }
             });
-            
+
             previewHTML += '</div>';
         }
-        
+
         // Add submit button
         previewHTML += '<div class="form-group submit-group"><button type="submit" class="btn btn-primary">Submit Form</button></div>';
-        
+
         // Insert into modal and show
         $('#form-preview-content').html(previewHTML);
         $('#form-preview-modal').show();
@@ -1645,7 +1645,7 @@
     function bindEvents() {
         // Initialize drag and drop
         initDragAndDrop();
-        
+
         // Save form - ensure we remove any existing handlers first
         $(document).off('click.form-builder', '#save-form').on('click.form-builder', '#save-form', function(e) {
             e.preventDefault();
@@ -1676,20 +1676,20 @@
         // Enhanced validation for form name (skip for silent saves like auto-save)
         if (!silent) {
             const formName = $('#form-name').val().trim();
-            
+
             if (!formName) {
                 showFormMessage('Please enter a form name before saving.', 'error');
                 $('#form-name').focus().addClass('error');
                 return;
             }
-            
+
             // Check minimum length
             if (formName.length < 3) {
                 showFormMessage('Form name must be at least 3 characters long.', 'error');
                 $('#form-name').focus().addClass('error');
                 return;
             }
-            
+
             // Check for valid characters
             const validNamePattern = /^[a-zA-Z0-9\s\-_.()]+$/;
             if (!validNamePattern.test(formName)) {
@@ -1697,29 +1697,26 @@
                 $('#form-name').focus().addClass('error');
                 return;
             }
-            
+
             // Remove error styling if validation passes
             $('#form-name').removeClass('error');
-            
+
             $('.lift-save-indicator').text('Saving...').show();
         }
 
         let saveData;
-        
+
         if (formBuilderInstance && typeof formBuilderInstance.formData === 'function') {
             // FormBuilder library data
             saveData = formBuilderInstance.formData();
-            
+
             // Store in global variable for minimal admin access
             updateGlobalFormData();
         } else {
             // Form builder data - use proper structure
             saveData = getFormDataForSaving();
-            
-            // Debug logging
-            const dataToSave = getFormDataForSaving();
-            
-            // Store in global variable for minimal admin access  
+
+            // Store in global variable for minimal admin access
             updateGlobalFormData();
         }
 
@@ -1740,15 +1737,15 @@
                     if (!silent) {
                         $('.lift-save-indicator').text('Saved').removeClass('error');
                         setTimeout(() => $('.lift-save-indicator').fadeOut(), 2000);
-                        
+
                         // Show success message
                         showFormMessage('Form saved successfully!', 'success');
                     }
-                    
+
                     if (response.data && response.data.form_id && !currentFormId) {
                         currentFormId = response.data.form_id;
                         $('#form-id').val(currentFormId);
-                        
+
                         // For new forms, redirect to edit page after showing message
                         if (!silent) {
                             showFormMessage('Form created successfully! Redirecting to edit page...', 'success');
@@ -1756,7 +1753,7 @@
                                 // Build correct edit URL without post_type parameter
                                 const baseUrl = '/wp-admin/admin.php';
                                 const editUrl = baseUrl + '?page=lift-forms-builder&id=' + response.data.form_id + '&created=1';
-                                
+
                                 // Redirect to correct URL
                                 try {
                                     window.location.href = editUrl;
@@ -1795,11 +1792,11 @@
                 form_id: formId
             },
             success: function(response) {
-                
+
                 if (response.success && response.data.form_fields) {
                     try {
                         let loadedData;
-                        
+
                         if (typeof response.data.form_fields === 'string') {
                             // Try to clean the string first
                             let cleanString = response.data.form_fields.trim();
@@ -1807,30 +1804,30 @@
                         } else {
                             loadedData = response.data.form_fields;
                         }
-                        
+
                         // Handle different data structures
                         if (loadedData.layout && loadedData.layout.rows && loadedData.layout.rows.length > 0) {
                             // New structure with layout and actual rows
                             layoutData = loadedData.layout;
                             formData = loadedData.fields || [];
-                            
+
                             // Create the form builder UI first, then load the layout
                             createFormBuilderUI();
-                            
+
                             loadLayout(loadedData.layout);
                         } else if (loadedData.fields && loadedData.fields.length > 0) {
                             // Structure has fields but empty/missing layout - recreate layout with fields
                             formData = loadedData.fields || [];
-                            
+
                             // Create default row structure and place fields in first column
                             createDefaultRow();
-                            
+
                             // Add fields to the first column
                             setTimeout(() => {
                                 const firstColumn = $('#form-fields-list .form-column').first();
                                 if (firstColumn.length && formData.length > 0) {
                                     firstColumn.find('.column-placeholder').hide();
-                                    
+
                                     formData.forEach(field => {
                                         if (field && field.type) {
                                             // Ensure field has ID
@@ -1842,14 +1839,14 @@
                                         }
                                     });
                                     firstColumn.addClass('has-fields');
-                                    
+
                                     // Update layout data to reflect the actual structure
                                     updateLayoutFromDOM();
                                 } else {
                                     // Could not find first column or no fields to add
                                 }
                             }, 100);
-                            
+
                         } else if (Array.isArray(loadedData)) {
                             // Old flat structure - convert to row/column layout
                             formData = loadedData;
@@ -1860,7 +1857,7 @@
                             createDefaultRow();
                             createFormBuilderUI(loadedData);
                         }
-                        
+
                         updateGlobalFormData();
                     } catch (error) {
                         // JSON parse error - create default UI
@@ -1882,27 +1879,27 @@
     function loadLayout(layout) {
         const container = $('#form-fields-list');
         container.html(''); // Clear existing content
-        
+
         if (!layout || !layout.rows || layout.rows.length === 0) {
             container.html('<div class="no-fields-message"><p>No rows added yet. Drag a row layout from the palette to get started.</p></div>');
             return;
         }
-        
+
         layout.rows.forEach((row, rowIndex) => {
             if (!row.columns || row.columns.length === 0) {
                 return;
             }
-            
+
             // Create row HTML
             let rowHTML = `<div class="form-row" data-row-id="${row.id}" draggable="true">`;
-            
+
             // Add row drag handle
             rowHTML += `
                 <div class="row-drag-handle" title="Drag to reorder row">
                     ⋮⋮
                 </div>
             `;
-            
+
             // Add row controls
             rowHTML += `
                 <div class="row-controls">
@@ -1920,7 +1917,7 @@
                     </button>
                 </div>
             `;
-            
+
             // Add columns
             row.columns.forEach((column, columnIndex) => {
                 rowHTML += `
@@ -1943,7 +1940,7 @@
                         </div>
                         <div class="column-content">
                 `;
-                
+
                 // Add fields to column
                 if (column.fields && Array.isArray(column.fields) && column.fields.length > 0) {
                     column.fields.forEach((field, fieldIndex) => {
@@ -1956,21 +1953,21 @@
                 } else {
                     rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
                 }
-                
+
                 rowHTML += '</div>'; // Close form-column
             });
-            
+
             rowHTML += '</div>'; // Close form-row
-            
+
             // Try to re-select container if it's somehow lost
             let workingContainer = container;
             if (!workingContainer || workingContainer.length === 0) {
                 workingContainer = $('#form-fields-list');
             }
-            
+
             workingContainer.append(rowHTML);
         });
-        
+
         // Initialize drag and drop and other events
         try {
             if (typeof bindRowEvents === 'function') {
@@ -1979,7 +1976,7 @@
         } catch (error) {
             // Error in bindRowEvents
         }
-        
+
         try {
             if (typeof initColumnResize === 'function') {
                 initColumnResize();
@@ -1987,7 +1984,7 @@
         } catch (error) {
             // Error in initColumnResize
         }
-        
+
         try {
             if (typeof initDragAndDrop === 'function') {
                 initDragAndDrop();
@@ -2015,7 +2012,7 @@
                 columns: parseInt($(this).data('columns')),
                 source: 'palette'
             };
-            
+
             $(this).addClass('drag-ghost');
             e.originalEvent.dataTransfer.effectAllowed = 'copy';
             e.originalEvent.dataTransfer.setData('text/html', '');
@@ -2034,7 +2031,7 @@
                 type: $(this).data('type'),
                 source: 'palette'
             };
-            
+
             $(this).addClass('drag-ghost');
             e.originalEvent.dataTransfer.effectAllowed = 'copy';
             e.originalEvent.dataTransfer.setData('text/html', '');
@@ -2053,7 +2050,7 @@
                 rowId: $(this).data('row-id'),
                 source: 'canvas-row'
             };
-            
+
             $(this).addClass('drag-ghost');
             e.originalEvent.dataTransfer.effectAllowed = 'move';
             e.originalEvent.dataTransfer.setData('text/html', '');
@@ -2069,19 +2066,19 @@
         // Handle field dragging within canvas using event delegation
         $(document).off('dragstart.fieldDrag').on('dragstart.fieldDrag', '.form-field-item[draggable="true"], .compact-field-item[draggable="true"]', function(e) {
             draggedElement = this;
-            
+
             // Find field ID from nested elements for compact layout
             let fieldId = $(this).data('field-id');
             if (!fieldId) {
                 const fieldIdElement = $(this).find('[data-field-id]').first();
                 fieldId = fieldIdElement.data('field-id');
             }
-            
+
             draggedData = {
                 fieldId: fieldId,
                 source: 'canvas-field'
             };
-            
+
             $(this).addClass('drag-ghost');
             e.originalEvent.dataTransfer.effectAllowed = 'move';
             e.originalEvent.dataTransfer.setData('text/html', '');
@@ -2096,12 +2093,12 @@
         // Make canvas droppable for rows with better handling
         $('#form-fields-list').off('dragover.rowDrop').on('dragover.rowDrop', function(e) {
             if (!draggedData) return;
-            
+
             if (draggedData.type === 'row' || draggedData.source === 'canvas-row') {
                 e.preventDefault();
                 e.originalEvent.dataTransfer.dropEffect = draggedData.source === 'canvas-row' ? 'move' : 'copy';
                 $(this).addClass('drag-over');
-                
+
                 // Show drop indicator between rows for canvas-row dragging
                 if (draggedData.source === 'canvas-row') {
                     showRowDropIndicator(e.originalEvent.clientY);
@@ -2119,11 +2116,11 @@
 
         $('#form-fields-list').off('drop.rowDrop').on('drop.rowDrop', function(e) {
             if (!draggedData) return;
-            
+
             e.preventDefault();
             $(this).removeClass('drag-over');
             clearRowDropIndicators();
-            
+
             if (draggedData.type === 'row' && draggedData.source === 'palette') {
                 // Add new row
                 addNewRow(draggedData.columns);
@@ -2136,7 +2133,7 @@
         // Make columns droppable for fields using event delegation
         $(document).off('dragover.columnDrop').on('dragover.columnDrop', '.form-column', function(e) {
             if (!draggedData) return;
-            
+
             if (draggedData.source === 'palette' && draggedData.type !== 'row') {
                 e.preventDefault();
                 e.originalEvent.dataTransfer.dropEffect = 'copy';
@@ -2157,10 +2154,10 @@
 
         $(document).off('drop.columnDrop').on('drop.columnDrop', '.form-column', function(e) {
             if (!draggedData) return;
-            
+
             e.preventDefault();
             $(this).removeClass('drag-over');
-            
+
             if (draggedData.source === 'palette' && draggedData.type !== 'row') {
                 // Add new field to column
                 addFieldToColumn(draggedData.type, $(this));
@@ -2189,17 +2186,17 @@
     function addNewRow(columns) {
         const container = $('#form-fields-list');
         container.find('.no-fields-message').hide();
-        
+
         const rowId = 'row-' + Date.now();
         let rowHTML = `<div class="form-row" data-row-id="${rowId}" draggable="true">`;
-        
+
         // Add row drag handle
         rowHTML += `
             <div class="row-drag-handle" title="Drag to reorder row">
                 ⋮⋮
             </div>
         `;
-        
+
         // Add row controls
         rowHTML += `
             <div class="row-controls">
@@ -2217,12 +2214,12 @@
                 </button>
             </div>
         `;
-        
+
         // Add columns with resize handles
         for (let i = 0; i < columns; i++) {
             const columnId = `${rowId}-col-${i}`;
             const flexBasis = Math.floor(100 / columns);
-            
+
             rowHTML += `
                 <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                     <div class="column-header">
@@ -2251,12 +2248,12 @@
                 </div>
             `;
         }
-        
+
         rowHTML += '</div>';
         container.append(rowHTML);
-        
+
         updateGlobalFormData();
-        
+
         // Bind row events
         bindRowEvents();
         initColumnResize();
@@ -2269,7 +2266,7 @@
             const columns = currentRow.find('.form-column').length;
             const newRowHTML = generateRowHTML(columns);
             currentRow.after(newRowHTML);
-            
+
             // Re-bind events and initialize column resize for the new row
             bindRowEvents();
             initColumnResize();
@@ -2279,7 +2276,7 @@
         $(document).off('click', '.delete-row').on('click', '.delete-row', function() {
             if (confirm('Are you sure you want to delete this row and all its fields?')) {
                 $(this).closest('.form-row').remove();
-                
+
                 // Show no fields message if no rows left
                 if ($('#form-fields-list .form-row').length === 0) {
                     $('#form-fields-list .no-fields-message').show();
@@ -2291,14 +2288,14 @@
     function generateRowHTML(columns) {
         const rowId = 'row-' + Date.now();
         let rowHTML = `<div class="form-row" data-row-id="${rowId}" draggable="true">`;
-        
+
         // Add row drag handle
         rowHTML += `
             <div class="row-drag-handle" title="Drag to reorder row">
                 ⋮⋮
             </div>
         `;
-        
+
         // Add row controls with full functionality
         rowHTML += `
             <div class="row-controls">
@@ -2316,11 +2313,11 @@
                 </button>
             </div>
         `;
-        
+
         // Add columns with full functionality including width selector and settings
         for (let i = 0; i < columns; i++) {
             const columnId = `${rowId}-col-${i}`;
-            
+
             rowHTML += `
                 <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                     <div class="column-header">
@@ -2352,7 +2349,7 @@
                 </div>
             `;
         }
-        
+
         return rowHTML + '</div>';
     }
 
@@ -2363,20 +2360,20 @@
     function addFieldToColumn(fieldType, column) {
         const fieldData = createFieldData(fieldType);
         const fieldHTML = generateFieldPreview(fieldData);
-        
+
         column.find('.column-placeholder').hide();
         column.addClass('has-fields');
         column.append(fieldHTML);
-        
+
         // Make the field draggable
         column.find('.compact-field-item').last().attr('draggable', 'true');
-        
+
         // Add to formData
         formData.push(fieldData);
-        
+
         // Update global data
         updateGlobalFormData();
-        
+
         // Auto-open edit modal for new field
         setTimeout(() => {
             const fieldIndex = formData.findIndex(f => f.id === fieldData.id);
@@ -2389,12 +2386,12 @@
     function moveFieldToColumn(fieldId, targetColumn) {
         const fieldElement = $(`.form-field-item[data-field-id="${fieldId}"]`);
         const sourceColumn = fieldElement.closest('.form-column');
-        
+
         // Move field to target column
         targetColumn.find('.column-placeholder').hide();
         targetColumn.addClass('has-fields');
         targetColumn.append(fieldElement);
-        
+
         // Check if source column is empty
         if (sourceColumn.length && sourceColumn.find('.form-field-item').length === 0) {
             sourceColumn.removeClass('has-fields');
@@ -2405,15 +2402,15 @@
     function convertToSingleColumn() {
         const container = $('#form-fields-list');
         const allFields = container.find('.form-field-item').detach();
-        
+
         // Remove all rows
         container.find('.form-row').remove();
-        
+
         // Add fields back to single column
         allFields.each(function() {
             container.append(this);
         });
-        
+
         if (allFields.length === 0) {
             container.find('.no-fields-message').show();
         }
@@ -2425,12 +2422,12 @@
     function addColumn(rowId) {
         const row = $(`.form-row[data-row-id="${rowId}"]`);
         const currentColumns = row.find('.form-column').length;
-        
+
         if (currentColumns >= 6) {
             alert('Maximum 6 columns allowed per row');
             return;
         }
-        
+
         const columnId = `${rowId}-col-${currentColumns}`;
         const columnHTML = `
             <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
@@ -2459,7 +2456,7 @@
                 <div class="column-resize-handle"></div>
             </div>
         `;
-        
+
         row.append(columnHTML);
         initColumnResize();
     }
@@ -2467,19 +2464,19 @@
     function removeColumn(rowId) {
         const row = $(`.form-row[data-row-id="${rowId}"]`);
         const columns = row.find('.form-column');
-        
+
         if (columns.length <= 1) {
             alert('At least one column is required per row');
             return;
         }
-        
+
         const lastColumn = columns.last();
         if (lastColumn.find('.form-field-item').length > 0) {
             if (!confirm('This column contains fields. Are you sure you want to remove it?')) {
                 return;
             }
         }
-        
+
         lastColumn.remove();
     }
 
@@ -2491,15 +2488,15 @@
     function openColumnSettings(columnId) {
         const column = $(`.form-column[data-column-id="${columnId}"]`);
         if (!column.length) return;
-        
+
         // Get current column data
         const currentFlex = column.css('flex') || '1';
         const currentClasses = column.attr('data-custom-classes') || '';
-        
+
         // Populate modal fields
         $('#column-width').val(currentFlex);
         $('#column-classes').val(currentClasses);
-        
+
         // Store current editing column ID
         $('#column-settings-modal').data('editing-column-id', columnId).show();
     }
@@ -2507,17 +2504,17 @@
     function saveColumnSettings() {
         const columnId = $('#column-settings-modal').data('editing-column-id');
         const column = $(`.form-column[data-column-id="${columnId}"]`);
-        
+
         if (!column.length) return;
-        
+
         // Get form values
         const width = $('#column-width').val();
         const classes = $('#column-classes').val();
-        
+
         // Update column width
         column.css('flex', width);
         column.find('.column-width-selector').val(width);
-        
+
         // Update custom classes
         if (classes) {
             column.attr('data-custom-classes', classes);
@@ -2525,7 +2522,7 @@
         } else {
             column.removeAttr('data-custom-classes');
         }
-        
+
         // Close modal
         $('#column-settings-modal').hide();
     }
@@ -2533,34 +2530,34 @@
     function initColumnResize() {
         $('.column-resize-handle').off('mousedown').on('mousedown', function(e) {
             e.preventDefault();
-            
+
             const handle = $(this);
             const column = handle.parent();
             const nextColumn = column.next('.form-column');
-            
+
             if (!nextColumn.length) return;
-            
+
             handle.addClass('resizing');
-            
+
             const startX = e.pageX;
             const startWidth = column.outerWidth();
             const startNextWidth = nextColumn.outerWidth();
-            
+
             $(document).on('mousemove.columnResize', function(e) {
                 const deltaX = e.pageX - startX;
                 const newWidth = startWidth + deltaX;
                 const newNextWidth = startNextWidth - deltaX;
-                
+
                 if (newWidth > 50 && newNextWidth > 50) {
                     const totalWidth = newWidth + newNextWidth;
                     const flex1 = newWidth / totalWidth * 2;
                     const flex2 = newNextWidth / totalWidth * 2;
-                    
+
                     column.css('flex', flex1);
                     nextColumn.css('flex', flex2);
                 }
             });
-            
+
             $(document).on('mouseup.columnResize', function() {
                 $(document).off('mousemove.columnResize mouseup.columnResize');
                 handle.removeClass('resizing');
@@ -2571,29 +2568,29 @@
     function moveRow(rowId, dropY) {
         const draggedRow = $(`.form-row[data-row-id="${rowId}"]`);
         const allRows = $('#form-fields-list .form-row').not(draggedRow);
-        
+
         if (allRows.length === 0) {
             return; // No other rows to compare against
         }
-        
+
         let targetRow = null;
         let insertAfter = false;
         let minDistance = Infinity;
-        
+
         // Find the closest row to the drop position
         allRows.each(function() {
             const row = $(this);
             const rect = this.getBoundingClientRect();
             const rowMiddle = rect.top + rect.height / 2;
             const distance = Math.abs(dropY - rowMiddle);
-            
+
             if (distance < minDistance) {
                 minDistance = distance;
                 targetRow = row;
                 insertAfter = dropY > rowMiddle;
             }
         });
-        
+
         // Move the row to the new position
         if (targetRow && targetRow.length) {
             if (insertAfter) {
@@ -2605,7 +2602,7 @@
             // If no target found, append to the end
             $('#form-fields-list').append(draggedRow);
         }
-        
+
     }
 
     // Make functions globally accessible for onclick handlers
@@ -2680,32 +2677,32 @@
     function showRowDropIndicator(dropY) {
         // Clear existing indicators
         clearRowDropIndicators();
-        
+
         if (!draggedData || draggedData.source !== 'canvas-row') return;
-        
+
         const draggedRow = $(`.form-row[data-row-id="${draggedData.rowId}"]`);
         const allRows = $('#form-fields-list .form-row').not(draggedRow);
-        
+
         if (allRows.length === 0) return;
-        
+
         let targetRow = null;
         let insertAfter = false;
         let minDistance = Infinity;
-        
+
         // Find the closest row to the drop position
         allRows.each(function() {
             const row = $(this);
             const rect = this.getBoundingClientRect();
             const rowMiddle = rect.top + rect.height / 2;
             const distance = Math.abs(dropY - rowMiddle);
-            
+
             if (distance < minDistance) {
                 minDistance = distance;
                 targetRow = row;
                 insertAfter = dropY > rowMiddle;
             }
         });
-        
+
         // Add visual indicator
         if (targetRow && targetRow.length) {
             if (insertAfter) {
@@ -2729,15 +2726,15 @@
     function showFormMessage(message, type) {
         // Remove any existing messages
         $('.lift-form-message').remove();
-        
+
         const messageEl = $(`
             <div class="lift-form-message ${type}">
                 ${message}
             </div>
         `);
-        
+
         $('.lift-form-builder').before(messageEl);
-        
+
         // Auto-hide success messages after 3 seconds
         if (type === 'success') {
             setTimeout(function() {
@@ -2754,7 +2751,7 @@
     function createDefaultRow() {
         const rowId = 'row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         const columnId = 'col-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        
+
         layoutData.rows = [{
             id: rowId,
             columns: [{

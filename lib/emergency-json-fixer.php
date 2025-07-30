@@ -6,12 +6,12 @@ function emergency_json_fixer() {
     if (!isset($_POST['fields'])) {
         return;
     }
-    
+
     $fields = $_POST['fields'];
-    
+
     // Try various JSON fixes
     $fixed_fields = emergency_fix_json($fields);
-    
+
     if ($fixed_fields !== $fields) {
         $_POST['fields'] = $fixed_fields;
     }
@@ -21,52 +21,52 @@ function emergency_fix_json($json_string) {
     if (empty($json_string)) {
         return $json_string;
     }
-    
+
     // Remove any URL encoding
     $json_string = urldecode($json_string);
-    
+
     // Try to handle common FormData issues
     if (strpos($json_string, 'FormData') !== false) {
         return '[]'; // Return empty array as fallback
     }
-    
+
     // Handle escaped quotes
     $json_string = stripslashes($json_string);
-    
+
     // Fix common JavaScript object notation issues
     // Convert single quotes to double quotes
     $json_string = str_replace("'", '"', $json_string);
-    
+
     // Fix unquoted property names
     $json_string = preg_replace('/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/', '$1"$2":', $json_string);
-    
+
     // Fix trailing commas
     $json_string = preg_replace('/,\s*([}\]])/', '$1', $json_string);
-    
+
     // Remove any remaining control characters
     $json_string = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $json_string);
-    
+
     // Test if it's valid now
     $test_decode = json_decode($json_string, true);
     if (json_last_error() === JSON_ERROR_NONE) {
         return $json_string;
     }
-    
+
     // If still invalid, try to extract field data manually
-    
+
     // Look for field patterns in the string
     $manual_fields = extract_fields_manually($json_string);
     if (!empty($manual_fields)) {
         return json_encode($manual_fields);
     }
-    
+
     // Last resort - return a valid empty array
     return '[]';
 }
 
 function extract_fields_manually($string) {
     $fields = [];
-    
+
     // Try to find field data using regex patterns
     // Look for id patterns
     if (preg_match_all('/field_\d+/', $string, $matches)) {
@@ -83,7 +83,7 @@ function extract_fields_manually($string) {
             ];
         }
     }
-    
+
     return $fields;
 }
 
@@ -105,13 +105,13 @@ function emergency_json_page() {
     if (isset($_POST['test_json'])) {
         $test_input = $_POST['json_input'];
         $fixed_json = emergency_fix_json($test_input);
-        
+
         echo '<div class="notice notice-info">';
         echo '<h3>Original JSON:</h3>';
         echo '<pre>' . esc_html($test_input) . '</pre>';
         echo '<h3>Fixed JSON:</h3>';
         echo '<pre>' . esc_html($fixed_json) . '</pre>';
-        
+
         // Test if fixed JSON is valid
         $decoded = json_decode($fixed_json, true);
         if (json_last_error() === JSON_ERROR_NONE) {
@@ -121,11 +121,11 @@ function emergency_json_page() {
         }
         echo '</div>';
     }
-    
+
     ?>
     <div class="wrap">
         <h1>🚨 Emergency JSON Fixer</h1>
-        
+
         <div class="card">
             <h2>Test JSON Fixing</h2>
             <form method="post">
@@ -134,7 +134,7 @@ function emergency_json_page() {
                 <input type="submit" name="test_json" value="🔧 Fix JSON" class="button button-primary">
             </form>
         </div>
-        
+
         <div class="card">
             <h2>Emergency Actions</h2>
             <p>If Form Builder is completely broken:</p>
@@ -145,7 +145,7 @@ function emergency_json_page() {
                 <li>Check browser console for JavaScript errors</li>
             </ol>
         </div>
-        
+
         <div class="card">
             <h2>Common JSON Issues</h2>
             <ul>

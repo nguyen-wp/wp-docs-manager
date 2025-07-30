@@ -241,7 +241,7 @@
     border-radius: 6px;
     font-size: 14px;
     background: #fff;
-    
+
 }
 
 .lift-form-control:focus {
@@ -433,10 +433,10 @@
 }
 
 @keyframes pulse-highlight {
-    0%, 100% { 
+    0%, 100% {
         box-shadow: 0 0 20px rgba(34, 113, 177, 0.4);
     }
-    50% { 
+    50% {
         box-shadow: 0 0 30px rgba(34, 113, 177, 0.7);
         transform: translateY(-2px);
     }
@@ -452,8 +452,6 @@
     padding: 24px;
     margin-bottom: 20px;
 }
-
-
 
 .lift-card-header {
     display: flex;
@@ -674,24 +672,24 @@
         margin: 0 10px;
         padding: 15px;
     }
-    
+
     .lift-nav-tab-wrapper {
         flex-wrap: wrap;
         margin: 15px -15px 0 -15px;
         padding: 0 15px;
     }
-    
+
     .lift-nav-tab {
         flex: 1;
         min-width: auto;
         padding: 12px 15px;
     }
-    
+
     .lift-form-table th {
         width: 200px;
         padding: 15px;
     }
-    
+
     .lift-form-table td {
         padding: 15px;
     }
@@ -702,24 +700,24 @@
         padding: 20px;
         text-align: center;
     }
-    
+
     .lift-settings-header h1 {
         font-size: 24px; color: #fff;
     }
-    
+
     .lift-nav-tab-wrapper {
         overflow-x: auto;
         flex-wrap: nowrap;
         padding-bottom: 10px;
     }
-    
+
     .lift-nav-tab {
         flex-shrink: 0;
         min-width: 100px;
         padding: 10px 12px;
         font-size: 13px;
     }
-    
+
     .lift-form-table,
     .lift-form-table tbody,
     .lift-form-table tr,
@@ -727,23 +725,23 @@
     .lift-form-table td {
         display: block;
     }
-    
+
     .lift-form-table th {
         width: 100%;
         border-right: none;
         border-bottom: 1px solid #e1e5e9;
         padding: 15px 15px 10px 15px;
     }
-    
+
     .lift-form-table td {
         padding: 10px 15px 20px 15px;
         border-bottom: 2px solid #f1f3f4;
     }
-    
+
     .lift-form-control {
         max-width: 100%;
     }
-    
+
     .lift-card {
         padding: 16px;
     }
@@ -788,8 +786,6 @@
 .lift-hidden { display: none; }
 .lift-visible { display: block; }
 
-
-
 /* ===============================================
    FORM VALIDATION STATES
    =============================================== */
@@ -816,8 +812,6 @@
     border-color: #2271b1;
 }
 
-
-
 /* ===============================================
    ENHANCED NOTICES & FEEDBACK
    =============================================== */
@@ -830,7 +824,7 @@
     margin-right: 8px;
     font-size: 16px;
 }
-/* 
+/*
 .lift-error-box {
     background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
     border-color: #dc3545;
