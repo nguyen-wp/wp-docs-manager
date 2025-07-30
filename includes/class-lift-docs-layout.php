@@ -305,20 +305,18 @@ class LIFT_Docs_Layout {
                 // Verify nonce for password submission
                 if (isset($_POST['lift_doc_nonce']) && wp_verify_nonce($_POST['lift_doc_nonce'], 'lift_doc_password_' . $doc_id)) {
                     $entered_password = sanitize_text_field($_POST['lift_doc_password']);
-                    // Store in session if password is correct
+                    // Store in transient if password is correct (WordPress way)
                     if ($doc_password && $entered_password === $doc_password) {
-                        if (!session_id()) {
-                            session_start();
-                        }
-                        $_SESSION['lift_doc_' . $doc_id] = $entered_password;
+                        $user_id = get_current_user_id();
+                        $transient_key = 'lift_doc_access_' . $doc_id . '_' . ($user_id ?: $_SERVER['REMOTE_ADDR']);
+                        set_transient($transient_key, $entered_password, HOUR_IN_SECONDS);
                     }
                 }
             } else {
-                // Check session
-                if (!session_id()) {
-                    session_start();
-                }
-                $entered_password = $_SESSION['lift_doc_' . $doc_id] ?? '';
+                // Check transient
+                $user_id = get_current_user_id();
+                $transient_key = 'lift_doc_access_' . $doc_id . '_' . ($user_id ?: $_SERVER['REMOTE_ADDR']);
+                $entered_password = get_transient($transient_key) ?: '';
             }
 
             if ($doc_password && $entered_password !== $doc_password) {

@@ -920,16 +920,21 @@ class LIFT_Docs_Ajax {
 
         $user_id = get_current_user_id();
 
-        // Get user's assigned documents count
-        $all_documents = get_posts(array(
-            'post_type' => 'lift_document',
-            'post_status' => 'publish',
-            'posts_per_page' => -1
-        ));
+        // Get user's assigned documents count (optimized to avoid N+1 queries)
+        global $wpdb;
+        
+        // Get all document IDs and their assigned users in one query
+        $document_assignments = $wpdb->get_results($wpdb->prepare("
+            SELECT p.ID, pm.meta_value 
+            FROM {$wpdb->posts} p
+            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
+            WHERE p.post_type = 'lift_document' 
+            AND p.post_status = 'publish'
+        "));
 
         $user_documents_count = 0;
-        foreach ($all_documents as $document) {
-            $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
+        foreach ($document_assignments as $doc_assignment) {
+            $assigned_users = maybe_unserialize($doc_assignment->meta_value);
 
             // If no specific assignments, only admin and editor can see
             if (empty($assigned_users) || !is_array($assigned_users)) {
