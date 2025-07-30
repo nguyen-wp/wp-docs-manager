@@ -624,6 +624,15 @@ class LIFT_Forms {
                 formData.append('action', 'lift_forms_import');
                 formData.append('nonce', '<?php echo wp_create_nonce('lift_forms_import_nonce'); ?>');
 
+                // Debug: Log form data
+                console.log('LIFT Forms Import: Submitting form');
+                console.log('LIFT Forms Import: File input:', $('#lift-import-file')[0].files[0]);
+                
+                if ($('#lift-import-file')[0].files.length === 0) {
+                    alert('Please select a JSON file first');
+                    return;
+                }
+
                 $('#lift-import-progress').show();
                 $('#lift-import-result').hide();
 
@@ -634,6 +643,7 @@ class LIFT_Forms {
                     processData: false,
                     contentType: false,
                     success: function(response) {
+                        console.log('LIFT Forms Import: Server response:', response);
                         $('#lift-import-progress').hide();
                         if (response.success) {
                             $('#lift-import-result')
@@ -645,12 +655,14 @@ class LIFT_Forms {
                                 window.location.reload();
                             }, 2000);
                         } else {
+                            console.error('LIFT Forms Import: Error:', response.data);
                             $('#lift-import-result')
                                 .html('<div class="notice notice-error"><p>' + response.data + '</p></div>')
                                 .show();
                         }
                     },
-                    error: function() {
+                    error: function(xhr, status, error) {
+                        console.error('LIFT Forms Import: AJAX error:', xhr.responseText);
                         $('#lift-import-progress').hide();
                         $('#lift-import-result')
                             .html('<div class="notice notice-error"><p><?php _e('An error occurred during import', 'lift-docs-system'); ?></p></div>')
@@ -3414,35 +3426,52 @@ class LIFT_Forms {
      * AJAX handler for importing forms from JSON
      */
     public function ajax_import_form() {
+        // Debug: Log all incoming data
+        error_log('LIFT Forms Import: POST data: ' . print_r($_POST, true));
+        error_log('LIFT Forms Import: FILES data: ' . print_r($_FILES, true));
+        
         // Check nonce
         if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_import_nonce')) {
+            error_log('LIFT Forms Import: Nonce verification failed');
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
 
         // Check permissions
         if (!current_user_can('manage_options')) {
+            error_log('LIFT Forms Import: Permission check failed');
             wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
         }
 
         // Check if file was uploaded
         if (!isset($_FILES['import_file']) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK) {
+            error_log('LIFT Forms Import: File upload error. FILES: ' . print_r($_FILES, true));
             wp_send_json_error(__('No file uploaded or upload error', 'lift-docs-system'));
         }
 
         $file = $_FILES['import_file'];
         
+        error_log('LIFT Forms Import: File info - Name: ' . $file['name'] . ', Type: ' . $file['type'] . ', Size: ' . $file['size']);
+        
         // Validate file type
-        if ($file['type'] !== 'application/json' && pathinfo($file['name'], PATHINFO_EXTENSION) !== 'json') {
+        $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if ($file['type'] !== 'application/json' && $file_extension !== 'json') {
+            error_log('LIFT Forms Import: Invalid file type. Type: ' . $file['type'] . ', Extension: ' . $file_extension);
             wp_send_json_error(__('Please upload a valid JSON file', 'lift-docs-system'));
         }
 
         // Read and parse JSON
         $json_content = file_get_contents($file['tmp_name']);
+        error_log('LIFT Forms Import: Raw JSON length: ' . strlen($json_content));
+        error_log('LIFT Forms Import: First 200 chars: ' . substr($json_content, 0, 200));
+        
         $form_data = json_decode($json_content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('LIFT Forms Import: JSON decode error: ' . json_last_error_msg());
             wp_send_json_error(__('Invalid JSON format: ', 'lift-docs-system') . json_last_error_msg());
         }
+
+        error_log('LIFT Forms Import: Decoded data keys: ' . implode(', ', array_keys($form_data)));
 
         // Validate form structure
         $validation_result = $this->validate_form_import_data($form_data);
@@ -3582,6 +3611,15 @@ class LIFT_Forms {
      * Validate form import data structure
      */
     private function validate_form_import_data($data) {
+        // Check if data is valid
+        if (!is_array($data) || empty($data)) {
+            error_log('LIFT Forms Import: Data is not an array or is empty');
+            return array('valid' => false, 'error' => __('Invalid data format', 'lift-docs-system'));
+        }
+        
+        // Debug: Log the received data structure
+        error_log('LIFT Forms Import Debug: ' . print_r(array_keys($data), true));
+        
         // Check if it's a single form or multiple forms backup
         if (isset($data['forms']) && is_array($data['forms'])) {
             return array('valid' => false, 'error' => __('Multiple forms backup detected. Please import forms one by one.', 'lift-docs-system'));
@@ -3592,20 +3630,24 @@ class LIFT_Forms {
         
         foreach ($required_fields as $field) {
             if (!isset($data[$field])) {
-                return array('valid' => false, 'error' => sprintf(__('Missing required field: %s', 'lift-docs-system'), $field));
+                error_log("LIFT Forms Import: Missing field '$field'. Available fields: " . implode(', ', array_keys($data)));
+                return array('valid' => false, 'error' => sprintf(__('Missing required field: %s. Available fields: %s', 'lift-docs-system'), $field, implode(', ', array_keys($data))));
             }
         }
 
         // Validate layout structure
         if (!is_array($data['layout']) || !isset($data['layout']['rows'])) {
-            return array('valid' => false, 'error' => __('Invalid layout structure', 'lift-docs-system'));
+            error_log('LIFT Forms Import: Invalid layout structure. Layout: ' . print_r($data['layout'], true));
+            return array('valid' => false, 'error' => __('Invalid layout structure - layout must contain rows array', 'lift-docs-system'));
         }
 
         // Validate fields structure
         if (!is_array($data['fields'])) {
-            return array('valid' => false, 'error' => __('Invalid fields structure', 'lift-docs-system'));
+            error_log('LIFT Forms Import: Invalid fields structure. Fields: ' . print_r($data['fields'], true));
+            return array('valid' => false, 'error' => __('Invalid fields structure - fields must be an array', 'lift-docs-system'));
         }
 
+        error_log('LIFT Forms Import: Validation passed successfully');
         return array('valid' => true);
     }
 

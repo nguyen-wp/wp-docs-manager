@@ -1,0 +1,27 @@
+{
+  "name": "Simple Test Form",
+  "description": "A very basic form for testing",
+  "layout": {
+    "rows": [
+      {
+        "id": "row_1",
+        "type": "row",
+        "columns": [
+          {
+            "id": "col_1_1",
+            "width": 12,
+            "fields": ["field_test"]
+          }
+        ]
+      }
+    ]
+  },
+  "fields": {
+    "field_test": {
+      "id": "field_test",
+      "type": "text",
+      "label": "Test Field",
+      "required": false
+    }
+  }
+}
