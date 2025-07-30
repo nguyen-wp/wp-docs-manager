@@ -97,8 +97,6 @@ class LIFT_Docs_Settings {
         wp_enqueue_script('media-upload');
         wp_enqueue_script('thickbox');
         wp_enqueue_style('thickbox');
-
-        // Debug info
     }
 
     /**
