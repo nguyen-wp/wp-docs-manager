@@ -1027,3 +1027,74 @@
     width: 120px;
     text-align: center;
 }
+
+/* User Actions Styles */
+.user-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-width: 200px;
+}
+
+.user-actions .button {
+    font-size: 12px;
+    padding: 4px 8px;
+    height: auto;
+    line-height: 1.4;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.user-actions .button .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+.user-actions .button-primary {
+    background: #0073aa !important;
+    border-color: #0073aa !important;
+    color: white !important;
+}
+
+.user-actions .button-primary:hover {
+    background: #005a87 !important;
+    border-color: #005a87 !important;
+}
+
+/* Assigned User Filter */
+#assigned_user_filter {
+    margin: 0 5px;
+    min-width: 200px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .user-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+    
+    .user-actions .button {
+        flex: 1;
+        min-width: 0;
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+    
+    .user-actions .button .dashicons {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+    
+    #assigned_user_filter {
+        min-width: 150px;
+        margin: 2px;
+    }
+}

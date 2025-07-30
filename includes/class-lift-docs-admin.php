@@ -70,6 +70,10 @@ class LIFT_Docs_Admin {
         
         // Add script for users list
         add_action('admin_footer', array($this, 'add_users_list_script'));
+        
+        // Add filter for assigned users in documents list
+        add_action('restrict_manage_posts', array($this, 'add_assigned_user_filter'));
+        add_filter('parse_query', array($this, 'filter_documents_by_assigned_user'));
     }
     
     /**
@@ -2539,13 +2543,32 @@ class LIFT_Docs_Admin {
                     <th><?php _e('User', 'lift-docs-system'); ?></th>
                     <th><?php _e('Email', 'lift-docs-system'); ?></th>
                     <th><?php _e('User Code', 'lift-docs-system'); ?></th>
+                    <th><?php _e('Assigned Documents', 'lift-docs-system'); ?></th>
                     <th><?php _e('Registration Date', 'lift-docs-system'); ?></th>
                     <th><?php _e('Actions', 'lift-docs-system'); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($document_users as $user): ?>
-                <?php $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true); ?>
+                <?php 
+                $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
+                
+                // Count assigned documents for this user
+                $assigned_docs = get_posts(array(
+                    'post_type' => 'lift_document',
+                    'post_status' => 'publish',
+                    'posts_per_page' => -1,
+                    'meta_query' => array(
+                        array(
+                            'key' => '_lift_doc_assigned_users',
+                            'value' => sprintf(':%d;', $user->ID),
+                            'compare' => 'LIKE'
+                        )
+                    ),
+                    'fields' => 'ids'
+                ));
+                $assigned_count = count($assigned_docs);
+                ?>
                 <tr id="user-row-<?php echo $user->ID; ?>">
                     <td>
                         <strong><?php echo esc_html($user->display_name); ?></strong><br>
@@ -2571,11 +2594,34 @@ class LIFT_Docs_Admin {
                             <?php endif; ?>
                         </div>
                     </td>
+                    <td>
+                        <div style="text-align: center;">
+                            <?php if ($assigned_count > 0): ?>
+                                <strong style="color: #0073aa; font-size: 18px;"><?php echo $assigned_count; ?></strong>
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    <?php echo _n('document', 'documents', $assigned_count, 'lift-docs-system'); ?>
+                                </div>
+                            <?php else: ?>
+                                <span style="color: #d63638; font-style: italic;">
+                                    <?php _e('No documents', 'lift-docs-system'); ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </td>
                     <td><?php echo date_i18n(get_option('date_format'), strtotime($user->user_registered)); ?></td>
                     <td>
-                        <a href="<?php echo get_edit_user_link($user->ID); ?>" class="button">
-                            <?php _e('Edit User', 'lift-docs-system'); ?>
-                        </a>
+                        <div class="user-actions" style="display: flex; flex-direction: column; gap: 5px;">
+                            <a href="<?php echo get_edit_user_link($user->ID); ?>" class="button">
+                                <?php _e('Edit User', 'lift-docs-system'); ?>
+                            </a>
+                            <a href="<?php echo admin_url('edit.php?post_type=lift_document&assigned_user=' . $user->ID); ?>" 
+                               class="button button-primary" 
+                               style="background: #0073aa; border-color: #0073aa; color: white;"
+                               title="<?php echo sprintf(__('View all %d documents assigned to %s', 'lift-docs-system'), $assigned_count, $user->display_name); ?>">
+                                <span class="dashicons dashicons-text-page" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;"></span>
+                                <?php echo sprintf(__('View Documents (%d)', 'lift-docs-system'), $assigned_count); ?>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -3463,5 +3509,69 @@ class LIFT_Docs_Admin {
             'label' => $status_options[$new_status],
             'color' => $status_colors[$new_status]
         ));
+    }
+    
+    /**
+     * Add assigned user filter dropdown to documents list
+     */
+    public function add_assigned_user_filter($post_type) {
+        if ($post_type != 'lift_document') {
+            return;
+        }
+        
+        // Get all users with documents_user role
+        $document_users = get_users(array(
+            'meta_query' => array(
+                array(
+                    'key' => 'wp_capabilities',
+                    'value' => 'documents_user',
+                    'compare' => 'LIKE'
+                )
+            ),
+            'orderby' => 'display_name',
+            'order' => 'ASC'
+        ));
+        
+        $selected_user = isset($_GET['assigned_user']) ? $_GET['assigned_user'] : '';
+        
+        ?>
+        <select name="assigned_user" id="assigned_user_filter">
+            <option value=""><?php _e('All Assigned Users', 'lift-docs-system'); ?></option>
+            <?php foreach ($document_users as $user): ?>
+                <option value="<?php echo $user->ID; ?>" <?php selected($selected_user, $user->ID); ?>>
+                    <?php echo esc_html($user->display_name . ' (' . $user->user_login . ')'); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <?php
+    }
+    
+    /**
+     * Filter documents by assigned user
+     */
+    public function filter_documents_by_assigned_user($query) {
+        global $pagenow;
+        
+        if (!is_admin() || $pagenow != 'edit.php' || !isset($_GET['post_type']) || $_GET['post_type'] != 'lift_document') {
+            return;
+        }
+        
+        if (!isset($_GET['assigned_user']) || empty($_GET['assigned_user'])) {
+            return;
+        }
+        
+        $user_id = intval($_GET['assigned_user']);
+        
+        if ($user_id > 0) {
+            $meta_query = array(
+                array(
+                    'key' => '_lift_doc_assigned_users',
+                    'value' => sprintf(':%d;', $user_id),
+                    'compare' => 'LIKE'
+                )
+            );
+            
+            $query->set('meta_query', $meta_query);
+        }
     }
 }
