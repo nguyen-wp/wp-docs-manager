@@ -112,11 +112,14 @@ if ($custom_width) {
 - `PURE-FLEXBOX-IMPLEMENTATION-COMPLETE.md` - Pure flexbox system documentation  
 - `COLUMN-WIDTH-STYLE-FIX.md` - Column width calculation improvements
 - `FLEX-FORMAT-MISMATCH-FIX.md` - Full flex notation alignment with backend
+- `CSS-FLEX-PARSING-FIX.md` - CSS flex shorthand parsing fix for form builder data
+- `DEBUG-COLUMN-WIDTH-GUIDE.md` - Debug guide for troubleshooting column width issues
 - Various test files for validation
 
 ---
 **Status**: ✅ FULLY RESOLVED  
 **Impact**: Frontend now correctly displays custom column widths from form builder with identical flex notation  
-**Latest Fix**: Updated frontend to use full flex notation `flex: X 1 0%; position: relative;` matching backend exactly  
+**Latest Fix**: Added CSS flex shorthand parsing to handle form builder data format (`"0.16 1 0%"` → `"0.16"`)  
+**Root Cause**: Form builder saves CSS flex shorthand values, frontend expected numeric values  
 **Testing**: Comprehensive test suite created and validated  
 **Deployment Ready**: Yes
