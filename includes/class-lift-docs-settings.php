@@ -373,7 +373,7 @@ class LIFT_Docs_Settings {
         $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
 
         // Ensure valid tab
-        $valid_tabs = array('general', 'security', 'display', 'interface', 'help');
+        $valid_tabs = array('general', 'security', 'display', 'interface', 'help', 'license');
         if (!in_array($active_tab, $valid_tabs)) {
             $active_tab = 'general';
         }
@@ -408,6 +408,10 @@ class LIFT_Docs_Settings {
                     <a href="#help" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'help' ? 'nav-tab-active' : ''; ?>" data-tab="help">
                         <i class="fas fa-question-circle"></i>
                         <?php _e('Help', 'lift-docs-system'); ?>
+                    </a>
+                    <a href="#license" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'license' ? 'nav-tab-active' : ''; ?>" data-tab="license">
+                        <i class="fas fa-certificate"></i>
+                        <?php _e('License', 'lift-docs-system'); ?>
                     </a>
                 </div>
 
@@ -453,6 +457,12 @@ class LIFT_Docs_Settings {
                     <div id="help-tab" class="lift-tab-content <?php echo $active_tab == 'help' ? 'active' : ''; ?>">
 
                         <?php $this->display_help_content(); ?>
+                    </div>
+
+                    <!-- License Tab Content -->
+                    <div id="license-tab" class="lift-tab-content <?php echo $active_tab == 'license' ? 'active' : ''; ?>">
+
+                        <?php $this->display_license_content(); ?>
                     </div>
 
                     <div class="lift-settings-footer">
@@ -1622,6 +1632,370 @@ class LIFT_Docs_Settings {
                 </ul>
             </div>
         </div>
+        <?php
+    }
+
+    /**
+     * Display license content tab
+     */
+    private function display_license_content() {
+        $current_year = date('Y');
+        ?>
+        <div class="lift-license-content">
+            
+            <!-- License Header -->
+            <div class="lift-license-header">
+                <div class="lift-license-logo">
+                    <i class="fas fa-certificate" style="font-size: 48px; color: #1976d2; margin-bottom: 15px;"></i>
+                </div>
+                <h2><?php _e('LIFT Documents System License', 'lift-docs-system'); ?></h2>
+                <p class="license-subtitle"><?php _e('Professional Document Management Solution', 'lift-docs-system'); ?></p>
+            </div>
+
+            <!-- Plugin Information -->
+            <div class="lift-license-section">
+                <h3><i class="fas fa-info-circle"></i> <?php _e('Plugin Information', 'lift-docs-system'); ?></h3>
+                <div class="license-info-grid">
+                    <div class="license-info-item">
+                        <strong><?php _e('Plugin Name:', 'lift-docs-system'); ?></strong>
+                        <span>LIFT Documents System</span>
+                    </div>
+                    <div class="license-info-item">
+                        <strong><?php _e('Version:', 'lift-docs-system'); ?></strong>
+                        <span><?php echo defined('LIFT_DOCS_VERSION') ? LIFT_DOCS_VERSION : '2.5.0'; ?></span>
+                    </div>
+                    <div class="license-info-item">
+                        <strong><?php _e('Author:', 'lift-docs-system'); ?></strong>
+                        <span>Nguyen Pham</span>
+                    </div>
+                    <div class="license-info-item">
+                        <strong><?php _e('Company:', 'lift-docs-system'); ?></strong>
+                        <span>LIFT Creations</span>
+                    </div>
+                    <div class="license-info-item">
+                        <strong><?php _e('Website:', 'lift-docs-system'); ?></strong>
+                        <span><a href="https://liftcreations.com" target="_blank">https://liftcreations.com</a></span>
+                    </div>
+                    <div class="license-info-item">
+                        <strong><?php _e('License Type:', 'lift-docs-system'); ?></strong>
+                        <span>GPL v2 or later</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright Notice -->
+            <div class="lift-license-section">
+                <h3><i class="fas fa-copyright"></i> <?php _e('Copyright Notice', 'lift-docs-system'); ?></h3>
+                <div class="license-copyright">
+                    <p><strong>© <?php echo $current_year; ?> LIFT Creations. All rights reserved.</strong></p>
+                    <p><?php _e('This plugin is developed and maintained by LIFT Creations, a professional web development company specializing in custom WordPress solutions and business applications.', 'lift-docs-system'); ?></p>
+                </div>
+            </div>
+
+            <!-- LIFT Creations Information -->
+            <div class="lift-license-section">
+                <h3><i class="fas fa-building"></i> <?php _e('About LIFT Creations', 'lift-docs-system'); ?></h3>
+                <div class="license-company-info">
+                    <div class="company-description">
+                        <p><?php _e('LIFT Creations is a leading web development company that specializes in creating powerful, scalable WordPress solutions for businesses of all sizes. Our team of experienced developers and designers work together to deliver exceptional digital experiences.', 'lift-docs-system'); ?></p>
+                        
+                        <h4><?php _e('Our Services:', 'lift-docs-system'); ?></h4>
+                        <ul class="services-list">
+                            <li><i class="fas fa-check-circle"></i> <?php _e('Custom WordPress Plugin Development', 'lift-docs-system'); ?></li>
+                            <li><i class="fas fa-check-circle"></i> <?php _e('Theme Design & Development', 'lift-docs-system'); ?></li>
+                            <li><i class="fas fa-check-circle"></i> <?php _e('Business Application Development', 'lift-docs-system'); ?></li>
+                            <li><i class="fas fa-check-circle"></i> <?php _e('E-commerce Solutions', 'lift-docs-system'); ?></li>
+                            <li><i class="fas fa-check-circle"></i> <?php _e('API Integration & Development', 'lift-docs-system'); ?></li>
+                            <li><i class="fas fa-check-circle"></i> <?php _e('WordPress Maintenance & Support', 'lift-docs-system'); ?></li>
+                        </ul>
+                    </div>
+
+                    <div class="company-contact">
+                        <h4><?php _e('Contact Information:', 'lift-docs-system'); ?></h4>
+                        <div class="contact-grid">
+                            <div class="contact-item">
+                                <i class="fas fa-globe"></i>
+                                <strong><?php _e('Website:', 'lift-docs-system'); ?></strong>
+                                <a href="https://liftcreations.com" target="_blank">liftcreations.com</a>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <strong><?php _e('Email:', 'lift-docs-system'); ?></strong>
+                                <a href="mailto:info@liftcreations.com">info@liftcreations.com</a>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fab fa-github"></i>
+                                <strong><?php _e('GitHub:', 'lift-docs-system'); ?></strong>
+                                <a href="https://github.com/liftcreations" target="_blank">github.com/liftcreations</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="lift-license-footer">
+                <div class="license-footer-content">
+                    <p><strong><?php _e('Professional WordPress Development Services', 'lift-docs-system'); ?></strong></p>
+                    <p><?php _e('For custom development needs or enterprise solutions, please contact us at LIFT Creations.', 'lift-docs-system'); ?></p>
+                </div>
+                <div class="license-footer-logo">
+                    <strong>LIFT Creations</strong>
+                    <small><?php _e('Elevating Digital Experiences', 'lift-docs-system'); ?></small>
+                </div>
+            </div>
+
+        </div>
+
+        <style>
+        .lift-license-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .lift-license-header {
+            text-align: center;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 0;
+        }
+
+        .lift-license-header h2 {
+            font-size: 28px;
+            margin: 0 0 10px 0;
+            color: white;
+        }
+
+        .lift-license-header .license-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .lift-license-section {
+            padding: 30px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .lift-license-section:last-child {
+            border-bottom: none;
+        }
+
+        .lift-license-section h3 {
+            color: #1976d2;
+            font-size: 20px;
+            margin: 0 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        .lift-license-section h3 i {
+            margin-right: 10px;
+        }
+
+        .license-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .license-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #1976d2;
+        }
+
+        .license-info-item strong {
+            color: #333;
+        }
+
+        .license-info-item span {
+            color: #666;
+        }
+
+        .license-copyright {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 4px solid #1976d2;
+        }
+
+        .license-terms {
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .license-terms p {
+            margin-bottom: 15px;
+        }
+
+        .license-company-info {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .services-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .services-list li {
+            padding: 8px 0;
+            color: #555;
+        }
+
+        .services-list li i {
+            color: #4caf50;
+            margin-right: 10px;
+        }
+
+        .contact-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .contact-item i {
+            color: #1976d2;
+            width: 20px;
+        }
+
+        .contact-item a {
+            color: #1976d2;
+            text-decoration: none;
+        }
+
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+
+        .credits-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .credits-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .credits-list li:last-child {
+            border-bottom: none;
+        }
+
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .support-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .support-item i {
+            font-size: 32px;
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .support-item h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .support-item p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .support-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #1976d2;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .support-link:hover {
+            background: #1565c0;
+            text-decoration: none;
+        }
+
+        .lift-license-footer {
+            background: #f5f5f5;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .license-footer-content p {
+            margin: 5px 0;
+        }
+
+        .license-footer-logo {
+            text-align: right;
+        }
+
+        .license-footer-logo strong {
+            display: block;
+            color: #1976d2;
+            font-size: 18px;
+        }
+
+        .license-footer-logo small {
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .license-company-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .support-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .lift-license-footer {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .license-footer-logo {
+                text-align: center;
+            }
+            
+            .license-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        </style>
         <?php
     }
 }
