@@ -1,4 +1,9 @@
 <?php
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 add_action('wp_ajax_lift_forms_save', 'emergency_json_fixer', 5);
 
 function emergency_json_fixer() {
@@ -102,8 +107,18 @@ function emergency_json_menu() {
 }
 
 function emergency_json_page() {
+    // Check user capabilities
+    if (!current_user_can('manage_options')) {
+        wp_die(__('You do not have sufficient permissions to access this page.'));
+    }
+    
     if (isset($_POST['test_json'])) {
-        $test_input = $_POST['json_input'];
+        // Verify nonce
+        if (!isset($_POST['emergency_nonce']) || !wp_verify_nonce($_POST['emergency_nonce'], 'emergency_json_test')) {
+            wp_die(__('Security check failed.'));
+        }
+        
+        $test_input = sanitize_textarea_field($_POST['json_input']);
         $fixed_json = emergency_fix_json($test_input);
 
         echo '<div class="notice notice-info">';
@@ -129,6 +144,7 @@ function emergency_json_page() {
         <div class="card">
             <h2>Test JSON Fixing</h2>
             <form method="post">
+                <?php wp_nonce_field('emergency_json_test', 'emergency_nonce'); ?>
                 <p>Paste problematic JSON here:</p>
                 <textarea name="json_input" rows="10" cols="80" placeholder='Paste your broken JSON here...'><?php echo isset($_POST['json_input']) ? esc_textarea($_POST['json_input']) : ''; ?></textarea><br><br>
                 <input type="submit" name="test_json" value="🔧 Fix JSON" class="button button-primary">

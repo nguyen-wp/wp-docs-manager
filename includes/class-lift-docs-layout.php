@@ -298,7 +298,28 @@ class LIFT_Docs_Layout {
         $is_password_protected = get_post_meta($doc_id, '_lift_doc_password_protected', true);
         if ($is_password_protected) {
             $doc_password = get_post_meta($doc_id, '_lift_doc_password', true);
-            $entered_password = $_POST['lift_doc_password'] ?? $_SESSION['lift_doc_' . $doc_id] ?? '';
+            $entered_password = '';
+            
+            // Check if password submitted via POST (with nonce verification)
+            if (isset($_POST['lift_doc_password'])) {
+                // Verify nonce for password submission
+                if (isset($_POST['lift_doc_nonce']) && wp_verify_nonce($_POST['lift_doc_nonce'], 'lift_doc_password_' . $doc_id)) {
+                    $entered_password = sanitize_text_field($_POST['lift_doc_password']);
+                    // Store in session if password is correct
+                    if ($doc_password && $entered_password === $doc_password) {
+                        if (!session_id()) {
+                            session_start();
+                        }
+                        $_SESSION['lift_doc_' . $doc_id] = $entered_password;
+                    }
+                }
+            } else {
+                // Check session
+                if (!session_id()) {
+                    session_start();
+                }
+                $entered_password = $_SESSION['lift_doc_' . $doc_id] ?? '';
+            }
 
             if ($doc_password && $entered_password !== $doc_password) {
                 return false;
