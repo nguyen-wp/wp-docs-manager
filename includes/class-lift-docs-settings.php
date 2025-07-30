@@ -1643,15 +1643,6 @@ class LIFT_Docs_Settings {
         ?>
         <div class="lift-license-content">
             
-            <!-- License Header -->
-            <div class="lift-license-header">
-                <div class="lift-license-logo">
-                    <i class="fas fa-certificate" style="font-size: 48px; color: #1976d2; margin-bottom: 15px;"></i>
-                </div>
-                <h2><?php _e('LIFT Documents System License', 'lift-docs-system'); ?></h2>
-                <p class="license-subtitle"><?php _e('Professional Document Management Solution', 'lift-docs-system'); ?></p>
-            </div>
-
             <!-- Plugin Information -->
             <div class="lift-license-section">
                 <h3><i class="fas fa-info-circle"></i> <?php _e('Plugin Information', 'lift-docs-system'); ?></h3>
@@ -1750,11 +1741,10 @@ class LIFT_Docs_Settings {
         <style>
         .lift-license-content {
             max-width: 1000px;
-            margin: 0 auto;
+            margin: 30px auto;
             background: #fff;
-            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
         }
 
         .lift-license-header {
@@ -1809,8 +1799,6 @@ class LIFT_Docs_Settings {
             justify-content: space-between;
             padding: 12px;
             background: #f8f9fa;
-            border-radius: 4px;
-            border-left: 3px solid #1976d2;
         }
 
         .license-info-item strong {
