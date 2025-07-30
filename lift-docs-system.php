@@ -92,6 +92,11 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-forms.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'lib/emergency-json-fixer.php';
         
+        // Load debug helper for AJAX issues when WP_DEBUG is enabled
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            require_once LIFT_DOCS_PLUGIN_DIR . 'includes/debug-ajax-fix.php';
+        }
+        
     }
     
     /**
@@ -99,7 +104,7 @@ class LIFT_Docs_System {
      */
     private function init_classes() {
         // Initialize classes
-        if (is_admin()) {
+        if (is_admin() || (defined('DOING_AJAX') && DOING_AJAX)) {
             LIFT_Docs_Admin::get_instance();
             LIFT_Docs_Settings::get_instance();
         }
