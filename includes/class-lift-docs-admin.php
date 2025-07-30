@@ -2998,28 +2998,11 @@ class LIFT_Docs_Admin {
             ob_end_clean();
         }
         
-        // Start clean output buffering
-        ob_start();
-        
-        // Debug logging when WP_DEBUG is enabled
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs: ajax_search_document_users called at ' . current_time('mysql'));
-            error_log('LIFT Docs: REQUEST_METHOD = ' . $_SERVER['REQUEST_METHOD']);
-            error_log('LIFT Docs: DOING_AJAX = ' . (defined('DOING_AJAX') && DOING_AJAX ? 'true' : 'false'));
-            error_log('LIFT Docs: POST data: ' . print_r($_POST, true));
-            error_log('LIFT Docs: GET data: ' . print_r($_GET, true));
-            error_log('LIFT Docs: Current user ID: ' . get_current_user_id());
-        }
-        
-        // Get request data from either POST or GET (for debugging)
+        // Get request data from either POST or GET
         $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
         
         // Check if we have the basic required data
         if (!isset($request_data['action']) || $request_data['action'] !== 'search_document_users') {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs: Invalid action - ' . (isset($request_data['action']) ? $request_data['action'] : 'NOT SET'));
-                error_log('LIFT Docs: Request method: ' . $_SERVER['REQUEST_METHOD']);
-            }
             wp_send_json_error('Invalid action');
         }
         
@@ -3029,49 +3012,14 @@ class LIFT_Docs_Admin {
         
         if (!empty($nonce_received)) {
             $nonce_valid = wp_verify_nonce($nonce_received, 'search_document_users');
-            
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs: Nonce verification result: ' . ($nonce_valid ? 'VALID' : 'INVALID'));
-                error_log('LIFT Docs: Received nonce: ' . $nonce_received);
-                
-                // Generate a fresh nonce for comparison
-                $fresh_nonce = wp_create_nonce('search_document_users');
-                error_log('LIFT Docs: Fresh nonce for comparison: ' . $fresh_nonce);
-                error_log('LIFT Docs: Nonces match: ' . ($nonce_received === $fresh_nonce ? 'YES' : 'NO'));
-            }
-        } else {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs: No nonce provided in request');
-            }
-        }
-        
-        // In debug mode, provide additional nonce bypass for administrators
-        if (!$nonce_valid && defined('WP_DEBUG') && WP_DEBUG && current_user_can('administrator')) {
-            // Additional verification - check if user is really logged in and has session
-            $current_user = wp_get_current_user();
-            if ($current_user && $current_user->ID > 0) {
-                $nonce_valid = true;
-                error_log('LIFT Docs: Using debug nonce bypass for administrator user ID: ' . $current_user->ID);
-            }
         }
         
         if (!$nonce_valid) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs: FINAL NONCE CHECK FAILED');
-                error_log('LIFT Docs: Current user can admin: ' . (current_user_can('administrator') ? 'yes' : 'no'));
-                error_log('LIFT Docs: User logged in: ' . (is_user_logged_in() ? 'yes' : 'no'));
-            }
-            
-            // Clean output buffer before error response
-            ob_end_clean();
             wp_send_json_error('Security check failed');
         }
         
         // Check permissions
         if (!current_user_can('edit_posts')) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs: User does not have edit_posts capability');
-            }
             wp_send_json_error('Insufficient permissions');
         }
         
@@ -3121,26 +3069,6 @@ class LIFT_Docs_Admin {
         unset($total_args['offset']);
         $total_users = get_users($total_args);
         $more = count($total_users) > ($page * $per_page);
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs: Returning ' . count($results) . ' users, more: ' . ($more ? 'yes' : 'no'));
-            error_log('LIFT Docs: About to send JSON response');
-        }
-        
-        // Clean all output buffers before sending JSON
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        // Ensure no additional output
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            // Log final response data but don't output it
-            error_log('LIFT Docs: Final response data: ' . json_encode(array(
-                'results' => count($results),
-                'more' => $more,
-                'total' => count($total_users)
-            )));
-        }
         
         wp_send_json_success(array(
             'results' => $results,
@@ -3743,10 +3671,6 @@ class LIFT_Docs_Admin {
                             
                             // Handle error responses
                             if (!data.success) {
-                                console.error('LIFT Docs: AJAX Error:', data.data || 'Unknown error');
-                                if (data.data && data.data.includes('Security check failed')) {
-                                    console.error('LIFT Docs: Nonce verification failed. Try refreshing the page.');
-                                }
                                 return {
                                     results: [],
                                     pagination: { more: false }
@@ -3761,11 +3685,6 @@ class LIFT_Docs_Admin {
                             };
                         },
                         error: function(xhr, status, error) {
-                            console.error('LIFT Docs: AJAX Request Failed:', {
-                                status: status,
-                                error: error,
-                                response: xhr.responseText
-                            });
                             return { results: [], pagination: { more: false } };
                         },
                         cache: true
