@@ -43,7 +43,7 @@ Modal Form Preview cần được:
 **Thêm:**
 ```css
 .modal-content.modal-extra-large {
-    max-width: 1200px;
+    max-width: 1400px;
     width: 98%;
     max-height: 95vh;
 }
@@ -156,7 +156,7 @@ if (columnFields.length === 0) {
 
 ### ✅ Modal to hơn
 - Width: 98% (thay vì 95%)
-- Max-width: 1200px (thay vì 900px)
+- Max-width: 1400px (thay vì 900px)
 - Max-height: 95vh (thay vì 90vh)
 
 ### ✅ Áp dụng đúng layout của form builder
