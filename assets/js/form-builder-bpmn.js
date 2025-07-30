@@ -324,14 +324,14 @@
                 </div>
 
                 <!-- Form Preview Modal -->
-                <div id="form-preview-modal" class="field-modal" style="display: none;">
-                    <div class="modal-content modal-large">
+                <div id="form-preview-modal" class="field-modal form-preview-modal" style="display: none;">
+                    <div class="modal-content modal-extra-large">
                         <div class="modal-header">
                             <h4>Form Preview</h4>
                             <button type="button" class="modal-close">&times;</button>
                         </div>
                         <div class="modal-body">
-                            <div id="form-preview-content">
+                            <div id="form-preview-content" class="form-preview-wrapper">
                                 <!-- Preview content will be inserted here -->
                             </div>
                         </div>
@@ -1600,7 +1600,7 @@
 
         // Check if we have row/column structure
         if ($('#form-fields-list .form-row').length > 0) {
-            // Generate preview with row/column structure
+            // Generate preview with row/column structure matching form builder
             previewHTML = '<div class="form-preview-container">';
 
             $('#form-fields-list .form-row').each(function() {
@@ -1608,7 +1608,7 @@
                 const columns = rowElement.find('.form-column');
 
                 if (columns.length > 0) {
-                    previewHTML += '<div class="preview-row">';
+                    previewHTML += '<div class="preview-row" style="display: flex; margin-bottom: 20px; gap: 15px;">';
 
                     columns.each(function() {
                         const columnElement = $(this);
@@ -1626,14 +1626,22 @@
                             }
                         });
 
-                        // Calculate column width based on flex or data attributes
-                        const columnWidth = Math.floor(100 / columns.length);
-                        previewHTML += `<div class="preview-column" style="width: ${columnWidth}%; padding: 0 10px;">`;
+                        // Get actual flex value from the column element
+                        const flexValue = columnElement.css('flex') || '1';
+                        previewHTML += `<div class="preview-column" style="flex: ${flexValue}; padding: 0 10px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 15px; background: #fafafa;">`;
+
+                        // Add column title for clarity
+                        previewHTML += `<div class="preview-column-header" style="font-weight: bold; color: #666; margin-bottom: 10px; font-size: 12px; text-transform: uppercase;">Column</div>`;
 
                         // Add fields in this column
                         columnFields.forEach(field => {
                             previewHTML += generateFullFormPreview(field);
                         });
+
+                        // Show placeholder if column is empty
+                        if (columnFields.length === 0) {
+                            previewHTML += '<div style="color: #999; font-style: italic; padding: 20px; text-align: center;">No fields in this column</div>';
+                        }
 
                         previewHTML += '</div>';
                     });
@@ -1643,10 +1651,16 @@
             });
 
             previewHTML += '</div>';
+        } else {
+            // Fallback for single column layout
+            previewHTML = '<div class="form-preview-container single-column">';
+            formData.forEach(field => {
+                previewHTML += generateFullFormPreview(field);
+            });
+            previewHTML += '</div>';
         }
 
-        // Add submit button
-        previewHTML += '<div class="form-group submit-group"><button type="submit" class="btn btn-primary">Submit Form</button></div>';
+        // Remove submit button - don't add it
 
         // Insert into modal and show
         $('#form-preview-content').html(previewHTML);

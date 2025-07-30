@@ -1075,6 +1075,12 @@
     max-height: 90vh;
 }
 
+.modal-content.modal-extra-large {
+    max-width: 1200px;
+    width: 98%;
+    max-height: 95vh;
+}
+
 .modal-header {
     padding: 20px 25px 15px;
     border-bottom: 1px solid #c3c4c7;
@@ -1751,6 +1757,66 @@
 .form-preview-container label span[style*="red"] {
     color: #d63638 !important;
     font-weight: bold;
+}
+
+/* Form Preview Modal Specific Styles */
+.form-preview-modal .modal-body {
+    padding: 25px;
+    max-height: calc(95vh - 140px);
+    overflow-y: auto;
+}
+
+.form-preview-wrapper {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.form-preview-container {
+    max-width: none;
+    margin: 0;
+}
+
+.form-preview-container .preview-row {
+    margin-bottom: 25px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 15px;
+    background: #f9f9f9;
+}
+
+.form-preview-container .preview-column {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 0 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.form-preview-container .preview-column-header {
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 15px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.form-preview-container .form-group {
+    margin-bottom: 20px;
+}
+
+.form-preview-container .form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Single column layout */
+.form-preview-container.single-column {
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .form-builder .frmb-control:hover {
