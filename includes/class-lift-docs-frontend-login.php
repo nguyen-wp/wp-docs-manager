@@ -242,7 +242,6 @@ class LIFT_Docs_Frontend_Login {
         if (($is_admin_view || $is_admin_edit) && !current_user_can('manage_options')) {
             $is_admin_view = false;
             $is_admin_edit = false;
-            error_log('LIFT Frontend Debug: Admin access denied - insufficient permissions');
         }
         
         $submission_data = array();
@@ -250,8 +249,6 @@ class LIFT_Docs_Frontend_Login {
         
         if (($is_admin_view || $is_admin_edit) && isset($_GET['submission_id'])) {
             $submission_id = intval($_GET['submission_id']);
-            error_log('LIFT Frontend Debug: Admin mode detected - View: ' . ($is_admin_view ? 'true' : 'false') . ', Edit: ' . ($is_admin_edit ? 'true' : 'false'));
-            error_log('LIFT Frontend Debug: Submission ID: ' . $submission_id);
             
             if ($submission_id) {
                 $submissions_table = $wpdb->prefix . 'lift_form_submissions';
@@ -263,16 +260,13 @@ class LIFT_Docs_Frontend_Login {
                     $submission_id
                 ));
                 
-                error_log('LIFT Frontend Debug: Submission info found: ' . ($submission_info ? 'Yes' : 'No'));
                 
                 if ($submission_info) {
                     $submission_data = json_decode($submission_info->form_data, true);
                     if (!is_array($submission_data)) {
                         $submission_data = array();
                     }
-                    error_log('LIFT Frontend Debug: Loaded submission data for ' . ($is_admin_edit ? 'editing' : 'viewing'));
                 } else {
-                    error_log('LIFT Frontend Debug: No submission found for ID ' . $submission_id);
                 }
             }
         }
@@ -1138,11 +1132,6 @@ class LIFT_Docs_Frontend_Login {
         $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
         
         // Debug: Log logo values for troubleshooting
-        error_log('LIFT Docs Login Page Debug:');
-        error_log('- Interface logo ID: ' . $interface_logo_id);
-        error_log('- Main logo ID: ' . get_option('lift_docs_login_logo', ''));
-        error_log('- Final logo ID used: ' . $logo_id);
-        error_log('- Logo URL: ' . $logo_url);
         
         // Use Interface tab title/description if set, otherwise use defaults
         $display_title = !empty($interface_title) ? $interface_title : __('Document Access Portal', 'lift-docs-system');

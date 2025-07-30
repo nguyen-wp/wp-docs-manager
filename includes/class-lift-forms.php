@@ -56,9 +56,6 @@ class LIFT_Forms {
      * Initialize
      */
     public function init() {
-        // Log initialization
-        error_log('LIFT Forms: Initializing...');
-        
         $this->create_tables();
         $this->register_post_type();
         $this->setup_capabilities();
@@ -66,8 +63,6 @@ class LIFT_Forms {
         
         // Force check for missing columns on every init
         $this->maybe_add_user_id_column();
-        
-        error_log('LIFT Forms: Initialization complete');
     }
     
     /**
@@ -137,22 +132,12 @@ class LIFT_Forms {
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         
         // Log table creation
-        error_log('LIFT Forms: Creating tables...');
-        error_log('LIFT Forms: Forms table SQL: ' . $sql_forms);
-        error_log('LIFT Forms: Submissions table SQL: ' . $sql_submissions);
-        
         $forms_result = dbDelta($sql_forms);
         $submissions_result = dbDelta($sql_submissions);
-        
-        error_log('LIFT Forms: Forms table result: ' . print_r($forms_result, true));
-        error_log('LIFT Forms: Submissions table result: ' . print_r($submissions_result, true));
         
         // Verify tables were created
         $forms_exists = $wpdb->get_var("SHOW TABLES LIKE '$forms_table'");
         $submissions_exists = $wpdb->get_var("SHOW TABLES LIKE '$submissions_table'");
-        
-        error_log('LIFT Forms: Forms table exists: ' . ($forms_exists ? 'Yes' : 'No'));
-        error_log('LIFT Forms: Submissions table exists: ' . ($submissions_exists ? 'Yes' : 'No'));
         
         // Add user_id column if it doesn't exist (for existing installations)
         $this->maybe_add_user_id_column();
@@ -214,8 +199,6 @@ class LIFT_Forms {
         
         // Debug: Log current hook and page
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Forms - Hook: ' . $hook);
-            error_log('LIFT Forms - Page: ' . ($_GET['page'] ?? 'not-set'));
         }
         
         if (strpos($hook, 'lift-forms') !== false) {
@@ -672,15 +655,12 @@ class LIFT_Forms {
      */
     public function submissions_page() {
         // Debug log entry
-        error_log('LIFT Forms: submissions_page() called');
         
         // Check user permissions
         if (!current_user_can('manage_options')) {
-            error_log('LIFT Forms: User permission denied for submissions page');
             wp_die(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
         }
         
-        error_log('LIFT Forms: User permissions OK');
         
         global $wpdb;
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
@@ -695,10 +675,6 @@ class LIFT_Forms {
         $forms = $wpdb->get_results("SELECT id, name FROM $forms_table ORDER BY name");
         
         // Debug input filters
-        error_log('LIFT Forms Filters - Form ID: ' . ($form_id ?: 'none'));
-        error_log('LIFT Forms Filters - Document ID: ' . ($document_id ?: 'none'));
-        error_log('LIFT Forms Filters - User Filter: ' . ($user_filter ?: 'none'));
-        error_log('LIFT Forms Filters - Status Filter: ' . ($status_filter ?: 'none'));
         
         // Use simple, direct query approach
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
@@ -736,17 +712,14 @@ class LIFT_Forms {
             $query = "SELECT * FROM $submissions_table WHERE $where ORDER BY submitted_at DESC";
         }
         
-        error_log('LIFT Forms Final Query: ' . $query);
         $submissions = $wpdb->get_results($query);
         
         // Check for database errors
         if ($wpdb->last_error) {
-            error_log('LIFT Forms Query Error: ' . $wpdb->last_error);
             // If there's an error, use empty array
             $submissions = array();
         }
         
-        error_log('LIFT Forms Query Results Count: ' . count($submissions));
         
         // Manually add form names and user info for all submissions
         $forms_table = $wpdb->prefix . 'lift_forms';
@@ -776,18 +749,14 @@ class LIFT_Forms {
         }
         
         // Debug submissions data
-        error_log('LIFT Forms Submissions Count: ' . count($submissions));
         if (!empty($submissions)) {
-            error_log('LIFT Forms First Submission: ' . print_r($submissions[0], true));
         }
         
         // Also check directly from database
         $direct_count = $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table");
-        error_log('LIFT Forms Direct DB Count: ' . $direct_count);
         
         if ($direct_count > 0) {
             $direct_sample = $wpdb->get_row("SELECT * FROM $submissions_table LIMIT 1");
-            error_log('LIFT Forms Direct Sample: ' . print_r($direct_sample, true));
         }
         
         ?>
@@ -1420,8 +1389,6 @@ class LIFT_Forms {
         }
         
         // Debug log the form fields data from database
-        error_log('LIFT Forms Get - Raw form_fields from DB: ' . print_r($form->form_fields, true));
-        error_log('LIFT Forms Get - form_fields type: ' . gettype($form->form_fields));
         
         // Clean form_fields if it contains invalid characters
         if (!empty($form->form_fields)) {
@@ -1430,8 +1397,6 @@ class LIFT_Forms {
             // Test if it's valid JSON
             $test_decode = json_decode($form->form_fields, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                error_log('LIFT Forms Get - Invalid JSON in DB: ' . json_last_error_msg());
-                error_log('LIFT Forms Get - Problematic data: ' . $form->form_fields);
                 
                 // Try to fix common issues
                 $fixed_json = $form->form_fields;
@@ -1447,11 +1412,9 @@ class LIFT_Forms {
                 $test_decode = json_decode($fixed_json, true);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     $form->form_fields = $fixed_json;
-                    error_log('LIFT Forms Get - Fixed JSON successfully');
                 } else {
                     // If still broken, set to empty array
                     $form->form_fields = '[]';
-                    error_log('LIFT Forms Get - Could not fix JSON, using empty array');
                 }
             }
         }
@@ -1529,7 +1492,6 @@ class LIFT_Forms {
         if (empty($fields) || $fields === '[]' || $fields === 'null' || $fields === 'undefined') {
             // For new forms (no form_id), allow saving with empty fields initially
             if (empty($form_id)) {
-                error_log('LIFT Forms - Saving new form with empty fields initially allowed');
                 $fields = '[]'; // Ensure it's a valid empty array
             } else {
                 wp_send_json_error(__('Form must have at least one field', 'lift-docs-system'));
@@ -1540,8 +1502,6 @@ class LIFT_Forms {
         $fields = trim($fields);
         
         // Log the raw fields data for debugging
-        error_log('LIFT Forms - Raw fields data: ' . substr($fields, 0, 200) . '...');
-        error_log('LIFT Forms - Fields length: ' . strlen($fields));
         
         // Remove BOM if present
         if (substr($fields, 0, 3) === "\xEF\xBB\xBF") {
@@ -1563,7 +1523,6 @@ class LIFT_Forms {
             $fields = preg_replace('/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/', '$1"$2":', $fields);
         }
         
-        error_log('LIFT Forms - Cleaned fields data: ' . substr($fields, 0, 200) . '...');
         
         // Test JSON validity with better error reporting
         $fields_array = json_decode($fields, true);
@@ -1571,9 +1530,6 @@ class LIFT_Forms {
         
         if ($json_error !== JSON_ERROR_NONE) {
             $json_error_msg = json_last_error_msg();
-            error_log('LIFT Forms - JSON Error: ' . $json_error_msg);
-            error_log('LIFT Forms - JSON Error Code: ' . $json_error);
-            error_log('LIFT Forms - Problematic JSON: ' . $fields);
             
             // Try to identify the specific issue
             $error_details = '';
@@ -1597,7 +1553,6 @@ class LIFT_Forms {
         if (empty($fields_array) || !is_array($fields_array)) {
             // For new forms, allow empty fields initially
             if (empty($form_id) && (empty($fields_array) || $fields_array === [])) {
-                error_log('LIFT Forms - Empty fields allowed for new form');
                 $fields_array = []; // Ensure it's a proper empty array
             } else {
                 wp_send_json_error(__('Fields data is empty or invalid', 'lift-docs-system'));
@@ -1611,19 +1566,15 @@ class LIFT_Forms {
             if (isset($fields_array[0]) && is_array($fields_array[0])) {
                 // Old flat array structure - each element is a field
                 $is_valid_data = true;
-                error_log('LIFT Forms - Detected flat array structure');
             } elseif (isset($fields_array['type'])) {
                 // New hierarchical structure with 'type' property
                 $is_valid_data = true;
-                error_log('LIFT Forms - Detected hierarchical structure: ' . $fields_array['type']);
             } elseif (isset($fields_array['fields']) || isset($fields_array['layout'])) {
                 // New structure with fields/layout properties
                 $is_valid_data = true;
-                error_log('LIFT Forms - Detected new structure with fields/layout');
             }
 
             if (!$is_valid_data) {
-                error_log('LIFT Forms - Invalid fields structure: ' . print_r($fields_array, true));
                 wp_send_json_error(__('Fields data structure is invalid', 'lift-docs-system'));
             }
         }
@@ -1707,7 +1658,6 @@ class LIFT_Forms {
         $original_user_id = intval($_POST['original_user_id'] ?? 0);
         
         // Debug logging
-        error_log('LIFT Forms Submit - is_edit: ' . ($is_edit ? 'true' : 'false') . ', is_admin_edit: ' . ($is_admin_edit ? 'true' : 'false') . ', submission_id: ' . $submission_id);
         
         if (!$form_id) {
             wp_send_json_error(__('Invalid form', 'lift-docs-system'));
@@ -1815,11 +1765,9 @@ class LIFT_Forms {
                 ));
                 
                 if (!$existing_submission) {
-                    error_log('Admin edit validation failed - submission not found. Submission ID: ' . $submission_id);
                     wp_send_json_error(__('Submission not found', 'lift-docs-system'));
                 }
                 
-                error_log('Admin edit validation passed - Admin can edit any submission ID: ' . $submission_id);
             } else {
                 // Regular edit: verify ownership
                 $existing_submission = $wpdb->get_row($wpdb->prepare(
@@ -1829,11 +1777,9 @@ class LIFT_Forms {
                 ));
                 
                 if (!$existing_submission) {
-                    error_log('Edit validation failed - submission not found or user mismatch. Submission ID: ' . $submission_id . ', User ID: ' . $current_user_id);
                     wp_send_json_error(__('You do not have permission to edit this submission', 'lift-docs-system'));
                 }
                 
-                error_log('Edit validation passed - User can edit submission ID: ' . $submission_id);
             }
         }
         
@@ -1857,8 +1803,6 @@ class LIFT_Forms {
             $submission_data['updated_at'] = current_time('mysql');
             
             // Debug: Log the submission data
-            error_log('Update submission data: ' . print_r($submission_data, true));
-            error_log('Submission ID: ' . $submission_id . ', User ID: ' . $current_user_id . ', Is Admin Edit: ' . ($is_admin_edit ? 'true' : 'false'));
             
             // Build format array dynamically based on actual data
             $formats = array();
@@ -1879,7 +1823,6 @@ class LIFT_Forms {
                 }
             }
             
-            error_log('Using formats: ' . print_r($formats, true));
             
             // Use simpler WHERE clause - just ID since we already validated ownership above
             $result = $wpdb->update(
@@ -1892,21 +1835,15 @@ class LIFT_Forms {
             
             // Log any database errors
             if ($result === false) {
-                error_log('Database update error: ' . $wpdb->last_error);
-                error_log('Last query: ' . $wpdb->last_query);
                 wp_send_json_error(__('Database error: ' . $wpdb->last_error, 'lift-docs-system'));
             } else if ($result === 0) {
-                error_log('Update returned 0 rows affected - possible no changes or submission not found');
                 // Check if submission still exists
                 $exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$submissions_table} WHERE id = %d", $submission_id));
                 if (!$exists) {
-                    error_log('Submission not found in database');
                     wp_send_json_error(__('Submission no longer exists', 'lift-docs-system'));
                 } else {
-                    error_log('Submission exists but no changes were made');
                 }
             } else {
-                error_log('Update successful. Rows affected: ' . $result);
             }
             
             $success_message = $is_admin_edit ? __('Submission updated by admin successfully!', 'lift-docs-system') : __('Form updated successfully!', 'lift-docs-system');
@@ -2226,22 +2163,14 @@ class LIFT_Forms {
         
         // Force debug output for testing
         if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') {
-            error_log('LIFT Forms Debug: Admin view parameter detected');
-            error_log('LIFT Forms Debug: Current user can manage options: ' . (current_user_can('manage_options') ? 'Yes' : 'No'));
-            error_log('LIFT Forms Debug: Current user ID: ' . get_current_user_id());
-            error_log('LIFT Forms Debug: User roles: ' . print_r(wp_get_current_user()->roles, true));
         }
         
         // Debug information
         if ($is_admin_view) {
-            error_log('LIFT Forms Debug: Admin view detected');
-            error_log('LIFT Forms Debug: GET params: ' . print_r($_GET, true));
         }
         
         if ($is_admin_view && isset($_GET['submission_id'])) {
             $submission_id = intval($_GET['submission_id']);
-            error_log('LIFT Forms Debug: Submission ID: ' . $submission_id);
-            error_log('LIFT Forms Debug: Form ID: ' . $form_id);
             
             if ($submission_id) {
                 $submissions_table = $wpdb->prefix . 'lift_form_submissions';
@@ -2253,17 +2182,13 @@ class LIFT_Forms {
                     $submission_id
                 ));
                 
-                error_log('LIFT Forms Debug: Submission info query result: ' . print_r($submission_info, true));
                 
                 if ($submission_info) {
-                    error_log('LIFT Forms Debug: Raw form_data: ' . $submission_info->form_data);
                     $submission_data = json_decode($submission_info->form_data, true);
                     if (!is_array($submission_data)) {
                         $submission_data = array();
                     }
-                    error_log('LIFT Forms Debug: Parsed submission_data: ' . print_r($submission_data, true));
                 } else {
-                    error_log('LIFT Forms Debug: No submission found for ID ' . $submission_id);
                 }
             }
         }
@@ -2440,8 +2365,6 @@ class LIFT_Forms {
         
         // Debug fields structure
         if ($readonly) {
-            error_log('LIFT Forms Debug - Fields structure: ' . print_r($fields, true));
-            error_log('LIFT Forms Debug - Submission data: ' . print_r($submission_data, true));
         }
         
         // Check if fields is in new layout structure
@@ -2477,8 +2400,6 @@ class LIFT_Forms {
         
         // Debug field rendering
         if ($readonly) {
-            error_log('LIFT Forms Debug - Rendering field: ' . $field_name . ' with value: ' . print_r($field_value, true));
-            error_log('LIFT Forms Debug - Field type: ' . $type . ', Readonly: ' . ($readonly ? 'yes' : 'no'));
         }
         
         // Add readonly class and attribute for admin view

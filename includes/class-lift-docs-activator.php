@@ -133,12 +133,10 @@ class LIFT_Docs_Activator {
                 update_option('lift_docs_login_page_id', $login_page_id);
                 // Debug log
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('LIFT Docs Activator: Login page created with ID: ' . $login_page_id);
                 }
             } else {
                 // Debug log for errors
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('LIFT Docs Activator: Failed to create login page. Error: ' . (is_wp_error($login_page_id) ? $login_page_id->get_error_message() : 'Unknown error'));
                 }
             }
         }
@@ -159,12 +157,10 @@ class LIFT_Docs_Activator {
                 update_option('lift_docs_dashboard_page_id', $dashboard_page_id);
                 // Debug log
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('LIFT Docs Activator: Dashboard page created with ID: ' . $dashboard_page_id);
                 }
             } else {
                 // Debug log for errors
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('LIFT Docs Activator: Failed to create dashboard page. Error: ' . (is_wp_error($dashboard_page_id) ? $dashboard_page_id->get_error_message() : 'Unknown error'));
                 }
             }
         }
@@ -174,7 +170,6 @@ class LIFT_Docs_Activator {
         
         // Debug log
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Activator: Default pages creation process completed');
         }
     }
     

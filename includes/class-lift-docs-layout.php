@@ -131,27 +131,14 @@ class LIFT_Docs_Layout {
         
         $token = sanitize_text_field(urldecode($_GET['lift_secure']));
         
-        // Debug logging
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Processing download token: ' . $token);
-        }
-        
         // Use primary verification method (same as generate_secure_download_link)
         $verification = LIFT_Docs_Settings::verify_secure_link(urldecode($token));
         
         if (!$verification || !isset($verification['document_id'])) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('LIFT Docs Debug - Token verification failed');
-                error_log('LIFT Docs Debug - Verification result: ' . print_r($verification, true));
-            }
             wp_die('Access denied: Invalid or expired token');
         }
         
         $document_id = $verification['document_id'];
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - Verified document ID: ' . $document_id);
-        }
         
         $post = get_post($document_id);
         
@@ -179,10 +166,6 @@ class LIFT_Docs_Layout {
         
         // Get file index from verification data
         $file_index = isset($verification['file_index']) ? intval($verification['file_index']) : 0;
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs Debug - File index: ' . $file_index);
-        }
         
         // Handle multiple files - get all file URLs
         $file_urls = get_post_meta($document_id, '_lift_doc_file_urls', true);

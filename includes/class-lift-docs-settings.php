@@ -99,7 +99,6 @@ class LIFT_Docs_Settings {
         wp_enqueue_style('thickbox');
         
         // Debug info
-        error_log('LIFT Docs: Admin scripts enqueued on hook: ' . $hook);
     }
     
     /**

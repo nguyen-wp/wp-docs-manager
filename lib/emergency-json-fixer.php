@@ -8,14 +8,12 @@ function emergency_json_fixer() {
     }
     
     $fields = $_POST['fields'];
-    error_log('Emergency JSON Fixer - Original: ' . $fields);
     
     // Try various JSON fixes
     $fixed_fields = emergency_fix_json($fields);
     
     if ($fixed_fields !== $fields) {
         $_POST['fields'] = $fixed_fields;
-        error_log('Emergency JSON Fixer - Fixed: ' . $fixed_fields);
     }
 }
 
@@ -29,7 +27,6 @@ function emergency_fix_json($json_string) {
     
     // Try to handle common FormData issues
     if (strpos($json_string, 'FormData') !== false) {
-        error_log('Emergency JSON Fixer - Detected FormData object');
         return '[]'; // Return empty array as fallback
     }
     
@@ -52,12 +49,10 @@ function emergency_fix_json($json_string) {
     // Test if it's valid now
     $test_decode = json_decode($json_string, true);
     if (json_last_error() === JSON_ERROR_NONE) {
-        error_log('Emergency JSON Fixer - Successfully fixed JSON');
         return $json_string;
     }
     
     // If still invalid, try to extract field data manually
-    error_log('Emergency JSON Fixer - Attempting manual field extraction');
     
     // Look for field patterns in the string
     $manual_fields = extract_fields_manually($json_string);
@@ -66,7 +61,6 @@ function emergency_fix_json($json_string) {
     }
     
     // Last resort - return a valid empty array
-    error_log('Emergency JSON Fixer - Returning empty array as last resort');
     return '[]';
 }
 

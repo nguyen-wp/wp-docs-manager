@@ -1240,13 +1240,6 @@ body.document-form-page .image-preview:hover .upload-overlay {
     opacity: 1;
 }
 
-/* Hide file info and actions for PDF style */
-body.document-form-page .file-info,
-body.document-form-page .file-details,
-body.document-form-page .file-actions {
-    display: none;
-}
-
 /* Remove file overlay - appears on hover */
 body.document-form-page .remove-file-overlay {
     position: absolute;
@@ -1328,11 +1321,6 @@ body.document-form-page .file-icon-large .file-name-overlay {
     color: #6b7280;
 }
 
-.file-info {
-    display: none !important;
-    flex: 1;
-    min-width: 0;
-}
 
 .file-details {
     display: flex;
