@@ -1698,6 +1698,7 @@ class LIFT_Docs_Settings {
                             <li><i class="fas fa-check-circle"></i> <?php _e('E-commerce Solutions', 'lift-docs-system'); ?></li>
                             <li><i class="fas fa-check-circle"></i> <?php _e('API Integration & Development', 'lift-docs-system'); ?></li>
                             <li><i class="fas fa-check-circle"></i> <?php _e('WordPress Maintenance & Support', 'lift-docs-system'); ?></li>
+                            <li><i class="fas fa-check-circle"></i> <?php _e('Automation Tool Development', 'lift-docs-system'); ?></li>
                         </ul>
                     </div>
 
