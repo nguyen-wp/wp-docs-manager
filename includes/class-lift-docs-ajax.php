@@ -920,10 +920,56 @@ class LIFT_Docs_Ajax {
 
         $user_id = get_current_user_id();
 
-        // Get user's assigned documents count (optimized to avoid N+1 queries)
+        // Get user's assigned documents count using optimized query
+        $user_documents_count = $this->get_user_documents_count($user_id);
+
+        // Get user's accessible document IDs
+        $accessible_doc_ids = $this->get_user_accessible_document_ids($user_id);
+        
+        // Get user download count (only from accessible documents)
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'lift_docs_analytics';
+
+        if (!empty($accessible_doc_ids)) {
+            $doc_ids_placeholders = implode(',', array_fill(0, count($accessible_doc_ids), '%d'));
+            
+            $download_count = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'download' AND document_id IN ($doc_ids_placeholders)",
+                array_merge(array($user_id), $accessible_doc_ids)
+            ));
+
+            // Get user view count (only from accessible documents)
+            $view_count = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'view' AND document_id IN ($doc_ids_placeholders)",
+                array_merge(array($user_id), $accessible_doc_ids)
+            ));
+        } else {
+            // No accessible documents, so no views/downloads
+            $download_count = 0;
+            $view_count = 0;
+        }
+
+        // Get member since date
+        $user = get_user_by('id', $user_id);
+        $member_since = date_i18n('M d', strtotime($user->user_registered));
+
+        wp_send_json_success(array(
+            'stats' => array(
+                $user_documents_count,
+                $download_count ? $download_count : 0,
+                $view_count ? $view_count : 0,
+                $member_since
+            )
+        ));
+    }
+
+    /**
+     * Get user documents count (shared logic between frontend and AJAX)
+     */
+    private function get_user_documents_count($user_id) {
         global $wpdb;
         
-        // Get all document IDs and their assigned users in one query
+        // Get all documents with their assigned users in one query
         $document_assignments = $wpdb->get_results($wpdb->prepare("
             SELECT p.ID, pm.meta_value 
             FROM {$wpdb->posts} p
@@ -948,32 +994,40 @@ class LIFT_Docs_Ajax {
             }
         }
 
-        // Get user download count
+        return $user_documents_count;
+    }
+
+    /**
+     * Get document IDs that user has access to
+     */
+    private function get_user_accessible_document_ids($user_id) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'lift_docs_analytics';
+        
+        // Get all documents with their assigned users in one query
+        $document_assignments = $wpdb->get_results($wpdb->prepare("
+            SELECT p.ID, pm.meta_value 
+            FROM {$wpdb->posts} p
+            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
+            WHERE p.post_type = 'lift_document' 
+            AND p.post_status = 'publish'
+        "));
 
-        $download_count = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'download'",
-            $user_id
-        ));
+        $accessible_doc_ids = array();
+        foreach ($document_assignments as $doc_assignment) {
+            $assigned_users = maybe_unserialize($doc_assignment->meta_value);
 
-        // Get user view count
-        $view_count = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'view'",
-            $user_id
-        ));
+            // If no specific assignments, only admin and editor can see
+            if (empty($assigned_users) || !is_array($assigned_users)) {
+                if (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents')) {
+                    $accessible_doc_ids[] = $doc_assignment->ID;
+                }
+            }
+            // Check if user is specifically assigned
+            else if (in_array($user_id, $assigned_users)) {
+                $accessible_doc_ids[] = $doc_assignment->ID;
+            }
+        }
 
-        // Get member since date
-        $user = get_user_by('id', $user_id);
-        $member_since = date_i18n('M d', strtotime($user->user_registered));
-
-        wp_send_json_success(array(
-            'stats' => array(
-                $user_documents_count,
-                $download_count ? $download_count : 0,
-                $view_count ? $view_count : 0,
-                $member_since
-            )
-        ));
+        return $accessible_doc_ids;
     }
 }

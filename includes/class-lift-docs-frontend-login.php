@@ -1795,7 +1795,7 @@ class LIFT_Docs_Frontend_Login {
                                 <i class="fas fa-file-alt"></i>
                             </div>
                             <div class="stat-content">
-                                <h3><?php echo count($user_documents); ?></h3>
+                                <h3><?php echo $this->get_user_documents_count($current_user->ID); ?></h3>
                                 <p><?php _e('Documents', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
@@ -1862,36 +1862,67 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Get documents assigned to user
      */
-    private function get_user_documents($user_id) {
-        // Check if current user is admin
-        $is_admin = current_user_can('manage_options');
+    /**
+     * Get user documents count (optimized for just counting)
+     */
+    private function get_user_documents_count($user_id) {
+        global $wpdb;
+        
+        // Get all documents with their assigned users in one query
+        $document_assignments = $wpdb->get_results($wpdb->prepare("
+            SELECT p.ID, pm.meta_value 
+            FROM {$wpdb->posts} p
+            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
+            WHERE p.post_type = 'lift_document' 
+            AND p.post_status = 'publish'
+        "));
 
-        // Get all published documents (no meta_query filtering for archive status here)
-        $query_args = array(
-            'post_type' => 'lift_document',
-            'post_status' => 'publish',
-            'posts_per_page' => -1,
-            'orderby' => 'date',
-            'order' => 'DESC'
-        );
+        $user_documents_count = 0;
+        foreach ($document_assignments as $doc_assignment) {
+            $assigned_users = maybe_unserialize($doc_assignment->meta_value);
 
-        $all_documents = get_posts($query_args);
-
-        $user_documents = array();
-
-        foreach ($all_documents as $document) {
-            $assigned_users = get_post_meta($document->ID, '_lift_doc_assigned_users', true);
-
-            // If no specific assignments, only admin can see
+            // If no specific assignments, only admin and editor can see
             if (empty($assigned_users) || !is_array($assigned_users)) {
-                // Only admin can see unassigned documents
-                if (user_can($user_id, 'manage_options')) {
-                    $user_documents[] = $document;
+                if (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents')) {
+                    $user_documents_count++;
                 }
             }
             // Check if user is specifically assigned
             else if (in_array($user_id, $assigned_users)) {
-                $user_documents[] = $document;
+                $user_documents_count++;
+            }
+        }
+
+        return $user_documents_count;
+    }
+
+    private function get_user_documents($user_id) {
+        // Use optimized query to avoid N+1 problem
+        global $wpdb;
+        
+        // Get all documents with their assigned users in one query
+        $document_assignments = $wpdb->get_results($wpdb->prepare("
+            SELECT p.*, pm.meta_value as assigned_users
+            FROM {$wpdb->posts} p
+            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
+            WHERE p.post_type = 'lift_document' 
+            AND p.post_status = 'publish'
+            ORDER BY p.post_date DESC
+        "));
+
+        $user_documents = array();
+        foreach ($document_assignments as $doc_assignment) {
+            $assigned_users = maybe_unserialize($doc_assignment->assigned_users);
+
+            // If no specific assignments, only admin and editor can see
+            if (empty($assigned_users) || !is_array($assigned_users)) {
+                if (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents')) {
+                    $user_documents[] = $doc_assignment;
+                }
+            }
+            // Check if user is specifically assigned
+            else if (in_array($user_id, $assigned_users)) {
+                $user_documents[] = $doc_assignment;
             }
         }
 
@@ -1899,32 +1930,88 @@ class LIFT_Docs_Frontend_Login {
     }
 
     /**
-     * Get user download count
+     * Get document IDs that user has access to
+     */
+    private function get_user_accessible_document_ids($user_id) {
+        global $wpdb;
+        
+        // Get all documents with their assigned users in one query
+        $document_assignments = $wpdb->get_results($wpdb->prepare("
+            SELECT p.ID, pm.meta_value 
+            FROM {$wpdb->posts} p
+            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
+            WHERE p.post_type = 'lift_document' 
+            AND p.post_status = 'publish'
+        "));
+
+        $accessible_doc_ids = array();
+        foreach ($document_assignments as $doc_assignment) {
+            $assigned_users = maybe_unserialize($doc_assignment->meta_value);
+
+            // If no specific assignments, only admin and editor can see
+            if (empty($assigned_users) || !is_array($assigned_users)) {
+                if (user_can($user_id, 'manage_options') || user_can($user_id, 'edit_lift_documents')) {
+                    $accessible_doc_ids[] = $doc_assignment->ID;
+                }
+            }
+            // Check if user is specifically assigned
+            else if (in_array($user_id, $assigned_users)) {
+                $accessible_doc_ids[] = $doc_assignment->ID;
+            }
+        }
+
+        return $accessible_doc_ids;
+    }
+
+    /**
+     * Get user download count (only from accessible documents)
      */
     private function get_user_download_count($user_id) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
 
-        $count = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'download'",
-            $user_id
-        ));
+        // Get accessible document IDs first
+        $accessible_doc_ids = $this->get_user_accessible_document_ids($user_id);
+        
+        // If no accessible documents, return 0
+        if (empty($accessible_doc_ids)) {
+            return 0;
+        }
 
+        // Count downloads only from accessible documents
+        $placeholders = implode(',', array_fill(0, count($accessible_doc_ids), '%d'));
+        $query = $wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'download' AND document_id IN ($placeholders)",
+            array_merge([$user_id], $accessible_doc_ids)
+        );
+
+        $count = $wpdb->get_var($query);
         return $count ? $count : 0;
     }
 
     /**
-     * Get user view count
+     * Get user view count (only from accessible documents)
      */
     private function get_user_view_count($user_id) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'lift_docs_analytics';
 
-        $count = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'view'",
-            $user_id
-        ));
+        // Get accessible document IDs first
+        $accessible_doc_ids = $this->get_user_accessible_document_ids($user_id);
+        
+        // If no accessible documents, return 0
+        if (empty($accessible_doc_ids)) {
+            return 0;
+        }
 
+        // Count views only from accessible documents
+        $placeholders = implode(',', array_fill(0, count($accessible_doc_ids), '%d'));
+        $query = $wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'view' AND document_id IN ($placeholders)",
+            array_merge([$user_id], $accessible_doc_ids)
+        );
+
+        $count = $wpdb->get_var($query);
         return $count ? $count : 0;
     }
 
@@ -2856,7 +2943,7 @@ class LIFT_Docs_Frontend_Login {
                                 <i class="fas fa-file-alt"></i>
                             </div>
                             <div class="stat-content">
-                                <h3><?php echo count($user_documents); ?></h3>
+                                <h3><?php echo $this->get_user_documents_count($current_user->ID); ?></h3>
                                 <p><?php _e('Documents', 'lift-docs-system'); ?></p>
                             </div>
                         </div>
