@@ -801,64 +801,6 @@ class LIFT_Forms {
                 </div>
             </div>
             
-            <?php
-            // Debug information panel - only show when WP_DEBUG is enabled
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                echo '<div class="notice notice-info">';
-                echo '<h3>Debug Information</h3>';
-                echo '<p><strong>Submissions table:</strong> ' . $submissions_table . '</p>';
-                echo '<p><strong>Forms table:</strong> ' . $forms_table . '</p>';
-                echo '<p><strong>Query submissions found:</strong> ' . count($submissions) . '</p>';
-                
-                // Check table exists
-                $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$submissions_table'");
-                echo '<p><strong>Submissions table exists:</strong> ' . ($table_exists ? 'Yes' : 'No') . '</p>';
-                
-                if ($table_exists) {
-                    $total_count = $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table");
-                    echo '<p><strong>Total records in submissions table:</strong> ' . $total_count . '</p>';
-                    
-                    // Show submissions by form_id
-                    $submissions_by_form = $wpdb->get_results("SELECT form_id, COUNT(*) as count FROM $submissions_table GROUP BY form_id");
-                    if ($submissions_by_form) {
-                        echo '<p><strong>Submissions by form:</strong></p>';
-                        echo '<ul style="margin-left: 20px;">';
-                        foreach ($submissions_by_form as $sbf) {
-                            echo '<li>Form ID ' . $sbf->form_id . ': ' . $sbf->count . ' submissions</li>';
-                        }
-                        echo '</ul>';
-                    }
-                }
-                
-                // Check forms table
-                $forms_exists = $wpdb->get_var("SHOW TABLES LIKE '$forms_table'");
-                echo '<p><strong>Forms table exists:</strong> ' . ($forms_exists ? 'Yes' : 'No') . '</p>';
-                
-                if ($forms_exists) {
-                    $forms_count = $wpdb->get_var("SELECT COUNT(*) FROM $forms_table");
-                    echo '<p><strong>Total forms:</strong> ' . $forms_count . '</p>';
-                    
-                    // Show all forms
-                    $all_forms = $wpdb->get_results("SELECT id, name, status FROM $forms_table ORDER BY id");
-                    if ($all_forms) {
-                        echo '<p><strong>All forms:</strong></p>';
-                        echo '<ul style="margin-left: 20px;">';
-                        foreach ($all_forms as $f) {
-                            echo '<li>ID: ' . $f->id . ', Name: "' . $f->name . '", Status: ' . $f->status . '</li>';
-                        }
-                        echo '</ul>';
-                    }
-                }
-                
-                // Show last database error if any
-                if ($wpdb->last_error) {
-                    echo '<p style="color: red;"><strong>Last Database Error:</strong> ' . $wpdb->last_error . '</p>';
-                }
-                
-                echo '</div>';
-            }
-            ?>
-            
             <?php if (empty($submissions)): ?>
                 <div class="lift-empty-state">
                     <h2><?php _e('No Submissions Yet', 'lift-docs-system'); ?></h2>
