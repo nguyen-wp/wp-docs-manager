@@ -269,18 +269,6 @@ class LIFT_Docs_Secure_Links {
                     align-items: center;
                 }
                 
-                /* Hide unwanted elements */
-                .back-to-top,
-                #back-to-top,
-                .scroll-to-top,
-                [class*="back-to-top"],
-                [id*="back-to-top"],
-                [class*="scroll-top"],
-                [id*="scroll-top"] {
-                    display: none !important;
-                    visibility: hidden !important;
-                }
-                
                 .lift-docs-secure-container {
                     max-width: 1000px;
                     margin: 0 auto;
@@ -890,17 +878,6 @@ class LIFT_Docs_Secure_Links {
                     justify-content: center;
                 }
                 
-                /* Hide unwanted elements */
-                .back-to-top,
-                #back-to-top,
-                .scroll-to-top,
-                [class*="back-to-top"],
-                [id*="back-to-top"],
-                [class*="scroll-top"],
-                [id*="scroll-top"] {
-                    display: none !important;
-                    visibility: hidden !important;
-                }
                 
                 .lift-access-denied-container {
                     width: 100%;

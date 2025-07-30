@@ -1446,3 +1446,7 @@ body.modal-open {
         padding: 10px;
     }
 }
+
+.dashboard-user-info h2 {
+    margin-bottom: 0.5rem;
+}

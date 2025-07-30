@@ -534,22 +534,6 @@ jQuery(document).ready(function($) {
         window.print();
     });
     
-    // Back to top button
-    var backToTopBtn = $('<button class="back-to-top" title="Back to top">↑</button>');
-    $('body').append(backToTopBtn);
-    
-    $(window).on('scroll', function() {
-        if ($(window).scrollTop() > 300) {
-            backToTopBtn.fadeIn();
-        } else {
-            backToTopBtn.fadeOut();
-        }
-    });
-    
-    backToTopBtn.on('click', function() {
-        $('html, body').animate({scrollTop: 0}, 600);
-    });
-    
     // Initialize tooltips
     $('[data-tooltip]').each(function() {
         $(this).addClass('lift-docs-tooltip');

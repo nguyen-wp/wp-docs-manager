@@ -1262,11 +1262,7 @@ class LIFT_Docs_Frontend_Login {
                 }
                 
                 /* Hide other common theme elements - only on login page */
-                body.lift-docs-login-page .back-to-top, 
-                body.lift-docs-login-page #back-to-top, 
                 body.lift-docs-login-page .scroll-to-top,
-                body.lift-docs-login-page [class*="back-to-top"], 
-                body.lift-docs-login-page [id*="back-to-top"],
                 body.lift-docs-login-page [class*="scroll-top"], 
                 body.lift-docs-login-page [id*="scroll-top"],
                 body.lift-docs-login-page .breadcrumb, 
@@ -2542,12 +2538,7 @@ class LIFT_Docs_Frontend_Login {
         ob_start();
         ?>
         <style>
-            /* Hide back-to-top button for shortcode version too */
-            .back-to-top,
-            #back-to-top,
             .scroll-to-top,
-            [class*="back-to-top"],
-            [id*="back-to-top"],
             [class*="scroll-top"],
             [id*="scroll-top"] {
                 display: none !important;

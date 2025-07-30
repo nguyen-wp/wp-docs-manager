@@ -1,26 +1,9 @@
 /**
  * Frontend Login Styles for Lift Documents
  */
-/* Hide back-to-top buttons globally on login/dashboard pages */
-.lift-docs-login-container .back-to-top,
-.lift-docs-dashboard-container .back-to-top,
-.lift-docs-login-container #back-to-top,
-.lift-docs-dashboard-container #back-to-top,
-.lift-docs-login-container .scroll-to-top,
-.lift-docs-dashboard-container .scroll-to-top,
-.lift-docs-login-container [class*="back-to-top"],
-.lift-docs-dashboard-container [class*="back-to-top"],
-.lift-docs-login-container [id*="back-to-top"],
-.lift-docs-dashboard-container [id*="back-to-top"],
-.lift-docs-login-container [class*="scroll-top"],
-.lift-docs-dashboard-container [class*="scroll-top"],
-.lift-docs-login-container [id*="scroll-top"],
-.lift-docs-dashboard-container [id*="scroll-top"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-}
-/* Reset and Base Styles */
+
+
+ /* Reset and Base Styles */
 .lift-docs-login-container *,
 .lift-docs-dashboard-container * {
     box-sizing: border-box;

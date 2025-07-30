@@ -197,10 +197,6 @@ class LIFT_Forms {
         // Check if we're on any LIFT Forms admin page
         $is_lift_forms_page = false;
         
-        // Debug: Log current hook and page
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-        }
-        
         if (strpos($hook, 'lift-forms') !== false) {
             $is_lift_forms_page = true;
         }
@@ -654,7 +650,6 @@ class LIFT_Forms {
      * Submissions page
      */
     public function submissions_page() {
-        // Debug log entry
         
         // Check user permissions
         if (!current_user_can('manage_options')) {
@@ -674,7 +669,6 @@ class LIFT_Forms {
         // Get forms for filter
         $forms = $wpdb->get_results("SELECT id, name FROM $forms_table ORDER BY name");
         
-        // Debug input filters
         
         // Use simple, direct query approach
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
@@ -748,7 +742,6 @@ class LIFT_Forms {
             }
         }
         
-        // Debug submissions data
         if (!empty($submissions)) {
         }
         
@@ -1330,7 +1323,6 @@ class LIFT_Forms {
             wp_send_json_error(__('Form not found', 'lift-docs-system'));
         }
         
-        // Debug log the form fields data from database
         
         // Clean form_fields if it contains invalid characters
         if (!empty($form->form_fields)) {
@@ -1443,7 +1435,6 @@ class LIFT_Forms {
         // Enhanced JSON cleaning and validation
         $fields = trim($fields);
         
-        // Log the raw fields data for debugging
         
         // Remove BOM if present
         if (substr($fields, 0, 3) === "\xEF\xBB\xBF") {
@@ -1599,7 +1590,6 @@ class LIFT_Forms {
         $submission_id = intval($_POST['submission_id'] ?? 0);
         $original_user_id = intval($_POST['original_user_id'] ?? 0);
         
-        // Debug logging
         
         if (!$form_id) {
             wp_send_json_error(__('Invalid form', 'lift-docs-system'));
@@ -1744,7 +1734,6 @@ class LIFT_Forms {
             // Update existing submission
             $submission_data['updated_at'] = current_time('mysql');
             
-            // Debug: Log the submission data
             
             // Build format array dynamically based on actual data
             $formats = array();
@@ -2069,9 +2058,7 @@ class LIFT_Forms {
      * Render form shortcode
      */
     public function render_form_shortcode($atts) {
-        // FORCE EMERGENCY DEBUG OUTPUT
         if (isset($_GET['admin_view'])) {
-            echo '<div style="position: fixed; top: 0; left: 0; width: 100%; background: red; color: white; padding: 10px; z-index: 9999; font-size: 16px; font-weight: bold;">EMERGENCY DEBUG: admin_view=' . $_GET['admin_view'] . ', submission_id=' . ($_GET['submission_id'] ?? 'none') . '</div>';
             echo '<script>document.body.style.paddingTop = "60px";</script>';
         }
         
@@ -2103,11 +2090,9 @@ class LIFT_Forms {
         $submission_info = null;
         $is_admin_view = isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && current_user_can('manage_options');
         
-        // Force debug output for testing
         if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') {
         }
         
-        // Debug information
         if ($is_admin_view) {
         }
         
@@ -2136,42 +2121,6 @@ class LIFT_Forms {
         }
         
         ob_start();
-        
-        // Force show debug info for ANY admin_view request
-        if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') {
-            echo '<div style="background: #ff9999; border: 3px solid #ff0000; padding: 20px; margin: 20px 0; font-family: Arial; font-size: 14px;">';
-            echo '<h2 style="color: #000; margin-top: 0;">🔧 FORCE DEBUG PANEL</h2>';
-            echo '<p><strong>URL Parameters:</strong></p>';
-            echo '<ul>';
-            foreach ($_GET as $key => $value) {
-                echo '<li><strong>' . $key . ':</strong> ' . $value . '</li>';
-            }
-            echo '</ul>';
-            echo '<p><strong>User Info:</strong></p>';
-            echo '<ul>';
-            echo '<li><strong>User ID:</strong> ' . get_current_user_id() . '</li>';
-            echo '<li><strong>User Login:</strong> ' . wp_get_current_user()->user_login . '</li>';
-            echo '<li><strong>Can manage_options:</strong> ' . (current_user_can('manage_options') ? 'YES' : 'NO') . '</li>';
-            echo '<li><strong>User Roles:</strong> ' . implode(', ', wp_get_current_user()->roles) . '</li>';
-            echo '</ul>';
-            echo '<p><strong>Form Info:</strong></p>';
-            echo '<ul>';
-            echo '<li><strong>Form ID:</strong> ' . $form_id . '</li>';
-            echo '<li><strong>is_admin_view:</strong> ' . ($is_admin_view ? 'TRUE' : 'FALSE') . '</li>';
-            echo '<li><strong>submission_data count:</strong> ' . count($submission_data) . '</li>';
-            echo '</ul>';
-            if ($submission_info) {
-                echo '<p><strong>Submission Found:</strong></p>';
-                echo '<ul>';
-                echo '<li><strong>ID:</strong> ' . $submission_info->id . '</li>';
-                echo '<li><strong>User:</strong> ' . $submission_info->user_name . ' (' . $submission_info->user_email . ')</li>';
-                echo '<li><strong>Date:</strong> ' . $submission_info->submitted_at . '</li>';
-                echo '</ul>';
-            } else {
-                echo '<p><strong>No Submission Found</strong></p>';
-            }
-            echo '</div>';
-        }
         ?>
         <div class="document-form-wrapper">
             <?php if ($atts['title'] === 'true'): ?>
@@ -2212,9 +2161,7 @@ class LIFT_Forms {
             <div class="form-content-section">
                 <div class="lift-form-container" data-form-id="<?php echo $form_id; ?>">
                     <?php if ($is_admin_view): ?>
-                        <!-- Debug information for admin -->
                         <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
-                            <strong>Debug Information:</strong><br>
                             <small>
                                 Admin View: <?php echo $is_admin_view ? 'Yes' : 'No'; ?><br>
                                 Submission ID: <?php echo isset($_GET['submission_id']) ? intval($_GET['submission_id']) : 'None'; ?><br>
@@ -2305,7 +2252,6 @@ class LIFT_Forms {
     private function render_form_fields($fields, $submission_data = array(), $readonly = false) {
         $html = '';
         
-        // Debug fields structure
         if ($readonly) {
         }
         
@@ -2340,7 +2286,6 @@ class LIFT_Forms {
         $field_name = $field['name'] ?? '';
         $field_value = $submission_data[$field_name] ?? '';
         
-        // Debug field rendering
         if ($readonly) {
         }
         
