@@ -1,0 +1,144 @@
+{
+  "layout": {
+    "rows": [
+      {
+        "id": "row-basic-info",
+        "columns": [
+          {
+            "id": "col-basic-left",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-full-name",
+                "type": "text",
+                "name": "full_name",
+                "label": "Full Name",
+                "placeholder": "Enter your full name",
+                "required": true
+              },
+              {
+                "id": "field-email",
+                "type": "email",
+                "name": "email",
+                "label": "Email Address",
+                "placeholder": "your.email@example.com",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "col-basic-right",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-phone",
+                "type": "text",
+                "name": "phone",
+                "label": "Phone Number",
+                "placeholder": "Enter phone number",
+                "required": true
+              },
+              {
+                "id": "field-company",
+                "type": "text",
+                "name": "company",
+                "label": "Company Name",
+                "placeholder": "Enter company name",
+                "required": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-details",
+        "columns": [
+          {
+            "id": "col-details-full",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-message",
+                "type": "textarea",
+                "name": "message",
+                "label": "Message",
+                "placeholder": "Enter your message here...",
+                "required": false
+              },
+              {
+                "id": "field-services",
+                "type": "checkbox",
+                "name": "services",
+                "label": "Services Interested In",
+                "required": false,
+                "options": [
+                  "Web Development",
+                  "Mobile App Development",
+                  "UI/UX Design",
+                  "Digital Marketing",
+                  "Consulting"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "fields": [
+    {
+      "id": "field-full-name",
+      "type": "text",
+      "name": "full_name",
+      "label": "Full Name",
+      "placeholder": "Enter your full name",
+      "required": true
+    },
+    {
+      "id": "field-email",
+      "type": "email",
+      "name": "email",
+      "label": "Email Address",
+      "placeholder": "your.email@example.com",
+      "required": true
+    },
+    {
+      "id": "field-phone",
+      "type": "text",
+      "name": "phone",
+      "label": "Phone Number",
+      "placeholder": "Enter phone number",
+      "required": true
+    },
+    {
+      "id": "field-company",
+      "type": "text",
+      "name": "company",
+      "label": "Company Name",
+      "placeholder": "Enter company name",
+      "required": false
+    },
+    {
+      "id": "field-message",
+      "type": "textarea",
+      "name": "message",
+      "label": "Message",
+      "placeholder": "Enter your message here...",
+      "required": false
+    },
+    {
+      "id": "field-services",
+      "type": "checkbox",
+      "name": "services",
+      "label": "Services Interested In",
+      "required": false,
+      "options": [
+        "Web Development",
+        "Mobile App Development",
+        "UI/UX Design",
+        "Digital Marketing",
+        "Consulting"
+      ]
+    }
+  ]
+}

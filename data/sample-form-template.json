@@ -1,0 +1,793 @@
+{
+  "layout": {
+    "rows": [
+      {
+        "id": "row-header-1",
+        "columns": [
+          {
+            "id": "col-header-1",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-header-company",
+                "type": "header",
+                "label": "CONTRACTOR INFORMATION",
+                "content": "CONTRACTOR INFORMATION"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-company-info",
+        "columns": [
+          {
+            "id": "col-company-left",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-company-name",
+                "type": "text",
+                "name": "company_name",
+                "label": "Company Name",
+                "placeholder": "Enter company name",
+                "required": true
+              },
+              {
+                "id": "field-company-address",
+                "type": "textarea",
+                "name": "company_address",
+                "label": "Company Address",
+                "placeholder": "Enter complete address",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "col-company-right",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-contact-person",
+                "type": "text",
+                "name": "contact_person",
+                "label": "Contact Person",
+                "placeholder": "Enter contact person name",
+                "required": true
+              },
+              {
+                "id": "field-phone-number",
+                "type": "text",
+                "name": "phone_number",
+                "label": "Phone Number",
+                "placeholder": "Enter phone number",
+                "required": true
+              },
+              {
+                "id": "field-email-address",
+                "type": "email",
+                "name": "email_address",
+                "label": "Email Address",
+                "placeholder": "Enter email address",
+                "required": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-project-header",
+        "columns": [
+          {
+            "id": "col-project-header",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-header-project",
+                "type": "header",
+                "label": "PROJECT DETAILS",
+                "content": "PROJECT DETAILS"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-project-info",
+        "columns": [
+          {
+            "id": "col-project-left",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-project-name",
+                "type": "text",
+                "name": "project_name",
+                "label": "Project Name/Description",
+                "placeholder": "Enter project details",
+                "required": true
+              },
+              {
+                "id": "field-project-location",
+                "type": "text",
+                "name": "project_location",
+                "label": "Project Location",
+                "placeholder": "Enter project location",
+                "required": true
+              },
+              {
+                "id": "field-start-date",
+                "type": "date",
+                "name": "start_date",
+                "label": "Start Date",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "col-project-right",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-estimated-value",
+                "type": "number",
+                "name": "estimated_value",
+                "label": "Estimated Contract Value",
+                "placeholder": "Enter amount",
+                "required": true
+              },
+              {
+                "id": "field-completion-date",
+                "type": "date",
+                "name": "completion_date",
+                "label": "Expected Completion Date",
+                "required": true
+              },
+              {
+                "id": "field-project-type",
+                "type": "select",
+                "name": "project_type",
+                "label": "Project Type",
+                "required": true,
+                "options": [
+                  "Residential Construction",
+                  "Commercial Construction", 
+                  "Industrial Construction",
+                  "Infrastructure",
+                  "Renovation/Remodeling",
+                  "Other"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-certification-header",
+        "columns": [
+          {
+            "id": "col-certification-header",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-header-certification",
+                "type": "header",
+                "label": "CERTIFICATIONS & QUALIFICATIONS",
+                "content": "CERTIFICATIONS & QUALIFICATIONS"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-certifications",
+        "columns": [
+          {
+            "id": "col-certifications-full",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-license-number",
+                "type": "text",
+                "name": "license_number",
+                "label": "License Number",
+                "placeholder": "Enter license number",
+                "required": true
+              },
+              {
+                "id": "field-insurance-coverage",
+                "type": "checkbox",
+                "name": "insurance_coverage",
+                "label": "Insurance Coverage",
+                "required": true,
+                "options": [
+                  "General Liability Insurance",
+                  "Professional Liability Insurance",
+                  "Workers' Compensation",
+                  "Property Insurance",
+                  "Bonding Coverage"
+                ]
+              },
+              {
+                "id": "field-safety-certifications",
+                "type": "textarea",
+                "name": "safety_certifications",
+                "label": "Safety Certifications & Training",
+                "placeholder": "List all relevant safety certifications",
+                "required": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-experience-header",
+        "columns": [
+          {
+            "id": "col-experience-header",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-header-experience",
+                "type": "header",
+                "label": "EXPERIENCE & REFERENCES",
+                "content": "EXPERIENCE & REFERENCES"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-experience",
+        "columns": [
+          {
+            "id": "col-experience-left",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-years-experience",
+                "type": "number",
+                "name": "years_experience",
+                "label": "Years of Experience",
+                "placeholder": "Enter number of years",
+                "required": true
+              },
+              {
+                "id": "field-similar-projects",
+                "type": "textarea",
+                "name": "similar_projects",
+                "label": "Similar Projects Completed",
+                "placeholder": "Describe similar projects you have completed",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "col-experience-right",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-references",
+                "type": "textarea",
+                "name": "references",
+                "label": "References (3 minimum)",
+                "placeholder": "Include name, company, phone, and email for each reference",
+                "required": true
+              },
+              {
+                "id": "field-portfolio-website",
+                "type": "text",
+                "name": "portfolio_website",
+                "label": "Portfolio/Website",
+                "placeholder": "Enter website URL",
+                "required": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-additional-header",
+        "columns": [
+          {
+            "id": "col-additional-header",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-header-additional",
+                "type": "header",
+                "label": "ADDITIONAL INFORMATION",
+                "content": "ADDITIONAL INFORMATION"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-additional-info",
+        "columns": [
+          {
+            "id": "col-additional-full",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-special-equipment",
+                "type": "textarea",
+                "name": "special_equipment",
+                "label": "Special Equipment/Tools Available",
+                "placeholder": "List any special equipment or tools you have",
+                "required": false
+              },
+              {
+                "id": "field-subcontractors",
+                "type": "radio",
+                "name": "subcontractors_used",
+                "label": "Do you plan to use subcontractors?",
+                "required": true,
+                "options": [
+                  "Yes",
+                  "No",
+                  "Maybe - depending on project scope"
+                ]
+              },
+              {
+                "id": "field-additional-comments",
+                "type": "textarea",
+                "name": "additional_comments",
+                "label": "Additional Comments/Questions",
+                "placeholder": "Any additional information you would like to provide",
+                "required": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-documents-header",
+        "columns": [
+          {
+            "id": "col-documents-header",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-header-documents",
+                "type": "header",
+                "label": "REQUIRED DOCUMENTS",
+                "content": "REQUIRED DOCUMENTS"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-documents",
+        "columns": [
+          {
+            "id": "col-documents-left",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-license-copy",
+                "type": "file",
+                "name": "license_copy",
+                "label": "Copy of License",
+                "required": true
+              },
+              {
+                "id": "field-insurance-certificates",
+                "type": "file",
+                "name": "insurance_certificates",
+                "label": "Insurance Certificates",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "col-documents-right",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-bonding-letter",
+                "type": "file",
+                "name": "bonding_letter",
+                "label": "Bonding Letter/Capacity",
+                "required": false
+              },
+              {
+                "id": "field-financial-statements",
+                "type": "file",
+                "name": "financial_statements",
+                "label": "Financial Statements",
+                "required": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-signature-header",
+        "columns": [
+          {
+            "id": "col-signature-header",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-header-signature",
+                "type": "header",
+                "label": "SIGNATURE & AUTHORIZATION",
+                "content": "SIGNATURE & AUTHORIZATION"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-signature",
+        "columns": [
+          {
+            "id": "col-signature-left",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-authorized-signature",
+                "type": "signature",
+                "name": "authorized_signature",
+                "label": "Authorized Signature"
+              },
+              {
+                "id": "field-signature-date",
+                "type": "date",
+                "name": "signature_date",
+                "label": "Date",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "col-signature-right",
+            "width": "0.5",
+            "fields": [
+              {
+                "id": "field-printed-name",
+                "type": "text",
+                "name": "printed_name",
+                "label": "Printed Name",
+                "placeholder": "Print your full name",
+                "required": true
+              },
+              {
+                "id": "field-title-position",
+                "type": "text",
+                "name": "title_position",
+                "label": "Title/Position",
+                "placeholder": "Your title in the company",
+                "required": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row-agreement",
+        "columns": [
+          {
+            "id": "col-agreement-full",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field-terms-agreement",
+                "type": "checkbox",
+                "name": "terms_agreement",
+                "label": "Agreement",
+                "required": true,
+                "options": [
+                  "I certify that all information provided is true and accurate",
+                  "I understand this is a pre-qualification application and does not guarantee contract award",
+                  "I agree to provide additional documentation if requested",
+                  "I acknowledge that false information may result in disqualification"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "fields": [
+    {
+      "id": "field-header-company",
+      "type": "header",
+      "label": "CONTRACTOR INFORMATION",
+      "content": "CONTRACTOR INFORMATION"
+    },
+    {
+      "id": "field-company-name",
+      "type": "text",
+      "name": "company_name",
+      "label": "Company Name",
+      "placeholder": "Enter company name",
+      "required": true
+    },
+    {
+      "id": "field-company-address",
+      "type": "textarea",
+      "name": "company_address",
+      "label": "Company Address",
+      "placeholder": "Enter complete address",
+      "required": true
+    },
+    {
+      "id": "field-contact-person",
+      "type": "text",
+      "name": "contact_person",
+      "label": "Contact Person",
+      "placeholder": "Enter contact person name",
+      "required": true
+    },
+    {
+      "id": "field-phone-number",
+      "type": "text",
+      "name": "phone_number",
+      "label": "Phone Number",
+      "placeholder": "Enter phone number",
+      "required": true
+    },
+    {
+      "id": "field-email-address",
+      "type": "email",
+      "name": "email_address",
+      "label": "Email Address",
+      "placeholder": "Enter email address",
+      "required": true
+    },
+    {
+      "id": "field-header-project",
+      "type": "header",
+      "label": "PROJECT DETAILS",
+      "content": "PROJECT DETAILS"
+    },
+    {
+      "id": "field-project-name",
+      "type": "text",
+      "name": "project_name",
+      "label": "Project Name/Description",
+      "placeholder": "Enter project details",
+      "required": true
+    },
+    {
+      "id": "field-project-location",
+      "type": "text",
+      "name": "project_location",
+      "label": "Project Location",
+      "placeholder": "Enter project location",
+      "required": true
+    },
+    {
+      "id": "field-start-date",
+      "type": "date",
+      "name": "start_date",
+      "label": "Start Date",
+      "required": true
+    },
+    {
+      "id": "field-estimated-value",
+      "type": "number",
+      "name": "estimated_value",
+      "label": "Estimated Contract Value",
+      "placeholder": "Enter amount",
+      "required": true
+    },
+    {
+      "id": "field-completion-date",
+      "type": "date",
+      "name": "completion_date",
+      "label": "Expected Completion Date",
+      "required": true
+    },
+    {
+      "id": "field-project-type",
+      "type": "select",
+      "name": "project_type",
+      "label": "Project Type",
+      "required": true,
+      "options": [
+        "Residential Construction",
+        "Commercial Construction", 
+        "Industrial Construction",
+        "Infrastructure",
+        "Renovation/Remodeling",
+        "Other"
+      ]
+    },
+    {
+      "id": "field-header-certification",
+      "type": "header",
+      "label": "CERTIFICATIONS & QUALIFICATIONS",
+      "content": "CERTIFICATIONS & QUALIFICATIONS"
+    },
+    {
+      "id": "field-license-number",
+      "type": "text",
+      "name": "license_number",
+      "label": "License Number",
+      "placeholder": "Enter license number",
+      "required": true
+    },
+    {
+      "id": "field-insurance-coverage",
+      "type": "checkbox",
+      "name": "insurance_coverage",
+      "label": "Insurance Coverage",
+      "required": true,
+      "options": [
+        "General Liability Insurance",
+        "Professional Liability Insurance",
+        "Workers' Compensation",
+        "Property Insurance",
+        "Bonding Coverage"
+      ]
+    },
+    {
+      "id": "field-safety-certifications",
+      "type": "textarea",
+      "name": "safety_certifications",
+      "label": "Safety Certifications & Training",
+      "placeholder": "List all relevant safety certifications",
+      "required": false
+    },
+    {
+      "id": "field-header-experience",
+      "type": "header",
+      "label": "EXPERIENCE & REFERENCES",
+      "content": "EXPERIENCE & REFERENCES"
+    },
+    {
+      "id": "field-years-experience",
+      "type": "number",
+      "name": "years_experience",
+      "label": "Years of Experience",
+      "placeholder": "Enter number of years",
+      "required": true
+    },
+    {
+      "id": "field-similar-projects",
+      "type": "textarea",
+      "name": "similar_projects",
+      "label": "Similar Projects Completed",
+      "placeholder": "Describe similar projects you have completed",
+      "required": true
+    },
+    {
+      "id": "field-references",
+      "type": "textarea",
+      "name": "references",
+      "label": "References (3 minimum)",
+      "placeholder": "Include name, company, phone, and email for each reference",
+      "required": true
+    },
+    {
+      "id": "field-portfolio-website",
+      "type": "text",
+      "name": "portfolio_website",
+      "label": "Portfolio/Website",
+      "placeholder": "Enter website URL",
+      "required": false
+    },
+    {
+      "id": "field-header-additional",
+      "type": "header",
+      "label": "ADDITIONAL INFORMATION",
+      "content": "ADDITIONAL INFORMATION"
+    },
+    {
+      "id": "field-special-equipment",
+      "type": "textarea",
+      "name": "special_equipment",
+      "label": "Special Equipment/Tools Available",
+      "placeholder": "List any special equipment or tools you have",
+      "required": false
+    },
+    {
+      "id": "field-subcontractors",
+      "type": "radio",
+      "name": "subcontractors_used",
+      "label": "Do you plan to use subcontractors?",
+      "required": true,
+      "options": [
+        "Yes",
+        "No",
+        "Maybe - depending on project scope"
+      ]
+    },
+    {
+      "id": "field-additional-comments",
+      "type": "textarea",
+      "name": "additional_comments",
+      "label": "Additional Comments/Questions",
+      "placeholder": "Any additional information you would like to provide",
+      "required": false
+    },
+    {
+      "id": "field-header-documents",
+      "type": "header",
+      "label": "REQUIRED DOCUMENTS",
+      "content": "REQUIRED DOCUMENTS"
+    },
+    {
+      "id": "field-license-copy",
+      "type": "file",
+      "name": "license_copy",
+      "label": "Copy of License",
+      "required": true
+    },
+    {
+      "id": "field-insurance-certificates",
+      "type": "file",
+      "name": "insurance_certificates",
+      "label": "Insurance Certificates",
+      "required": true
+    },
+    {
+      "id": "field-bonding-letter",
+      "type": "file",
+      "name": "bonding_letter",
+      "label": "Bonding Letter/Capacity",
+      "required": false
+    },
+    {
+      "id": "field-financial-statements",
+      "type": "file",
+      "name": "financial_statements",
+      "label": "Financial Statements",
+      "required": false
+    },
+    {
+      "id": "field-header-signature",
+      "type": "header",
+      "label": "SIGNATURE & AUTHORIZATION",
+      "content": "SIGNATURE & AUTHORIZATION"
+    },
+    {
+      "id": "field-authorized-signature",
+      "type": "signature",
+      "name": "authorized_signature",
+      "label": "Authorized Signature"
+    },
+    {
+      "id": "field-signature-date",
+      "type": "date",
+      "name": "signature_date",
+      "label": "Date",
+      "required": true
+    },
+    {
+      "id": "field-printed-name",
+      "type": "text",
+      "name": "printed_name",
+      "label": "Printed Name",
+      "placeholder": "Print your full name",
+      "required": true
+    },
+    {
+      "id": "field-title-position",
+      "type": "text",
+      "name": "title_position",
+      "label": "Title/Position",
+      "placeholder": "Your title in the company",
+      "required": true
+    },
+    {
+      "id": "field-terms-agreement",
+      "type": "checkbox",
+      "name": "terms_agreement",
+      "label": "Agreement",
+      "required": true,
+      "options": [
+        "I certify that all information provided is true and accurate",
+        "I understand this is a pre-qualification application and does not guarantee contract award",
+        "I agree to provide additional documentation if requested",
+        "I acknowledge that false information may result in disqualification"
+      ]
+    }
+  ]
+}
