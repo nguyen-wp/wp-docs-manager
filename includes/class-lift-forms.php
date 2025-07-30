@@ -1876,7 +1876,39 @@ class LIFT_Forms {
                             $field_map[$field['id']] = $field;
                         }
                     }
+                } else {
+                    // Handle simple field structure - use field name as key
+                    foreach ($parsed_form_data as $key => $field) {
+                        if (is_array($field) && isset($field['name'])) {
+                            $field_map[$field['name']] = $field;
+                        } elseif (is_array($field) && isset($field['id'])) {
+                            $field_map[$field['id']] = $field;
+                        }
+                    }
                 }
+            }
+        }
+
+        // Also try to match form data keys with field map keys for better field matching
+        if (!empty($field_map) && !empty($form_data)) {
+            $matched_fields = array();
+            foreach ($form_data as $data_key => $data_value) {
+                // Skip system fields
+                if (strpos($data_key, '_') === 0) continue;
+                
+                // Try to find matching field in field_map
+                foreach ($field_map as $field_key => $field_info) {
+                    $field_name = $field_info['name'] ?? $field_info['id'] ?? $field_key;
+                    if ($data_key === $field_name || $data_key === $field_key) {
+                        $matched_fields[$data_key] = $field_info;
+                        break;
+                    }
+                }
+            }
+            
+            // If we found matches, update field_map to use data keys
+            if (!empty($matched_fields)) {
+                $field_map = $matched_fields;
             }
         }
 
@@ -1951,19 +1983,186 @@ class LIFT_Forms {
                 </table>
             </div>
             <?php endif; ?>
+
+            <!-- Form Fields Data -->
+            <?php if (!empty($form_data)): ?>
+            <div class="submission-fields">
+                <h3><?php _e('Form Data', 'lift-docs-system'); ?></h3>
+                <table class="form-table">
+                    <?php foreach ($form_data as $key => $value): ?>
+                        <?php
+                        // Skip hidden system fields
+                        if (strpos($key, '_') === 0) {
+                            continue;
+                        }
+                        
+                        // Skip empty values
+                        if (empty($value)) {
+                            continue;
+                        }
+                        
+                        // Determine field type based on key/value patterns
+                        $is_file = (strpos($key, '_url') !== false) || (is_string($value) && (strpos($value, '/uploads/') !== false || strpos($value, '/wp-content/') !== false));
+                        $is_signature = (is_string($value) && strpos($value, '/signatures/') !== false);
+                        
+                        // Try to get field label from form definition first
+                        $field_label = $key;
+                        $field_found_in_definition = false;
+                        
+                        // Remove _url suffix for file fields when searching
+                        $search_key = $key;
+                        if (strpos($search_key, '_url') !== false) {
+                            $search_key = str_replace('_url', '', $search_key);
+                        }
+                        
+                        // Look for field definition by key or ID
+                        if (!empty($field_map)) {
+                            foreach ($field_map as $field_id => $field_info) {
+                                // Check if this field matches by ID, name, or key
+                                $field_name = $field_info['name'] ?? '';
+                                $field_title = $field_info['title'] ?? $field_info['label'] ?? '';
+                                
+                                if ($search_key === $field_id || 
+                                    $search_key === $field_name || 
+                                    $key === $field_id || 
+                                    $key === $field_name) {
+                                    
+                                    // Use title/label from form definition if available
+                                    if (!empty($field_title)) {
+                                        $field_label = $field_title;
+                                        $field_found_in_definition = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // If no field definition found, create a readable label from the key
+                        if (!$field_found_in_definition) {
+                            // Remove _url suffix for file fields
+                            if (strpos($field_label, '_url') !== false) {
+                                $field_label = str_replace('_url', '', $field_label);
+                            }
+                            
+                            // Convert underscores to spaces and capitalize words
+                            $field_label = str_replace('_', ' ', $field_label);
+                            $field_label = str_replace('-', ' ', $field_label);
+                            $field_label = ucwords($field_label);
+                            
+                            // Handle common field name patterns
+                            $field_label = str_replace('Fullname', 'Full Name', $field_label);
+                            $field_label = str_replace('Firstname', 'First Name', $field_label);
+                            $field_label = str_replace('Lastname', 'Last Name', $field_label);
+                            $field_label = str_replace('Phonenumber', 'Phone Number', $field_label);
+                            $field_label = str_replace('Dateofbirth', 'Date of Birth', $field_label);
+                            $field_label = str_replace('Dob', 'Date of Birth', $field_label);
+                            $field_label = str_replace('Id', 'ID', $field_label);
+                            $field_label = str_replace('Url', 'URL', $field_label);
+                            
+                            // If field name still looks like a generated ID, provide fallback based on content type
+                            if (preg_match('/^Field\s*\d+/', $field_label) || preg_match('/^\d+/', $field_label) || strlen($field_label) > 30) {
+                                if ($is_signature) {
+                                    $field_label = __('Digital Signature', 'lift-docs-system');
+                                } elseif ($is_file) {
+                                    $field_label = __('File Upload', 'lift-docs-system');
+                                } elseif (filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                                    $field_label = __('Email Address', 'lift-docs-system');
+                                } elseif (filter_var($value, FILTER_VALIDATE_URL)) {
+                                    $field_label = __('Website URL', 'lift-docs-system');
+                                } elseif (is_array($value)) {
+                                    $field_label = __('Multiple Choice', 'lift-docs-system');
+                                } elseif (strlen($value) > 100) {
+                                    $field_label = __('Long Text', 'lift-docs-system');
+                                } elseif ($value === 'on' || $value === '1' || $value === true || $value === 'true' || $value === 'off' || $value === '0' || $value === false || $value === 'false') {
+                                    $field_label = __('Checkbox', 'lift-docs-system');
+                                } else {
+                                    $field_label = __('Text Input', 'lift-docs-system');
+                                }
+                            }
+                        }
+                        ?>
+                        <tr>
+                            <th><?php echo esc_html($field_label); ?>:</th>
+                            <td>
+                                <?php if ($is_signature): ?>
+                                    <div class="signature-field-value">
+                                        <div class="signature-preview">
+                                            <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($field_label); ?>" style="max-width: 400px; max-height: 200px; border: 2px solid #ddd; border-radius: 8px; background: white;" />
+                                        </div>
+                                        <div class="signature-actions">
+                                            <a href="<?php echo esc_url($value); ?>" target="_blank" class="button button-secondary">
+                                                <span class="dashicons dashicons-visibility"></span> <?php _e('View Signature', 'lift-docs-system'); ?>
+                                            </a>
+                                            <a href="<?php echo esc_url($value); ?>" download class="button button-secondary">
+                                                <span class="dashicons dashicons-download"></span> <?php _e('Download', 'lift-docs-system'); ?>
+                                            </a>
+                                        </div>
+                                    </div>
+                                <?php elseif ($is_file): ?>
+                                    <?php
+                                    $file_name = basename($value);
+                                    $file_extension = strtolower(pathinfo($value, PATHINFO_EXTENSION));
+                                    $image_extensions = array('jpg', 'jpeg', 'png', 'gif', 'webp', 'svg');
+                                    ?>
+                                    <div class="file-field-value">
+                                        <?php if (in_array($file_extension, $image_extensions)): ?>
+                                            <div class="image-preview">
+                                                <img src="<?php echo esc_url($value); ?>" alt="<?php echo esc_attr($file_name); ?>" style="max-width: 300px; max-height: 300px; border-radius: 8px;" />
+                                            </div>
+                                        <?php endif; ?>
+                                        
+                                        <div class="file-info">
+                                            <span class="dashicons dashicons-media-default"></span>
+                                            <span><?php echo esc_html($file_name); ?></span>
+                                        </div>
+                                        
+                                        <div class="file-actions">
+                                            <a href="<?php echo esc_url($value); ?>" target="_blank" class="button button-secondary">
+                                                <span class="dashicons dashicons-visibility"></span> <?php _e('View File', 'lift-docs-system'); ?>
+                                            </a>
+                                            <a href="<?php echo esc_url($value); ?>" download class="button button-secondary">
+                                                <span class="dashicons dashicons-download"></span> <?php _e('Download', 'lift-docs-system'); ?>
+                                            </a>
+                                        </div>
+                                    </div>
+                                <?php elseif (is_array($value)): ?>
+                                    <?php echo esc_html(implode(', ', $value)); ?>
+                                <?php elseif (filter_var($value, FILTER_VALIDATE_EMAIL)): ?>
+                                    <a href="mailto:<?php echo esc_attr($value); ?>"><?php echo esc_html($value); ?></a>
+                                <?php elseif (filter_var($value, FILTER_VALIDATE_URL)): ?>
+                                    <a href="<?php echo esc_url($value); ?>" target="_blank"><?php echo esc_html($value); ?></a>
+                                <?php elseif (strlen($value) > 100): ?>
+                                    <div style="white-space: pre-wrap; background: #f9f9f9; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                                        <?php echo esc_html($value); ?>
+                                    </div>
+                                <?php elseif ($value === 'on' || $value === '1' || $value === true || $value === 'true'): ?>
+                                    <span class="dashicons dashicons-yes-alt" style="color: #46b450;"></span> <?php _e('Yes', 'lift-docs-system'); ?>
+                                <?php elseif ($value === 'off' || $value === '0' || $value === false || $value === 'false'): ?>
+                                    <span class="dashicons dashicons-dismiss" style="color: #dc3232;"></span> <?php _e('No', 'lift-docs-system'); ?>
+                                <?php else: ?>
+                                    <?php echo esc_html($value); ?>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+            <?php endif; ?>
         </div>
 
         <style>
-        .submission-details {
+        .submission-details-container {
             max-width: 100%;
         }
-        .submission-details h3 {
+        .submission-details-container h3 {
             margin-top: 20px;
             margin-bottom: 10px;
             padding-bottom: 5px;
             border-bottom: 1px solid #ddd;
+            color: #23282d;
+            font-size: 16px;
         }
-        .submission-details h3:first-child {
+        .submission-details-container h3:first-child {
             margin-top: 0;
         }
         .user-info-detail strong {
@@ -1984,40 +2183,118 @@ class LIFT_Forms {
         .form-table th {
             width: 150px;
             vertical-align: top;
+            font-weight: 600;
+            color: #23282d;
         }
         .form-table td {
             word-break: break-word;
         }
+        
+        /* File and Signature Field Styles */
         .file-field-value, .signature-field-value {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
+        }
+        .image-preview, .signature-preview {
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            text-align: center;
         }
         .image-preview img, .signature-preview img {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 6px;
         }
         .file-info {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px;
+            padding: 10px;
             background: #f9f9f9;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 6px;
+            font-weight: 500;
         }
         .file-info .dashicons {
             color: #666;
+            width: 18px;
+            height: 18px;
+            font-size: 18px;
+        }
+        .file-actions, .signature-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         .file-actions .button, .signature-actions .button {
             display: inline-flex;
             align-items: center;
             gap: 5px;
             font-size: 13px;
+            padding: 6px 12px;
         }
         .file-actions .dashicons, .signature-actions .dashicons {
             width: 16px;
             height: 16px;
             font-size: 16px;
+        }
+        
+        /* Textarea display */
+        .submission-details-container textarea {
+            width: 100%;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            resize: none;
+        }
+        
+        /* Checkbox display */
+        .submission-details-container .dashicons-yes-alt,
+        .submission-details-container .dashicons-dismiss {
+            width: 18px;
+            height: 18px;
+            font-size: 18px;
+        }
+        
+        /* Status indicators */
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status-read {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-processing {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .form-table th {
+                width: 120px;
+                font-size: 14px;
+            }
+            .file-actions, .signature-actions {
+                flex-direction: column;
+            }
+            .image-preview img, .signature-preview img {
+                max-width: 100% !important;
+                height: auto !important;
+            }
         }
         </style>
         <?php

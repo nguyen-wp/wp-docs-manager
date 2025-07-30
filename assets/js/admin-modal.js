@@ -67,6 +67,8 @@
             var submissionId = $button.data('submission-id');
             var nonce = $button.data('nonce');
 
+            console.log('Submission button clicked:', submissionId, nonce); // Debug
+
             if (!submissionId) {
                 console.error('No submission ID found');
                 return;
@@ -85,6 +87,7 @@
                     nonce: nonce
                 },
                 success: function(response) {
+                    console.log('Submission response:', response); // Debug
                     if (response.success) {
                         // Populate submission modal with detailed content
                         $('#submission-detail-content-from-doc').html(response.data);
@@ -92,11 +95,13 @@
                         // Show submission modal
                         showSubmissionModal();
                     } else {
+                        console.error('Submission error:', response.data);
                         alert(response.data || 'Error loading submission details');
                         hideSubmissionModal();
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.error('AJAX error:', xhr, status, error);
                     alert('Error loading submission details');
                     hideSubmissionModal();
                 }
@@ -175,9 +180,19 @@
 
         // Handle ESC key
         $(document).on('keydown', function(e) {
-            if (e.keyCode === 27 && $('#lift-document-details-modal').is(':visible')) {
-                hideModal();
+            if (e.keyCode === 27) {
+                if ($('#lift-document-details-modal').is(':visible')) {
+                    hideModal();
+                }
+                if ($('#submission-detail-modal-from-doc').is(':visible')) {
+                    hideSubmissionModal();
+                }
             }
+        });
+
+        // Handle submission modal backdrop click
+        $(document).on('click', '#submission-detail-modal-from-doc .media-modal-backdrop', function(e) {
+            hideSubmissionModal();
         });
 
         /**
