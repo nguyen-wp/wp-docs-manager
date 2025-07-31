@@ -225,6 +225,10 @@
                                 <button type="button" class="field-type-btn draggable" data-type="signature" draggable="true">
                                     <span class="dashicons dashicons-edit"></span> Signature
                                 </button>
+
+                                <div class="copyright-type-buttons">
+                Copyright © LIFT Creations
+            </div>
                             </div>
                         </div>
                     </div>
@@ -341,9 +345,7 @@
                     </div>
                 </div>
             </div>
-            <div class="copyright-type-buttons">
-                Copyright © LIFT Creations
-            </div>
+            
         `;
 
         container.html(builderHTML);
@@ -1972,7 +1974,7 @@
                 rowHTML += `
                     <div class="form-column" data-column-id="${column.id}" style="flex: ${columnWidth}; position: relative;">
                         <div class="column-header">
-                            <span class="column-title">Column ${columnIndex + 1}</span>
+                            <span class="column-title">C ${columnIndex + 1}</span>
                             <div class="column-actions">
                                 <select class="column-width-selector" onchange="changeColumnWidth('${column.id}', this.value)">
                                     <option value="1" ${columnWidth == '1' ? 'selected' : ''}>Auto</option>
@@ -2003,7 +2005,7 @@
                     });
                     rowHTML += '</div>'; // Close column-content
                 } else {
-                    rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
+                    // rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
                 }
 
                 rowHTML += '</div>'; // Close form-column
@@ -2275,7 +2277,7 @@
             rowHTML += `
                 <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                     <div class="column-header">
-                        <span class="column-title">Column ${i + 1}</span>
+                        <span class="column-title">C ${i + 1}</span>
                         <div class="column-actions">
                             <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
                                 <option value="1" selected>Auto</option>
@@ -2373,7 +2375,7 @@
             rowHTML += `
                 <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                     <div class="column-header">
-                        <span class="column-title">Column ${i + 1}</span>
+                        <span class="column-title">C ${i + 1}</span>
                         <div class="column-actions">
                             <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
                                 <option value="1" selected>Auto</option>
@@ -2480,7 +2482,7 @@
         const columnHTML = `
             <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                 <div class="column-header">
-                    <span class="column-title">Column ${currentColumns + 1}</span>
+                    <span class="column-title">C ${currentColumns + 1}</span>
                     <div class="column-actions">
                         <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
                             <option value="1" selected>Auto</option>
