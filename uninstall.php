@@ -107,8 +107,3 @@ $cleanup_data = get_option('lift_docs_cleanup_on_uninstall', false);
 if ($cleanup_data) {
     lift_docs_cleanup();
 }
-
-// Optional: Log uninstall for debugging
-if (defined('WP_DEBUG') && WP_DEBUG) {
-    error_log('LIFT Docs System: Plugin uninstalled and data cleaned up.');
-}
