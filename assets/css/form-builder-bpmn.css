@@ -175,7 +175,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
     padding: 16px 20px;
     background: #fff;
     border-bottom: 1px solid #e2e8f0;
@@ -214,7 +213,6 @@
     flex: 1;
     padding: 0;
     background: #fff;
-    overflow-y: auto;
 }
 
 #form-fields-list {
@@ -246,6 +244,16 @@
     font-size: 16px;
     font-weight: 500;
     color: #475569;
+}
+
+.form-builder-header,
+.form-builder-footer {
+    padding: 15px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 /* Column Layout System - Improved */

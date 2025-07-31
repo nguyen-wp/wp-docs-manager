@@ -225,11 +225,20 @@
                         </div>
                     </div>
 
+                    <div id="form-header" class="form-builder-header">
+                        <h2>Header</h2>
+                    </div>
+
                     <div class="form-fields-area">
                         <div id="form-fields-list">
                             <div class="no-fields-message"><p>No rows added yet. Drag a row layout from the palette to get started.</p></div>
                         </div>
                     </div>
+
+                    <div id="form-footer" class="form-builder-footer">
+                        <h2>Footer</h2>
+                    </div>
+
                 </div>
 
                 <!-- Field Edit Modal -->
