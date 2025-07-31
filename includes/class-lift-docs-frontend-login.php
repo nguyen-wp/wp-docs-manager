@@ -379,7 +379,7 @@ class LIFT_Docs_Frontend_Login {
             wp_head();
             ?>
             <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/secure-frontend.css'; ?>">
-            <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/forms-frontend.css'; ?>">>
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/forms-frontend.css'; ?>">
             <style>
                 /* Admin View Styles for File and Signature Display */
                 .file-image-link,
