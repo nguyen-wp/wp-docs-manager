@@ -905,3 +905,18 @@
     border-color: #2271b1 !important;
     background: #f8f9ff !important;
 }
+
+/* ===============================================
+   DASHBOARD WIDGET STYLING
+   =============================================== */
+.lift-docs-documents-table th:last-child,
+.lift-docs-documents-table td:last-child {
+    text-align: right;
+    padding-right: 15px;
+}
+
+.lift-docs-action-btn {
+    display: inline-block;
+    text-align: center;
+    margin-left: auto;
+}

@@ -104,10 +104,9 @@ class LIFT_Docs_Dashboard_Widget {
         }
         
         .lift-docs-stat-label {
-            font-size: 12px;
+            font-size: 10px;
             color: #666;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .lift-docs-documents-table {
@@ -132,7 +131,7 @@ class LIFT_Docs_Dashboard_Widget {
         
         .lift-docs-documents-table th:last-child {
             width: 30%;
-            text-align: center;
+            text-align: right;
         }
         
         .lift-docs-documents-table td {
@@ -142,7 +141,7 @@ class LIFT_Docs_Dashboard_Widget {
         }
         
         .lift-docs-documents-table td:last-child {
-            text-align: center;
+            text-align: right;
         }
         
         .lift-docs-documents-table tr:hover {
@@ -353,7 +352,7 @@ class LIFT_Docs_Dashboard_Widget {
                                                 <?php echo $this->render_assigned_users_column($assigned_users); ?>
                                             </span>
                                         </div>
-                                        <small style="color: #666; display: block; margin-top: 5px;">
+                                        <small style="color: #666; display: block;">
                                             <?php echo date_i18n(get_option('date_format'), strtotime($doc->post_date)); ?>
                                         </small>
                                     </div>
