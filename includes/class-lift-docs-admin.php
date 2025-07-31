@@ -2284,6 +2284,29 @@ class LIFT_Docs_Admin {
             ');
         }
 
+        // Handle menu highlighting for archived documents page
+        if ($pagenow === 'edit.php' && isset($_GET['post_type']) && $_GET['post_type'] === 'lift_document' && isset($_GET['archived']) && $_GET['archived'] === '1') {
+            wp_add_inline_script('jquery', '
+                jQuery(document).ready(function($) {
+                    // Remove all current active states
+                    $("#adminmenu li").removeClass("current wp-has-current-submenu wp-menu-open");
+                    $("#adminmenu li ul.wp-submenu li").removeClass("current");
+                    
+                    // Find the main Documents menu item
+                    var mainMenu = $("#adminmenu li a[href*=\"edit.php?post_type=lift_document\"]").closest("li");
+                    
+                    // Only add minimal classes to keep main menu active but not highlighted
+                    mainMenu.addClass("wp-has-current-submenu wp-menu-open");
+                    
+                    // Activate ONLY the Archived submenu item
+                    $("#adminmenu li a[href*=\"edit.php?post_type=lift_document&archived=1\"]").closest("li").addClass("current");
+                    
+                    // Ensure submenu stays visible
+                    mainMenu.find("ul.wp-submenu").show();
+                });
+            ');
+        }
+
         // Enqueue LIFT Forms scripts on forms pages
         if (strpos($hook, 'lift-forms') !== false && class_exists('LIFT_Forms')) {
             $lift_forms = new LIFT_Forms();
