@@ -324,6 +324,17 @@ class LIFT_Docs_Frontend_Login {
             }
         }
 
+        // Parse form settings for header and footer
+        $form_header = '';
+        $form_footer = '';
+        if (!empty($form->settings)) {
+            $settings = json_decode($form->settings, true);
+            if (is_array($settings)) {
+                $form_header = $settings['form_header'] ?? '';
+                $form_footer = $settings['form_footer'] ?? '';
+            }
+        }
+
         // Check document status - prevent form access if status restricts it
         $document_status = get_post_meta($document->ID, '_lift_doc_status', true);
         if (empty($document_status)) {
@@ -368,6 +379,7 @@ class LIFT_Docs_Frontend_Login {
             wp_head();
             ?>
             <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/secure-frontend.css'; ?>">
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/forms-frontend.css'; ?>">>
             <style>
                 /* Admin View Styles for File and Signature Display */
                 .file-image-link,
@@ -533,7 +545,7 @@ class LIFT_Docs_Frontend_Login {
                             }
                             // Form is disabled only for admin view (not admin edit) or when document status prevents editing
                             $form_fields_disabled = ($is_admin_view && !$is_admin_edit) || $is_form_disabled;
-                            $this->render_form_builder_layout($form_fields, $render_data, $form_fields_disabled, $is_admin_view);
+                            $this->render_form_builder_layout($form_fields, $render_data, $form_fields_disabled, $is_admin_view, $form_header, $form_footer);
                             ?>
                         </div>
                     </form>
@@ -956,7 +968,15 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Render form builder layout with rows, columns, and fields
      */
-    private function render_form_builder_layout($form_fields, $existing_data = array(), $is_disabled = false, $is_admin_view = false) {
+    private function render_form_builder_layout($form_fields, $existing_data = array(), $is_disabled = false, $is_admin_view = false, $form_header = '', $form_footer = '') {
+        
+        // Render header if present
+        if (!empty($form_header)) {
+            echo '<div class="form-header-content">';
+            echo wp_kses_post($form_header);
+            echo '</div>';
+        }
+        
         if (empty($form_fields)) {
             echo '<p>' . __('This form has no fields configured.', 'lift-docs-system') . '</p>';
             return;
@@ -968,6 +988,13 @@ class LIFT_Docs_Frontend_Login {
         } else {
             // Fallback to simple linear layout
             $this->render_simple_layout($form_fields, $existing_data, $is_disabled, $is_admin_view);
+        }
+        
+        // Render footer if present
+        if (!empty($form_footer)) {
+            echo '<div class="form-footer-content">';
+            echo wp_kses_post($form_footer);
+            echo '</div>';
         }
     }
 
