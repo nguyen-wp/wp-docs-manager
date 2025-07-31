@@ -420,135 +420,249 @@
     }
 }
 
-/* Form Header and Footer Content */
+/* Form Header and Footer Content - Namespaced with .lift-form-container */
 
-.form-header-content h1,
-.form-header-content h2,
-.form-header-content h3,
-.form-header-content h4,
-.form-header-content h5,
-.form-header-content h6 {
+.lift-form-container .form-header-content h1,
+.lift-form-container .form-header-content h2,
+.lift-form-container .form-header-content h3,
+.lift-form-container .form-header-content h4,
+.lift-form-container .form-header-content h5,
+.lift-form-container .form-header-content h6 {
     margin-top: 0;
     margin-bottom: 15px;
     color: #333;
 }
 
-.form-footer-content h1,
-.form-footer-content h2,
-.form-footer-content h3,
-.form-footer-content h4,
-.form-footer-content h5,
-.form-footer-content h6 {
+.lift-form-container .form-footer-content h1,
+.lift-form-container .form-footer-content h2,
+.lift-form-container .form-footer-content h3,
+.lift-form-container .form-footer-content h4,
+.lift-form-container .form-footer-content h5,
+.lift-form-container .form-footer-content h6 {
     margin-top: 0;
     margin-bottom: 15px;
     color: #333;
 }
 
-.form-header-content p,
-.form-footer-content p {
+.lift-form-container .form-header-content p,
+.lift-form-container .form-footer-content p {
     margin: 0 0 15px 0;
     line-height: 1.6;
     color: #555;
 }
 
-.form-header-content p:last-child,
-.form-footer-content p:last-child {
+.lift-form-container .form-header-content p:last-child,
+.lift-form-container .form-footer-content p:last-child {
     margin-bottom: 0;
 }
 
-.form-header-content ul,
-.form-header-content ol,
-.form-footer-content ul,
-.form-footer-content ol {
+.lift-form-container .form-header-content ul,
+.lift-form-container .form-header-content ol,
+.lift-form-container .form-footer-content ul,
+.lift-form-container .form-footer-content ol {
     margin: 0 0 15px 20px;
     padding: 0;
 }
 
-.form-header-content li,
-.form-footer-content li {
+.lift-form-container .form-header-content li,
+.lift-form-container .form-footer-content li {
     margin-bottom: 8px;
     line-height: 1.5;
 }
 
-.form-header-content a,
-.form-footer-content a {
+.lift-form-container .form-header-content a,
+.lift-form-container .form-footer-content a {
     color: #0073aa;
     text-decoration: none;
 }
 
-.form-header-content a:hover,
-.form-footer-content a:hover {
+.lift-form-container .form-header-content a:hover,
+.lift-form-container .form-footer-content a:hover {
     color: #005a87;
     text-decoration: underline;
 }
 
-.form-header-content strong,
-.form-footer-content strong {
+.lift-form-container .form-header-content strong,
+.lift-form-container .form-footer-content strong {
     font-weight: 600;
 }
 
-.form-header-content em,
-.form-footer-content em {
+.lift-form-container .form-header-content em,
+.lift-form-container .form-footer-content em {
     font-style: italic;
 }
 
 /* Admin readonly view styling */
-.admin-readonly-form .form-header-content,
-.admin-readonly-form .form-footer-content {
+.lift-form-container.admin-readonly-form .form-header-content,
+.lift-form-container.admin-readonly-form .form-footer-content {
     background: #fff3cd;
     border-color: #ffeaa7;
 }
 
-.admin-readonly-form .form-header-content {
+.lift-form-container.admin-readonly-form .form-header-content {
     border-left-color: #f39c12;
 }
 
-.admin-readonly-form .form-footer-content {
+.lift-form-container.admin-readonly-form .form-footer-content {
     border-left-color: #e67e22;
 }
 
 /* Responsive styles for header/footer */
 @media (max-width: 768px) {
-    .form-header-content,
-    .form-footer-content {
+    .lift-form-container .form-header-content,
+    .lift-form-container .form-footer-content {
         padding: 15px;
         margin: 15px 0;
     }
     
-    .form-header-content {
+    .lift-form-container .form-header-content {
         margin-bottom: 25px;
     }
     
-    .form-footer-content {
+    .lift-form-container .form-footer-content {
         margin-top: 25px;
     }
 }
 
-.admin-readonly-form .form-header-content {
-    border-left-color: #f39c12;
+/* Header/Footer styles for document-form pages (frontend-login.php) */
+
+.document-form-wrapper .form-header-content,
+.lift-docs-custom-layout .form-header-content {
+    margin-bottom: 30px;
+    padding: 20px;
+    border-left: 4px solid #0073aa;
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+    border-radius: 8px;
 }
 
-.admin-readonly-form .form-footer-content {
-    border-left-color: #e67e22;
+.document-form-wrapper .form-footer-content,
+.lift-docs-custom-layout .form-footer-content {
+    margin-top: 30px;
+    padding: 20px;
+    border-left: 4px solid #666;
+    background: linear-gradient(135deg, #f8f8f8 0%, #eeeeee 100%);
+    border-radius: 8px;
 }
 
-/* Responsive styles for header/footer */
+.document-form-wrapper .form-header-content h1,
+.document-form-wrapper .form-header-content h2,
+.document-form-wrapper .form-header-content h3,
+.document-form-wrapper .form-header-content h4,
+.document-form-wrapper .form-header-content h5,
+.document-form-wrapper .form-header-content h6,
+.lift-docs-custom-layout .form-header-content h1,
+.lift-docs-custom-layout .form-header-content h2,
+.lift-docs-custom-layout .form-header-content h3,
+.lift-docs-custom-layout .form-header-content h4,
+.lift-docs-custom-layout .form-header-content h5,
+.lift-docs-custom-layout .form-header-content h6 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.document-form-wrapper .form-footer-content h1,
+.document-form-wrapper .form-footer-content h2,
+.document-form-wrapper .form-footer-content h3,
+.document-form-wrapper .form-footer-content h4,
+.document-form-wrapper .form-footer-content h5,
+.document-form-wrapper .form-footer-content h6,
+.lift-docs-custom-layout .form-footer-content h1,
+.lift-docs-custom-layout .form-footer-content h2,
+.lift-docs-custom-layout .form-footer-content h3,
+.lift-docs-custom-layout .form-footer-content h4,
+.lift-docs-custom-layout .form-footer-content h5,
+.lift-docs-custom-layout .form-footer-content h6 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.document-form-wrapper .form-header-content p,
+.document-form-wrapper .form-footer-content p,
+.lift-docs-custom-layout .form-header-content p,
+.lift-docs-custom-layout .form-footer-content p {
+    margin: 0 0 15px 0;
+    line-height: 1.6;
+    color: #555;
+}
+
+.document-form-wrapper .form-header-content p:last-child,
+.document-form-wrapper .form-footer-content p:last-child,
+.lift-docs-custom-layout .form-header-content p:last-child,
+.lift-docs-custom-layout .form-footer-content p:last-child {
+    margin-bottom: 0;
+}
+
+.document-form-wrapper .form-header-content ul,
+.document-form-wrapper .form-header-content ol,
+.document-form-wrapper .form-footer-content ul,
+.document-form-wrapper .form-footer-content ol,
+.lift-docs-custom-layout .form-header-content ul,
+.lift-docs-custom-layout .form-header-content ol,
+.lift-docs-custom-layout .form-footer-content ul,
+.lift-docs-custom-layout .form-footer-content ol {
+    margin: 0 0 15px 20px;
+    padding: 0;
+}
+
+.document-form-wrapper .form-header-content li,
+.document-form-wrapper .form-footer-content li,
+.lift-docs-custom-layout .form-header-content li,
+.lift-docs-custom-layout .form-footer-content li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.document-form-wrapper .form-header-content a,
+.document-form-wrapper .form-footer-content a,
+.lift-docs-custom-layout .form-header-content a,
+.lift-docs-custom-layout .form-footer-content a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.document-form-wrapper .form-header-content a:hover,
+.document-form-wrapper .form-footer-content a:hover,
+.lift-docs-custom-layout .form-header-content a:hover,
+.lift-docs-custom-layout .form-footer-content a:hover {
+    color: #005a87;
+    text-decoration: underline;
+}
+
+.document-form-wrapper .form-header-content strong,
+.document-form-wrapper .form-footer-content strong,
+.lift-docs-custom-layout .form-header-content strong,
+.lift-docs-custom-layout .form-footer-content strong {
+    font-weight: 600;
+}
+
+.document-form-wrapper .form-header-content em,
+.document-form-wrapper .form-footer-content em,
+.lift-docs-custom-layout .form-header-content em,
+.lift-docs-custom-layout .form-footer-content em {
+    font-style: italic;
+}
+
+/* Responsive styles for document-form pages */
 @media (max-width: 768px) {
-    .form-header-content,
-    .form-footer-content {
+    .document-form-wrapper .form-header-content,
+    .document-form-wrapper .form-footer-content,
+    .lift-docs-custom-layout .form-header-content,
+    .lift-docs-custom-layout .form-footer-content {
         padding: 15px;
         margin: 15px 0;
     }
     
-    .form-header-content {
+    .document-form-wrapper .form-header-content,
+    .lift-docs-custom-layout .form-header-content {
         margin-bottom: 25px;
     }
     
-    .form-footer-content {
+    .document-form-wrapper .form-footer-content,
+    .lift-docs-custom-layout .form-footer-content {
         margin-top: 25px;
     }
 }
 
-}
-
-/* Form Header and Footer Content */
+/* End of LIFT Forms Frontend Styles */
