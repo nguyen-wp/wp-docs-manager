@@ -2586,11 +2586,6 @@ class LIFT_Docs_Admin {
             });
         }
 
-        if (empty($document_users)) {
-            echo '<p>' . __('No users with Documents role found.', 'lift-docs-system') . '</p>';
-            return;
-        }
-
         ?>
         <!-- Search Form -->
         <div class="lift-docs-user-search-form" style="background: #f9f9f9; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px;">
@@ -2676,6 +2671,10 @@ class LIFT_Docs_Admin {
                 </div>
             </form>
         </div>
+
+        <?php if (empty($document_users)): ?>
+            <p><?php _e('No users with Documents role found.', 'lift-docs-system'); ?></p>
+        <?php else: ?>
 
         <table class="wp-list-table widefat fixed striped">
             <thead>
@@ -2767,6 +2766,7 @@ class LIFT_Docs_Admin {
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <?php endif; ?>
 
         <script type="text/javascript">
         jQuery(document).ready(function($) {
