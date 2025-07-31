@@ -462,14 +462,7 @@ body.document-form-page .form-header {
    Form Fields & Controls - OS-Native Compact Design
    ======================================== */
 
-.form-field {
-    margin-bottom: 8px;
-}
-
 /* PDF-style form fields */
-body.document-form-page .form-field {
-    margin-bottom: 24px;
-}
 
 .form-field label {
     display: block;
@@ -1546,13 +1539,7 @@ body.document-form-page .lift-field-signature label {
 
 /* Ensure form fields have consistent structure */
 body.document-form-page .lift-form-field {
-    margin-bottom: 24px;
     width: 100%;
-}
-
-body.document-form-page .lift-form-field.lift-field-file,
-body.document-form-page .lift-form-field.lift-field-signature {
-    margin-bottom: 28px;
 }
 
 /* Mobile Responsive for Upload/Signature - PDF Style */
