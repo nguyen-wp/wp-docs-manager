@@ -218,14 +218,14 @@
                 </div>
 
                 <div class="form-builder-canvas">
-                    <div class="form-builder-header">
+                    <div class="form-action-builder">
                         <div class="builder-actions">
                             <button type="button" class="button" id="preview-form">Preview</button>
                             <button type="button" class="button button-secondary" id="clear-form">Clear All</button>
                         </div>
                     </div>
 
-                    <div id="form-header" class="form-builder-header">
+                    <div id="form-header" class="form-action-builder-header">
                         <h2>Header</h2>
                     </div>
 
@@ -235,7 +235,7 @@
                         </div>
                     </div>
 
-                    <div id="form-footer" class="form-builder-footer">
+                    <div id="form-footer" class="form-action-builder-footer">
                         <h2>Footer</h2>
                     </div>
 
@@ -1639,9 +1639,6 @@
 
             previewHTML += '</div>';
         }
-
-        // Add submit button
-        previewHTML += '<div class="form-group submit-group"><button type="submit" class="btn btn-primary">Submit Form</button></div>';
 
         // Insert into modal and show
         $('#form-preview-content').html(previewHTML);
