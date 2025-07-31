@@ -372,9 +372,11 @@
     border-color: #8c8f94;
 }
 
-/* Form Header and Footer Content Display */
-.form-header-content,
-.form-footer-content {
+/* Form Header and Footer Content Display - Admin Form Builder */
+.modern-form-builder .form-header-content,
+.modern-form-builder .form-footer-content,
+.form-editor-container .form-header-content,
+.form-editor-container .form-footer-content {
     margin: 20px 0;
     padding: 20px;
     background: #f8f9fa;
@@ -382,57 +384,83 @@
     border-radius: 6px;
 }
 
-.form-header-content {
+.modern-form-builder .form-header-content,
+.form-editor-container .form-header-content {
     margin-top: 0;
     margin-bottom: 30px;
 }
 
-.form-footer-content {
+.modern-form-builder .form-footer-content,
+.form-editor-container .form-footer-content {
     margin-top: 30px;
     margin-bottom: 0;
 }
 
-.form-header-content h1,
-.form-header-content h2,
-.form-header-content h3,
-.form-header-content h4,
-.form-header-content h5,
-.form-header-content h6,
-.form-footer-content h1,
-.form-footer-content h2,
-.form-footer-content h3,
-.form-footer-content h4,
-.form-footer-content h5,
-.form-footer-content h6 {
+.modern-form-builder .form-header-content h1,
+.modern-form-builder .form-header-content h2,
+.modern-form-builder .form-header-content h3,
+.modern-form-builder .form-header-content h4,
+.modern-form-builder .form-header-content h5,
+.modern-form-builder .form-header-content h6,
+.modern-form-builder .form-footer-content h1,
+.modern-form-builder .form-footer-content h2,
+.modern-form-builder .form-footer-content h3,
+.modern-form-builder .form-footer-content h4,
+.modern-form-builder .form-footer-content h5,
+.modern-form-builder .form-footer-content h6,
+.form-editor-container .form-header-content h1,
+.form-editor-container .form-header-content h2,
+.form-editor-container .form-header-content h3,
+.form-editor-container .form-header-content h4,
+.form-editor-container .form-header-content h5,
+.form-editor-container .form-header-content h6,
+.form-editor-container .form-footer-content h1,
+.form-editor-container .form-footer-content h2,
+.form-editor-container .form-footer-content h3,
+.form-editor-container .form-footer-content h4,
+.form-editor-container .form-footer-content h5,
+.form-editor-container .form-footer-content h6 {
     margin-top: 0;
 }
 
-.form-header-content p:last-child,
-.form-footer-content p:last-child {
+.modern-form-builder .form-header-content p:last-child,
+.modern-form-builder .form-footer-content p:last-child,
+.form-editor-container .form-header-content p:last-child,
+.form-editor-container .form-footer-content p:last-child {
     margin-bottom: 0;
 }
 
-.form-header-content a,
-.form-footer-content a {
+.modern-form-builder .form-header-content a,
+.modern-form-builder .form-footer-content a,
+.form-editor-container .form-header-content a,
+.form-editor-container .form-footer-content a {
     color: #2271b1;
     text-decoration: none;
 }
 
-.form-header-content a:hover,
-.form-footer-content a:hover {
+.modern-form-builder .form-header-content a:hover,
+.modern-form-builder .form-footer-content a:hover,
+.form-editor-container .form-header-content a:hover,
+.form-editor-container .form-footer-content a:hover {
     color: #135e96;
     text-decoration: underline;
 }
 
-.form-header-content ul,
-.form-header-content ol,
-.form-footer-content ul,
-.form-footer-content ol {
+.modern-form-builder .form-header-content ul,
+.modern-form-builder .form-header-content ol,
+.modern-form-builder .form-footer-content ul,
+.modern-form-builder .form-footer-content ol,
+.form-editor-container .form-header-content ul,
+.form-editor-container .form-header-content ol,
+.form-editor-container .form-footer-content ul,
+.form-editor-container .form-footer-content ol {
     padding-left: 20px;
 }
 
-.form-header-content blockquote,
-.form-footer-content blockquote {
+.modern-form-builder .form-header-content blockquote,
+.modern-form-builder .form-footer-content blockquote,
+.form-editor-container .form-header-content blockquote,
+.form-editor-container .form-footer-content blockquote {
     background: #fff;
     border-left: 4px solid #2271b1;
     margin: 15px 0;
@@ -440,8 +468,10 @@
     font-style: italic;
 }
 
-.form-header-content code,
-.form-footer-content code {
+.modern-form-builder .form-header-content code,
+.modern-form-builder .form-footer-content code,
+.form-editor-container .form-header-content code,
+.form-editor-container .form-footer-content code {
     background: #f1f1f1;
     padding: 2px 4px;
     border-radius: 3px;
@@ -1887,6 +1917,64 @@
     color: #50575e;
     margin: 0 0 20px 0;
     padding: 0;
+}
+
+/* Form Header and Footer Content in Preview */
+.form-preview-container .form-header-content {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+    border-left: 4px solid #0073aa;
+    border-radius: 6px;
+}
+
+.form-preview-container .form-footer-content {
+    margin-top: 25px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f8f8 0%, #eeeeee 100%);
+    border-left: 4px solid #666;
+    border-radius: 6px;
+}
+
+.form-preview-container .form-header-content h1,
+.form-preview-container .form-header-content h2,
+.form-preview-container .form-header-content h3,
+.form-preview-container .form-header-content h4,
+.form-preview-container .form-header-content h5,
+.form-preview-container .form-header-content h6,
+.form-preview-container .form-footer-content h1,
+.form-preview-container .form-footer-content h2,
+.form-preview-container .form-footer-content h3,
+.form-preview-container .form-footer-content h4,
+.form-preview-container .form-footer-content h5,
+.form-preview-container .form-footer-content h6 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.form-preview-container .form-header-content p,
+.form-preview-container .form-footer-content p {
+    margin: 0 0 10px 0;
+    line-height: 1.5;
+    color: #555;
+}
+
+.form-preview-container .form-header-content p:last-child,
+.form-preview-container .form-footer-content p:last-child {
+    margin-bottom: 0;
+}
+
+.form-preview-container .form-header-content a,
+.form-preview-container .form-footer-content a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.form-preview-container .form-header-content a:hover,
+.form-preview-container .form-footer-content a:hover {
+    color: #005a87;
+    text-decoration: underline;
 }
 
 /* Signature Pad Styling for Form Preview */

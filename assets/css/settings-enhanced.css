@@ -50,28 +50,23 @@
    =============================================== */
 .lift-docs-settings-wrapper {
     background: #f0f0f1;
-    min-height: calc(100vh - 32px);
-    margin: 0 -20px -10px -2px;
-    padding: 0;
+    margin: 0 0 0 -20px;
 }
 
 .lift-docs-settings-container {
-    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
     background: #fff;
-    border-radius: 8px;
-    margin-top: 20px;
+    overflow: hidden;
+    position: relative;
 }
 
 .lift-settings-header {
     background: #2196f3;
     color: white;
-    padding: 30px;
-    border-radius: 8px 8px 0 0;
-    margin: -20px -20px 0 -20px;
     position: relative;
     overflow: hidden;
+    padding: 20px;
+
 }
 
 .lift-settings-header::before {
@@ -106,8 +101,6 @@
    NAVIGATION TABS - ENHANCED DESIGN
    =============================================== */
 .lift-nav-tab-wrapper {
-    margin: 0 -20px 0 -20px;
-    padding: 0 20px;
     background: #f8f9fa;
     border-bottom: 1px solid #e1e5e9;
     display: flex;
@@ -168,7 +161,7 @@
 .lift-tab-content {
     display: none;
     opacity: 0;
-    padding: 10px 0;
+    padding: 20px;
 }
 .lift-tab-content h2{
     margin-bottom: 5px;
@@ -180,6 +173,15 @@
 .lift-tab-content.active {
     display: block;
     opacity: 1;
+}
+
+.lift-settings-footer {
+    background: #f8f9fa;
+    padding: 20px;
+    border-top: 1px solid #e1e5e9;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 /* ===============================================
