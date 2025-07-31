@@ -404,56 +404,6 @@
         font-size: 15px;
     }
 }
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-    .lift-form-container {
-        background: #2d2d2d;
-        color: #fff;
-    }
-    .lift-form-header h2 {
-        color: #fff;
-    }
-    .lift-form-header p {
-        color: #ccc;
-    }
-    .lift-form-field label {
-        color: #fff;
-    }
-    .lift-form-field input,
-    .lift-form-field textarea,
-    .lift-form-field select {
-        background: #404040;
-        border-color: #555;
-        color: #fff;
-    }
-    .lift-form-field input:focus,
-    .lift-form-field textarea:focus,
-    .lift-form-field select:focus {
-        border-color: #0073aa;
-        background: #4a4a4a;
-    }
-    .lift-form-field fieldset {
-        border-color: #555;
-    }
-    .lift-form-field legend {
-        color: #fff;
-    }
-    .radio-label span,
-    .checkbox-label span {
-        color: #fff;
-    }
-    .field-description {
-        color: #ccc;
-    }
-    .lift-field-section {
-        background: #404040;
-        border-color: #555;
-    }
-    .lift-field-html {
-        background: #404040;
-        border-color: #555;
-    }
-}
 /* Print Styles */
 @media print {
     .lift-form-submit {
@@ -471,26 +421,6 @@
 }
 
 /* Form Header and Footer Content */
-.form-header-content,
-.form-footer-content {
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 8px;
-    background: #f9f9f9;
-    border: 1px solid #e0e0e0;
-}
-
-.form-header-content {
-    margin-bottom: 30px;
-    border-left: 4px solid #0073aa;
-    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
-}
-
-.form-footer-content {
-    margin-top: 30px;
-    border-left: 4px solid #666;
-    background: linear-gradient(135deg, #f8f8f8 0%, #eeeeee 100%);
-}
 
 .form-header-content h1,
 .form-header-content h2,
@@ -594,32 +524,6 @@
     }
 }
 
-/* Dark mode support for header/footer */
-@media (prefers-color-scheme: dark) {
-    .form-header-content,
-    .form-footer-content {
-        background: #404040;
-        border-color: #555;
-        color: #fff;
-    }
-    
-    .form-header-content h1,
-    .form-header-content h2,
-    .form-header-content h3,
-    .form-header-content h4,
-    .form-header-content h5,
-    .form-header-content h6,
-    .form-footer-content h1,
-    .form-footer-content h2,
-    .form-footer-content h3,
-    .form-footer-content h4,
-    .form-footer-content h5,
-    .form-footer-content h6 {
-        color: #fff;
-    }
-    
-    .form-header-content p,
-    .form-footer-content p {
-        color: #ccc;
-    }
 }
+
+/* Form Header and Footer Content */
