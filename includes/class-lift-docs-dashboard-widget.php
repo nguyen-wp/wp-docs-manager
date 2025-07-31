@@ -39,7 +39,7 @@ class LIFT_Docs_Dashboard_Widget {
 
         wp_add_dashboard_widget(
             'lift_docs_dashboard_widget',
-            '' . __('LIFT Documents Overview', 'lift-docs-system'),
+            '<i class="fas fa-file-alt"></i> ' . __('LIFT Documents Overview', 'lift-docs-system'),
             array($this, 'render_dashboard_widget'),
             null,
             null,
@@ -271,7 +271,7 @@ class LIFT_Docs_Dashboard_Widget {
             <div class="lift-docs-widget-stats">
                 <div class="lift-docs-stat-box">
                     <span class="lift-docs-stat-number"><?php echo $stats['total']; ?></span>
-                    <span class="lift-docs-stat-label"><?php _e('Total', 'lift-docs-system'); ?></span>
+                    <span class="lift-docs-stat-label"><?php _e('Total Docs', 'lift-docs-system'); ?></span>
                 </div>
                 <div class="lift-docs-stat-box">
                     <span class="lift-docs-stat-number"><?php echo $stats['pending']; ?></span>
@@ -292,7 +292,7 @@ class LIFT_Docs_Dashboard_Widget {
                 <table class="lift-docs-documents-table">
                     <thead>
                         <tr>
-                            <th><?php _e('Name', 'lift-docs-system'); ?></th>
+                            <th><?php _e('Document Name', 'lift-docs-system'); ?></th>
                             <th><?php _e('Status', 'lift-docs-system'); ?></th>
                             <th><?php _e('Assigned Users', 'lift-docs-system'); ?></th>
                             <th><?php _e('Action', 'lift-docs-system'); ?></th>
@@ -324,7 +324,7 @@ class LIFT_Docs_Dashboard_Widget {
                                 </td>
                                 <td>
                                     <a href="<?php echo esc_url($filter_url); ?>" class="lift-docs-action-btn">
-                                        <?php _e('View', 'lift-docs-system'); ?>
+                                        <i class="fas fa-eye"></i> <?php _e('View', 'lift-docs-system'); ?>
                                     </a>
                                 </td>
                             </tr>
