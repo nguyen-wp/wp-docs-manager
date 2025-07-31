@@ -450,30 +450,7 @@
     border-top-color: #333;
     z-index: 1000;
 }
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-    .lift-docs-stat-box,
-    .lift-docs-quick-actions,
-    .lift-docs-recent,
-    .analytics-summary,
-    .analytics-charts {
-        background: #2c3338;
-        border-color: #3c434a;
-        color: #f0f0f1;
-    }
-    .lift-docs-stat-box h3,
-    .lift-docs-quick-actions h2,
-    .lift-docs-recent h2,
-    .analytics-summary h2,
-    .analytics-charts h2 {
-        color: #f0f0f1;
-    }
-    .analytics-stats .stat-item {
-        background: #1d2327;
-        border-color: #3c434a;
-        color: #f0f0f1;
-    }
-}
+
 /* Custom columns styling for document list */
 .lift-url-field input,
 .lift-shortcode-field input {
