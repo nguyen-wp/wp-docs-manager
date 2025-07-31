@@ -111,6 +111,14 @@ class LIFT_Docs_Admin {
 
         add_submenu_page(
             'edit.php?post_type=lift_document',
+            __('Tags', 'lift-docs-system'),
+            __('Tags', 'lift-docs-system'),
+            'manage_options',
+            'edit-tags.php?taxonomy=lift_doc_tag&post_type=lift_document'
+        );
+
+        add_submenu_page(
+            'edit.php?post_type=lift_document',
             __('Archived Documents', 'lift-docs-system'),
             __('Archived', 'lift-docs-system'),
             'manage_options',
@@ -2246,6 +2254,35 @@ class LIFT_Docs_Admin {
 
         // Enqueue Font Awesome for all admin pages of this plugin
         wp_enqueue_style('font-awesome-6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
+
+        // Handle menu highlighting for taxonomy pages
+        if ($pagenow === 'edit-tags.php' && isset($_GET['post_type']) && $_GET['post_type'] === 'lift_document') {
+            $taxonomy = isset($_GET['taxonomy']) ? $_GET['taxonomy'] : '';
+            wp_add_inline_script('jquery', '
+                jQuery(document).ready(function($) {
+                    // Remove all current active states
+                    $("#adminmenu li").removeClass("current wp-has-current-submenu wp-menu-open");
+                    $("#adminmenu li ul.wp-submenu li").removeClass("current");
+                    
+                    // Find the main Documents menu item
+                    var mainMenu = $("#adminmenu li a[href*=\"edit.php?post_type=lift_document\"]").closest("li");
+                    
+                    // Only add minimal classes to keep main menu active but not highlighted
+                    mainMenu.addClass("wp-has-current-submenu wp-menu-open");
+                    
+                    // Activate ONLY the specific submenu item based on taxonomy
+                    var taxonomy = "' . esc_js($taxonomy) . '";
+                    if (taxonomy === "lift_doc_category") {
+                        $("#adminmenu li a[href*=\"edit-tags.php?taxonomy=lift_doc_category\"]").closest("li").addClass("current");
+                    } else if (taxonomy === "lift_doc_tag") {
+                        $("#adminmenu li a[href*=\"edit-tags.php?taxonomy=lift_doc_tag\"]").closest("li").addClass("current");
+                    }
+                    
+                    // Ensure submenu stays visible
+                    mainMenu.find("ul.wp-submenu").show();
+                });
+            ');
+        }
 
         // Enqueue LIFT Forms scripts on forms pages
         if (strpos($hook, 'lift-forms') !== false && class_exists('LIFT_Forms')) {
