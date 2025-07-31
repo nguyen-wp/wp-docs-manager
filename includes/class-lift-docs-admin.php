@@ -4130,17 +4130,25 @@ class LIFT_Docs_Admin {
             return;
         }
 
-        if (!isset($_GET['assigned_user']) || empty($_GET['assigned_user'])) {
-            return;
+        // Check for both assigned_user and lift_docs_user_filter parameters
+        $user_id = 0;
+        if (isset($_GET['assigned_user']) && !empty($_GET['assigned_user'])) {
+            $user_id = intval($_GET['assigned_user']);
+        } elseif (isset($_GET['lift_docs_user_filter']) && !empty($_GET['lift_docs_user_filter'])) {
+            $user_id = intval($_GET['lift_docs_user_filter']);
         }
-
-        $user_id = intval($_GET['assigned_user']);
 
         if ($user_id > 0) {
             $meta_query = array(
+                'relation' => 'OR',
                 array(
                     'key' => '_lift_doc_assigned_users',
                     'value' => sprintf(':%d;', $user_id),
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key' => '_lift_doc_users',
+                    'value' => '"' . $user_id . '"',
                     'compare' => 'LIKE'
                 )
             );

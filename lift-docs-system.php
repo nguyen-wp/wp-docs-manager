@@ -91,6 +91,7 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-layout.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-frontend-login.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-forms.php';
+        require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-dashboard-widget.php';
 
     }
 
@@ -102,6 +103,7 @@ class LIFT_Docs_System {
         if (is_admin() || (defined('DOING_AJAX') && DOING_AJAX)) {
             LIFT_Docs_Admin::get_instance();
             LIFT_Docs_Settings::get_instance();
+            LIFT_Docs_Dashboard_Widget::get_instance();
         }
 
         LIFT_Docs_Post_Types::get_instance();
