@@ -2307,6 +2307,52 @@ class LIFT_Docs_Admin {
             ');
         }
 
+        // Handle menu highlighting for Form Builder Edit page
+        if ($pagenow === 'admin.php' && isset($_GET['page']) && $_GET['page'] === 'lift-forms-builder' && isset($_GET['id'])) {
+            wp_add_inline_script('jquery', '
+                jQuery(document).ready(function($) {
+                    // Remove all current active states
+                    $("#adminmenu li").removeClass("current wp-has-current-submenu wp-menu-open");
+                    $("#adminmenu li ul.wp-submenu li").removeClass("current");
+                    
+                    // Find the main Documents menu item
+                    var mainMenu = $("#adminmenu li a[href*=\"edit.php?post_type=lift_document\"]").closest("li");
+                    
+                    // Only add minimal classes to keep main menu active but not highlighted
+                    mainMenu.addClass("wp-has-current-submenu wp-menu-open");
+                    
+                    // Activate ONLY the Form Builder submenu item
+                    $("#adminmenu li a[href*=\"lift-forms-builder\"]").closest("li").addClass("current");
+                    
+                    // Ensure submenu stays visible
+                    mainMenu.find("ul.wp-submenu").show();
+                });
+            ');
+        }
+
+        // Handle menu highlighting for Form Submissions page
+        if ($pagenow === 'admin.php' && isset($_GET['page']) && $_GET['page'] === 'lift-forms-submissions') {
+            wp_add_inline_script('jquery', '
+                jQuery(document).ready(function($) {
+                    // Remove all current active states
+                    $("#adminmenu li").removeClass("current wp-has-current-submenu wp-menu-open");
+                    $("#adminmenu li ul.wp-submenu li").removeClass("current");
+                    
+                    // Find the main Documents menu item
+                    var mainMenu = $("#adminmenu li a[href*=\"edit.php?post_type=lift_document\"]").closest("li");
+                    
+                    // Only add minimal classes to keep main menu active but not highlighted
+                    mainMenu.addClass("wp-has-current-submenu wp-menu-open");
+                    
+                    // Activate ONLY the Form Submissions submenu item
+                    $("#adminmenu li a[href*=\"lift-forms-submissions\"]").closest("li").addClass("current");
+                    
+                    // Ensure submenu stays visible
+                    mainMenu.find("ul.wp-submenu").show();
+                });
+            ');
+        }
+
         // Enqueue LIFT Forms scripts on forms pages
         if (strpos($hook, 'lift-forms') !== false && class_exists('LIFT_Forms')) {
             $lift_forms = new LIFT_Forms();
