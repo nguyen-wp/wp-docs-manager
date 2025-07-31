@@ -526,24 +526,6 @@
 
 /* Header/Footer styles for document-form pages (frontend-login.php) */
 
-.document-form-wrapper .form-header-content,
-.lift-docs-custom-layout .form-header-content {
-    margin-bottom: 30px;
-    padding: 20px;
-    border-left: 4px solid #0073aa;
-    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
-    border-radius: 8px;
-}
-
-.document-form-wrapper .form-footer-content,
-.lift-docs-custom-layout .form-footer-content {
-    margin-top: 30px;
-    padding: 20px;
-    border-left: 4px solid #666;
-    background: linear-gradient(135deg, #f8f8f8 0%, #eeeeee 100%);
-    border-radius: 8px;
-}
-
 .document-form-wrapper .form-header-content h1,
 .document-form-wrapper .form-header-content h2,
 .document-form-wrapper .form-header-content h3,
