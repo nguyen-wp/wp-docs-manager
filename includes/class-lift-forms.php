@@ -1821,17 +1821,6 @@ class LIFT_Forms {
         </div>
 
         <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
-                </div>
-
-                <div class="lift-modal-footer">
-                    <button type="button" class="button button-primary" onclick="closeLiftModal()">
-                        <?php _e('Close', 'lift-docs-system'); ?>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
 
         <style>
         /* Document Details Modal Styles - Imported from admin-modal.css */
