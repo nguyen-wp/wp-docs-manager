@@ -1389,38 +1389,71 @@ class LIFT_Forms {
 
         <script type="text/javascript">
         jQuery(document).ready(function($) {
-            // Initialize WordPress editors after form builder is loaded
-            $(document).on('formBuilderLoaded', function() {
-                setTimeout(function() {
+            // Function to initialize editors
+            function initializeEditors() {
+                try {
+                    // Check if wp.editor is available
+                    if (typeof wp === 'undefined' || !wp.editor) {
+                        console.log('WordPress editor API not available, using fallback textareas');
+                        return;
+                    }
+                    
                     // Initialize header editor
-                    if (typeof wp !== 'undefined' && wp.editor && $('#form-header-editor').length) {
+                    if ($('#form-header-editor').length && !tinymce.get('form-header-editor')) {
                         wp.editor.initialize('form-header-editor', {
                             tinymce: {
                                 wpautop: true,
                                 plugins: 'lists,link,textcolor,wordpress',
                                 toolbar1: 'bold,italic,underline,strikethrough,|,bullist,numlist,|,link,unlink,|,forecolor,backcolor',
                                 toolbar2: '',
-                                height: 150
+                                height: 150,
+                                menubar: false,
+                                branding: false,
+                                statusbar: false
                             },
-                            quicktags: true
+                            quicktags: {
+                                buttons: 'strong,em,ul,ol,li,link,close'
+                            }
                         });
                     }
                     
                     // Initialize footer editor
-                    if (typeof wp !== 'undefined' && wp.editor && $('#form-footer-editor').length) {
+                    if ($('#form-footer-editor').length && !tinymce.get('form-footer-editor')) {
                         wp.editor.initialize('form-footer-editor', {
                             tinymce: {
                                 wpautop: true,
                                 plugins: 'lists,link,textcolor,wordpress',
                                 toolbar1: 'bold,italic,underline,strikethrough,|,bullist,numlist,|,link,unlink,|,forecolor,backcolor',
                                 toolbar2: '',
-                                height: 150
+                                height: 150,
+                                menubar: false,
+                                branding: false,
+                                statusbar: false
                             },
-                            quicktags: true
+                            quicktags: {
+                                buttons: 'strong,em,ul,ol,li,link,close'
+                            }
                         });
                     }
-                }, 1000);
+                } catch (error) {
+                    console.log('Error initializing WordPress editors:', error);
+                }
+            }
+            
+            // Initialize editors after form builder is loaded
+            $(document).on('formBuilderLoaded', function() {
+                setTimeout(initializeEditors, 1000);
             });
+            
+            // Also try to initialize after page load as backup
+            setTimeout(initializeEditors, 2000);
+            
+            // Additional backup for slow loading
+            setTimeout(function() {
+                if ($('#form-header-editor').length && $('#form-footer-editor').length) {
+                    initializeEditors();
+                }
+            }, 5000);
         });
         </script>
         <?php
