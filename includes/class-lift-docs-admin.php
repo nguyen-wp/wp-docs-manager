@@ -2510,7 +2510,14 @@ class LIFT_Docs_Admin {
      * Display users with documents role
      */
     private function display_documents_users() {
-        $document_users = get_users(array(
+        // Get search parameters
+        $search_name = isset($_GET['search_name']) ? sanitize_text_field($_GET['search_name']) : '';
+        $search_email = isset($_GET['search_email']) ? sanitize_text_field($_GET['search_email']) : '';
+        $search_code = isset($_GET['search_code']) ? sanitize_text_field($_GET['search_code']) : '';
+        $document_filter = isset($_GET['document_filter']) ? sanitize_text_field($_GET['document_filter']) : '';
+
+        // Build user query args
+        $user_args = array(
             'meta_query' => array(
                 array(
                     'key' => 'wp_capabilities',
@@ -2518,19 +2525,157 @@ class LIFT_Docs_Admin {
                     'compare' => 'LIKE'
                 )
             )
-        ));
+        );
 
-        if (empty($document_users)) {
-            echo '<p>' . __('No users with Documents role found.', 'lift-docs-system') . '</p>';
-            return;
+        // Add name/email search if provided
+        if (!empty($search_name) || !empty($search_email)) {
+            $search_columns = array();
+            $search_terms = array();
+            
+            if (!empty($search_name)) {
+                $search_columns[] = 'display_name';
+                $search_columns[] = 'user_login';
+                $search_terms[] = $search_name;
+            }
+            
+            if (!empty($search_email)) {
+                $search_columns[] = 'user_email';
+                $search_terms[] = $search_email;
+            }
+            
+            $user_args['search'] = '*' . implode('*', $search_terms) . '*';
+            $user_args['search_columns'] = array_unique($search_columns);
         }
 
-        if (empty($document_users)) {
-            echo '<p>' . __('No users with Documents role found.', 'lift-docs-system') . '</p>';
-            return;
+        $document_users = get_users($user_args);
+
+        // Filter by user code if provided
+        if (!empty($search_code)) {
+            $document_users = array_filter($document_users, function($user) use ($search_code) {
+                $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
+                return stripos($user_code, $search_code) !== false;
+            });
+        }
+
+        // Filter by document count if provided
+        if (!empty($document_filter)) {
+            $document_users = array_filter($document_users, function($user) use ($document_filter) {
+                $assigned_docs = get_posts(array(
+                    'post_type' => 'lift_document',
+                    'post_status' => 'publish',
+                    'posts_per_page' => -1,
+                    'meta_query' => array(
+                        array(
+                            'key' => '_lift_doc_assigned_users',
+                            'value' => sprintf(':%d;', $user->ID),
+                            'compare' => 'LIKE'
+                        )
+                    ),
+                    'fields' => 'ids'
+                ));
+                $assigned_count = count($assigned_docs);
+                
+                switch ($document_filter) {
+                    case 'with_documents':
+                        return $assigned_count > 0;
+                    case 'without_documents':
+                        return $assigned_count === 0;
+                    default:
+                        return true;
+                }
+            });
         }
 
         ?>
+        <!-- Search Form -->
+        <div class="lift-docs-user-search-form" style="background: #f9f9f9; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px;">
+            <h3 style="margin-top: 0;"><?php _e('Search Users', 'lift-docs-system'); ?></h3>
+            <form method="get" action="">
+                <?php foreach ($_GET as $key => $value): ?>
+                    <?php if (!in_array($key, ['search_name', 'search_email', 'search_code', 'document_filter'])): ?>
+                        <input type="hidden" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($value); ?>">
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label for="search_name" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <?php _e('Name/Username', 'lift-docs-system'); ?>
+                        </label>
+                        <input type="text" 
+                               id="search_name" 
+                               name="search_name" 
+                               value="<?php echo esc_attr($search_name); ?>" 
+                               placeholder="<?php _e('Search by name or username', 'lift-docs-system'); ?>"
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                    </div>
+                    
+                    <div>
+                        <label for="search_email" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <?php _e('Email', 'lift-docs-system'); ?>
+                        </label>
+                        <input type="text" 
+                               id="search_email" 
+                               name="search_email" 
+                               value="<?php echo esc_attr($search_email); ?>" 
+                               placeholder="<?php _e('Search by email', 'lift-docs-system'); ?>"
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                    </div>
+                    
+                    <div>
+                        <label for="search_code" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <?php _e('User Code', 'lift-docs-system'); ?>
+                        </label>
+                        <input type="text" 
+                               id="search_code" 
+                               name="search_code" 
+                               value="<?php echo esc_attr($search_code); ?>" 
+                               placeholder="<?php _e('Search by user code', 'lift-docs-system'); ?>"
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                    </div>
+                    
+                    <div>
+                        <label for="document_filter" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <?php _e('Document Status', 'lift-docs-system'); ?>
+                        </label>
+                        <select id="document_filter" 
+                                name="document_filter" 
+                                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                            <option value=""><?php _e('All Users', 'lift-docs-system'); ?></option>
+                            <option value="with_documents" <?php selected($document_filter, 'with_documents'); ?>>
+                                <?php _e('Users with Documents', 'lift-docs-system'); ?>
+                            </option>
+                            <option value="without_documents" <?php selected($document_filter, 'without_documents'); ?>>
+                                <?php _e('Users without Documents', 'lift-docs-system'); ?>
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; align-items: center;" class="search-actions">
+                    <button type="submit" class="button button-primary">
+                        <span class="dashicons dashicons-search" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></span>
+                        <?php _e('Search Users', 'lift-docs-system'); ?>
+                    </button>
+                    
+                    <?php if (!empty($search_name) || !empty($search_email) || !empty($search_code) || !empty($document_filter)): ?>
+                    <a href="<?php echo admin_url('admin.php?page=lift-docs-users'); ?>" class="button">
+                        <span class="dashicons dashicons-dismiss" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></span>
+                        <?php _e('Clear Filters', 'lift-docs-system'); ?>
+                    </a>
+                    <?php endif; ?>
+                    
+                    <div style="margin-left: auto; color: #666;">
+                        <?php printf(__('Found %d users', 'lift-docs-system'), count($document_users)); ?>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <?php if (empty($document_users)): ?>
+            <p><?php _e('No users with Documents role found.', 'lift-docs-system'); ?></p>
+        <?php else: ?>
+
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
@@ -2611,7 +2756,7 @@ class LIFT_Docs_Admin {
                             <a href="<?php echo admin_url('edit.php?post_type=lift_document&assigned_user=' . $user->ID); ?>"
                                class="button button-primary"
                                style="background: #0073aa; border-color: #0073aa; color: white;"
-                               title="<?php echo sprintf(__('View all %d documents assigned to %s', 'lift-docs-system'), $assigned_count, $user->display_name); ?>">
+                               title="<?php echo esc_attr(sprintf(__('View all %d documents assigned to %s', 'lift-docs-system'), $assigned_count, $user->display_name)); ?>">
                                 <span class="dashicons dashicons-text-page" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;"></span>
                                 <?php echo sprintf(__('View Documents (%d)', 'lift-docs-system'), $assigned_count); ?>
                             </a>
@@ -2621,6 +2766,7 @@ class LIFT_Docs_Admin {
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <?php endif; ?>
 
         <script type="text/javascript">
         jQuery(document).ready(function($) {
@@ -2691,6 +2837,105 @@ class LIFT_Docs_Admin {
                     }
                 });
             });
+
+            // Enhanced Search Functionality
+            var searchTimeout;
+            var $searchForm = $('.lift-docs-user-search-form form');
+            var $searchInputs = $searchForm.find('input[type="text"], select');
+            var $searchButton = $searchForm.find('button[type="submit"]');
+            
+            if ($searchButton.length > 0) {
+                var originalButtonText = $searchButton.html();
+
+                // Auto-search functionality with debouncing
+                $searchInputs.on('input change', function() {
+                    clearTimeout(searchTimeout);
+                    
+                    // Visual feedback
+                    $searchButton.prop('disabled', true).html('<span class="dashicons dashicons-update" style="animation: rotation 1s infinite linear;"></span> <?php _e("Searching...", "lift-docs-system"); ?>');
+                    
+                    searchTimeout = setTimeout(function() {
+                        // Check if there are any search terms
+                        var hasSearchTerms = false;
+                        $searchInputs.each(function() {
+                            if ($(this).val().trim() !== '') {
+                                hasSearchTerms = true;
+                                return false;
+                            }
+                        });
+                        
+                        if (hasSearchTerms) {
+                            // Submit form automatically after delay
+                            $searchForm.submit();
+                        } else {
+                            // Reset button state
+                            $searchButton.prop('disabled', false).html(originalButtonText);
+                        }
+                    }, 1000); // 1 second delay for debouncing
+                });
+
+                // Highlight search terms in table if any active search
+                function highlightSearchTerms() {
+                    var searchTerms = [];
+                    
+                    // Collect all search terms
+                    $searchInputs.filter('input[type="text"]').each(function() {
+                        var term = $(this).val().trim();
+                        if (term !== '') {
+                            searchTerms.push(term);
+                        }
+                    });
+                    
+                    if (searchTerms.length > 0) {
+                        // Remove existing highlights first
+                        $('.wp-list-table .search-highlight').each(function() {
+                            var $this = $(this);
+                            $this.replaceWith($this.text());
+                        });
+                        
+                        // Add new highlights - but only to text nodes, not inside HTML tags
+                        $('.wp-list-table tbody td').each(function() {
+                            var $cell = $(this);
+                            
+                            // Skip cells with complex HTML (like action buttons)
+                            if ($cell.hasClass('user-actions') || $cell.find('a, button').length > 0) {
+                                return;
+                            }
+                            
+                            // Only highlight simple text content
+                            $cell.contents().filter(function() {
+                                return this.nodeType === 3; // Text node
+                            }).each(function() {
+                                var textNode = this;
+                                var text = textNode.textContent;
+                                var highlightedText = text;
+                                
+                                searchTerms.forEach(function(term) {
+                                    var regex = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                                    highlightedText = highlightedText.replace(regex, '<span class="search-highlight">$1</span>');
+                                });
+                                
+                                if (highlightedText !== text) {
+                                    $(textNode).replaceWith(highlightedText);
+                                }
+                            });
+                        });
+                    }
+                }
+                
+                // Apply highlighting on page load if there are search terms
+                var hasActiveSearch = false;
+                $searchInputs.each(function() {
+                    if ($(this).val().trim() !== '') {
+                        hasActiveSearch = true;
+                        return false;
+                    }
+                });
+                
+                if (hasActiveSearch) {
+                    setTimeout(highlightSearchTerms, 100); // Small delay to ensure DOM is ready
+                }
+            }
         });
         </script>
 
@@ -2731,6 +2976,109 @@ class LIFT_Docs_Admin {
             border-color: #ddd !important;
             color: #999 !important;
             cursor: not-allowed !important;
+        }
+
+        /* User Search Form Styles */
+        .lift-docs-user-search-form {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .lift-docs-user-search-form h3 {
+            margin-top: 0;
+            color: #0073aa;
+            font-size: 18px;
+            border-bottom: 2px solid #0073aa;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .lift-docs-user-search-form input[type="text"],
+        .lift-docs-user-search-form select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .lift-docs-user-search-form input[type="text"]:focus,
+        .lift-docs-user-search-form select:focus {
+            border-color: #0073aa;
+            box-shadow: 0 0 4px rgba(0, 115, 170, 0.3);
+            outline: none;
+        }
+
+        .lift-docs-user-search-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .lift-docs-user-search-form .search-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .lift-docs-user-search-form .search-results-count {
+            margin-left: auto;
+            color: #666;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        @media (max-width: 782px) {
+            .lift-docs-user-search-form > form > div:first-child {
+                grid-template-columns: 1fr;
+            }
+            
+            .lift-docs-user-search-form .search-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .lift-docs-user-search-form .search-results-count {
+                margin-left: 0;
+                text-align: center;
+                order: -1;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Enhance table appearance for search results */
+        .wp-list-table.striped > tbody > :nth-child(odd) {
+            background-color: #fafafa;
+        }
+
+        .wp-list-table tr:hover {
+            background-color: #f0f8ff;
+        }
+
+        /* Search highlight effect */
+        .search-highlight {
+            background-color: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        /* Rotation animation for search loading */
+        @keyframes rotation {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
         }
         </style>
         <?php
