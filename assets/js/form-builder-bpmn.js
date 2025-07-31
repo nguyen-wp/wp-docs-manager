@@ -2842,9 +2842,22 @@
      * Get Header and Footer Content for Saving
      */
     function getHeaderFooterData() {
+        let headerContent = '';
+        let footerContent = '';
+        
+        // Try to get content from WordPress editor
+        if (typeof wp !== 'undefined' && wp.editor && wp.editor.getContent) {
+            headerContent = wp.editor.getContent('form-header-editor') || '';
+            footerContent = wp.editor.getContent('form-footer-editor') || '';
+        } else {
+            // Fallback to textarea values
+            headerContent = $('#form-header-editor').val() || '';
+            footerContent = $('#form-footer-editor').val() || '';
+        }
+        
         return {
-            form_header: $('#form-header-editor').val() || '',
-            form_footer: $('#form-footer-editor').val() || ''
+            form_header: headerContent,
+            form_footer: footerContent
         };
     }
 
@@ -2852,10 +2865,27 @@
      * Load Header and Footer Content
      */
     function loadHeaderFooterData(headerContent, footerContent) {
-        // Load header directly into textarea
+        // Load header content
+        if (typeof wp !== 'undefined' && wp.editor && wp.editor.getContent) {
+            // Set content via WordPress editor
+            setTimeout(function() {
+                if (wp.editor.getContent('form-header-editor') !== undefined) {
+                    wp.editor.getContent('form-header-editor');
+                    if (typeof tinymce !== 'undefined' && tinymce.get('form-header-editor')) {
+                        tinymce.get('form-header-editor').setContent(headerContent || '');
+                    }
+                }
+                if (wp.editor.getContent('form-footer-editor') !== undefined) {
+                    wp.editor.getContent('form-footer-editor');
+                    if (typeof tinymce !== 'undefined' && tinymce.get('form-footer-editor')) {
+                        tinymce.get('form-footer-editor').setContent(footerContent || '');
+                    }
+                }
+            }, 1500);
+        }
+        
+        // Also set textarea values as fallback
         $('#form-header-editor').val(headerContent || '');
-
-        // Load footer directly into textarea
         $('#form-footer-editor').val(footerContent || '');
     }
 
