@@ -1515,11 +1515,8 @@ class LIFT_Forms {
 
         // Get search and filter parameters
         $form_id = isset($_GET['form_id']) ? intval($_GET['form_id']) : 0;
-        $user_filter = isset($_GET['user_filter']) ? sanitize_text_field($_GET['user_filter']) : '';
         $document_id = isset($_GET['document_id']) ? intval($_GET['document_id']) : 0;
         $status_filter = isset($_GET['status_filter']) ? sanitize_text_field($_GET['status_filter']) : '';
-        $search_user = isset($_GET['search_user']) ? sanitize_text_field($_GET['search_user']) : '';
-        $search_ip = isset($_GET['search_ip']) ? sanitize_text_field($_GET['search_ip']) : '';
         $date_from = isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '';
         $date_to = isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : '';
 
@@ -1540,20 +1537,9 @@ class LIFT_Forms {
             $params[] = '%"_document_id":' . $document_id . '%';
         }
 
-        if ($user_filter === 'logged_in') {
-            $where .= ' AND user_id IS NOT NULL';
-        } elseif ($user_filter === 'guest') {
-            $where .= ' AND user_id IS NULL';
-        }
-
         if ($status_filter) {
             $where .= ' AND status = %s';
             $params[] = $status_filter;
-        }
-
-        if (!empty($search_ip)) {
-            $where .= ' AND user_ip LIKE %s';
-            $params[] = '%' . $wpdb->esc_like($search_ip) . '%';
         }
 
         if (!empty($date_from)) {
@@ -1656,40 +1642,7 @@ class LIFT_Forms {
                             </select>
                         </div>
 
-                        <div>
-                            <label for="user_filter" style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                <?php _e('User Type', 'lift-docs-system'); ?>
-                            </label>
-                            <select name="user_filter" id="user_filter" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
-                                <option value=""><?php _e('All Users', 'lift-docs-system'); ?></option>
-                                <option value="logged_in" <?php selected($user_filter, 'logged_in'); ?>><?php _e('Registered Users', 'lift-docs-system'); ?></option>
-                                <option value="guest" <?php selected($user_filter, 'guest'); ?>><?php _e('Guest Users', 'lift-docs-system'); ?></option>
-                            </select>
-                        </div>
 
-                        <div>
-                            <label for="search_user" style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                <?php _e('Search User', 'lift-docs-system'); ?>
-                            </label>
-                            <input type="text" 
-                                   id="search_user" 
-                                   name="search_user" 
-                                   value="<?php echo esc_attr($search_user); ?>" 
-                                   placeholder="<?php _e('Search by username or email', 'lift-docs-system'); ?>"
-                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
-                        </div>
-
-                        <div>
-                            <label for="search_ip" style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                <?php _e('IP Address', 'lift-docs-system'); ?>
-                            </label>
-                            <input type="text" 
-                                   id="search_ip" 
-                                   name="search_ip" 
-                                   value="<?php echo esc_attr($search_ip); ?>" 
-                                   placeholder="<?php _e('Search by IP address', 'lift-docs-system'); ?>"
-                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
-                        </div>
 
                         <div>
                             <label for="date_from" style="display: block; margin-bottom: 5px; font-weight: 600;">
@@ -1720,7 +1673,7 @@ class LIFT_Forms {
                             <?php _e('Search Submissions', 'lift-docs-system'); ?>
                         </button>
                         
-                        <?php if (!empty($form_id) || !empty($status_filter) || !empty($user_filter) || !empty($search_user) || !empty($search_ip) || !empty($date_from) || !empty($date_to)): ?>
+                        <?php if (!empty($form_id) || !empty($status_filter) || !empty($date_from) || !empty($date_to)): ?>
                         <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions'); ?>" class="button">
                             <span class="dashicons dashicons-dismiss" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></span>
                             <?php _e('Clear Filters', 'lift-docs-system'); ?>
@@ -1787,17 +1740,6 @@ class LIFT_Forms {
                                     $document_title = $document_post ? $document_post->post_title : '';
                                 }
 
-                                // Filter by user search if provided
-                                if (!empty($search_user)) {
-                                    $user_match = false;
-                                    if (stripos($submission->user_name, $search_user) !== false || 
-                                        stripos($submission->user_email, $search_user) !== false) {
-                                        $user_match = true;
-                                    }
-                                    if (!$user_match) {
-                                        continue;
-                                    }
-                                }
                                 ?>
                                 <tr>
                                     <th scope="row" class="check-column">
