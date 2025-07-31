@@ -266,16 +266,6 @@
     border-top: 1px solid #e2e8f0;
 }
 
-/* Form Header and Footer Editor Styles */
-.form-action-builder-header,
-.form-action-builder-footer {
-    padding: 20px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    margin-bottom: 20px;
-}
-
 .header-editor-container,
 .footer-editor-container {
     width: 100%;
@@ -285,9 +275,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e2e8f0;
+    margin: 5px 0;
 }
 
 .editor-header h3 {
@@ -331,9 +319,6 @@
 
 .editor-edit {
     background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 15px;
 }
 
 .wp-editor-wrap {

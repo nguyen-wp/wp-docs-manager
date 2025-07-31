@@ -229,21 +229,11 @@
                         <div class="header-editor-container">
                             <div class="editor-header">
                                 <h3>Form Header</h3>
-                                <button type="button" class="button button-small toggle-header-editor" data-target="header">
-                                    <span class="dashicons dashicons-edit"></span> Edit
-                                </button>
                             </div>
                             <div class="editor-content" id="header-editor-content">
-                                <div class="editor-preview" id="header-preview">
-                                    <p class="no-content-message">Click Edit to add header content</p>
-                                </div>
-                                <div class="editor-edit" id="header-editor" style="display: none;">
+                                <div class="editor-edit" id="header-editor">
                                     <div class="wp-editor-wrap">
-                                        <textarea id="form-header-editor" name="form_header" rows="6" class="wp-editor-area"></textarea>
-                                    </div>
-                                    <div class="editor-buttons">
-                                        <button type="button" class="button button-primary save-header-content">Save</button>
-                                        <button type="button" class="button cancel-header-edit">Cancel</button>
+                                        <textarea id="form-header-editor" name="form_header" rows="6" class="wp-editor-area" placeholder="Enter form header content..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -260,21 +250,11 @@
                         <div class="footer-editor-container">
                             <div class="editor-header">
                                 <h3>Form Footer</h3>
-                                <button type="button" class="button button-small toggle-footer-editor" data-target="footer">
-                                    <span class="dashicons dashicons-edit"></span> Edit
-                                </button>
                             </div>
                             <div class="editor-content" id="footer-editor-content">
-                                <div class="editor-preview" id="footer-preview">
-                                    <p class="no-content-message">Click Edit to add footer content</p>
-                                </div>
-                                <div class="editor-edit" id="footer-editor" style="display: none;">
+                                <div class="editor-edit" id="footer-editor">
                                     <div class="wp-editor-wrap">
-                                        <textarea id="form-footer-editor" name="form_footer" rows="6" class="wp-editor-area"></textarea>
-                                    </div>
-                                    <div class="editor-buttons">
-                                        <button type="button" class="button button-primary save-footer-content">Save</button>
-                                        <button type="button" class="button cancel-footer-edit">Cancel</button>
+                                        <textarea id="form-footer-editor" name="form_footer" rows="6" class="wp-editor-area" placeholder="Enter form footer content..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1633,10 +1613,9 @@
             return;
         }
 
-        // Get header and footer content
-        const headerFooterData = getHeaderFooterData();
-        const headerContent = headerFooterData.form_header;
-        const footerContent = headerFooterData.form_footer;
+        // Get header and footer content directly from textareas
+        const headerContent = $('#form-header-editor').val() || '';
+        const footerContent = $('#form-footer-editor').val() || '';
 
         let previewHTML = '';
 
@@ -2843,107 +2822,7 @@
      * Bind Header and Footer Editor Events
      */
     function bindHeaderFooterEvents() {
-        // Toggle header editor
-        $(document).on('click', '.toggle-header-editor', function(e) {
-            e.preventDefault();
-            toggleEditor('header');
-        });
-
-        // Toggle footer editor
-        $(document).on('click', '.toggle-footer-editor', function(e) {
-            e.preventDefault();
-            toggleEditor('footer');
-        });
-
-        // Save header content
-        $(document).on('click', '.save-header-content', function(e) {
-            e.preventDefault();
-            saveEditorContent('header');
-        });
-
-        // Save footer content
-        $(document).on('click', '.save-footer-content', function(e) {
-            e.preventDefault();
-            saveEditorContent('footer');
-        });
-
-        // Cancel header edit
-        $(document).on('click', '.cancel-header-edit', function(e) {
-            e.preventDefault();
-            cancelEdit('header');
-        });
-
-        // Cancel footer edit
-        $(document).on('click', '.cancel-footer-edit', function(e) {
-            e.preventDefault();
-            cancelEdit('footer');
-        });
-    }
-
-    /**
-     * Toggle Editor View
-     */
-    function toggleEditor(type) {
-        const previewEl = $(`#${type}-preview`);
-        const editorEl = $(`#${type}-editor`);
-        const toggleBtn = $(`.toggle-${type}-editor`);
-
-        if (editorEl.is(':visible')) {
-            // Currently editing, cancel
-            cancelEdit(type);
-        } else {
-            // Switch to edit mode
-            const currentContent = previewEl.data('content') || '';
-            $(`#form-${type}-editor`).val(currentContent);
-            
-            previewEl.hide();
-            editorEl.show();
-            toggleBtn.find('.dashicons').removeClass('dashicons-edit').addClass('dashicons-no');
-            toggleBtn.find('span').not('.dashicons').text('Cancel');
-        }
-    }
-
-    /**
-     * Save Editor Content
-     */
-    function saveEditorContent(type) {
-        const content = $(`#form-${type}-editor`).val();
-        const previewEl = $(`#${type}-preview`);
-        const editorEl = $(`#${type}-editor`);
-        const toggleBtn = $(`.toggle-${type}-editor`);
-
-        // Store content
-        previewEl.data('content', content);
-
-        // Update preview
-        if (content.trim()) {
-            previewEl.html(content);
-        } else {
-            previewEl.html(`<p class="no-content-message">Click Edit to add ${type} content</p>`);
-        }
-
-        // Switch back to preview mode
-        editorEl.hide();
-        previewEl.show();
-        toggleBtn.find('.dashicons').removeClass('dashicons-no').addClass('dashicons-edit');
-        toggleBtn.find('span').not('.dashicons').text('Edit');
-
-        // Show save notification
-        showFormMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} content updated`, 'success');
-    }
-
-    /**
-     * Cancel Edit Mode
-     */
-    function cancelEdit(type) {
-        const previewEl = $(`#${type}-preview`);
-        const editorEl = $(`#${type}-editor`);
-        const toggleBtn = $(`.toggle-${type}-editor`);
-
-        editorEl.hide();
-        previewEl.show();
-        toggleBtn.find('.dashicons').removeClass('dashicons-no').addClass('dashicons-edit');
-        toggleBtn.find('span').not('.dashicons').text('Edit');
+        // No toggle events needed since editors are always visible
     }
 
     /**
@@ -2951,8 +2830,8 @@
      */
     function getHeaderFooterData() {
         return {
-            form_header: $('#header-preview').data('content') || '',
-            form_footer: $('#footer-preview').data('content') || ''
+            form_header: $('#form-header-editor').val() || '',
+            form_footer: $('#form-footer-editor').val() || ''
         };
     }
 
@@ -2960,19 +2839,11 @@
      * Load Header and Footer Content
      */
     function loadHeaderFooterData(headerContent, footerContent) {
-        // Load header
-        if (headerContent) {
-            $('#header-preview').data('content', headerContent).html(headerContent);
-        } else {
-            $('#header-preview').data('content', '').html('<p class="no-content-message">Click Edit to add header content</p>');
-        }
+        // Load header directly into textarea
+        $('#form-header-editor').val(headerContent || '');
 
-        // Load footer
-        if (footerContent) {
-            $('#footer-preview').data('content', footerContent).html(footerContent);
-        } else {
-            $('#footer-preview').data('content', '').html('<p class="no-content-message">Click Edit to add footer content</p>');
-        }
+        // Load footer directly into textarea
+        $('#form-footer-editor').val(footerContent || '');
     }
 
     // Expose debug function globally for testing
