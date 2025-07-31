@@ -8,6 +8,10 @@
     let formBuilderInstance = null;
     let currentFormId = 0;
     let formData = [];
+    let formSettings = {
+        header: '',
+        footer: ''
+    };
     let layoutData = {
         rows: []
     };
@@ -46,6 +50,7 @@
         window.liftCurrentFormFields = dataToSave;
         if (window.formBuilder) {
             window.formBuilder.formData = dataToSave;
+            window.formBuilder.formSettings = formSettings;
         }
     }
 
@@ -243,9 +248,25 @@
                         </div>
                     </div>
 
+                    <!-- Form Header Section -->
+                    <div class="form-header-section">
+                        <h3>Form Header</h3>
+                        <div class="form-header-editor">
+                            <textarea id="form-header-content" rows="4" placeholder="Enter form header content..."></textarea>
+                        </div>
+                    </div>
+
                     <div class="form-fields-area">
                         <div id="form-fields-list">
                             <div class="no-fields-message"><p>No rows added yet. Drag a row layout from the palette to get started.</p></div>
+                        </div>
+                    </div>
+
+                    <!-- Form Footer Section -->
+                    <div class="form-footer-section">
+                        <h3>Form Footer</h3>
+                        <div class="form-footer-editor">
+                            <textarea id="form-footer-content" rows="4" placeholder="Enter form footer content..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -353,6 +374,11 @@
         // Always ensure we have at least one row with one column
         if (layoutData.rows.length === 0) {
             createDefaultRow();
+        }
+
+        // Initialize form settings if not loaded
+        if (!formSettings || typeof formSettings !== 'object') {
+            formSettings = { header: '', footer: '' };
         }
 
         // Load existing data if any
@@ -494,10 +520,26 @@
             $('#form-preview-modal').hide();
         });
 
+        // Form Header and Footer events
+        $(document).on('input', '#form-header-content', function() {
+            formSettings.header = $(this).val();
+            markFormAsModified();
+            updateGlobalFormData();
+        });
+
+        $(document).on('input', '#form-footer-content', function() {
+            formSettings.footer = $(this).val();
+            markFormAsModified();
+            updateGlobalFormData();
+        });
+
         // Clear form
         $(document).on('click', '#clear-form', function() {
             if (confirm('Are you sure you want to clear all fields and rows?')) {
                 formData = [];
+                formSettings = { header: '', footer: '' };
+                $('#form-header-content').val('');
+                $('#form-footer-content').val('');
                 // Clear entire container including rows
                 $('#form-fields-list').html('<div class="no-fields-message"><p>No fields added yet. Click on field types to add them.</p></div>');
             }
@@ -1593,17 +1635,22 @@
      * Preview form - Updated to use modal with full formatting
      */
     function previewForm() {
-        if (formData.length === 0) {
-            alert('No fields to preview. Add some fields first.');
+        if (formData.length === 0 && !formSettings.header && !formSettings.footer) {
+            alert('No fields, header, or footer to preview. Add some content first.');
             return;
         }
 
         let previewHTML = '';
 
+        // Add form header if exists
+        if (formSettings.header) {
+            previewHTML += `<div class="form-header-preview" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #0073aa;">${formSettings.header}</div>`;
+        }
+
         // Check if we have row/column structure
         if ($('#form-fields-list .form-row').length > 0) {
             // Generate preview with row/column structure matching form builder
-            previewHTML = '<div class="form-preview-container">';
+            previewHTML += '<div class="form-preview-container">';
 
             $('#form-fields-list .form-row').each(function() {
                 const rowElement = $(this);
@@ -1653,13 +1700,18 @@
             });
 
             previewHTML += '</div>';
-        } else {
+        } else if (formData.length > 0) {
             // Fallback for single column layout
-            previewHTML = '<div class="form-preview-container single-column">';
+            previewHTML += '<div class="form-preview-container single-column">';
             formData.forEach(field => {
                 previewHTML += generateFullFormPreview(field);
             });
             previewHTML += '</div>';
+        }
+
+        // Add form footer if exists
+        if (formSettings.footer) {
+            previewHTML += `<div class="form-footer-preview" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #0073aa;">${formSettings.footer}</div>`;
         }
 
         // Remove submit button - don't add it
@@ -1776,7 +1828,7 @@
                 name: $('#form-name').val() || 'Untitled Form',
                 description: $('#form-description').val() || '',
                 fields: typeof saveData === 'string' ? saveData : JSON.stringify(saveData),
-                settings: JSON.stringify({})
+                settings: JSON.stringify(formSettings)
             },
             success: function(response) {
                 if (response.success) {
@@ -1855,6 +1907,26 @@
                             loadedData = response.data.form_fields;
                         }
 
+                        // Load form settings (header and footer)
+                        if (response.data.settings) {
+                            try {
+                                let settings;
+                                if (typeof response.data.settings === 'string') {
+                                    settings = JSON.parse(response.data.settings);
+                                } else {
+                                    settings = response.data.settings;
+                                }
+                                
+                                formSettings = {
+                                    header: settings.header || '',
+                                    footer: settings.footer || ''
+                                };
+                            } catch (settingsError) {
+                                console.warn('Error parsing form settings:', settingsError);
+                                formSettings = { header: '', footer: '' };
+                            }
+                        }
+
                         // Handle different data structures
                         if (loadedData.layout && loadedData.layout.rows && loadedData.layout.rows.length > 0) {
                             // New structure with layout and actual rows
@@ -1909,6 +1981,12 @@
                         }
 
                         updateGlobalFormData();
+                        
+                        // Load header and footer content after UI is created
+                        setTimeout(() => {
+                            $('#form-header-content').val(formSettings.header);
+                            $('#form-footer-content').val(formSettings.footer);
+                        }, 100);
                     } catch (error) {
                         // JSON parse error - create default UI
                         createFormBuilderUI();
