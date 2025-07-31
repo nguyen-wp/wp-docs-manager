@@ -410,6 +410,57 @@ class LIFT_Forms {
         global $wpdb;
         $forms_table = $wpdb->prefix . 'lift_forms';
 
+        // Handle bulk actions
+        if (isset($_POST['action']) && $_POST['action'] !== '-1' && isset($_POST['forms']) && is_array($_POST['forms'])) {
+            if (wp_verify_nonce($_POST['_wpnonce'], 'bulk_action_forms')) {
+                $form_ids = array_map('intval', $_POST['forms']);
+                $bulk_action = sanitize_text_field($_POST['action']);
+                $affected_count = 0;
+
+                switch ($bulk_action) {
+                    case 'bulk_delete':
+                        foreach ($form_ids as $form_id) {
+                            $wpdb->delete($forms_table, array('id' => $form_id), array('%d'));
+                            $affected_count++;
+                        }
+                        echo '<div class="notice notice-success"><p>' . 
+                             sprintf(_n('%d form deleted successfully.', '%d forms deleted successfully.', $affected_count, 'lift-docs-system'), $affected_count) . 
+                             '</p></div>';
+                        break;
+
+                    case 'bulk_activate':
+                        foreach ($form_ids as $form_id) {
+                            $wpdb->update($forms_table, array('status' => 'active'), array('id' => $form_id), array('%s'), array('%d'));
+                            $affected_count++;
+                        }
+                        echo '<div class="notice notice-success"><p>' . 
+                             sprintf(_n('%d form activated successfully.', '%d forms activated successfully.', $affected_count, 'lift-docs-system'), $affected_count) . 
+                             '</p></div>';
+                        break;
+
+                    case 'bulk_deactivate':
+                        foreach ($form_ids as $form_id) {
+                            $wpdb->update($forms_table, array('status' => 'inactive'), array('id' => $form_id), array('%s'), array('%d'));
+                            $affected_count++;
+                        }
+                        echo '<div class="notice notice-success"><p>' . 
+                             sprintf(_n('%d form deactivated successfully.', '%d forms deactivated successfully.', $affected_count, 'lift-docs-system'), $affected_count) . 
+                             '</p></div>';
+                        break;
+
+                    case 'bulk_draft':
+                        foreach ($form_ids as $form_id) {
+                            $wpdb->update($forms_table, array('status' => 'draft'), array('id' => $form_id), array('%s'), array('%d'));
+                            $affected_count++;
+                        }
+                        echo '<div class="notice notice-success"><p>' . 
+                             sprintf(_n('%d form moved to draft successfully.', '%d forms moved to draft successfully.', $affected_count, 'lift-docs-system'), $affected_count) . 
+                             '</p></div>';
+                        break;
+                }
+            }
+        }
+
         // Handle status update
         if (isset($_POST['action']) && $_POST['action'] === 'update_status' && isset($_POST['form_id'])) {
             if (wp_verify_nonce($_POST['_wpnonce'], 'update_form_status')) {
@@ -440,7 +491,51 @@ class LIFT_Forms {
             }
         }
 
-        $forms = $wpdb->get_results("SELECT * FROM $forms_table ORDER BY created_at DESC");
+        // Get search and filter parameters
+        $search_name = isset($_GET['search_name']) ? sanitize_text_field($_GET['search_name']) : '';
+        $search_description = isset($_GET['search_description']) ? sanitize_text_field($_GET['search_description']) : '';
+        $status_filter = isset($_GET['status_filter']) ? sanitize_text_field($_GET['status_filter']) : '';
+        $date_from = isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '';
+        $date_to = isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : '';
+
+        // Build query with filters
+        $where_conditions = array();
+        $params = array();
+
+        if (!empty($search_name)) {
+            $where_conditions[] = "name LIKE %s";
+            $params[] = '%' . $wpdb->esc_like($search_name) . '%';
+        }
+
+        if (!empty($search_description)) {
+            $where_conditions[] = "description LIKE %s";
+            $params[] = '%' . $wpdb->esc_like($search_description) . '%';
+        }
+
+        if (!empty($status_filter)) {
+            $where_conditions[] = "status = %s";
+            $params[] = $status_filter;
+        }
+
+        if (!empty($date_from)) {
+            $where_conditions[] = "DATE(created_at) >= %s";
+            $params[] = $date_from;
+        }
+
+        if (!empty($date_to)) {
+            $where_conditions[] = "DATE(created_at) <= %s";
+            $params[] = $date_to;
+        }
+
+        $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+        
+        if (!empty($params)) {
+            $query = $wpdb->prepare("SELECT * FROM $forms_table $where_clause ORDER BY created_at DESC", $params);
+        } else {
+            $query = "SELECT * FROM $forms_table $where_clause ORDER BY created_at DESC";
+        }
+
+        $forms = $wpdb->get_results($query);
 
         ?>
         <div class="wrap">
@@ -459,11 +554,109 @@ class LIFT_Forms {
                 </button>
             </div>
 
+            <!-- Search and Filter Form -->
+            <div class="lift-forms-search-form" style="background: #f9f9f9; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
+                <h3 style="margin-top: 0;"><?php _e('Search & Filter Forms', 'lift-docs-system'); ?></h3>
+                <form method="get" action="">
+                    <?php foreach ($_GET as $key => $value): ?>
+                        <?php if (!in_array($key, ['search_name', 'search_description', 'status_filter', 'date_from', 'date_to'])): ?>
+                            <input type="hidden" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($value); ?>">
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label for="search_name" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Form Name', 'lift-docs-system'); ?>
+                            </label>
+                            <input type="text" 
+                                   id="search_name" 
+                                   name="search_name" 
+                                   value="<?php echo esc_attr($search_name); ?>" 
+                                   placeholder="<?php _e('Search by form name', 'lift-docs-system'); ?>"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                        </div>
+                        
+                        <div>
+                            <label for="search_description" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Description', 'lift-docs-system'); ?>
+                            </label>
+                            <input type="text" 
+                                   id="search_description" 
+                                   name="search_description" 
+                                   value="<?php echo esc_attr($search_description); ?>" 
+                                   placeholder="<?php _e('Search by description', 'lift-docs-system'); ?>"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                        </div>
+                        
+                        <div>
+                            <label for="status_filter" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Status', 'lift-docs-system'); ?>
+                            </label>
+                            <select id="status_filter" 
+                                    name="status_filter" 
+                                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                                <option value=""><?php _e('All Statuses', 'lift-docs-system'); ?></option>
+                                <option value="active" <?php selected($status_filter, 'active'); ?>>
+                                    <?php _e('Active', 'lift-docs-system'); ?>
+                                </option>
+                                <option value="inactive" <?php selected($status_filter, 'inactive'); ?>>
+                                    <?php _e('Inactive', 'lift-docs-system'); ?>
+                                </option>
+                                <option value="draft" <?php selected($status_filter, 'draft'); ?>>
+                                    <?php _e('Draft', 'lift-docs-system'); ?>
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="date_from" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Date From', 'lift-docs-system'); ?>
+                            </label>
+                            <input type="date" 
+                                   id="date_from" 
+                                   name="date_from" 
+                                   value="<?php echo esc_attr($date_from); ?>"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                        </div>
+                        
+                        <div>
+                            <label for="date_to" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Date To', 'lift-docs-system'); ?>
+                            </label>
+                            <input type="date" 
+                                   id="date_to" 
+                                   name="date_to" 
+                                   value="<?php echo esc_attr($date_to); ?>"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center;" class="search-actions">
+                        <button type="submit" class="button button-primary">
+                            <span class="dashicons dashicons-search" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></span>
+                            <?php _e('Search Forms', 'lift-docs-system'); ?>
+                        </button>
+                        
+                        <?php if (!empty($search_name) || !empty($search_description) || !empty($status_filter) || !empty($date_from) || !empty($date_to)): ?>
+                        <a href="<?php echo admin_url('admin.php?page=lift-forms'); ?>" class="button">
+                            <span class="dashicons dashicons-dismiss" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></span>
+                            <?php _e('Clear Filters', 'lift-docs-system'); ?>
+                        </a>
+                        <?php endif; ?>
+                        
+                        <div style="margin-left: auto; color: #666;">
+                            <?php printf(__('Found %d forms', 'lift-docs-system'), count($forms)); ?>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
             <div class="lift-forms-overview">
                 <div class="lift-forms-stats">
                     <div class="stat-box">
                         <h3><?php echo count($forms); ?></h3>
-                        <p><?php _e('Total Forms', 'lift-docs-system'); ?></p>
+                        <p><?php _e('Found Forms', 'lift-docs-system'); ?></p>
                     </div>
                     <div class="stat-box">
                         <h3><?php echo $this->get_total_submissions(); ?></h3>
@@ -477,73 +670,117 @@ class LIFT_Forms {
 
                 <?php if (empty($forms)): ?>
                     <div class="lift-forms-empty">
-                        <h2><?php _e('No Forms Yet', 'lift-docs-system'); ?></h2>
-                        <p><?php _e('Create your first form to start collecting information from customers.', 'lift-docs-system'); ?></p>
+                        <h2><?php _e('No Forms Found', 'lift-docs-system'); ?></h2>
+                        <p><?php _e('No forms match your search criteria. Try adjusting your filters or create a new form.', 'lift-docs-system'); ?></p>
                         <a href="<?php echo admin_url('admin.php?page=lift-forms-builder'); ?>" class="button button-primary button-large">
-                            <?php _e('Create Your First Form', 'lift-docs-system'); ?>
+                            <?php _e('Create New Form', 'lift-docs-system'); ?>
                         </a>
                     </div>
                 <?php else: ?>
-                    <table class="wp-list-table widefat fixed striped">
-                        <thead>
-                            <tr>
-                                <th><?php _e('Form Name', 'lift-docs-system'); ?></th>
-                                <th><?php _e('Description', 'lift-docs-system'); ?></th>
-                                <th><?php _e('Submissions', 'lift-docs-system'); ?></th>
-                                <th><?php _e('Status', 'lift-docs-system'); ?></th>
-                                <th><?php _e('Created', 'lift-docs-system'); ?></th>
-                                <th><?php _e('Actions', 'lift-docs-system'); ?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($forms as $form): ?>
+                    <!-- Bulk Actions Form -->
+                    <form method="post" id="forms-bulk-action-form">
+                        <?php wp_nonce_field('bulk_action_forms'); ?>
+                        
+                        <!-- Bulk Actions Top -->
+                        <div class="tablenav top">
+                            <div class="alignleft actions bulkactions">
+                                <label for="bulk-action-selector-top" class="screen-reader-text"><?php _e('Select bulk action', 'lift-docs-system'); ?></label>
+                                <select name="action" id="bulk-action-selector-top">
+                                    <option value="-1"><?php _e('Bulk Actions', 'lift-docs-system'); ?></option>
+                                    <option value="bulk_delete"><?php _e('Delete', 'lift-docs-system'); ?></option>
+                                    <option value="bulk_activate"><?php _e('Activate', 'lift-docs-system'); ?></option>
+                                    <option value="bulk_deactivate"><?php _e('Deactivate', 'lift-docs-system'); ?></option>
+                                    <option value="bulk_draft"><?php _e('Move to Draft', 'lift-docs-system'); ?></option>
+                                </select>
+                                <input type="submit" id="doaction" class="button action" value="<?php _e('Apply', 'lift-docs-system'); ?>">
+                            </div>
+                        </div>
+
+                        <table class="wp-list-table widefat fixed striped">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <strong><?php echo esc_html($form->name); ?></strong>
-                                        <div class="row-actions">
-                                            <span class="edit">
-                                                <a href="<?php echo admin_url('admin.php?page=lift-forms-builder&id=' . $form->id); ?>">
-                                                    <?php _e('Edit', 'lift-docs-system'); ?>
-                                                </a>
-                                            </span>
-                                        </div>
+                                    <td id="cb" class="manage-column column-cb check-column">
+                                        <label class="screen-reader-text" for="cb-select-all-1"><?php _e('Select All', 'lift-docs-system'); ?></label>
+                                        <input id="cb-select-all-1" type="checkbox" />
                                     </td>
-                                    <td><?php echo esc_html($form->description); ?></td>
-                                    <td>
-                                        <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions&form_id=' . $form->id); ?>">
-                                            <?php echo $this->get_form_submissions_count($form->id); ?>
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <div class="status-container">
-                                            <select class="form-status-select small-text" data-form-id="<?php echo $form->id; ?>">
-                                                <option value="active" <?php selected($form->status, 'active'); ?>><?php _e('Active', 'lift-docs-system'); ?></option>
-                                                <option value="inactive" <?php selected($form->status, 'inactive'); ?>><?php _e('Inactive', 'lift-docs-system'); ?></option>
-                                                <option value="draft" <?php selected($form->status, 'draft'); ?>><?php _e('Draft', 'lift-docs-system'); ?></option>
-                                            </select>
-                                            <div class="status-spinner" style="display: none;">
-                                                <span class="spinner is-active" style="float: none; margin: 0;"></span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><?php echo date_i18n(get_option('date_format'), strtotime($form->created_at)); ?></td>
-                                    <td>
-                                        <a href="<?php echo admin_url('admin.php?page=lift-forms-builder&id=' . $form->id); ?>" class="button">
-                                            <?php _e('Edit', 'lift-docs-system'); ?>
-                                        </a>
-                                        <button type="button" class="button lift-export-single-btn" data-form-id="<?php echo $form->id; ?>" data-form-name="<?php echo esc_attr($form->name); ?>">
-                                            <?php _e('Export', 'lift-docs-system'); ?>
-                                        </button>
-                                        <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=lift-forms&action=delete&id=' . $form->id), 'delete_form_' . $form->id); ?>"
-                                           class="button button-link-delete"
-                                           onclick="return confirm('<?php _e('Are you sure you want to delete this form?', 'lift-docs-system'); ?>')">
-                                            <?php _e('Delete', 'lift-docs-system'); ?>
-                                        </a>
-                                    </td>
+                                    <th><?php _e('Form Name', 'lift-docs-system'); ?></th>
+                                    <th><?php _e('Description', 'lift-docs-system'); ?></th>
+                                    <th><?php _e('Submissions', 'lift-docs-system'); ?></th>
+                                    <th><?php _e('Status', 'lift-docs-system'); ?></th>
+                                    <th><?php _e('Created', 'lift-docs-system'); ?></th>
+                                    <th><?php _e('Actions', 'lift-docs-system'); ?></th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($forms as $form): ?>
+                                    <tr>
+                                        <th scope="row" class="check-column">
+                                            <input type="checkbox" name="forms[]" value="<?php echo $form->id; ?>" />
+                                        </th>
+                                        <td>
+                                            <strong><?php echo esc_html($form->name); ?></strong>
+                                            <div class="row-actions">
+                                                <span class="edit">
+                                                    <a href="<?php echo admin_url('admin.php?page=lift-forms-builder&id=' . $form->id); ?>">
+                                                        <?php _e('Edit', 'lift-docs-system'); ?>
+                                                    </a>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td><?php echo esc_html($form->description); ?></td>
+                                        <td>
+                                            <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions&form_id=' . $form->id); ?>">
+                                                <strong style="color: #0073aa; font-size: 16px;">
+                                                    <?php echo $this->get_form_submissions_count($form->id); ?>
+                                                </strong>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div class="status-container">
+                                                <select class="form-status-select small-text" data-form-id="<?php echo $form->id; ?>">
+                                                    <option value="active" <?php selected($form->status, 'active'); ?>><?php _e('Active', 'lift-docs-system'); ?></option>
+                                                    <option value="inactive" <?php selected($form->status, 'inactive'); ?>><?php _e('Inactive', 'lift-docs-system'); ?></option>
+                                                    <option value="draft" <?php selected($form->status, 'draft'); ?>><?php _e('Draft', 'lift-docs-system'); ?></option>
+                                                </select>
+                                                <div class="status-spinner" style="display: none;">
+                                                    <span class="spinner is-active" style="float: none; margin: 0;"></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><?php echo date_i18n(get_option('date_format'), strtotime($form->created_at)); ?></td>
+                                        <td>
+                                            <a href="<?php echo admin_url('admin.php?page=lift-forms-builder&id=' . $form->id); ?>" class="button">
+                                                <?php _e('Edit', 'lift-docs-system'); ?>
+                                            </a>
+                                            <button type="button" class="button lift-export-single-btn" data-form-id="<?php echo $form->id; ?>" data-form-name="<?php echo esc_attr($form->name); ?>">
+                                                <?php _e('Export', 'lift-docs-system'); ?>
+                                            </button>
+                                            <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=lift-forms&action=delete&id=' . $form->id), 'delete_form_' . $form->id); ?>"
+                                               class="button button-link-delete"
+                                               onclick="return confirm('<?php _e('Are you sure you want to delete this form?', 'lift-docs-system'); ?>')">
+                                                <?php _e('Delete', 'lift-docs-system'); ?>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+
+                        <!-- Bulk Actions Bottom -->
+                        <div class="tablenav bottom">
+                            <div class="alignleft actions bulkactions">
+                                <label for="bulk-action-selector-bottom" class="screen-reader-text"><?php _e('Select bulk action', 'lift-docs-system'); ?></label>
+                                <select name="action" id="bulk-action-selector-bottom">
+                                    <option value="-1"><?php _e('Bulk Actions', 'lift-docs-system'); ?></option>
+                                    <option value="bulk_delete"><?php _e('Delete', 'lift-docs-system'); ?></option>
+                                    <option value="bulk_activate"><?php _e('Activate', 'lift-docs-system'); ?></option>
+                                    <option value="bulk_deactivate"><?php _e('Deactivate', 'lift-docs-system'); ?></option>
+                                    <option value="bulk_draft"><?php _e('Move to Draft', 'lift-docs-system'); ?></option>
+                                </select>
+                                <input type="submit" id="doaction2" class="button action" value="<?php _e('Apply', 'lift-docs-system'); ?>">
+                            </div>
+                        </div>
+                    </form>
                 <?php endif; ?>
             </div>
         </div>
@@ -744,8 +981,343 @@ class LIFT_Forms {
                     }
                 });
             });
+
+            // Bulk Actions Functionality
+            var $bulkForm = $('#forms-bulk-action-form');
+            var $checkboxes = $bulkForm.find('input[type="checkbox"][name="forms[]"]');
+            var $selectAllTop = $('#cb-select-all-1');
+            var $bulkActionSelectors = $('#bulk-action-selector-top, #bulk-action-selector-bottom');
+
+            // Select All functionality
+            $selectAllTop.on('change', function() {
+                var isChecked = $(this).is(':checked');
+                $checkboxes.prop('checked', isChecked);
+                updateBulkActionState();
+            });
+
+            // Individual checkbox change
+            $checkboxes.on('change', function() {
+                var totalCheckboxes = $checkboxes.length;
+                var checkedCheckboxes = $checkboxes.filter(':checked').length;
+                
+                $selectAllTop.prop('checked', checkedCheckboxes === totalCheckboxes);
+                $selectAllTop.prop('indeterminate', checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes);
+                
+                updateBulkActionState();
+            });
+
+            // Update bulk action button state
+            function updateBulkActionState() {
+                var hasSelection = $checkboxes.filter(':checked').length > 0;
+                $bulkForm.find('.button.action').prop('disabled', !hasSelection);
+            }
+
+            // Handle bulk action form submission
+            $bulkForm.on('submit', function(e) {
+                var selectedAction = $bulkActionSelectors.filter(function() { 
+                    return $(this).closest('.bulkactions').find('.button.action:focus').length > 0 || 
+                           $(this).val() !== '-1'; 
+                }).first().val();
+
+                if (selectedAction === '-1' || selectedAction === '') {
+                    e.preventDefault();
+                    alert('<?php _e("Please select a bulk action.", "lift-docs-system"); ?>');
+                    return false;
+                }
+
+                var checkedCount = $checkboxes.filter(':checked').length;
+                if (checkedCount === 0) {
+                    e.preventDefault();
+                    alert('<?php _e("Please select at least one form.", "lift-docs-system"); ?>');
+                    return false;
+                }
+
+                // Confirmation for delete action
+                if (selectedAction === 'bulk_delete') {
+                    var confirmMessage = '<?php printf(__("You are about to permanently delete %s forms. This action cannot be undone. Are you sure?", "lift-docs-system"), "' + checkedCount + '"); ?>';
+                    if (!confirm(confirmMessage)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+
+                // Set the action for whichever button was clicked
+                $(this).find('select[name="action"]').val(selectedAction);
+            });
+
+            // Enhanced Search Functionality
+            var searchTimeout;
+            var $searchForm = $('.lift-forms-search-form form');
+            var $searchInputs = $searchForm.find('input[type="text"], input[type="date"], select');
+            var $searchButton = $searchForm.find('button[type="submit"]');
+            
+            if ($searchButton.length > 0) {
+                var originalButtonText = $searchButton.html();
+
+                // Auto-search functionality with debouncing
+                $searchInputs.on('input change', function() {
+                    clearTimeout(searchTimeout);
+                    
+                    // Visual feedback
+                    $searchButton.prop('disabled', true).html('<span class="dashicons dashicons-update" style="animation: rotation 1s infinite linear;"></span> <?php _e("Searching...", "lift-docs-system"); ?>');
+                    
+                    searchTimeout = setTimeout(function() {
+                        // Check if there are any search terms
+                        var hasSearchTerms = false;
+                        $searchInputs.each(function() {
+                            if ($(this).val().trim() !== '') {
+                                hasSearchTerms = true;
+                                return false;
+                            }
+                        });
+                        
+                        if (hasSearchTerms) {
+                            // Submit form automatically after delay
+                            $searchForm.submit();
+                        } else {
+                            // Reset button state
+                            $searchButton.prop('disabled', false).html(originalButtonText);
+                        }
+                    }, 1000); // 1 second delay for debouncing
+                });
+
+                // Highlight search terms in table if any active search
+                function highlightSearchTerms() {
+                    var searchTerms = [];
+                    
+                    // Collect all search terms
+                    $searchInputs.filter('input[type="text"]').each(function() {
+                        var term = $(this).val().trim();
+                        if (term !== '') {
+                            searchTerms.push(term);
+                        }
+                    });
+                    
+                    if (searchTerms.length > 0) {
+                        // Remove existing highlights first
+                        $('.wp-list-table .search-highlight').each(function() {
+                            var $this = $(this);
+                            $this.replaceWith($this.text());
+                        });
+                        
+                        // Add new highlights - but only to text nodes, not inside HTML tags
+                        $('.wp-list-table tbody td').each(function() {
+                            var $cell = $(this);
+                            
+                            // Skip cells with complex HTML (like action buttons)
+                            if ($cell.find('a, button, select').length > 0) {
+                                return;
+                            }
+                            
+                            // Only highlight simple text content
+                            $cell.contents().filter(function() {
+                                return this.nodeType === 3; // Text node
+                            }).each(function() {
+                                var textNode = this;
+                                var text = textNode.textContent;
+                                var highlightedText = text;
+                                
+                                searchTerms.forEach(function(term) {
+                                    var regex = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                                    highlightedText = highlightedText.replace(regex, '<span class="search-highlight">$1</span>');
+                                });
+                                
+                                if (highlightedText !== text) {
+                                    $(textNode).replaceWith(highlightedText);
+                                }
+                            });
+                        });
+                    }
+                }
+                
+                // Apply highlighting on page load if there are search terms
+                var hasActiveSearch = false;
+                $searchInputs.each(function() {
+                    if ($(this).val().trim() !== '') {
+                        hasActiveSearch = true;
+                        return false;
+                    }
+                });
+                
+                if (hasActiveSearch) {
+                    setTimeout(highlightSearchTerms, 100); // Small delay to ensure DOM is ready
+                }
+            }
+
+            // Initialize bulk action state
+            updateBulkActionState();
         });
         </script>
+
+        <style type="text/css">
+        /* Forms Search Form Styles */
+        .lift-forms-search-form {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .lift-forms-search-form h3 {
+            margin-top: 0;
+            color: #0073aa;
+            font-size: 18px;
+            border-bottom: 2px solid #0073aa;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .lift-forms-search-form input[type="text"],
+        .lift-forms-search-form input[type="date"],
+        .lift-forms-search-form select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .lift-forms-search-form input[type="text"]:focus,
+        .lift-forms-search-form input[type="date"]:focus,
+        .lift-forms-search-form select:focus {
+            border-color: #0073aa;
+            box-shadow: 0 0 4px rgba(0, 115, 170, 0.3);
+            outline: none;
+        }
+
+        .lift-forms-search-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .lift-forms-search-form .search-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .lift-forms-search-form .search-results-count {
+            margin-left: auto;
+            color: #666;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        /* Bulk Actions Styles */
+        .tablenav .bulkactions select {
+            margin-right: 5px;
+        }
+
+        .tablenav .bulkactions .button.action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Checkbox column styling */
+        .wp-list-table th.check-column,
+        .wp-list-table td.check-column {
+            width: 2.2em;
+            padding: 6px 0 25px;
+            vertical-align: top;
+        }
+
+        .wp-list-table tbody th.check-column {
+            padding: 9px 0 22px;
+        }
+
+        .wp-list-table .check-column input[type="checkbox"] {
+            margin: 0;
+        }
+
+        /* Enhanced table appearance for search results */
+        .wp-list-table.striped > tbody > :nth-child(odd) {
+            background-color: #fafafa;
+        }
+
+        .wp-list-table tr:hover {
+            background-color: #f0f8ff;
+        }
+
+        /* Search highlight effect */
+        .search-highlight {
+            background-color: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        /* Rotation animation for search loading */
+        @keyframes rotation {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Status select styling */
+        .status-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .form-status-select {
+            min-width: 80px;
+        }
+
+        .status-spinner {
+            position: absolute;
+            top: 50%;
+            right: 5px;
+            transform: translateY(-50%);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 782px) {
+            .lift-forms-search-form > form > div:first-child {
+                grid-template-columns: 1fr;
+            }
+            
+            .lift-forms-search-form .search-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .lift-forms-search-form .search-results-count {
+                margin-left: 0;
+                text-align: center;
+                order: -1;
+                margin-bottom: 10px;
+            }
+
+            .tablenav .bulkactions {
+                margin-bottom: 10px;
+            }
+
+            .tablenav .bulkactions select,
+            .tablenav .bulkactions .button {
+                margin-bottom: 5px;
+            }
+        }
+
+        /* Import/Export button styling */
+        .lift-forms-import-export {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .lift-forms-import-export .page-title-action {
+            margin-left: 5px;
+        }
+        </style>
         <?php
     }
 
@@ -825,15 +1397,61 @@ class LIFT_Forms {
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
         $forms_table = $wpdb->prefix . 'lift_forms';
 
+        // Handle bulk actions
+        if (isset($_POST['action']) && $_POST['action'] !== '-1' && isset($_POST['submissions']) && is_array($_POST['submissions'])) {
+            if (wp_verify_nonce($_POST['_wpnonce'], 'bulk_action_submissions')) {
+                $submission_ids = array_map('intval', $_POST['submissions']);
+                $bulk_action = sanitize_text_field($_POST['action']);
+                $affected_count = 0;
+
+                switch ($bulk_action) {
+                    case 'bulk_delete':
+                        foreach ($submission_ids as $submission_id) {
+                            $wpdb->delete($submissions_table, array('id' => $submission_id), array('%d'));
+                            $affected_count++;
+                        }
+                        echo '<div class="notice notice-success"><p>' . 
+                             sprintf(_n('%d submission deleted successfully.', '%d submissions deleted successfully.', $affected_count, 'lift-docs-system'), $affected_count) . 
+                             '</p></div>';
+                        break;
+
+                    case 'bulk_mark_read':
+                        foreach ($submission_ids as $submission_id) {
+                            $wpdb->update($submissions_table, array('status' => 'read'), array('id' => $submission_id), array('%s'), array('%d'));
+                            $affected_count++;
+                        }
+                        echo '<div class="notice notice-success"><p>' . 
+                             sprintf(_n('%d submission marked as read.', '%d submissions marked as read.', $affected_count, 'lift-docs-system'), $affected_count) . 
+                             '</p></div>';
+                        break;
+
+                    case 'bulk_mark_unread':
+                        foreach ($submission_ids as $submission_id) {
+                            $wpdb->update($submissions_table, array('status' => 'unread'), array('id' => $submission_id), array('%s'), array('%d'));
+                            $affected_count++;
+                        }
+                        echo '<div class="notice notice-success"><p>' . 
+                             sprintf(_n('%d submission marked as unread.', '%d submissions marked as unread.', $affected_count, 'lift-docs-system'), $affected_count) . 
+                             '</p></div>';
+                        break;
+                }
+            }
+        }
+
+        // Get search and filter parameters
         $form_id = isset($_GET['form_id']) ? intval($_GET['form_id']) : 0;
         $user_filter = isset($_GET['user_filter']) ? sanitize_text_field($_GET['user_filter']) : '';
         $document_id = isset($_GET['document_id']) ? intval($_GET['document_id']) : 0;
         $status_filter = isset($_GET['status_filter']) ? sanitize_text_field($_GET['status_filter']) : '';
+        $search_user = isset($_GET['search_user']) ? sanitize_text_field($_GET['search_user']) : '';
+        $search_ip = isset($_GET['search_ip']) ? sanitize_text_field($_GET['search_ip']) : '';
+        $date_from = isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '';
+        $date_to = isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : '';
 
         // Get forms for filter
         $forms = $wpdb->get_results("SELECT id, name FROM $forms_table ORDER BY name");
-        // Use simple, direct query approach
-        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
+        
+        // Build query with enhanced filters
         $where = '1=1';
         $params = array();
 
@@ -856,6 +1474,21 @@ class LIFT_Forms {
         if ($status_filter) {
             $where .= ' AND status = %s';
             $params[] = $status_filter;
+        }
+
+        if (!empty($search_ip)) {
+            $where .= ' AND user_ip LIKE %s';
+            $params[] = '%' . $wpdb->esc_like($search_ip) . '%';
+        }
+
+        if (!empty($date_from)) {
+            $where .= ' AND DATE(submitted_at) >= %s';
+            $params[] = $date_from;
+        }
+
+        if (!empty($date_to)) {
+            $where .= ' AND DATE(submitted_at) <= %s';
+            $params[] = $date_to;
         }
 
         // Build and execute query
@@ -916,126 +1549,250 @@ class LIFT_Forms {
         <div class="wrap">
             <h1><?php _e('Form Submissions', 'lift-docs-system'); ?></h1>
 
-            <!-- Filters -->
-            <div class="tablenav top">
-                <div class="alignleft actions">
-                    <form method="get" action="<?php echo admin_url('admin.php'); ?>">
-                        <input type="hidden" name="page" value="lift-forms-submissions">
+            <!-- Enhanced Search and Filter Form -->
+            <div class="lift-submissions-search-form" style="background: #f9f9f9; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
+                <h3 style="margin-top: 0;"><?php _e('Search & Filter Submissions', 'lift-docs-system'); ?></h3>
+                <form method="get" action="<?php echo admin_url('admin.php'); ?>">
+                    <input type="hidden" name="page" value="lift-forms-submissions">
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label for="form_id" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Form', 'lift-docs-system'); ?>
+                            </label>
+                            <select name="form_id" id="form_id" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                                <option value=""><?php _e('All Forms', 'lift-docs-system'); ?></option>
+                                <?php foreach ($forms as $form): ?>
+                                    <option value="<?php echo $form->id; ?>" <?php selected($form_id, $form->id); ?>>
+                                        <?php echo esc_html($form->name); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-                        <select name="form_id" id="form-filter">
-                            <option value=""><?php _e('All Forms', 'lift-docs-system'); ?></option>
-                            <?php foreach ($forms as $form): ?>
-                                <option value="<?php echo $form->id; ?>" <?php selected($form_id, $form->id); ?>>
-                                    <?php echo esc_html($form->name); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div>
+                            <label for="status_filter" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Status', 'lift-docs-system'); ?>
+                            </label>
+                            <select name="status_filter" id="status_filter" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                                <option value=""><?php _e('All Statuses', 'lift-docs-system'); ?></option>
+                                <option value="unread" <?php selected($status_filter, 'unread'); ?>><?php _e('Unread', 'lift-docs-system'); ?></option>
+                                <option value="read" <?php selected($status_filter, 'read'); ?>><?php _e('Read', 'lift-docs-system'); ?></option>
+                            </select>
+                        </div>
 
-                        <select name="status_filter" id="status-filter">
-                            <option value=""><?php _e('All Statuses', 'lift-docs-system'); ?></option>
-                            <option value="unread" <?php selected($status_filter, 'unread'); ?>><?php _e('Unread', 'lift-docs-system'); ?></option>
-                            <option value="read" <?php selected($status_filter, 'read'); ?>><?php _e('Read', 'lift-docs-system'); ?></option>
-                        </select>
+                        <div>
+                            <label for="user_filter" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('User Type', 'lift-docs-system'); ?>
+                            </label>
+                            <select name="user_filter" id="user_filter" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                                <option value=""><?php _e('All Users', 'lift-docs-system'); ?></option>
+                                <option value="logged_in" <?php selected($user_filter, 'logged_in'); ?>><?php _e('Registered Users', 'lift-docs-system'); ?></option>
+                                <option value="guest" <?php selected($user_filter, 'guest'); ?>><?php _e('Guest Users', 'lift-docs-system'); ?></option>
+                            </select>
+                        </div>
 
-                        <select name="user_filter" id="user-filter">
-                            <option value=""><?php _e('All Users', 'lift-docs-system'); ?></option>
-                            <option value="logged_in" <?php selected($user_filter, 'logged_in'); ?>><?php _e('Registered Users', 'lift-docs-system'); ?></option>
-                            <option value="guest" <?php selected($user_filter, 'guest'); ?>><?php _e('Guest Users', 'lift-docs-system'); ?></option>
-                        </select>
+                        <div>
+                            <label for="search_user" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Search User', 'lift-docs-system'); ?>
+                            </label>
+                            <input type="text" 
+                                   id="search_user" 
+                                   name="search_user" 
+                                   value="<?php echo esc_attr($search_user); ?>" 
+                                   placeholder="<?php _e('Search by username or email', 'lift-docs-system'); ?>"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                        </div>
 
-                        <?php submit_button(__('Filter', 'lift-docs-system'), 'action', 'filter_action', false); ?>
+                        <div>
+                            <label for="search_ip" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('IP Address', 'lift-docs-system'); ?>
+                            </label>
+                            <input type="text" 
+                                   id="search_ip" 
+                                   name="search_ip" 
+                                   value="<?php echo esc_attr($search_ip); ?>" 
+                                   placeholder="<?php _e('Search by IP address', 'lift-docs-system'); ?>"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                        </div>
 
-                        <?php if ($form_id || $status_filter || $user_filter): ?>
-                            <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions'); ?>" class="button">
-                                <?php _e('Clear Filters', 'lift-docs-system'); ?>
-                            </a>
+                        <div>
+                            <label for="date_from" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Date From', 'lift-docs-system'); ?>
+                            </label>
+                            <input type="date" 
+                                   id="date_from" 
+                                   name="date_from" 
+                                   value="<?php echo esc_attr($date_from); ?>"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                        </div>
+
+                        <div>
+                            <label for="date_to" style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                <?php _e('Date To', 'lift-docs-system'); ?>
+                            </label>
+                            <input type="date" 
+                                   id="date_to" 
+                                   name="date_to" 
+                                   value="<?php echo esc_attr($date_to); ?>"
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center;" class="search-actions">
+                        <button type="submit" class="button button-primary">
+                            <span class="dashicons dashicons-search" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></span>
+                            <?php _e('Search Submissions', 'lift-docs-system'); ?>
+                        </button>
+                        
+                        <?php if (!empty($form_id) || !empty($status_filter) || !empty($user_filter) || !empty($search_user) || !empty($search_ip) || !empty($date_from) || !empty($date_to)): ?>
+                        <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions'); ?>" class="button">
+                            <span class="dashicons dashicons-dismiss" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></span>
+                            <?php _e('Clear Filters', 'lift-docs-system'); ?>
+                        </a>
                         <?php endif; ?>
-                    </form>
-                </div>
+                        
+                        <div style="margin-left: auto; color: #666;">
+                            <?php printf(__('Found %d submissions', 'lift-docs-system'), count($submissions)); ?>
+                        </div>
+                    </div>
+                </form>
             </div>
 
             <?php if (empty($submissions)): ?>
                 <div class="lift-empty-state">
-                    <h2><?php _e('No Submissions Yet', 'lift-docs-system'); ?></h2>
-                    <p><?php _e('Form submissions will appear here once customers start filling out your forms.', 'lift-docs-system'); ?></p>
+                    <h2><?php _e('No Submissions Found', 'lift-docs-system'); ?></h2>
+                    <p><?php _e('No submissions match your search criteria. Try adjusting your filters.', 'lift-docs-system'); ?></p>
                 </div>
             <?php else: ?>
-                <table class="wp-list-table widefat fixed striped">
-                    <thead>
-                        <tr>
-                            <th><?php _e('Form', 'lift-docs-system'); ?></th>
-                            <th><?php _e('Document', 'lift-docs-system'); ?></th>
-                            <th><?php _e('Submitted By', 'lift-docs-system'); ?></th>
-                            <th><?php _e('Submitted', 'lift-docs-system'); ?></th>
-                            <th><?php _e('Status', 'lift-docs-system'); ?></th>
-                            <th><?php _e('IP Address', 'lift-docs-system'); ?></th>
-                            <th><?php _e('Actions', 'lift-docs-system'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($submissions as $submission): ?>
-                            <?php
-                            // Get document info from form_data
-                            $form_data = json_decode($submission->form_data, true);
-                            $document_id = isset($form_data['_document_id']) ? intval($form_data['_document_id']) : 0;
-                            $document_title = '';
+                <!-- Bulk Actions Form -->
+                <form method="post" id="submissions-bulk-action-form">
+                    <?php wp_nonce_field('bulk_action_submissions'); ?>
+                    
+                    <!-- Bulk Actions Top -->
+                    <div class="tablenav top">
+                        <div class="alignleft actions bulkactions">
+                            <label for="bulk-action-selector-top" class="screen-reader-text"><?php _e('Select bulk action', 'lift-docs-system'); ?></label>
+                            <select name="action" id="bulk-action-selector-top">
+                                <option value="-1"><?php _e('Bulk Actions', 'lift-docs-system'); ?></option>
+                                <option value="bulk_delete"><?php _e('Delete', 'lift-docs-system'); ?></option>
+                                <option value="bulk_mark_read"><?php _e('Mark as Read', 'lift-docs-system'); ?></option>
+                                <option value="bulk_mark_unread"><?php _e('Mark as Unread', 'lift-docs-system'); ?></option>
+                            </select>
+                            <input type="submit" id="doaction" class="button action" value="<?php _e('Apply', 'lift-docs-system'); ?>">
+                        </div>
+                    </div>
 
-                            if ($document_id) {
-                                $document_post = get_post($document_id);
-                                $document_title = $document_post ? $document_post->post_title : '';
-                            }
-                            ?>
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
                             <tr>
-                                <td>
-                                    <strong><?php echo esc_html($submission->form_name ? $submission->form_name : __('Unknown Form', 'lift-docs-system')); ?></strong>
+                                <td id="cb" class="manage-column column-cb check-column">
+                                    <label class="screen-reader-text" for="cb-select-all-1"><?php _e('Select All', 'lift-docs-system'); ?></label>
+                                    <input id="cb-select-all-1" type="checkbox" />
                                 </td>
-                                <td>
-                                    <?php if ($document_title): ?>
-                                        <a href="<?php echo admin_url('post.php?post=' . $document_id . '&action=edit'); ?>" target="_blank">
-                                            <?php echo esc_html($document_title); ?>
-                                        </a>
-                                        <br><small>ID: <?php echo $document_id; ?></small>
-                                    <?php else: ?>
-                                        <span class="no-document">
-                                            <?php _e('No Document', 'lift-docs-system'); ?>
-                                        </span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if ($submission->user_id && $submission->user_name): ?>
-                                        <div class="user-info">
-                                            <strong><?php echo esc_html($submission->user_name); ?></strong>
-                                            <br><small class="user-email"><?php echo esc_html($submission->user_email); ?></small>
-                                            <br><small class="user-id">ID: <?php echo $submission->user_id; ?></small>
-                                        </div>
-                                    <?php else: ?>
-                                        <span class="guest-user">
-                                            <span class="dashicons dashicons-admin-users"></span>
-                                            <?php _e('Guest User', 'lift-docs-system'); ?>
-                                        </span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($submission->submitted_at)); ?></td>
-                                <td>
-                                    <span class="status status-<?php echo esc_attr($submission->status); ?>">
-                                        <?php echo ucfirst($submission->status); ?>
-                                    </span>
-                                </td>
-                                <td><?php echo esc_html($submission->user_ip); ?></td>
-                                <td>
-                                    <button type="button" class="button view-submission" data-id="<?php echo $submission->id; ?>">
-                                        <?php _e('View', 'lift-docs-system'); ?>
-                                    </button>
-                                    <?php if ($submission->user_id): ?>
-                                        <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" class="button" target="_blank">
-                                            <?php _e('View User', 'lift-docs-system'); ?>
-                                        </a>
-                                    <?php endif; ?>
-                                </td>
+                                <th><?php _e('Form', 'lift-docs-system'); ?></th>
+                                <th><?php _e('Document', 'lift-docs-system'); ?></th>
+                                <th><?php _e('Submitted By', 'lift-docs-system'); ?></th>
+                                <th><?php _e('Submitted', 'lift-docs-system'); ?></th>
+                                <th><?php _e('Status', 'lift-docs-system'); ?></th>
+                                <th><?php _e('IP Address', 'lift-docs-system'); ?></th>
+                                <th><?php _e('Actions', 'lift-docs-system'); ?></th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($submissions as $submission): ?>
+                                <?php
+                                // Get document info from form_data
+                                $form_data = json_decode($submission->form_data, true);
+                                $document_id = isset($form_data['_document_id']) ? intval($form_data['_document_id']) : 0;
+                                $document_title = '';
+
+                                if ($document_id) {
+                                    $document_post = get_post($document_id);
+                                    $document_title = $document_post ? $document_post->post_title : '';
+                                }
+
+                                // Filter by user search if provided
+                                if (!empty($search_user)) {
+                                    $user_match = false;
+                                    if (stripos($submission->user_name, $search_user) !== false || 
+                                        stripos($submission->user_email, $search_user) !== false) {
+                                        $user_match = true;
+                                    }
+                                    if (!$user_match) {
+                                        continue;
+                                    }
+                                }
+                                ?>
+                                <tr>
+                                    <th scope="row" class="check-column">
+                                        <input type="checkbox" name="submissions[]" value="<?php echo $submission->id; ?>" />
+                                    </th>
+                                    <td>
+                                        <strong><?php echo esc_html($submission->form_name ? $submission->form_name : __('Unknown Form', 'lift-docs-system')); ?></strong>
+                                    </td>
+                                    <td>
+                                        <?php if ($document_title): ?>
+                                            <a href="<?php echo admin_url('post.php?post=' . $document_id . '&action=edit'); ?>" target="_blank">
+                                                <?php echo esc_html($document_title); ?>
+                                            </a>
+                                            <br><small>ID: <?php echo $document_id; ?></small>
+                                        <?php else: ?>
+                                            <span class="no-document">
+                                                <?php _e('No Document', 'lift-docs-system'); ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($submission->user_id && $submission->user_name): ?>
+                                            <div class="user-info">
+                                                <strong><?php echo esc_html($submission->user_name); ?></strong>
+                                                <br><small class="user-email"><?php echo esc_html($submission->user_email); ?></small>
+                                                <br><small class="user-id">ID: <?php echo $submission->user_id; ?></small>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="guest-user">
+                                                <span class="dashicons dashicons-admin-users"></span>
+                                                <?php _e('Guest User', 'lift-docs-system'); ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($submission->submitted_at)); ?></td>
+                                    <td>
+                                        <span class="status status-<?php echo esc_attr($submission->status); ?>">
+                                            <?php echo ucfirst($submission->status); ?>
+                                        </span>
+                                    </td>
+                                    <td><?php echo esc_html($submission->user_ip); ?></td>
+                                    <td>
+                                        <button type="button" class="button view-submission" data-id="<?php echo $submission->id; ?>">
+                                            <?php _e('View', 'lift-docs-system'); ?>
+                                        </button>
+                                        <?php if ($submission->user_id): ?>
+                                            <a href="<?php echo admin_url('user-edit.php?user_id=' . $submission->user_id); ?>" class="button" target="_blank">
+                                                <?php _e('View User', 'lift-docs-system'); ?>
+                                            </a>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+
+                    <!-- Bulk Actions Bottom -->
+                    <div class="tablenav bottom">
+                        <div class="alignleft actions bulkactions">
+                            <label for="bulk-action-selector-bottom" class="screen-reader-text"><?php _e('Select bulk action', 'lift-docs-system'); ?></label>
+                            <select name="action" id="bulk-action-selector-bottom">
+                                <option value="-1"><?php _e('Bulk Actions', 'lift-docs-system'); ?></option>
+                                <option value="bulk_delete"><?php _e('Delete', 'lift-docs-system'); ?></option>
+                                <option value="bulk_mark_read"><?php _e('Mark as Read', 'lift-docs-system'); ?></option>
+                                <option value="bulk_mark_unread"><?php _e('Mark as Unread', 'lift-docs-system'); ?></option>
+                            </select>
+                            <input type="submit" id="doaction2" class="button action" value="<?php _e('Apply', 'lift-docs-system'); ?>">
+                        </div>
+                    </div>
+                </form>
             <?php endif; ?>
         </div>
 
@@ -1053,6 +1810,17 @@ class LIFT_Forms {
                         <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #0073aa;"></i><br><br>
                         <?php _e('Loading submission details...', 'lift-docs-system'); ?>
                     </div>
+                </div>
+
+                <div class="lift-modal-footer">
+                    <button type="button" class="button button-primary" onclick="closeLiftModal()">
+                        <?php _e('Close', 'lift-docs-system'); ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
                 </div>
 
                 <div class="lift-modal-footer">
@@ -1406,8 +2174,359 @@ class LIFT_Forms {
                     closeLiftModal();
                 }
             });
+
+            // Bulk Actions Functionality for Submissions
+            var $bulkForm = $('#submissions-bulk-action-form');
+            if ($bulkForm.length > 0) {
+                var $checkboxes = $bulkForm.find('input[type="checkbox"][name="submissions[]"]');
+                var $selectAllTop = $('#cb-select-all-1');
+                var $bulkActionSelectors = $('#bulk-action-selector-top, #bulk-action-selector-bottom');
+
+                // Select All functionality
+                $selectAllTop.on('change', function() {
+                    var isChecked = $(this).is(':checked');
+                    $checkboxes.prop('checked', isChecked);
+                    updateBulkActionState();
+                });
+
+                // Individual checkbox change
+                $checkboxes.on('change', function() {
+                    var totalCheckboxes = $checkboxes.length;
+                    var checkedCheckboxes = $checkboxes.filter(':checked').length;
+                    
+                    $selectAllTop.prop('checked', checkedCheckboxes === totalCheckboxes);
+                    $selectAllTop.prop('indeterminate', checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes);
+                    
+                    updateBulkActionState();
+                });
+
+                // Update bulk action button state
+                function updateBulkActionState() {
+                    var hasSelection = $checkboxes.filter(':checked').length > 0;
+                    $bulkForm.find('.button.action').prop('disabled', !hasSelection);
+                }
+
+                // Handle bulk action form submission
+                $bulkForm.on('submit', function(e) {
+                    var selectedAction = $bulkActionSelectors.filter(function() { 
+                        return $(this).closest('.bulkactions').find('.button.action:focus').length > 0 || 
+                               $(this).val() !== '-1'; 
+                    }).first().val();
+
+                    if (selectedAction === '-1' || selectedAction === '') {
+                        e.preventDefault();
+                        alert('<?php _e("Please select a bulk action.", "lift-docs-system"); ?>');
+                        return false;
+                    }
+
+                    var checkedCount = $checkboxes.filter(':checked').length;
+                    if (checkedCount === 0) {
+                        e.preventDefault();
+                        alert('<?php _e("Please select at least one submission.", "lift-docs-system"); ?>');
+                        return false;
+                    }
+
+                    // Confirmation for delete action
+                    if (selectedAction === 'bulk_delete') {
+                        var confirmMessage = '<?php printf(__("You are about to permanently delete %s submissions. This action cannot be undone. Are you sure?", "lift-docs-system"), "' + checkedCount + '"); ?>';
+                        if (!confirm(confirmMessage)) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }
+
+                    // Set the action for whichever button was clicked
+                    $(this).find('select[name="action"]').val(selectedAction);
+                });
+
+                // Initialize bulk action state
+                updateBulkActionState();
+            }
+
+            // Enhanced Search Functionality for Submissions
+            var searchTimeout;
+            var $searchForm = $('.lift-submissions-search-form form');
+            var $searchInputs = $searchForm.find('input[type="text"], input[type="date"], select');
+            var $searchButton = $searchForm.find('button[type="submit"]');
+            
+            if ($searchButton.length > 0) {
+                var originalButtonText = $searchButton.html();
+
+                // Auto-search functionality with debouncing
+                $searchInputs.on('input change', function() {
+                    clearTimeout(searchTimeout);
+                    
+                    // Visual feedback
+                    $searchButton.prop('disabled', true).html('<span class="dashicons dashicons-update" style="animation: rotation 1s infinite linear;"></span> <?php _e("Searching...", "lift-docs-system"); ?>');
+                    
+                    searchTimeout = setTimeout(function() {
+                        // Check if there are any search terms
+                        var hasSearchTerms = false;
+                        $searchInputs.each(function() {
+                            if ($(this).val().trim() !== '') {
+                                hasSearchTerms = true;
+                                return false;
+                            }
+                        });
+                        
+                        if (hasSearchTerms) {
+                            // Submit form automatically after delay
+                            $searchForm.submit();
+                        } else {
+                            // Reset button state
+                            $searchButton.prop('disabled', false).html(originalButtonText);
+                        }
+                    }, 1000); // 1 second delay for debouncing
+                });
+
+                // Highlight search terms in table if any active search
+                function highlightSearchTerms() {
+                    var searchTerms = [];
+                    
+                    // Collect all search terms
+                    $searchInputs.filter('input[type="text"]').each(function() {
+                        var term = $(this).val().trim();
+                        if (term !== '') {
+                            searchTerms.push(term);
+                        }
+                    });
+                    
+                    if (searchTerms.length > 0) {
+                        // Remove existing highlights first
+                        $('.wp-list-table .search-highlight').each(function() {
+                            var $this = $(this);
+                            $this.replaceWith($this.text());
+                        });
+                        
+                        // Add new highlights - but only to text nodes, not inside HTML tags
+                        $('.wp-list-table tbody td').each(function() {
+                            var $cell = $(this);
+                            
+                            // Skip cells with complex HTML (like action buttons)
+                            if ($cell.find('a, button, select, input').length > 0) {
+                                return;
+                            }
+                            
+                            // Only highlight simple text content
+                            $cell.contents().filter(function() {
+                                return this.nodeType === 3; // Text node
+                            }).each(function() {
+                                var textNode = this;
+                                var text = textNode.textContent;
+                                var highlightedText = text;
+                                
+                                searchTerms.forEach(function(term) {
+                                    var regex = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                                    highlightedText = highlightedText.replace(regex, '<span class="search-highlight">$1</span>');
+                                });
+                                
+                                if (highlightedText !== text) {
+                                    $(textNode).replaceWith(highlightedText);
+                                }
+                            });
+                        });
+                    }
+                }
+                
+                // Apply highlighting on page load if there are search terms
+                var hasActiveSearch = false;
+                $searchInputs.each(function() {
+                    if ($(this).val().trim() !== '') {
+                        hasActiveSearch = true;
+                        return false;
+                    }
+                });
+                
+                if (hasActiveSearch) {
+                    setTimeout(highlightSearchTerms, 100); // Small delay to ensure DOM is ready
+                }
+            }
         });
         </script>
+
+        <style type="text/css">
+        /* Submissions Search Form Styles */
+        .lift-submissions-search-form {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .lift-submissions-search-form h3 {
+            margin-top: 0;
+            color: #0073aa;
+            font-size: 18px;
+            border-bottom: 2px solid #0073aa;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .lift-submissions-search-form input[type="text"],
+        .lift-submissions-search-form input[type="date"],
+        .lift-submissions-search-form select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .lift-submissions-search-form input[type="text"]:focus,
+        .lift-submissions-search-form input[type="date"]:focus,
+        .lift-submissions-search-form select:focus {
+            border-color: #0073aa;
+            box-shadow: 0 0 4px rgba(0, 115, 170, 0.3);
+            outline: none;
+        }
+
+        .lift-submissions-search-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .lift-submissions-search-form .search-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Bulk Actions Styles for Submissions */
+        .tablenav .bulkactions select {
+            margin-right: 5px;
+        }
+
+        .tablenav .bulkactions .button.action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Enhanced table appearance for submissions */
+        .wp-list-table.striped > tbody > :nth-child(odd) {
+            background-color: #fafafa;
+        }
+
+        .wp-list-table tr:hover {
+            background-color: #f0f8ff;
+        }
+
+        /* Search highlight effect */
+        .search-highlight {
+            background-color: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        /* Status styling */
+        .status {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-unread {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status-read {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* User info styling */
+        .user-info {
+            line-height: 1.4;
+        }
+
+        .user-info strong {
+            color: #0073aa;
+            font-weight: 600;
+        }
+
+        .user-email {
+            color: #666;
+            font-style: italic;
+        }
+
+        .user-id {
+            color: #999;
+            font-family: 'Courier New', monospace;
+        }
+
+        .guest-user {
+            color: #999;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .guest-user .dashicons {
+            width: 16px;
+            height: 16px;
+            font-size: 16px;
+        }
+
+        .no-document {
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Rotation animation for search loading */
+        @keyframes rotation {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 782px) {
+            .lift-submissions-search-form > form > div:first-child {
+                grid-template-columns: 1fr;
+            }
+            
+            .lift-submissions-search-form .search-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .lift-submissions-search-form .search-results-count {
+                margin-left: 0;
+                text-align: center;
+                order: -1;
+                margin-bottom: 10px;
+            }
+
+            .tablenav .bulkactions {
+                margin-bottom: 10px;
+            }
+
+            .tablenav .bulkactions select,
+            .tablenav .bulkactions .button {
+                margin-bottom: 5px;
+            }
+
+            .wp-list-table .column-actions {
+                width: auto;
+            }
+        }
+        </style>
         <?php
     }
 
