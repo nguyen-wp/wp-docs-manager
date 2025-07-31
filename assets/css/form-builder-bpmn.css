@@ -212,7 +212,6 @@
 /* Form Fields Area - Enhanced */
 .form-fields-area {
     flex: 1;
-    padding: 20px;
     background: #fff;
     overflow-y: auto;
 }
@@ -548,7 +547,7 @@
 
 .row-drag-handle {
     position: absolute;
-    left: -12px;
+    left: 0px;
     top: 50%;
     transform: translateY(-50%);
     background: #2271b1;
