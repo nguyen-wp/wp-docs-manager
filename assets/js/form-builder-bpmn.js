@@ -394,6 +394,9 @@
 
         // Bind form builder events
         bindFormBuilderEvents();
+
+        // Trigger event to notify that form builder is loaded
+        $(document).trigger('formBuilderLoaded');
     }
 
     /**
@@ -1613,9 +1616,19 @@
             return;
         }
 
-        // Get header and footer content directly from textareas
-        const headerContent = $('#form-header-editor').val() || '';
-        const footerContent = $('#form-footer-editor').val() || '';
+        // Get header and footer content from WordPress editors
+        let headerContent = '';
+        let footerContent = '';
+        
+        // Try to get content from WordPress editor
+        if (typeof wp !== 'undefined' && wp.editor && wp.editor.getContent) {
+            headerContent = wp.editor.getContent('form-header-editor') || '';
+            footerContent = wp.editor.getContent('form-footer-editor') || '';
+        } else {
+            // Fallback to textarea values
+            headerContent = $('#form-header-editor').val() || '';
+            footerContent = $('#form-footer-editor').val() || '';
+        }
 
         let previewHTML = '';
 

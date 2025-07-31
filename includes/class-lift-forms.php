@@ -225,6 +225,11 @@ class LIFT_Forms {
         // Enqueue Dashicons for admin interface
         wp_enqueue_style('dashicons');
 
+        // Enqueue WordPress editor for form builder
+        if (isset($_GET['page']) && $_GET['page'] === 'lift-forms-builder') {
+            wp_enqueue_editor();
+        }
+
         // Minimal admin JavaScript
         wp_enqueue_script(
             'lift-forms-minimal-admin',
@@ -1381,6 +1386,43 @@ class LIFT_Forms {
                 </div>
             </div>
         </div>
+
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            // Initialize WordPress editors after form builder is loaded
+            $(document).on('formBuilderLoaded', function() {
+                setTimeout(function() {
+                    // Initialize header editor
+                    if (typeof wp !== 'undefined' && wp.editor && $('#form-header-editor').length) {
+                        wp.editor.initialize('form-header-editor', {
+                            tinymce: {
+                                wpautop: true,
+                                plugins: 'lists,link,textcolor,wordpress',
+                                toolbar1: 'bold,italic,underline,strikethrough,|,bullist,numlist,|,link,unlink,|,forecolor,backcolor',
+                                toolbar2: '',
+                                height: 150
+                            },
+                            quicktags: true
+                        });
+                    }
+                    
+                    // Initialize footer editor
+                    if (typeof wp !== 'undefined' && wp.editor && $('#form-footer-editor').length) {
+                        wp.editor.initialize('form-footer-editor', {
+                            tinymce: {
+                                wpautop: true,
+                                plugins: 'lists,link,textcolor,wordpress',
+                                toolbar1: 'bold,italic,underline,strikethrough,|,bullist,numlist,|,link,unlink,|,forecolor,backcolor',
+                                toolbar2: '',
+                                height: 150
+                            },
+                            quicktags: true
+                        });
+                    }
+                }, 1000);
+            });
+        });
+        </script>
         <?php
     }
 
