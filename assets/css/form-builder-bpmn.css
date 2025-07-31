@@ -1920,21 +1920,6 @@
 }
 
 /* Form Header and Footer Content in Preview */
-.form-preview-container .form-header-content {
-    margin-bottom: 25px;
-    padding: 15px;
-    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
-    border-left: 4px solid #0073aa;
-    border-radius: 6px;
-}
-
-.form-preview-container .form-footer-content {
-    margin-top: 25px;
-    padding: 15px;
-    background: linear-gradient(135deg, #f8f8f8 0%, #eeeeee 100%);
-    border-left: 4px solid #666;
-    border-radius: 6px;
-}
 
 .form-preview-container .form-header-content h1,
 .form-preview-container .form-header-content h2,
