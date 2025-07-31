@@ -67,7 +67,7 @@
             var submissionId = $button.data('submission-id');
             var nonce = $button.data('nonce');
 
-            console.log('Submission button clicked:', submissionId, nonce);
+            console.log('Submission button clicked:', submissionId, nonce); // Debug
 
             if (!submissionId) {
                 console.error('No submission ID found');
@@ -87,7 +87,7 @@
                     nonce: nonce
                 },
                 success: function(response) {
-                    console.log('Submission response:', response);
+                    console.log('Submission response:', response); // Debug
                     if (response.success) {
                         // Populate submission modal with detailed content
                         $('#submission-detail-content-from-doc').html(response.data);

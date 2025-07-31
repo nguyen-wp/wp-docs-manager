@@ -234,6 +234,7 @@ class LIFT_Docs_Frontend_Login {
         $existing_submission = null;
         $is_edit_mode = false;
 
+        // ADMIN VIEW DEBUG - Add here where form rendering happens
         // Check for both admin view and admin edit modes
         $is_admin_view = isset($_GET['admin_view']) && $_GET['admin_view'] == '1';
         $is_admin_edit = isset($_GET['admin_edit']) && $_GET['admin_edit'] == '1';
@@ -305,14 +306,7 @@ class LIFT_Docs_Frontend_Login {
                                         $field['row'] = $row_index;
                                         $field['column'] = $col_index;
                                         if (isset($column['width'])) {
-                                            // Parse width value - could be numeric (0.16) or CSS style (0.16 1 0%)
-                                            $width_value = $column['width'];
-                                            if (is_string($width_value) && strpos($width_value, ' ') !== false) {
-                                                // Extract first number from CSS flex shorthand "0.16 1 0%"
-                                                $parts = explode(' ', trim($width_value));
-                                                $width_value = $parts[0];
-                                            }
-                                            $field['width'] = $width_value;
+                                            $field['width'] = $column['width'];
                                         }
                                         $form_fields[] = $field;
                                     }
@@ -1008,7 +1002,6 @@ class LIFT_Docs_Frontend_Login {
         ksort($rows);
 
         foreach ($rows as $row_index => $row_fields) {
-            // Always use flexbox layout like form builder backend
             echo '<div class="form-row" data-row="' . esc_attr($row_index) . '">';
 
             // Group fields by columns within this row
@@ -1025,29 +1018,8 @@ class LIFT_Docs_Frontend_Login {
             ksort($columns);
 
             foreach ($columns as $col_index => $col_fields) {
-                // Always use flexbox with width values like form builder backend
-                $column_width = 1; // Default flex value as number
-                
-                // Check if any field in this column has a custom width value
-                foreach ($col_fields as $field) {
-                    if (isset($field['width']) && is_numeric($field['width'])) {
-                        $column_width = floatval($field['width']);
-                        break;
-                    }
-                }
-                
-                // Calculate default width based on number of columns if no custom width
-                if ($column_width == 1 && count($columns) > 1) {
-                    $column_width = 1 / count($columns);
-                }
-                
-                // Format for clean output - remove unnecessary decimals
-                $flex_grow = ($column_width == intval($column_width)) ? intval($column_width) : rtrim(rtrim(number_format($column_width, 6), '0'), '.');
-                
-                // Use full flex notation like backend: flex-grow flex-shrink flex-basis
-                $flex_style = "flex: {$flex_grow} 1 0%; position: relative;";
-                
-                echo '<div class="form-column" data-column="' . esc_attr($col_index) . '" style="' . esc_attr($flex_style) . '">';
+                $column_width = $this->calculate_column_width(count($columns), $col_fields);
+                echo '<div class="form-column ' . esc_attr($column_width) . '" data-column="' . esc_attr($col_index) . '">';
 
                 foreach ($col_fields as $field) {
                     $this->render_field_container($field, $existing_data, $is_disabled, $is_admin_view);
@@ -1152,6 +1124,8 @@ class LIFT_Docs_Frontend_Login {
         $logo_id = !empty($interface_logo_id) ? $interface_logo_id : get_option('lift_docs_login_logo', '');
         $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
         $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
+
+        // Debug: Log logo values for troubleshooting
 
         // Use Interface tab title/description if set, otherwise use defaults
         $display_title = !empty($interface_title) ? $interface_title : __('Document Access Portal', 'lift-docs-system');
@@ -1702,10 +1676,13 @@ class LIFT_Docs_Frontend_Login {
         </head>
         <body class="lift-docs-login-page">
             <div class="lift-simple-login-container">
+                <!-- Logo Debug: <?php echo 'ID=' . $logo_id . ', URL=' . $logo_url . ', Time=' . time(); ?> -->
                 <?php if ($logo_url): ?>
                 <div class="lift-login-logo">
                     <img src="<?php echo esc_url($logo_url); ?>" alt="<?php bloginfo('name'); ?>">
                 </div>
+                <?php else: ?>
+                <!-- No logo: ID empty or URL failed -->
                 <?php endif; ?>
 
                 <div class="lift-login-form-wrapper">
@@ -2419,6 +2396,13 @@ class LIFT_Docs_Frontend_Login {
     }
 
     /**
+     * Public method for debugging - find user by login
+     */
+    public function debug_find_user($login) {
+        return $this->find_user_by_login($login);
+    }
+
+    /**
      * Log user login
      */
     private function log_user_login($user_id) {
@@ -2814,10 +2798,13 @@ class LIFT_Docs_Frontend_Login {
         </style>
 
         <div class="lift-docs-login-container shortcode-version">
+            <!-- Shortcode Logo Debug: <?php echo 'ID=' . $logo_id . ', URL=' . $logo_url . ', Time=' . time(); ?> -->
             <?php if ($logo_url): ?>
             <div class="lift-login-logo">
                 <img src="<?php echo esc_url($logo_url); ?>" alt="<?php bloginfo('name'); ?>">
             </div>
+            <?php else: ?>
+            <!-- No logo in shortcode: ID empty or URL failed -->
             <?php endif; ?>
 
             <div class="lift-docs-login-form-container">

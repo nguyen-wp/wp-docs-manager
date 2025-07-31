@@ -1381,6 +1381,13 @@ class LIFT_Docs_Secure_Links {
     }
 
     /**
+     * Public debug method to get layout settings
+     */
+    public function debug_get_layout_settings() {
+        return $this->get_global_layout_settings();
+    }
+
+    /**
      * Get related documents
      */
     private function get_related_documents($doc_id) {

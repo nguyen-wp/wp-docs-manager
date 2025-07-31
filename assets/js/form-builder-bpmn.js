@@ -11,8 +11,6 @@
     let layoutData = {
         rows: []
     };
-    let autoSaveTimeout = null;
-    let formModified = false;
 
     // Initialize when DOM is ready
     $(document).ready(function() {
@@ -46,18 +44,6 @@
         window.liftCurrentFormFields = dataToSave;
         if (window.formBuilder) {
             window.formBuilder.formData = dataToSave;
-        }
-    }
-
-    /**
-     * Mark form as modified
-     */
-    function markFormAsModified() {
-        formModified = true;
-        // Change save button text to indicate unsaved changes
-        const saveBtn = $('#save-form');
-        if (saveBtn.length && !saveBtn.hasClass('saving')) {
-            saveBtn.text('Save Changes *');
         }
     }
 
@@ -225,10 +211,6 @@
                                 <button type="button" class="field-type-btn draggable" data-type="signature" draggable="true">
                                     <span class="dashicons dashicons-edit"></span> Signature
                                 </button>
-
-                                <div class="copyright-type-buttons">
-                Copyright © LIFT Creations
-            </div>
                             </div>
                         </div>
                     </div>
@@ -328,14 +310,14 @@
                 </div>
 
                 <!-- Form Preview Modal -->
-                <div id="form-preview-modal" class="field-modal form-preview-modal" style="display: none;">
-                    <div class="modal-content modal-extra-large">
+                <div id="form-preview-modal" class="field-modal" style="display: none;">
+                    <div class="modal-content modal-large">
                         <div class="modal-header">
                             <h4>Form Preview</h4>
                             <button type="button" class="modal-close">&times;</button>
                         </div>
                         <div class="modal-body">
-                            <div id="form-preview-content" class="form-preview-wrapper">
+                            <div id="form-preview-content">
                                 <!-- Preview content will be inserted here -->
                             </div>
                         </div>
@@ -345,7 +327,9 @@
                     </div>
                 </div>
             </div>
-            
+            <div class="copyright-type-buttons">
+                Copyright © LIFT Creations
+            </div>
         `;
 
         container.html(builderHTML);
@@ -1602,7 +1586,7 @@
 
         // Check if we have row/column structure
         if ($('#form-fields-list .form-row').length > 0) {
-            // Generate preview with row/column structure matching form builder
+            // Generate preview with row/column structure
             previewHTML = '<div class="form-preview-container">';
 
             $('#form-fields-list .form-row').each(function() {
@@ -1610,7 +1594,7 @@
                 const columns = rowElement.find('.form-column');
 
                 if (columns.length > 0) {
-                    previewHTML += '<div class="preview-row" style="display: flex; margin-bottom: 20px; gap: 15px;">';
+                    previewHTML += '<div class="preview-row">';
 
                     columns.each(function() {
                         const columnElement = $(this);
@@ -1628,22 +1612,14 @@
                             }
                         });
 
-                        // Get actual flex value from the column element
-                        const flexValue = columnElement.css('flex') || '1';
-                        previewHTML += `<div class="preview-column" style="flex: ${flexValue}; padding: 0 10px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 15px; background: #fafafa;">`;
-
-                        // Add column title for clarity
-                        previewHTML += `<div class="preview-column-header" style="font-weight: bold; color: #666; margin-bottom: 10px; font-size: 12px; text-transform: uppercase;">Column</div>`;
+                        // Calculate column width based on flex or data attributes
+                        const columnWidth = Math.floor(100 / columns.length);
+                        previewHTML += `<div class="preview-column" style="width: ${columnWidth}%; padding: 0 10px;">`;
 
                         // Add fields in this column
                         columnFields.forEach(field => {
                             previewHTML += generateFullFormPreview(field);
                         });
-
-                        // Show placeholder if column is empty
-                        if (columnFields.length === 0) {
-                            previewHTML += '<div style="color: #999; font-style: italic; padding: 20px; text-align: center;">No fields in this column</div>';
-                        }
 
                         previewHTML += '</div>';
                     });
@@ -1653,16 +1629,10 @@
             });
 
             previewHTML += '</div>';
-        } else {
-            // Fallback for single column layout
-            previewHTML = '<div class="form-preview-container single-column">';
-            formData.forEach(field => {
-                previewHTML += generateFullFormPreview(field);
-            });
-            previewHTML += '</div>';
         }
 
-        // Remove submit button - don't add it
+        // Add submit button
+        previewHTML += '<div class="form-group submit-group"><button type="submit" class="btn btn-primary">Submit Form</button></div>';
 
         // Insert into modal and show
         $('#form-preview-content').html(previewHTML);
@@ -1691,23 +1661,7 @@
             });
         });
 
-        // Column settings modal handlers
-        $(document).on('click', '#save-column-settings', function() {
-            saveColumnSettings();
-        });
-
-        $(document).on('click', '.column-settings-close, #column-settings-modal .modal-close', function() {
-            $('#column-settings-modal').hide();
-        });
-
-        // Close modal on backdrop click
-        $(document).on('click', '#column-settings-modal', function(e) {
-            if (e.target === this) {
-                $('#column-settings-modal').hide();
-            }
-        });
-
-        // Auto-save every 30 seconds
+        // Auto-save every 30 seconds - DISABLED for debugging
         // setInterval(function() {
         //     if (formData.length > 0) {
         //         saveForm(true); // Silent save
@@ -1780,10 +1734,6 @@
             },
             success: function(response) {
                 if (response.success) {
-                    // Reset form modified state
-                    formModified = false;
-                    $('#save-form').text('Save Form');
-                    
                     if (!silent) {
                         $('.lift-save-indicator').text('Saved').removeClass('error');
                         setTimeout(() => $('.lift-save-indicator').fadeOut(), 2000);
@@ -1970,26 +1920,22 @@
 
             // Add columns
             row.columns.forEach((column, columnIndex) => {
-                const columnWidth = column.width || '1';
                 rowHTML += `
-                    <div class="form-column" data-column-id="${column.id}" style="flex: ${columnWidth}; position: relative;">
+                    <div class="form-column" data-column-id="${column.id}" style="flex: ${column.width || '1'}; position: relative;">
                         <div class="column-header">
-                            <span class="column-title">C ${columnIndex + 1}</span>
+                            <span class="column-title">Column ${columnIndex + 1}</span>
                             <div class="column-actions">
                                 <select class="column-width-selector" onchange="changeColumnWidth('${column.id}', this.value)">
-                                    <option value="1" ${columnWidth == '1' ? 'selected' : ''}>Auto</option>
-                                    <option value="0.16" ${columnWidth == '0.16' ? 'selected' : ''}>16.67% (1/6)</option>
-                                    <option value="0.25" ${columnWidth == '0.25' ? 'selected' : ''}>25% (1/4)</option>
-                                    <option value="0.33" ${columnWidth == '0.33' ? 'selected' : ''}>33.33% (1/3)</option>
-                                    <option value="0.5" ${columnWidth == '0.5' ? 'selected' : ''}>50% (1/2)</option>
-                                    <option value="0.66" ${columnWidth == '0.66' ? 'selected' : ''}>66.67% (2/3)</option>
-                                    <option value="0.75" ${columnWidth == '0.75' ? 'selected' : ''}>75% (3/4)</option>
-                                    <option value="0.83" ${columnWidth == '0.83' ? 'selected' : ''}>83.33% (5/6)</option>
-                                    <option value="1" ${columnWidth == '1' ? 'selected' : ''}>100%</option>
+                                    <option value="1">Auto</option>
+                                    <option value="0.16">16.67% (1/6)</option>
+                                    <option value="0.25">25% (1/4)</option>
+                                    <option value="0.33">33.33% (1/3)</option>
+                                    <option value="0.5">50% (1/2)</option>
+                                    <option value="0.66">66.67% (2/3)</option>
+                                    <option value="0.75">75% (3/4)</option>
+                                    <option value="0.83">83.33% (5/6)</option>
+                                    <option value="1">100%</option>
                                 </select>
-                                <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${column.id}')">
-                                    <span class="dashicons dashicons-admin-generic"></span>
-                                </button>
                             </div>
                         </div>
                         <div class="column-content">
@@ -2005,7 +1951,7 @@
                     });
                     rowHTML += '</div>'; // Close column-content
                 } else {
-                    // rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
+                    rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
                 }
 
                 rowHTML += '</div>'; // Close form-column
@@ -2277,10 +2223,10 @@
             rowHTML += `
                 <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                     <div class="column-header">
-                        <span class="column-title">C ${i + 1}</span>
+                        <span class="column-title">Column ${i + 1}</span>
                         <div class="column-actions">
                             <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
-                                <option value="1" selected>Auto</option>
+                                <option value="1">Auto</option>
                                 <option value="0.16">16.67% (1/6)</option>
                                 <option value="0.25">25% (1/4)</option>
                                 <option value="0.33">33.33% (1/3)</option>
@@ -2375,18 +2321,22 @@
             rowHTML += `
                 <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                     <div class="column-header">
-                        <span class="column-title">C ${i + 1}</span>
+                        <span class="column-title">Column ${i + 1}</span>
                         <div class="column-actions">
                             <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
-                                <option value="1" selected>Auto</option>
-                                <option value="0.16">16.67% (1/6)</option>
-                                <option value="0.25">25% (1/4)</option>
-                                <option value="0.33">33.33% (1/3)</option>
-                                <option value="0.5">50% (1/2)</option>
-                                <option value="0.66">66.67% (2/3)</option>
-                                <option value="0.75">75% (3/4)</option>
-                                <option value="0.83">83.33% (5/6)</option>
-                                <option value="1">100%</option>
+                                <option value="col-auto">col-auto</option>
+                                <option value="col-1">col-1</option>
+                                <option value="col-2">col-2</option>
+                                <option value="col-3">col-3</option>
+                                <option value="col-4">col-4</option>
+                                <option value="col-5">col-5</option>
+                                <option value="col-6">col-6</option>
+                                <option value="col-7">col-7</option>
+                                <option value="col-8">col-8</option>
+                                <option value="col-9">col-9</option>
+                                <option value="col-10">col-10</option>
+                                <option value="col-11">col-11</option>
+                                <option value="col-12">col-12</option>
                             </select>
                             <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
                                 <span class="dashicons dashicons-admin-generic"></span>
@@ -2482,10 +2432,10 @@
         const columnHTML = `
             <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                 <div class="column-header">
-                    <span class="column-title">C ${currentColumns + 1}</span>
+                    <span class="column-title">Column ${currentColumns + 1}</span>
                     <div class="column-actions">
                         <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
-                            <option value="1" selected>Auto</option>
+                            <option value="1">Auto</option>
                             <option value="0.16">16.67% (1/6)</option>
                             <option value="0.25">25% (1/4)</option>
                             <option value="0.33">33.33% (1/3)</option>
@@ -2493,7 +2443,8 @@
                             <option value="0.66">66.67% (2/3)</option>
                             <option value="0.75">75% (3/4)</option>
                             <option value="0.83">83.33% (5/6)</option>
-                            <option value="1">100%</option>
+                            <option value="2">2x Width</option>
+                            <option value="3">3x Width</option>
                         </select>
                         <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
                             <span class="dashicons dashicons-admin-generic"></span>
@@ -2532,20 +2483,6 @@
     function changeColumnWidth(columnId, flexValue) {
         const column = $(`.form-column[data-column-id="${columnId}"]`);
         column.css('flex', flexValue);
-        
-        // Also update the column width selector to reflect the change
-        column.find('.column-width-selector').val(flexValue);
-        
-        // Mark form as modified to enable save
-        markFormAsModified();
-        
-        // Optional: Auto-save after a short delay
-        if (autoSaveTimeout) {
-            clearTimeout(autoSaveTimeout);
-        }
-        autoSaveTimeout = setTimeout(function() {
-            saveForm(true); // Silent save
-        }, 2000);
     }
 
     function openColumnSettings(columnId) {
@@ -2585,17 +2522,6 @@
         } else {
             column.removeAttr('data-custom-classes');
         }
-
-        // Mark form as modified and trigger save
-        markFormAsModified();
-        
-        // Auto-save after changes
-        if (autoSaveTimeout) {
-            clearTimeout(autoSaveTimeout);
-        }
-        autoSaveTimeout = setTimeout(function() {
-            saveForm(true); // Silent save
-        }, 1000);
 
         // Close modal
         $('#column-settings-modal').hide();
@@ -2836,6 +2762,7 @@
         }];
     }
 
-    // Form data debugging functionality has been removed for production
+    // Expose debug function globally for testing
+    // window.debugFormData = debugFormData;
 
 })(jQuery);

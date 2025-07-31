@@ -442,16 +442,21 @@ body.document-form-page .form-header {
 }
 
 .form-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
     margin-bottom: 16px;
-    flex-wrap: wrap;
 }
 
 .form-column {
     min-width: 0;
-    flex: 1; /* Default flex, will be overridden by inline style */
 }
+
+/* Column width classes for specific layouts */
+.form-column.col-1 { grid-column: 1 / -1; }
+.form-column.col-2 { grid-column: span 2; }
+.form-column.col-3 { grid-column: span 3; }
+.form-column.col-4 { grid-column: span 4; }
 
 /* ========================================
    Form Fields & Controls - OS-Native Compact Design
@@ -1870,13 +1875,14 @@ body.document-form-page .lift-form-field.lift-field-signature {
     }
 
     .form-row {
-        flex-direction: column;
+        grid-template-columns: 1fr;
         gap: 12px;
     }
 
-    .form-column {
-        flex: none !important;
-        width: 100% !important;
+    .form-column.col-2,
+    .form-column.col-3,
+    .form-column.col-4 {
+        grid-column: span 1;
     }
 
     .form-actions {
