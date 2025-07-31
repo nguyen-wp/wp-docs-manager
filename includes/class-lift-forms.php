@@ -2324,12 +2324,8 @@ class LIFT_Forms {
             margin-top: 20px;
             margin-bottom: 10px;
             padding-bottom: 5px;
-            border-bottom: 1px solid #ddd;
             color: #23282d;
             font-size: 16px;
-        }
-        .submission-details-container h3:first-child {
-            margin-top: 0;
         }
         .user-info-detail strong {
             color: #0073aa;
