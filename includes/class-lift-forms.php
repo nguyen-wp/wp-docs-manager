@@ -1403,17 +1403,21 @@ class LIFT_Forms {
                         wp.editor.initialize('form-header-editor', {
                             tinymce: {
                                 wpautop: true,
-                                plugins: 'lists,link,textcolor,wordpress',
-                                toolbar1: 'bold,italic,underline,strikethrough,|,bullist,numlist,|,link,unlink,|,forecolor,backcolor',
-                                toolbar2: '',
-                                height: 150,
+                                plugins: 'charmap,colorpicker,hr,lists,media,paste,tabfocus,textcolor,fullscreen,wordpress,wpautoresize,wpeditimage,wpemoji,wpgallery,wplink,wpdialogs,wptextpattern,wpview',
+                                toolbar1: 'formatselect,bold,italic,underline,strikethrough,|,bullist,numlist,blockquote,|,alignleft,aligncenter,alignright,alignjustify,|,link,unlink,wp_more',
+                                toolbar2: 'undo,redo,|,pastetext,removeformat,|,charmap,|,outdent,indent,|,wp_adv',
+                                toolbar3: 'fontselect,fontsizeselect,|,forecolor,backcolor,|,hr,|,fullscreen,wp_help',
+                                height: 200,
                                 menubar: false,
                                 branding: false,
-                                statusbar: false
+                                statusbar: true,
+                                resize: true,
+                                wordpress_adv_hidden: false
                             },
                             quicktags: {
-                                buttons: 'strong,em,ul,ol,li,link,close'
-                            }
+                                buttons: 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
+                            },
+                            mediaButtons: true
                         });
                     }
                     
@@ -1422,17 +1426,21 @@ class LIFT_Forms {
                         wp.editor.initialize('form-footer-editor', {
                             tinymce: {
                                 wpautop: true,
-                                plugins: 'lists,link,textcolor,wordpress',
-                                toolbar1: 'bold,italic,underline,strikethrough,|,bullist,numlist,|,link,unlink,|,forecolor,backcolor',
-                                toolbar2: '',
-                                height: 150,
+                                plugins: 'charmap,colorpicker,hr,lists,media,paste,tabfocus,textcolor,fullscreen,wordpress,wpautoresize,wpeditimage,wpemoji,wpgallery,wplink,wpdialogs,wptextpattern,wpview',
+                                toolbar1: 'formatselect,bold,italic,underline,strikethrough,|,bullist,numlist,blockquote,|,alignleft,aligncenter,alignright,alignjustify,|,link,unlink,wp_more',
+                                toolbar2: 'undo,redo,|,pastetext,removeformat,|,charmap,|,outdent,indent,|,wp_adv',
+                                toolbar3: 'fontselect,fontsizeselect,|,forecolor,backcolor,|,hr,|,fullscreen,wp_help',
+                                height: 200,
                                 menubar: false,
                                 branding: false,
-                                statusbar: false
+                                statusbar: true,
+                                resize: true,
+                                wordpress_adv_hidden: false
                             },
                             quicktags: {
-                                buttons: 'strong,em,ul,ol,li,link,close'
-                            }
+                                buttons: 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
+                            },
+                            mediaButtons: true
                         });
                     }
                 } catch (error) {
