@@ -624,10 +624,6 @@ class LIFT_Forms {
                 formData.append('action', 'lift_forms_import');
                 formData.append('nonce', '<?php echo wp_create_nonce('lift_forms_import_nonce'); ?>');
 
-                // Debug: Log form data
-                console.log('LIFT Forms Import: Submitting form');
-                console.log('LIFT Forms Import: File input:', $('#lift-import-file')[0].files[0]);
-                
                 if ($('#lift-import-file')[0].files.length === 0) {
                     alert('Please select a JSON file first');
                     return;
@@ -2598,7 +2594,11 @@ class LIFT_Forms {
                                 Current User Can Manage Options: <?php echo current_user_can('manage_options') ? 'Yes' : 'No'; ?><br>
                                 <?php if (!empty($submission_data)): ?>
                                     <strong>Submission Data:</strong><br>
-                                    <pre style="font-size: 11px; max-height: 200px; overflow-y: auto; background: white; padding: 5px;"><?php echo htmlspecialchars(print_r($submission_data, true)); ?></pre>
+                                    <div style="font-size: 11px; max-height: 200px; overflow-y: auto; background: white; padding: 5px; border: 1px solid #ddd;">
+                                        <?php foreach ($submission_data as $key => $value): ?>
+                                            <div><strong><?php echo esc_html($key); ?>:</strong> <?php echo esc_html(is_array($value) ? implode(', ', $value) : $value); ?></div>
+                                        <?php endforeach; ?>
+                                    </div>
                                 <?php endif; ?>
                                 <?php if ($submission_info): ?>
                                     <strong>Raw Form Data:</strong><br>
@@ -3426,13 +3426,8 @@ class LIFT_Forms {
      * AJAX handler for importing forms from JSON
      */
     public function ajax_import_form() {
-        // Debug: Log all incoming data
-        error_log('LIFT Forms Import: POST data: ' . print_r($_POST, true));
-        error_log('LIFT Forms Import: FILES data: ' . print_r($_FILES, true));
-        
         // Check nonce
         if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_import_nonce')) {
-            error_log('LIFT Forms Import: Nonce verification failed');
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
 
@@ -3444,18 +3439,14 @@ class LIFT_Forms {
 
         // Check if file was uploaded
         if (!isset($_FILES['import_file']) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK) {
-            error_log('LIFT Forms Import: File upload error. FILES: ' . print_r($_FILES, true));
             wp_send_json_error(__('No file uploaded or upload error', 'lift-docs-system'));
         }
 
         $file = $_FILES['import_file'];
         
-        error_log('LIFT Forms Import: File info - Name: ' . $file['name'] . ', Type: ' . $file['type'] . ', Size: ' . $file['size']);
-        
         // Validate file type
         $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if ($file['type'] !== 'application/json' && $file_extension !== 'json') {
-            error_log('LIFT Forms Import: Invalid file type. Type: ' . $file['type'] . ', Extension: ' . $file_extension);
             wp_send_json_error(__('Please upload a valid JSON file', 'lift-docs-system'));
         }
 
@@ -3525,10 +3516,6 @@ class LIFT_Forms {
 
         // Prepare export data
         $form_fields_data = json_decode($form->form_fields, true);
-        
-        // Debug export data
-        error_log('LIFT Forms Export: Form form_fields column: ' . $form->form_fields);
-        error_log('LIFT Forms Export: Decoded form_fields: ' . print_r($form_fields_data, true));
         
         // Extract layout and fields from form_fields data
         $layout_data = null;
@@ -3696,13 +3683,8 @@ class LIFT_Forms {
     private function validate_form_import_data($data) {
         // Check if data is valid
         if (!is_array($data) || empty($data)) {
-            error_log('LIFT Forms Import: Data is not an array or is empty');
             return array('valid' => false, 'error' => __('Invalid data format', 'lift-docs-system'));
         }
-        
-        // Debug: Log the received data structure
-        error_log('LIFT Forms Import Debug: Available keys: ' . print_r(array_keys($data), true));
-        error_log('LIFT Forms Import Debug: Data structure: ' . print_r($data, true));
         
         // Check if it's a single form or multiple forms backup
         if (isset($data['forms']) && is_array($data['forms'])) {
@@ -3714,31 +3696,24 @@ class LIFT_Forms {
         
         foreach ($required_fields as $field) {
             if (!array_key_exists($field, $data)) {
-                error_log("LIFT Forms Import: Missing field '$field'. Available fields: " . implode(', ', array_keys($data)));
-                error_log("LIFT Forms Import: Checking field '$field' - isset: " . (isset($data[$field]) ? 'true' : 'false') . ", array_key_exists: " . (array_key_exists($field, $data) ? 'true' : 'false'));
                 return array('valid' => false, 'error' => sprintf(__('Missing required field: %s. Available fields: %s', 'lift-docs-system'), $field, implode(', ', array_keys($data))));
             }
         }
 
         // Validate layout structure
         if (!is_array($data['layout'])) {
-            error_log('LIFT Forms Import: Layout is not an array. Layout type: ' . gettype($data['layout']));
-            error_log('LIFT Forms Import: Layout content: ' . print_r($data['layout'], true));
             return array('valid' => false, 'error' => __('Invalid layout structure - layout must be an array', 'lift-docs-system'));
         }
         
         if (!isset($data['layout']['rows']) && !array_key_exists('rows', $data['layout'])) {
-            error_log('LIFT Forms Import: Layout missing rows. Layout keys: ' . implode(', ', array_keys($data['layout'])));
             return array('valid' => false, 'error' => __('Invalid layout structure - layout must contain rows array', 'lift-docs-system'));
         }
 
         // Validate fields structure
         if (!is_array($data['fields'])) {
-            error_log('LIFT Forms Import: Fields is not an array. Fields type: ' . gettype($data['fields']));
             return array('valid' => false, 'error' => __('Invalid fields structure - fields must be an array', 'lift-docs-system'));
         }
 
-        error_log('LIFT Forms Import: Validation passed successfully');
         return array('valid' => true);
     }
 
@@ -3778,13 +3753,10 @@ class LIFT_Forms {
             'updated_at' => current_time('mysql')
         );
 
-        error_log('LIFT Forms Import: Inserting data: ' . print_r($insert_data, true));
-
         // Insert form
         $result = $wpdb->insert($forms_table, $insert_data);
 
         if ($result === false) {
-            error_log('LIFT Forms Import: Database insert failed. Error: ' . $wpdb->last_error);
             return array('success' => false, 'error' => __('Failed to insert form into database', 'lift-docs-system') . ': ' . $wpdb->last_error);
         }
 

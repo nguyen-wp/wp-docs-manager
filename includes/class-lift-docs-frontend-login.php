@@ -289,50 +289,16 @@ class LIFT_Docs_Frontend_Login {
         $form_fields = array();
         $raw_form_data = $form->form_fields;
 
-        // DEBUG: Add temporary debug output (remove after debugging)
-        if (isset($_GET['debug_form_data'])) {
-            echo "<!-- DEBUG: Raw form data -->\n";
-            echo "<!-- " . htmlspecialchars($raw_form_data) . " -->\n";
-        }
-
         if (!empty($raw_form_data)) {
             $parsed_data = json_decode($raw_form_data, true);
-
-            // DEBUG: Add temporary debug output (remove after debugging)
-            if (isset($_GET['debug_form_data'])) {
-                echo "<!-- DEBUG: Parsed data structure -->\n";
-                echo "<!-- " . htmlspecialchars(print_r($parsed_data, true)) . " -->\n";
-            }
 
             if (is_array($parsed_data)) {
                 // Check if it's the new hierarchical structure with layout
                 if (isset($parsed_data['layout']) && isset($parsed_data['layout']['rows'])) {
-                    // DEBUG: Add temporary debug output (remove after debugging)
-                    if (isset($_GET['debug_form_data'])) {
-                        echo "<!-- DEBUG: Found layout.rows structure -->\n";
-                    }
-                    
                     // New structure - extract fields with row/column information preserved
                     foreach ($parsed_data['layout']['rows'] as $row_index => $row) {
                         if (isset($row['columns'])) {
                             foreach ($row['columns'] as $col_index => $column) {
-                                // DEBUG: Add temporary debug output (remove after debugging)
-                                if (isset($_GET['debug_form_data'])) {
-                                    $raw_width = isset($column['width']) ? $column['width'] : 'NO WIDTH';
-                                    echo "<!-- DEBUG: Column $col_index raw width: $raw_width -->\n";
-                                    
-                                    if (isset($column['width'])) {
-                                        $width_value = $column['width'];
-                                        if (is_string($width_value) && strpos($width_value, ' ') !== false) {
-                                            $parts = explode(' ', trim($width_value));
-                                            $parsed_width = $parts[0];
-                                            echo "<!-- DEBUG: Column $col_index parsed from CSS '$width_value' to '$parsed_width' -->\n";
-                                        } else {
-                                            echo "<!-- DEBUG: Column $col_index using direct value '$width_value' -->\n";
-                                        }
-                                    }
-                                }
-                                
                                 if (isset($column['fields'])) {
                                     foreach ($column['fields'] as $field) {
                                         // Add row/column information to field
@@ -355,17 +321,9 @@ class LIFT_Docs_Frontend_Login {
                         }
                     }
                 } elseif (isset($parsed_data[0]) && is_array($parsed_data[0])) {
-                    // DEBUG: Add temporary debug output (remove after debugging)
-                    if (isset($_GET['debug_form_data'])) {
-                        echo "<!-- DEBUG: Using direct array structure -->\n";
-                    }
                     // Direct array of fields
                     $form_fields = $parsed_data;
                 } else {
-                    // DEBUG: Add temporary debug output (remove after debugging)
-                    if (isset($_GET['debug_form_data'])) {
-                        echo "<!-- DEBUG: Using legacy/other structure -->\n";
-                    }
                     // Legacy or other structure - try to extract fields
                     $form_fields = $parsed_data;
                 }
@@ -1078,19 +1036,6 @@ class LIFT_Docs_Frontend_Login {
                     }
                 }
                 
-                // DEBUG: Add temporary debug output (remove after debugging)
-                if (isset($_GET['debug_form_data'])) {
-                    echo "<!-- DEBUG: Column $col_index - Raw width: ";
-                    foreach ($col_fields as $field) {
-                        if (isset($field['width'])) {
-                            echo $field['width'] . " ";
-                        } else {
-                            echo "NO_WIDTH ";
-                        }
-                    }
-                    echo "Final width: $column_width -->\n";
-                }
-                
                 // Calculate default width based on number of columns if no custom width
                 if ($column_width == 1 && count($columns) > 1) {
                     $column_width = 1 / count($columns);
@@ -1207,8 +1152,6 @@ class LIFT_Docs_Frontend_Login {
         $logo_id = !empty($interface_logo_id) ? $interface_logo_id : get_option('lift_docs_login_logo', '');
         $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
         $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
-
-        // Debug: Log logo values for troubleshooting
 
         // Use Interface tab title/description if set, otherwise use defaults
         $display_title = !empty($interface_title) ? $interface_title : __('Document Access Portal', 'lift-docs-system');
@@ -2473,13 +2416,6 @@ class LIFT_Docs_Frontend_Login {
         ));
 
         return !empty($users) ? $users[0] : false;
-    }
-
-    /**
-     * Public method for debugging - find user by login
-     */
-    public function debug_find_user($login) {
-        return $this->find_user_by_login($login);
     }
 
     /**

@@ -1705,7 +1705,7 @@
             }
         });
 
-        // Auto-save every 30 seconds - DISABLED for debugging
+        // Auto-save every 30 seconds
         // setInterval(function() {
         //     if (formData.length > 0) {
         //         saveForm(true); // Silent save
@@ -2834,7 +2834,6 @@
         }];
     }
 
-    // Expose debug function globally for testing
-    // window.debugFormData = debugFormData;
+    // Form data debugging functionality has been removed for production
 
 })(jQuery);
