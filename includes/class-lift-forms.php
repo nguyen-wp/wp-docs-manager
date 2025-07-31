@@ -3734,6 +3734,13 @@ class LIFT_Forms {
             }
         }
 
+        // Debug: Check if header/footer exist
+        if (isset($_GET['debug']) && current_user_can('manage_options')) {
+            echo '<!-- Debug: Form settings: ' . esc_html($form->settings) . ' -->';
+            echo '<!-- Debug: Form header: ' . esc_html($form_header) . ' -->';
+            echo '<!-- Debug: Form footer: ' . esc_html($form_footer) . ' -->';
+        }
+
         // Check if admin is viewing with submission data
         $submission_data = array();
         $submission_info = null;
