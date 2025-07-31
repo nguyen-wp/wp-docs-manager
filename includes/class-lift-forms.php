@@ -2619,6 +2619,23 @@ class LIFT_Forms {
             }
         }
 
+        // Parse settings to extract header and footer
+        $settings_data = array();
+        $form_header = '';
+        $form_footer = '';
+        
+        if (!empty($form->settings)) {
+            $settings_data = json_decode($form->settings, true);
+            if (is_array($settings_data)) {
+                $form_header = $settings_data['form_header'] ?? '';
+                $form_footer = $settings_data['form_footer'] ?? '';
+            }
+        }
+        
+        // Add header and footer to form object
+        $form->form_header = $form_header;
+        $form->form_footer = $form_footer;
+
         wp_send_json_success($form);
     }
 
@@ -2640,16 +2657,33 @@ class LIFT_Forms {
         $description = sanitize_textarea_field($_POST['description'] ?? '');
         $fields = $_POST['fields'] ?? ''; // JSON data
         $settings = $_POST['settings'] ?? '{}'; // JSON data
+        
+        // Handle form header and footer content
+        $form_header = wp_kses_post($_POST['form_header'] ?? '');
+        $form_footer = wp_kses_post($_POST['form_footer'] ?? '');
 
         // Ensure fields is a string
         if (!is_string($fields)) {
             $fields = '';
         }
 
-        // Ensure settings is a string
+        // Ensure settings is a string, then decode and add header/footer
         if (!is_string($settings)) {
             $settings = '{}';
         }
+        
+        // Parse settings and add header/footer
+        $settings_data = json_decode($settings, true);
+        if (!is_array($settings_data)) {
+            $settings_data = array();
+        }
+        
+        // Add form header and footer to settings
+        $settings_data['form_header'] = $form_header;
+        $settings_data['form_footer'] = $form_footer;
+        
+        // Re-encode settings
+        $settings = json_encode($settings_data);
 
         // Enhanced form name validation
         if (empty($name)) {
@@ -3614,6 +3648,17 @@ class LIFT_Forms {
             return '<p>' . __('This form has no fields configured', 'lift-docs-system') . '</p>';
         }
 
+        // Parse form settings for header and footer
+        $form_header = '';
+        $form_footer = '';
+        if (!empty($form->settings)) {
+            $settings = json_decode($form->settings, true);
+            if (is_array($settings)) {
+                $form_header = $settings['form_header'] ?? '';
+                $form_footer = $settings['form_footer'] ?? '';
+            }
+        }
+
         // Check if admin is viewing with submission data
         $submission_data = array();
         $submission_info = null;
@@ -3713,7 +3758,19 @@ class LIFT_Forms {
 
                         <!-- Admin view - show read-only form with submitted data -->
                         <div class="lift-form admin-readonly-form">
+                            <?php if (!empty($form_header)): ?>
+                                <div class="form-header-content">
+                                    <?php echo wp_kses_post($form_header); ?>
+                                </div>
+                            <?php endif; ?>
+
                             <?php echo $this->render_form_fields($fields, $submission_data, true); ?>
+
+                            <?php if (!empty($form_footer)): ?>
+                                <div class="form-footer-content">
+                                    <?php echo wp_kses_post($form_footer); ?>
+                                </div>
+                            <?php endif; ?>
 
                             <?php if ($submission_info): ?>
                                 <div class="admin-form-actions" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
@@ -3734,7 +3791,19 @@ class LIFT_Forms {
                             <?php wp_nonce_field('lift_forms_submit_nonce', 'lift_forms_nonce'); ?>
                             <input type="hidden" name="form_id" value="<?php echo $form_id; ?>">
 
+                            <?php if (!empty($form_header)): ?>
+                                <div class="form-header-content">
+                                    <?php echo wp_kses_post($form_header); ?>
+                                </div>
+                            <?php endif; ?>
+
                             <?php echo $this->render_form_fields($fields); ?>
+
+                            <?php if (!empty($form_footer)): ?>
+                                <div class="form-footer-content">
+                                    <?php echo wp_kses_post($form_footer); ?>
+                                </div>
+                            <?php endif; ?>
 
                             <div class="lift-form-submit">
                                 <button type="submit" class="lift-form-submit-btn btn button-primary">

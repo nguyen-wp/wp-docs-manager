@@ -266,6 +266,218 @@
     border-top: 1px solid #e2e8f0;
 }
 
+/* Form Header and Footer Editor Styles */
+.form-action-builder-header,
+.form-action-builder-footer {
+    padding: 20px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.header-editor-container,
+.footer-editor-container {
+    width: 100%;
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.editor-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.toggle-header-editor,
+.toggle-footer-editor {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    font-size: 13px;
+    height: auto;
+    line-height: 1.4;
+}
+
+.editor-content {
+    min-height: 60px;
+}
+
+.editor-preview {
+    min-height: 60px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    position: relative;
+}
+
+.editor-preview .no-content-message {
+    color: #666;
+    font-style: italic;
+    margin: 0;
+    text-align: center;
+    padding: 20px;
+}
+
+.editor-edit {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.wp-editor-wrap {
+    margin-bottom: 15px;
+}
+
+.wp-editor-area {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.wp-editor-area:focus {
+    border-color: #2271b1;
+    outline: none;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.editor-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.save-header-content,
+.save-footer-content {
+    background: #2271b1;
+    color: #fff;
+    border: 1px solid #2271b1;
+}
+
+.save-header-content:hover,
+.save-footer-content:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+.cancel-header-edit,
+.cancel-footer-edit {
+    background: #f6f7f7;
+    color: #646970;
+    border: 1px solid #dcdcde;
+}
+
+.cancel-header-edit:hover,
+.cancel-footer-edit:hover {
+    background: #f0f0f1;
+    border-color: #8c8f94;
+}
+
+/* Form Header and Footer Content Display */
+.form-header-content,
+.form-footer-content {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.form-header-content {
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+
+.form-footer-content {
+    margin-top: 30px;
+    margin-bottom: 0;
+}
+
+.form-header-content h1,
+.form-header-content h2,
+.form-header-content h3,
+.form-header-content h4,
+.form-header-content h5,
+.form-header-content h6,
+.form-footer-content h1,
+.form-footer-content h2,
+.form-footer-content h3,
+.form-footer-content h4,
+.form-footer-content h5,
+.form-footer-content h6 {
+    margin-top: 0;
+}
+
+.form-header-content p:last-child,
+.form-footer-content p:last-child {
+    margin-bottom: 0;
+}
+
+.form-header-content a,
+.form-footer-content a {
+    color: #2271b1;
+    text-decoration: none;
+}
+
+.form-header-content a:hover,
+.form-footer-content a:hover {
+    color: #135e96;
+    text-decoration: underline;
+}
+
+.form-header-content ul,
+.form-header-content ol,
+.form-footer-content ul,
+.form-footer-content ol {
+    padding-left: 20px;
+}
+
+.form-header-content blockquote,
+.form-footer-content blockquote {
+    background: #fff;
+    border-left: 4px solid #2271b1;
+    margin: 15px 0;
+    padding: 10px 15px;
+    font-style: italic;
+}
+
+.form-header-content code,
+.form-footer-content code {
+    background: #f1f1f1;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 0.9em;
+}
+
+.form-header-content pre,
+.form-footer-content pre {
+    background: #f1f1f1;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
 /* Column Layout System - Improved */
 .form-row {
     display: flex;
