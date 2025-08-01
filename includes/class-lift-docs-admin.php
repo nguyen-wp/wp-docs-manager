@@ -5485,4 +5485,94 @@ class LIFT_Docs_Admin {
             wp_send_json_error(__('Error generating preview: ', 'lift-docs-system') . $e->getMessage());
         }
     }
+
+    /**
+     * Send notification email to admin when form is updated
+     */
+    public function send_form_update_notification($form_id, $form_name, $document_id = null, $document_title = null, $user_id = null) {
+        // Get configured email recipients or fallback to admin email
+        $recipients = get_option('lift_docs_form_notification_recipients', get_option('admin_email'));
+        $recipients_array = array_map('trim', explode(',', $recipients));
+        
+        // Validate and filter email addresses
+        $valid_emails = array();
+        foreach ($recipients_array as $email) {
+            if (is_email($email)) {
+                $valid_emails[] = $email;
+            }
+        }
+        
+        if (empty($valid_emails)) {
+            return false; // No valid email addresses
+        }
+
+        // Get user information
+        $user = get_userdata($user_id ?: get_current_user_id());
+        $user_name = $user ? $user->display_name : __('Unknown User', 'lift-docs-system');
+        $user_email = $user ? $user->user_email : '';
+
+        // Get document information if provided
+        $document_info = '';
+        if ($document_id && $document_title) {
+            $document_info = sprintf(
+                __(' in document "%s"', 'lift-docs-system'),
+                $document_title
+            );
+        }
+
+        // Email subject
+        $subject = sprintf(
+            __('[%s] Form Updated: %s', 'lift-docs-system'),
+            get_bloginfo('name'),
+            $form_name
+        );
+
+        // Email message
+        $message = sprintf(
+            __('A form has been updated on your website.
+
+Form Details:
+- Form Name: %s
+- Form ID: %s%s
+- Updated by: %s (%s)
+- Date: %s
+- Time: %s
+
+You can view and manage this form in your admin dashboard at:
+%s
+
+Best regards,
+%s'), 
+            $form_name,
+            $form_id,
+            $document_info,
+            $user_name,
+            $user_email,
+            date_i18n(get_option('date_format')),
+            date_i18n(get_option('time_format')),
+            admin_url('admin.php?page=lift-forms'),
+            get_bloginfo('name')
+        );
+
+        // Email headers
+        $headers = array(
+            'Content-Type: text/plain; charset=UTF-8',
+            'From: ' . get_bloginfo('name') . ' <' . get_option('admin_email') . '>'
+        );
+
+        // Send email to all valid recipients
+        $sent_count = 0;
+        foreach ($valid_emails as $email) {
+            if (wp_mail($email, $subject, $message, $headers)) {
+                $sent_count++;
+            }
+        }
+
+        // Log email sending result
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs: Form update notification ' . ($sent_count > 0 ? 'sent to ' . $sent_count . ' recipient(s)' : 'failed') . ' for form: ' . $form_name . ' (ID: ' . $form_id . ')');
+        }
+
+        return $sent_count > 0;
+    }
 }

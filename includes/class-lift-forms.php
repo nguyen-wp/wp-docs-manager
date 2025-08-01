@@ -2947,6 +2947,51 @@ class LIFT_Forms {
         }
 
         if ($result !== false) {
+            // Send notification email to admin if form was updated (not created)
+            if ($form_id) {
+                // Get document information if form is associated with a document
+                $document_id = null;
+                $document_title = null;
+                
+                // Try to find if this form is used in any document
+                global $wpdb;
+                $posts_table = $wpdb->prefix . 'posts';
+                $postmeta_table = $wpdb->prefix . 'postmeta';
+                
+                // Search for documents that might contain this form
+                $document_query = $wpdb->prepare(
+                    "SELECT p.ID, p.post_title 
+                     FROM $posts_table p 
+                     INNER JOIN $postmeta_table pm ON p.ID = pm.post_id 
+                     WHERE p.post_type = 'lift_document' 
+                     AND p.post_status = 'publish'
+                     AND (pm.meta_key = '_lift_form_data' AND pm.meta_value LIKE %s)
+                     LIMIT 1",
+                    '%"form_id":"' . $saved_id . '"%'
+                );
+                
+                $document = $wpdb->get_row($document_query);
+                if ($document) {
+                    $document_id = $document->ID;
+                    $document_title = $document->post_title;
+                }
+                
+                // Get admin class instance and send notification (only if enabled)
+                $form_notifications_enabled = get_option('lift_docs_form_update_notifications', true);
+                if ($form_notifications_enabled && class_exists('Lift_Docs_Admin')) {
+                    $admin_instance = Lift_Docs_Admin::get_instance();
+                    if (method_exists($admin_instance, 'send_form_update_notification')) {
+                        $admin_instance->send_form_update_notification(
+                            $saved_id,
+                            $name,
+                            $document_id,
+                            $document_title,
+                            get_current_user_id()
+                        );
+                    }
+                }
+            }
+            
             wp_send_json_success(array(
                 'form_id' => $saved_id,
                 'message' => __('Form saved successfully!', 'lift-docs-system')

@@ -28,6 +28,7 @@ class LIFT_Docs_Settings {
         add_action('admin_init', array($this, 'init_settings'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('wp_ajax_lift_docs_reset_settings', array($this, 'ajax_reset_settings'));
+        add_action('wp_ajax_lift_docs_send_test_email', array($this, 'ajax_send_test_email'));
     }
 
     /**
@@ -187,6 +188,14 @@ class LIFT_Docs_Settings {
         ));
         register_setting('lift_docs_settings_group', 'lift_docs_secure_download_info_text', array(
             'sanitize_callback' => array($this, 'validate_color_field')
+        ));
+
+        // Register email notification settings
+        register_setting('lift_docs_settings_group', 'lift_docs_form_update_notifications', array(
+            'sanitize_callback' => array($this, 'validate_checkbox')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_form_notification_recipients', array(
+            'sanitize_callback' => array($this, 'validate_email_list')
         ));
 
         // General Tab Settings
@@ -525,7 +534,7 @@ class LIFT_Docs_Settings {
         $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
 
         // Ensure valid tab
-        $valid_tabs = array('general', 'security', 'display', 'interface', 'help', 'license');
+        $valid_tabs = array('general', 'security', 'display', 'interface', 'email', 'help', 'license');
         if (!in_array($active_tab, $valid_tabs)) {
             $active_tab = 'general';
         }
@@ -556,6 +565,10 @@ class LIFT_Docs_Settings {
                     <a href="#interface" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'interface' ? 'nav-tab-active' : ''; ?>" data-tab="interface">
                         <i class="fas fa-palette"></i>
                         <?php _e('Interface', 'lift-docs-system'); ?>
+                    </a>
+                    <a href="#email" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'email' ? 'nav-tab-active' : ''; ?>" data-tab="email">
+                        <i class="fas fa-envelope"></i>
+                        <?php _e('Email Notifications', 'lift-docs-system'); ?>
                     </a>
                     <a href="#help" class="lift-nav-tab nav-tab-js <?php echo $active_tab == 'help' ? 'nav-tab-active' : ''; ?>" data-tab="help">
                         <i class="fas fa-question-circle"></i>
@@ -603,6 +616,11 @@ class LIFT_Docs_Settings {
                     <div id="interface-tab" class="lift-tab-content <?php echo $active_tab == 'interface' ? 'active' : ''; ?>">
 
                         <?php do_settings_sections('lift-docs-interface'); ?>
+                    </div>
+
+                    <!-- Email Notifications Tab Content -->
+                    <div id="email-tab" class="lift-tab-content <?php echo $active_tab == 'email' ? 'active' : ''; ?>">
+                        <?php $this->display_email_notifications_content(); ?>
                     </div>
 
                     <!-- Help Tab Content -->
@@ -1631,6 +1649,37 @@ class LIFT_Docs_Settings {
     }
 
     /**
+     * Validate checkbox input - returns 1 or 0
+     */
+    public function validate_checkbox($input) {
+        return $input ? 1 : 0;
+    }
+
+    /**
+     * Validate email list - comma separated email addresses
+     */
+    public function validate_email_list($input) {
+        if (empty($input)) {
+            return get_option('admin_email'); // Default to admin email
+        }
+        
+        $emails = array_map('trim', explode(',', $input));
+        $valid_emails = array();
+        
+        foreach ($emails as $email) {
+            if (is_email($email)) {
+                $valid_emails[] = $email;
+            }
+        }
+        
+        if (empty($valid_emails)) {
+            return get_option('admin_email'); // Fallback to admin email if no valid emails
+        }
+        
+        return implode(', ', $valid_emails);
+    }
+
+    /**
      * Validate color field - general color validation for secure document colors
      */
     public function validate_color_field($input) {
@@ -2356,6 +2405,201 @@ class LIFT_Docs_Settings {
             }
         }
         </style>
+        <?php
+    }
+
+    /**
+     * AJAX handler for sending test email
+     */
+    public function ajax_send_test_email() {
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_docs_test_email')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Insufficient permissions', 'lift-docs-system'));
+        }
+
+        $recipients = sanitize_text_field($_POST['recipients']) ?: get_option('admin_email');
+        $recipients_array = array_map('trim', explode(',', $recipients));
+        
+        // Validate email addresses
+        $valid_emails = array();
+        foreach ($recipients_array as $email) {
+            if (is_email($email)) {
+                $valid_emails[] = $email;
+            }
+        }
+        
+        if (empty($valid_emails)) {
+            wp_send_json_error(__('No valid email addresses provided', 'lift-docs-system'));
+        }
+
+        $sent_count = 0;
+        $total_count = count($valid_emails);
+
+        foreach ($valid_emails as $email) {
+            $subject = sprintf(__('[%s] Test Email Notification', 'lift-docs-system'), get_bloginfo('name'));
+            $message = sprintf(__('This is a test email notification from your LIFT Docs System.
+
+Settings Test Results:
+- Website: %s
+- Test Date: %s
+- Test Time: %s
+- Recipient: %s
+
+If you received this email, your notification settings are working correctly.
+
+Best regards,
+LIFT Docs System'), 
+                get_bloginfo('name'),
+                date_i18n(get_option('date_format')),
+                date_i18n(get_option('time_format')),
+                $email
+            );
+
+            $headers = array(
+                'Content-Type: text/plain; charset=UTF-8',
+                'From: ' . get_bloginfo('name') . ' <' . get_option('admin_email') . '>'
+            );
+
+            if (wp_mail($email, $subject, $message, $headers)) {
+                $sent_count++;
+            }
+        }
+
+        if ($sent_count == $total_count) {
+            wp_send_json_success(sprintf(__('Test email sent successfully to %d recipient(s)!', 'lift-docs-system'), $sent_count));
+        } elseif ($sent_count > 0) {
+            wp_send_json_success(sprintf(__('Test email sent to %d of %d recipients. Check your email settings for failed deliveries.', 'lift-docs-system'), $sent_count, $total_count));
+        } else {
+            wp_send_json_error(__('Failed to send test email. Please check your email settings.', 'lift-docs-system'));
+        }
+    }
+
+    /**
+     * Display email notifications settings content
+     */
+    private function display_email_notifications_content() {
+        // Get current settings
+        $form_update_notifications = get_option('lift_docs_form_update_notifications', true);
+        $form_notification_recipients = get_option('lift_docs_form_notification_recipients', get_option('admin_email'));
+        
+        ?>
+        <div class="lift-section lift-email-notifications">
+            <div class="lift-section-header">
+                <h2><i class="fas fa-envelope"></i> <?php _e('Email Notification Settings', 'lift-docs-system'); ?></h2>
+                <p><?php _e('Configure when and to whom email notifications are sent for form updates and other system events.', 'lift-docs-system'); ?></p>
+            </div>
+
+            <div class="lift-settings-grid">
+                
+                <!-- Form Update Notifications -->
+                <div class="lift-setting-card">
+                    <div class="lift-setting-header">
+                        <h3><i class="fas fa-bell"></i> <?php _e('Form Update Notifications', 'lift-docs-system'); ?></h3>
+                        <p><?php _e('Send email notifications to administrators when forms are updated by users.', 'lift-docs-system'); ?></p>
+                    </div>
+                    
+                    <div class="lift-setting-field">
+                        <label class="lift-toggle-switch">
+                            <input type="checkbox" 
+                                   name="lift_docs_form_update_notifications" 
+                                   value="1" 
+                                   <?php checked($form_update_notifications, true); ?>>
+                            <span class="lift-toggle-slider"></span>
+                        </label>
+                        <div class="lift-setting-description">
+                            <strong><?php _e('Enable Form Update Notifications', 'lift-docs-system'); ?></strong>
+                            <p><?php _e('When enabled, administrators will receive an email notification whenever a user updates a form within a document.', 'lift-docs-system'); ?></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notification Recipients -->
+                <div class="lift-setting-card">
+                    <div class="lift-setting-header">
+                        <h3><i class="fas fa-users"></i> <?php _e('Notification Recipients', 'lift-docs-system'); ?></h3>
+                        <p><?php _e('Specify who should receive notification emails. You can enter multiple email addresses separated by commas.', 'lift-docs-system'); ?></p>
+                    </div>
+                    
+                    <div class="lift-setting-field">
+                        <label for="lift_docs_form_notification_recipients">
+                            <strong><?php _e('Email Recipients', 'lift-docs-system'); ?></strong>
+                        </label>
+                        <input type="text" 
+                               id="lift_docs_form_notification_recipients"
+                               name="lift_docs_form_notification_recipients" 
+                               value="<?php echo esc_attr($form_notification_recipients); ?>" 
+                               class="lift-text-input"
+                               placeholder="admin@example.com, manager@example.com">
+                        <div class="lift-setting-description">
+                            <p><?php _e('Enter email addresses separated by commas. Default is the site admin email.', 'lift-docs-system'); ?></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Test Section -->
+                <div class="lift-setting-card">
+                    <div class="lift-setting-header">
+                        <h3><i class="fas fa-paper-plane"></i> <?php _e('Test Email Notifications', 'lift-docs-system'); ?></h3>
+                        <p><?php _e('Send a test email to verify your notification settings are working correctly.', 'lift-docs-system'); ?></p>
+                    </div>
+                    
+                    <div class="lift-setting-field">
+                        <button type="button" id="send-test-email" class="lift-button lift-button-secondary">
+                            <i class="fas fa-paper-plane"></i> <?php _e('Send Test Email', 'lift-docs-system'); ?>
+                        </button>
+                        <div class="lift-setting-description">
+                            <p><?php _e('This will send a test notification email to all configured recipients to ensure email delivery is working properly.', 'lift-docs-system'); ?></p>
+                        </div>
+                        <div id="test-email-result" class="lift-notice" style="display: none;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+        jQuery(document).ready(function($) {
+            // Handle test email button
+            $('#send-test-email').on('click', function() {
+                var button = $(this);
+                var resultDiv = $('#test-email-result');
+                
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> <?php _e('Sending...', 'lift-docs-system'); ?>');
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'lift_docs_send_test_email',
+                        nonce: '<?php echo wp_create_nonce('lift_docs_test_email'); ?>',
+                        recipients: $('#lift_docs_form_notification_recipients').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            resultDiv.removeClass('lift-notice-error').addClass('lift-notice-success')
+                                     .html('<i class="fas fa-check"></i> ' + response.data).show();
+                        } else {
+                            resultDiv.removeClass('lift-notice-success').addClass('lift-notice-error')
+                                     .html('<i class="fas fa-exclamation-triangle"></i> ' + response.data).show();
+                        }
+                    },
+                    error: function() {
+                        resultDiv.removeClass('lift-notice-success').addClass('lift-notice-error')
+                                 .html('<i class="fas fa-exclamation-triangle"></i> <?php _e('Error sending test email. Please try again.', 'lift-docs-system'); ?>').show();
+                    },
+                    complete: function() {
+                        button.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> <?php _e('Send Test Email', 'lift-docs-system'); ?>');
+                        setTimeout(function() {
+                            resultDiv.fadeOut();
+                        }, 5000);
+                    }
+                });
+            });
+        });
+        </script>
         <?php
     }
 }
