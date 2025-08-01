@@ -67,6 +67,7 @@ class LIFT_Docs_Admin {
         add_action('wp_ajax_generate_user_code', array($this, 'ajax_generate_user_code'));
         add_action('wp_ajax_get_admin_document_details', array($this, 'ajax_get_admin_document_details'));
         add_action('wp_ajax_update_document_status', array($this, 'ajax_update_document_status'));
+        add_action('wp_ajax_send_document_update_notification', array($this, 'ajax_send_document_update_notification'));
 
         // Add script for users list
         add_action('admin_footer', array($this, 'add_users_list_script'));
@@ -752,6 +753,15 @@ class LIFT_Docs_Admin {
             'lift-docs-archive',
             __('Archive Settings', 'lift-docs-system'),
             array($this, 'document_archive_meta_box'),
+            'lift_document',
+            'side',
+            'low'
+        );
+
+        add_meta_box(
+            'lift-docs-notifications',
+            __('Email Notifications', 'lift-docs-system'),
+            array($this, 'document_notifications_meta_box'),
             'lift_document',
             'side',
             'low'
@@ -2010,6 +2020,124 @@ class LIFT_Docs_Admin {
     }
 
     /**
+     * Document notifications meta box
+     */
+    public function document_notifications_meta_box($post) {
+        $assigned_users = get_post_meta($post->ID, '_lift_doc_assigned_users', true);
+        $assigned_users = is_array($assigned_users) ? $assigned_users : array();
+        
+        ?>
+        <div style="padding: 10px;">
+            <?php if (empty($assigned_users)): ?>
+                <p style="color: #666; font-style: italic; margin: 0;">
+                    <?php _e('No users assigned to this document. Assign users first to send notifications.', 'lift-docs-system'); ?>
+                </p>
+            <?php else: ?>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 0 0 10px 0; font-weight: 500;">
+                        <?php printf(_n('%d user assigned:', '%d users assigned:', count($assigned_users), 'lift-docs-system'), count($assigned_users)); ?>
+                    </p>
+                    <div style="max-height: 120px; overflow-y: auto; border: 1px solid #ddd; border-radius: 3px; padding: 8px; background: #f9f9f9;">
+                        <?php foreach ($assigned_users as $user_id): ?>
+                            <?php $user = get_user_by('id', $user_id); ?>
+                            <?php if ($user): ?>
+                                <div style="padding: 2px 0; font-size: 12px;">
+                                    <strong><?php echo esc_html($user->display_name); ?></strong>
+                                    <br><span style="color: #666;"><?php echo esc_html($user->user_email); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                    <button type="button" 
+                            id="send-document-notification" 
+                            class="button button-primary"
+                            data-document-id="<?php echo esc_attr($post->ID); ?>"
+                            style="width: 100%;">
+                        <span class="dashicons dashicons-email" style="vertical-align: middle; margin-right: 5px;"></span>
+                        <?php _e('Send Update Notification', 'lift-docs-system'); ?>
+                    </button>
+                    
+                    <div style="margin-top: 8px;">
+                        <label style="display: flex; align-items: center; font-size: 12px;">
+                            <input type="checkbox" id="include-document-link" checked style="margin-right: 5px;">
+                            <?php _e('Include document link in email', 'lift-docs-system'); ?>
+                        </label>
+                    </div>
+                    
+                    <p style="font-size: 11px; color: #666; margin: 10px 0 0 0; line-height: 1.4;">
+                        <?php _e('This will send an email notification to all assigned users about the document update.', 'lift-docs-system'); ?>
+                    </p>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <script>
+        jQuery(document).ready(function($) {
+            $('#send-document-notification').on('click', function() {
+                var $button = $(this);
+                var documentId = $button.data('document-id');
+                var includeLink = $('#include-document-link').is(':checked');
+                var originalText = $button.html();
+
+                if (!confirm('<?php _e('Are you sure you want to send update notifications to all assigned users?', 'lift-docs-system'); ?>')) {
+                    return;
+                }
+
+                $button.prop('disabled', true).html('<span class="dashicons dashicons-update spin" style="vertical-align: middle; margin-right: 5px;"></span><?php _e('Sending...', 'lift-docs-system'); ?>');
+
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'send_document_update_notification',
+                        document_id: documentId,
+                        include_link: includeLink ? 1 : 0,
+                        nonce: '<?php echo wp_create_nonce('lift_docs_notification_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $button.html('<span class="dashicons dashicons-yes" style="vertical-align: middle; margin-right: 5px; color: #27ae60;"></span><?php _e('Sent!', 'lift-docs-system'); ?>');
+                            
+                            // Show success message
+                            var successMsg = $('<div class="notice notice-success is-dismissible" style="margin: 10px 0;"><p>' + response.data.message + '</p></div>');
+                            $button.closest('.inside').prepend(successMsg);
+                            
+                            // Reset button after 3 seconds
+                            setTimeout(function() {
+                                $button.prop('disabled', false).html(originalText);
+                                successMsg.remove();
+                            }, 3000);
+                        } else {
+                            alert('<?php _e('Error:', 'lift-docs-system'); ?> ' + (response.data || '<?php _e('Unknown error occurred', 'lift-docs-system'); ?>'));
+                            $button.prop('disabled', false).html(originalText);
+                        }
+                    },
+                    error: function() {
+                        alert('<?php _e('Network error occurred. Please try again.', 'lift-docs-system'); ?>');
+                        $button.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+        });
+        </script>
+
+        <style>
+        .dashicons.spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        </style>
+        <?php
+    }
+
+    /**
      * Save meta boxes
      */
     public function save_meta_boxes($post_id) {
@@ -2055,7 +2183,20 @@ class LIFT_Docs_Admin {
                             }
                         }
 
+                        // Get previous assignments to detect new users
+                        $previous_users = get_post_meta($post_id, '_lift_doc_assigned_users', true);
+                        $previous_users = is_array($previous_users) ? $previous_users : array();
+                        
+                        // Find newly assigned users
+                        $new_users = array_diff($valid_users, $previous_users);
+                        
+                        // Update the assignments
                         update_post_meta($post_id, '_lift_doc_assigned_users', $valid_users);
+                        
+                        // Send email notifications to newly assigned users
+                        if (!empty($new_users)) {
+                            $this->send_document_assignment_emails($post_id, $new_users);
+                        }
                     } else {
                         delete_post_meta($post_id, '_lift_doc_assigned_users');
                     }
@@ -3520,6 +3661,433 @@ class LIFT_Docs_Admin {
             'more' => $more,
             'total' => count($total_users)
         ));
+    }
+
+    /**
+     * AJAX handler for sending document update notifications
+     */
+    public function ajax_send_document_update_notification() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_docs_notification_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+
+        // Check permissions
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(__('Permission denied', 'lift-docs-system'));
+        }
+
+        $document_id = intval($_POST['document_id']);
+        $include_link = isset($_POST['include_link']) && $_POST['include_link'] == '1';
+
+        // Validate document
+        $document = get_post($document_id);
+        if (!$document || $document->post_type !== 'lift_document') {
+            wp_send_json_error(__('Document not found', 'lift-docs-system'));
+        }
+
+        // Get assigned users
+        $assigned_users = get_post_meta($document_id, '_lift_doc_assigned_users', true);
+        if (empty($assigned_users) || !is_array($assigned_users)) {
+            wp_send_json_error(__('No users assigned to this document', 'lift-docs-system'));
+        }
+
+        // Send notifications
+        $sent_count = $this->send_document_update_emails($document_id, $assigned_users, $include_link);
+
+        if ($sent_count > 0) {
+            wp_send_json_success(array(
+                'message' => sprintf(_n(
+                    'Update notification sent to %d user successfully.',
+                    'Update notifications sent to %d users successfully.',
+                    $sent_count,
+                    'lift-docs-system'
+                ), $sent_count)
+            ));
+        } else {
+            wp_send_json_error(__('Failed to send notifications. Please check your email settings.', 'lift-docs-system'));
+        }
+    }
+
+    /**
+     * Send document assignment emails to newly assigned users
+     */
+    private function send_document_assignment_emails($document_id, $user_ids) {
+        if (empty($user_ids)) {
+            return 0;
+        }
+
+        $document = get_post($document_id);
+        if (!$document) {
+            return 0;
+        }
+
+        $sent_count = 0;
+        foreach ($user_ids as $user_id) {
+            $user = get_user_by('id', $user_id);
+            if (!$user) {
+                continue;
+            }
+
+            $sent = $this->send_document_assignment_email($user, $document);
+            if ($sent) {
+                $sent_count++;
+            }
+        }
+
+        return $sent_count;
+    }
+
+    /**
+     * Send document update emails to assigned users
+     */
+    private function send_document_update_emails($document_id, $user_ids, $include_link = true) {
+        if (empty($user_ids)) {
+            return 0;
+        }
+
+        $document = get_post($document_id);
+        if (!$document) {
+            return 0;
+        }
+
+        $sent_count = 0;
+        foreach ($user_ids as $user_id) {
+            $user = get_user_by('id', $user_id);
+            if (!$user) {
+                continue;
+            }
+
+            $sent = $this->send_document_update_email($user, $document, $include_link);
+            if ($sent) {
+                $sent_count++;
+            }
+        }
+
+        return $sent_count;
+    }
+
+    /**
+     * Send assignment notification email to a single user
+     */
+    private function send_document_assignment_email($user, $document) {
+        $site_name = get_bloginfo('name');
+        $dashboard_url = home_url('/document-dashboard/');
+        $document_url = get_permalink($document->ID);
+
+        // Email subject
+        $subject = sprintf(
+            __('[%s] You have been assigned a new document: %s', 'lift-docs-system'),
+            $site_name,
+            $document->post_title
+        );
+
+        // Get user code
+        $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
+
+        // Email content
+        $message = $this->get_document_assignment_email_template(array(
+            'user_name' => $user->display_name,
+            'first_name' => $user->first_name,
+            'document_title' => $document->post_title,
+            'document_excerpt' => $document->post_excerpt,
+            'document_url' => $document_url,
+            'dashboard_url' => $dashboard_url,
+            'user_code' => $user_code,
+            'site_name' => $site_name,
+            'current_user' => wp_get_current_user()->display_name
+        ));
+
+        // Email headers
+        $headers = array(
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $site_name . ' <' . get_option('admin_email') . '>'
+        );
+
+        // Send email
+        $sent = wp_mail($user->user_email, $subject, $message, $headers);
+
+        // Log email sending result
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs: Assignment email ' . ($sent ? 'sent' : 'failed') . ' to ' . $user->user_email . ' for document: ' . $document->post_title);
+        }
+
+        return $sent;
+    }
+
+    /**
+     * Send update notification email to a single user
+     */
+    private function send_document_update_email($user, $document, $include_link = true) {
+        $site_name = get_bloginfo('name');
+        $dashboard_url = home_url('/document-dashboard/');
+        $document_url = $include_link ? get_permalink($document->ID) : '';
+
+        // Email subject
+        $subject = sprintf(
+            __('[%s] Document Updated: %s', 'lift-docs-system'),
+            $site_name,
+            $document->post_title
+        );
+
+        // Get user code
+        $user_code = get_user_meta($user->ID, 'lift_docs_user_code', true);
+
+        // Email content
+        $message = $this->get_document_update_email_template(array(
+            'user_name' => $user->display_name,
+            'first_name' => $user->first_name,
+            'document_title' => $document->post_title,
+            'document_excerpt' => $document->post_excerpt,
+            'document_url' => $document_url,
+            'dashboard_url' => $dashboard_url,
+            'user_code' => $user_code,
+            'site_name' => $site_name,
+            'current_user' => wp_get_current_user()->display_name,
+            'include_link' => $include_link
+        ));
+
+        // Email headers
+        $headers = array(
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $site_name . ' <' . get_option('admin_email') . '>'
+        );
+
+        // Send email
+        $sent = wp_mail($user->user_email, $subject, $message, $headers);
+
+        // Log email sending result
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LIFT Docs: Update email ' . ($sent ? 'sent' : 'failed') . ' to ' . $user->user_email . ' for document: ' . $document->post_title);
+        }
+
+        return $sent;
+    }
+
+    /**
+     * Get document assignment email template
+     */
+    private function get_document_assignment_email_template($data) {
+        $logo_id = get_option('lift_docs_login_logo', '');
+        $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
+        $primary_color = get_option('lift_docs_login_btn_color', '#1976d2');
+
+        ob_start();
+        ?>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title><?php _e('New Document Assignment', 'lift-docs-system'); ?></title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f8f9fa;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 40px 0;">
+                <tr>
+                    <td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 0 auto;">
+                            <!-- Header -->
+                            <tr>
+                                <td style="padding: 40px 30px 20px; text-align: center; border-bottom: 1px solid #e9ecef;">
+                                    <?php if ($logo_url): ?>
+                                        <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($data['site_name']); ?>" style="max-width: 150px; height: auto; margin-bottom: 20px;">
+                                    <?php endif; ?>
+                                    <h1 style="color: #333333; margin: 0; font-size: 28px; font-weight: 600;">
+                                        <?php _e('New Document Assigned', 'lift-docs-system'); ?>
+                                    </h1>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 24px;">
+                                        <?php printf(__('Hi %s,', 'lift-docs-system'), esc_html($data['first_name'] ?: $data['user_name'])); ?>
+                                    </h2>
+                                    
+                                    <p style="color: #666666; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                                        <?php printf(__('You have been assigned access to a new document by %s.', 'lift-docs-system'), esc_html($data['current_user'])); ?>
+                                    </p>
+
+                                    <!-- Document Details -->
+                                    <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 25px; margin: 25px 0;">
+                                        <h3 style="color: <?php echo esc_attr($primary_color); ?>; margin: 0 0 15px 0; font-size: 20px;">
+                                            <?php echo esc_html($data['document_title']); ?>
+                                        </h3>
+                                        <?php if (!empty($data['document_excerpt'])): ?>
+                                            <p style="color: #666666; margin: 0; line-height: 1.5;">
+                                                <?php echo esc_html($data['document_excerpt']); ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                        <tr>
+                                            <td align="center">
+                                                <table cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                                                    <tr>
+                                                        <td>
+                                                            <a href="<?php echo esc_url($data['document_url']); ?>" 
+                                                               style="background-color: <?php echo esc_attr($primary_color); ?>; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; margin-right: 15px;">
+                                                                <?php _e('View Document', 'lift-docs-system'); ?>
+                                                            </a>
+                                                        </td>
+                                                        <td>
+                                                            <a href="<?php echo esc_url($data['dashboard_url']); ?>" 
+                                                               style="background-color: #6c757d; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+                                                                <?php _e('Go to Dashboard', 'lift-docs-system'); ?>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <?php if (!empty($data['user_code'])): ?>
+                                    <div style="background-color: #e3f2fd; border-left: 4px solid <?php echo esc_attr($primary_color); ?>; padding: 20px; margin: 25px 0;">
+                                        <h4 style="color: #333333; margin: 0 0 10px 0; font-size: 16px;">
+                                            <?php _e('Your Access Code:', 'lift-docs-system'); ?>
+                                        </h4>
+                                        <p style="color: #666666; margin: 0; font-family: monospace; font-size: 18px; font-weight: bold;">
+                                            <?php echo esc_html($data['user_code']); ?>
+                                        </p>
+                                    </div>
+                                    <?php endif; ?>
+
+                                    <p style="color: #666666; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+                                        <?php _e('You can access this document and all your assigned documents from your dashboard. If you have any questions, please contact the administrator.', 'lift-docs-system'); ?>
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
+                                    <p style="color: #999999; font-size: 14px; margin: 0;">
+                                        © <?php echo date('Y'); ?> <?php echo esc_html($data['site_name']); ?>. <?php _e('All rights reserved.', 'lift-docs-system'); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+        <?php
+        return ob_get_clean();
+    }
+
+    /**
+     * Get document update email template
+     */
+    private function get_document_update_email_template($data) {
+        $logo_id = get_option('lift_docs_login_logo', '');
+        $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
+        $primary_color = get_option('lift_docs_login_btn_color', '#1976d2');
+
+        ob_start();
+        ?>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title><?php _e('Document Update Notification', 'lift-docs-system'); ?></title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f8f9fa;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 40px 0;">
+                <tr>
+                    <td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 0 auto;">
+                            <!-- Header -->
+                            <tr>
+                                <td style="padding: 40px 30px 20px; text-align: center; border-bottom: 1px solid #e9ecef;">
+                                    <?php if ($logo_url): ?>
+                                        <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($data['site_name']); ?>" style="max-width: 150px; height: auto; margin-bottom: 20px;">
+                                    <?php endif; ?>
+                                    <h1 style="color: #333333; margin: 0; font-size: 28px; font-weight: 600;">
+                                        <?php _e('Document Updated', 'lift-docs-system'); ?>
+                                    </h1>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 24px;">
+                                        <?php printf(__('Hi %s,', 'lift-docs-system'), esc_html($data['first_name'] ?: $data['user_name'])); ?>
+                                    </h2>
+                                    
+                                    <p style="color: #666666; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                                        <?php printf(__('A document you have access to has been updated by %s.', 'lift-docs-system'), esc_html($data['current_user'])); ?>
+                                    </p>
+
+                                    <!-- Document Details -->
+                                    <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 25px; margin: 25px 0;">
+                                        <h3 style="color: <?php echo esc_attr($primary_color); ?>; margin: 0 0 15px 0; font-size: 20px;">
+                                            <?php echo esc_html($data['document_title']); ?>
+                                        </h3>
+                                        <?php if (!empty($data['document_excerpt'])): ?>
+                                            <p style="color: #666666; margin: 0; line-height: 1.5;">
+                                                <?php echo esc_html($data['document_excerpt']); ?>
+                                            </p>
+                                        <?php endif; ?>
+                                        <p style="color: #999999; margin: 10px 0 0 0; font-size: 14px;">
+                                            <strong><?php _e('Updated:', 'lift-docs-system'); ?></strong> <?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format')); ?>
+                                        </p>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                        <tr>
+                                            <td align="center">
+                                                <table cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                                                    <tr>
+                                                        <?php if ($data['include_link'] && !empty($data['document_url'])): ?>
+                                                        <td>
+                                                            <a href="<?php echo esc_url($data['document_url']); ?>" 
+                                                               style="background-color: <?php echo esc_attr($primary_color); ?>; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; margin-right: 15px;">
+                                                                <?php _e('View Updated Document', 'lift-docs-system'); ?>
+                                                            </a>
+                                                        </td>
+                                                        <?php endif; ?>
+                                                        <td>
+                                                            <a href="<?php echo esc_url($data['dashboard_url']); ?>" 
+                                                               style="background-color: #6c757d; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+                                                                <?php _e('Go to Dashboard', 'lift-docs-system'); ?>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <p style="color: #666666; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+                                        <?php _e('Please review the updated document at your earliest convenience. If you have any questions about the changes, please contact the administrator.', 'lift-docs-system'); ?>
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
+                                    <p style="color: #999999; font-size: 14px; margin: 0;">
+                                        © <?php echo date('Y'); ?> <?php echo esc_html($data['site_name']); ?>. <?php _e('All rights reserved.', 'lift-docs-system'); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+        <?php
+        return ob_get_clean();
     }
 
     /**
