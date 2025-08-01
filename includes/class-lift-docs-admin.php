@@ -2060,13 +2060,6 @@ class LIFT_Docs_Admin {
                         <?php _e('Send Update Notification', 'lift-docs-system'); ?>
                     </button>
                     
-                    <div style="margin-top: 8px;">
-                        <label style="display: flex; align-items: center; font-size: 12px;">
-                            <input type="checkbox" id="include-document-link" checked style="margin-right: 5px;">
-                            <?php _e('Include document link in email', 'lift-docs-system'); ?>
-                        </label>
-                    </div>
-                    
                     <p style="font-size: 11px; color: #666; margin: 10px 0 0 0; line-height: 1.4;">
                         <?php _e('This will send an email notification to all assigned users about the document update.', 'lift-docs-system'); ?>
                     </p>
@@ -2079,7 +2072,6 @@ class LIFT_Docs_Admin {
             $('#send-document-notification').on('click', function() {
                 var $button = $(this);
                 var documentId = $button.data('document-id');
-                var includeLink = $('#include-document-link').is(':checked');
                 var originalText = $button.html();
 
                 if (!confirm('<?php _e('Are you sure you want to send update notifications to all assigned users?', 'lift-docs-system'); ?>')) {
@@ -2094,7 +2086,6 @@ class LIFT_Docs_Admin {
                     data: {
                         action: 'send_document_update_notification',
                         document_id: documentId,
-                        include_link: includeLink ? 1 : 0,
                         nonce: '<?php echo wp_create_nonce('lift_docs_notification_nonce'); ?>'
                     },
                     success: function(response) {
@@ -3678,7 +3669,6 @@ class LIFT_Docs_Admin {
         }
 
         $document_id = intval($_POST['document_id']);
-        $include_link = isset($_POST['include_link']) && $_POST['include_link'] == '1';
 
         // Validate document
         $document = get_post($document_id);
@@ -3692,8 +3682,8 @@ class LIFT_Docs_Admin {
             wp_send_json_error(__('No users assigned to this document', 'lift-docs-system'));
         }
 
-        // Send notifications
-        $sent_count = $this->send_document_update_emails($document_id, $assigned_users, $include_link);
+        // Send notifications (always include link now)
+        $sent_count = $this->send_document_update_emails($document_id, $assigned_users, true);
 
         if ($sent_count > 0) {
             wp_send_json_success(array(
@@ -3773,7 +3763,13 @@ class LIFT_Docs_Admin {
     private function send_document_assignment_email($user, $document) {
         $site_name = get_bloginfo('name');
         $dashboard_url = home_url('/document-dashboard/');
-        $document_url = get_permalink($document->ID);
+        
+        // Generate secure link for the document
+        if (class_exists('LIFT_Docs_Settings') && LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+            $document_url = LIFT_Docs_Settings::generate_secure_link($document->ID);
+        } else {
+            $document_url = get_permalink($document->ID);
+        }
 
         // Email subject
         $subject = sprintf(
@@ -3821,7 +3817,16 @@ class LIFT_Docs_Admin {
     private function send_document_update_email($user, $document, $include_link = true) {
         $site_name = get_bloginfo('name');
         $dashboard_url = home_url('/document-dashboard/');
-        $document_url = $include_link ? get_permalink($document->ID) : '';
+        
+        // Generate secure link for the document
+        $document_url = '';
+        if ($include_link) {
+            if (class_exists('LIFT_Docs_Settings') && LIFT_Docs_Settings::get_setting('enable_secure_links', false)) {
+                $document_url = LIFT_Docs_Settings::generate_secure_link($document->ID);
+            } else {
+                $document_url = get_permalink($document->ID);
+            }
+        }
 
         // Email subject
         $subject = sprintf(
@@ -4050,7 +4055,7 @@ class LIFT_Docs_Admin {
                                                         <td>
                                                             <a href="<?php echo esc_url($data['document_url']); ?>" 
                                                                style="background-color: <?php echo esc_attr($primary_color); ?>; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; margin-right: 15px;">
-                                                                <?php _e('View Updated Document', 'lift-docs-system'); ?>
+                                                                <?php _e('Current Secure Link', 'lift-docs-system'); ?>
                                                             </a>
                                                         </td>
                                                         <?php endif; ?>
