@@ -472,40 +472,6 @@ class LIFT_Docs_Secure_Links {
                     background: <?php echo esc_attr($file_item_bg ? 'rgba(' . implode(',', array_map(function($c){ return hexdec($c); }, str_split(ltrim($file_item_bg, '#'), 2))) . ',0.9)' : 'rgba(248,249,250,0.9)'); ?>;
                 }
 
-                .file-item::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-                    transition: left 0.5s ease;
-                    pointer-events: none;
-                }
-
-                .file-item:hover::before {
-                    left: 100%;
-                }
-
-                .file-item::after {
-                    content: '';
-                    position: absolute;
-                    top: -2px;
-                    left: -2px;
-                    right: -2px;
-                    bottom: -2px;
-                    background: linear-gradient(45deg, <?php echo esc_attr($accent_color ?: '#1976d2'); ?>, #28a745, <?php echo esc_attr($accent_color ?: '#1976d2'); ?>);
-                    border-radius: 14px;
-                    opacity: 0;
-                    z-index: -1;
-                    transition: opacity 0.3s ease;
-                }
-
-                .file-item:hover::after {
-                    opacity: 0.7;
-                }
-
                 .file-item:active {
                     transform: translateY(-1px);
                     box-shadow: 0 4px 15px rgba(0,0,0,0.1);

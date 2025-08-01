@@ -1404,12 +1404,36 @@ class LIFT_Docs_Settings {
             'secure_link_expiry' => 24
         );
 
-        // Update the settings
+        // Update the main settings
         update_option('lift_docs_settings', $default_settings);
+
+        // Reset Secure Document Page Style colors to default
+        delete_option('lift_docs_secure_header_bg');
+        delete_option('lift_docs_secure_header_text');
+        delete_option('lift_docs_secure_content_bg');
+        delete_option('lift_docs_secure_content_text');
+        delete_option('lift_docs_secure_file_item_bg');
+        delete_option('lift_docs_secure_file_item_border');
+        delete_option('lift_docs_secure_download_info_bg');
+        delete_option('lift_docs_secure_download_info_text');
+
+        // Reset Login Page Appearance colors to default
+        delete_option('lift_docs_login_bg_color');
+        delete_option('lift_docs_login_form_bg');
+        delete_option('lift_docs_login_btn_color');
+        delete_option('lift_docs_login_input_color');
+        delete_option('lift_docs_login_text_color');
+
+        // Reset Interface tab settings
+        delete_option('lift_docs_logo_upload');
+        delete_option('lift_docs_custom_logo_width');
+        delete_option('lift_docs_login_title');
+        delete_option('lift_docs_login_description');
+        delete_option('lift_docs_login_logo');
 
         // Return success response
         wp_send_json_success(array(
-            'message' => __('All settings have been reset to default values.', 'lift-docs-system')
+            'message' => __('All settings have been reset to default values including colors and interface settings.', 'lift-docs-system')
         ));
     }
 
