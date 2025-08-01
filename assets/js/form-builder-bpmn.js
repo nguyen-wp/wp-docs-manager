@@ -88,7 +88,7 @@
 
                 columns.push({
                     id: columnId,
-                    width: columnElement.css('flex') || '1',
+                    width: columnElement.find('.column-width-selector').val() || '1',
                     fields: fields
                 });
             });
@@ -1957,21 +1957,22 @@
 
             // Add columns
             row.columns.forEach((column, columnIndex) => {
+                const columnWidth = column.width || '1';
                 rowHTML += `
-                    <div class="form-column" data-column-id="${column.id}" style="flex: ${column.width || '1'}; position: relative;">
+                    <div class="form-column" data-column-id="${column.id}" style="flex: ${columnWidth}; position: relative;">
                         <div class="column-header">
                             <span class="column-title">Column ${columnIndex + 1}</span>
                             <div class="column-actions">
                                 <select class="column-width-selector" onchange="changeColumnWidth('${column.id}', this.value)">
-                                    <option value="1">Auto</option>
-                                    <option value="0.16">16.67% (1/6)</option>
-                                    <option value="0.25">25% (1/4)</option>
-                                    <option value="0.33">33.33% (1/3)</option>
-                                    <option value="0.5">50% (1/2)</option>
-                                    <option value="0.66">66.67% (2/3)</option>
-                                    <option value="0.75">75% (3/4)</option>
-                                    <option value="0.83">83.33% (5/6)</option>
-                                    <option value="1">100%</option>
+                                    <option value="1" ${columnWidth === '1' ? 'selected' : ''}>Auto</option>
+                                    <option value="0.16" ${columnWidth === '0.16' ? 'selected' : ''}>16.67% (1/6)</option>
+                                    <option value="0.25" ${columnWidth === '0.25' ? 'selected' : ''}>25% (1/4)</option>
+                                    <option value="0.33" ${columnWidth === '0.33' ? 'selected' : ''}>33.33% (1/3)</option>
+                                    <option value="0.5" ${columnWidth === '0.5' ? 'selected' : ''}>50% (1/2)</option>
+                                    <option value="0.66" ${columnWidth === '0.66' ? 'selected' : ''}>66.67% (2/3)</option>
+                                    <option value="0.75" ${columnWidth === '0.75' ? 'selected' : ''}>75% (3/4)</option>
+                                    <option value="0.83" ${columnWidth === '0.83' ? 'selected' : ''}>83.33% (5/6)</option>
+                                    <option value="2" ${columnWidth === '2' ? 'selected' : ''}>100%</option>
                                 </select>
                             </div>
                         </div>
@@ -2029,6 +2030,32 @@
         } catch (error) {
             // Error in initDragAndDrop
         }
+
+        // Sync select boxes with actual column widths
+        syncColumnSelectors();
+    }
+
+    /**
+     * Sync column width selectors with actual column flex values
+     */
+    function syncColumnSelectors() {
+        $('#form-fields-list .form-column').each(function() {
+            const column = $(this);
+            const currentFlex = column.css('flex');
+            const selector = column.find('.column-width-selector');
+            
+            // Extract the flex-grow value from CSS flex property
+            let flexValue = '1'; // default
+            if (currentFlex) {
+                const flexParts = currentFlex.split(' ');
+                if (flexParts.length > 0) {
+                    flexValue = flexParts[0];
+                }
+            }
+            
+            // Set the select box to the correct value
+            selector.val(flexValue);
+        });
     }
 
     /**
@@ -2260,7 +2287,7 @@
                         <span class="column-title">Column ${i + 1}</span>
                         <div class="column-actions">
                             <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
-                                <option value="1">Auto</option>
+                                <option value="1" selected>Auto</option>
                                 <option value="0.16">16.67% (1/6)</option>
                                 <option value="0.25">25% (1/4)</option>
                                 <option value="0.33">33.33% (1/3)</option>
@@ -2268,8 +2295,7 @@
                                 <option value="0.66">66.67% (2/3)</option>
                                 <option value="0.75">75% (3/4)</option>
                                 <option value="0.83">83.33% (5/6)</option>
-                                <option value="2">2x Width</option>
-                                <option value="3">3x Width</option>
+                                <option value="2">100%</option>
                             </select>
                         </div>
                     </div>
@@ -2302,72 +2328,6 @@
                 }
             }
         });
-    }
-
-    function generateRowHTML(columns) {
-        const rowId = 'row-' + Date.now();
-        let rowHTML = `<div class="form-row" data-row-id="${rowId}" draggable="true">`;
-
-        // Add row drag handle
-        rowHTML += `
-            <div class="row-drag-handle" title="Drag to reorder row">
-                ⋮⋮
-            </div>
-        `;
-
-        // Add row controls with full functionality
-        rowHTML += `
-            <div class="row-controls">
-                <button type="button" class="row-control-btn" title="Add Column" onclick="addColumn('${rowId}')">
-                    <span class="dashicons dashicons-plus-alt"></span> Col
-                </button>
-                <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${rowId}')">
-                    <span class="dashicons dashicons-minus"></span> Col
-                </button>
-                <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
-                    <span class="dashicons dashicons-trash"></span>
-                </button>
-            </div>
-        `;
-
-        // Add columns with full functionality including width selector and settings
-        for (let i = 0; i < columns; i++) {
-            const columnId = `${rowId}-col-${i}`;
-
-            rowHTML += `
-                <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
-                    <div class="column-header">
-                        <span class="column-title">Column ${i + 1}</span>
-                        <div class="column-actions">
-                            <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
-                                <option value="col-auto">col-auto</option>
-                                <option value="col-1">col-1</option>
-                                <option value="col-2">col-2</option>
-                                <option value="col-3">col-3</option>
-                                <option value="col-4">col-4</option>
-                                <option value="col-5">col-5</option>
-                                <option value="col-6">col-6</option>
-                                <option value="col-7">col-7</option>
-                                <option value="col-8">col-8</option>
-                                <option value="col-9">col-9</option>
-                                <option value="col-10">col-10</option>
-                                <option value="col-11">col-11</option>
-                                <option value="col-12">col-12</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="column-placeholder">
-                    </div>
-                    ${i < columns - 1 ? '<div class="column-resize-handle"></div>' : ''}
-                </div>
-            `;
-        }
-
-        return rowHTML + '</div>';
-    }
-
-    function getCurrentLayout() {
-        return parseInt($('.column-btn.active').data('columns')) || 1;
     }
 
     function addFieldToColumn(fieldType, column) {
@@ -2412,23 +2372,6 @@
         }
     }
 
-    function convertToSingleColumn() {
-        const container = $('#form-fields-list');
-        const allFields = container.find('.form-field-item').detach();
-
-        // Remove all rows
-        container.find('.form-row').remove();
-
-        // Add fields back to single column
-        allFields.each(function() {
-            container.append(this);
-        });
-
-        if (allFields.length === 0) {
-            container.find('.no-fields-message').show();
-        }
-    }
-
     /**
      * Column and Row Management Functions
      */
@@ -2448,7 +2391,7 @@
                     <span class="column-title">Column ${currentColumns + 1}</span>
                     <div class="column-actions">
                         <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
-                            <option value="1">Auto</option>
+                            <option value="1" selected>Auto</option>
                             <option value="0.16">16.67% (1/6)</option>
                             <option value="0.25">25% (1/4)</option>
                             <option value="0.33">33.33% (1/3)</option>
@@ -2456,8 +2399,7 @@
                             <option value="0.66">66.67% (2/3)</option>
                             <option value="0.75">75% (3/4)</option>
                             <option value="0.83">83.33% (5/6)</option>
-                            <option value="2">2x Width</option>
-                            <option value="3">3x Width</option>
+                            <option value="2">100%</option>
                         </select>
                     </div>
                 </div>
@@ -2793,6 +2735,29 @@
                 }
             }, 1500);
         }
+    }
+
+    /**
+     * Sync column width selectors with actual column flex values
+     */
+    function syncColumnSelectors() {
+        $('#form-fields-list .form-column').each(function() {
+            const column = $(this);
+            const currentFlex = column.css('flex');
+            const selector = column.find('.column-width-selector');
+            
+            // Extract the flex-grow value from CSS flex property
+            let flexValue = '1'; // default
+            if (currentFlex) {
+                const flexParts = currentFlex.split(' ');
+                if (flexParts.length > 0) {
+                    flexValue = flexParts[0];
+                }
+            }
+            
+            // Set the select box to the correct value
+            selector.val(flexValue);
+        });
     }
 
     // Expose debug function globally for testing
