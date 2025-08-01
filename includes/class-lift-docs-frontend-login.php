@@ -1622,6 +1622,12 @@ class LIFT_Docs_Frontend_Login {
                     text-decoration: underline;
                 }
 
+                .login-help .separator {
+                    color: #ccc;
+                    margin: 0 10px;
+                    font-weight: normal;
+                }
+
                 /* Responsive Design */
                 @media (max-width: 768px) {
                     body {
@@ -1768,6 +1774,12 @@ class LIFT_Docs_Frontend_Login {
                         <a href="<?php echo wp_lostpassword_url(); ?>">
                             <?php _e('Forgot your password?', 'lift-docs-system'); ?>
                         </a>
+                        <?php if (get_option('lift_docs_enable_registration', true)): ?>
+                        <span class="separator">|</span>
+                        <a href="<?php echo home_url('/document-register/'); ?>">
+                            <?php _e('Create Account', 'lift-docs-system'); ?>
+                        </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

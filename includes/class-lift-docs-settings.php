@@ -149,6 +149,20 @@ class LIFT_Docs_Settings {
             'sanitize_callback' => array($this, 'validate_text_color')
         ));
 
+        // Register registration page settings
+        register_setting('lift_docs_settings_group', 'lift_docs_register_page_title', array(
+            'sanitize_callback' => 'sanitize_text_field'
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_register_page_description', array(
+            'sanitize_callback' => 'sanitize_textarea_field'
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_enable_registration', array(
+            'sanitize_callback' => array($this, 'validate_checkbox')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_registration_notification_email', array(
+            'sanitize_callback' => 'sanitize_email'
+        ));
+
         // Register secure document style settings with validation
         register_setting('lift_docs_settings_group', 'lift_docs_secure_header_bg', array(
             'sanitize_callback' => array($this, 'validate_color_field')
@@ -461,6 +475,46 @@ class LIFT_Docs_Settings {
             array($this, 'login_text_color_callback'),
             'lift-docs-interface',
             'lift_docs_interface_section'
+        );
+
+        // Registration Page Settings
+        add_settings_section(
+            'lift_docs_register_section',
+            __('Registration Page Settings', 'lift-docs-system'),
+            array($this, 'register_section_callback'),
+            'lift-docs-interface'
+        );
+
+        add_settings_field(
+            'lift_docs_register_page_title',
+            __('Registration Page Title', 'lift-docs-system'),
+            array($this, 'register_page_title_callback'),
+            'lift-docs-interface',
+            'lift_docs_register_section'
+        );
+
+        add_settings_field(
+            'lift_docs_register_page_description',
+            __('Registration Page Description', 'lift-docs-system'),
+            array($this, 'register_page_description_callback'),
+            'lift-docs-interface',
+            'lift_docs_register_section'
+        );
+
+        add_settings_field(
+            'lift_docs_enable_registration',
+            __('Enable Public Registration', 'lift-docs-system'),
+            array($this, 'enable_registration_callback'),
+            'lift-docs-interface',
+            'lift_docs_register_section'
+        );
+
+        add_settings_field(
+            'lift_docs_registration_notification_email',
+            __('Admin Notification Email', 'lift-docs-system'),
+            array($this, 'registration_notification_email_callback'),
+            'lift-docs-interface',
+            'lift_docs_register_section'
         );
     }
 
@@ -1117,6 +1171,55 @@ class LIFT_Docs_Settings {
     }
 
     /**
+     * Registration section callback
+     */
+    public function register_section_callback() {
+        echo '<p>' . __('Configure the document registration page settings and user registration options.', 'lift-docs-system') . '</p>';
+        echo '<div class="lift-settings-note">';
+        echo '<p><strong>' . __('Registration Page URL:', 'lift-docs-system') . '</strong> <code>' . home_url('/document-register/') . '</code></p>';
+        echo '</div>';
+    }
+
+    /**
+     * Registration page title callback
+     */
+    public function register_page_title_callback() {
+        $title = get_option('lift_docs_register_page_title', __('Create Account', 'lift-docs-system'));
+        echo '<input type="text" name="lift_docs_register_page_title" value="' . esc_attr($title) . '" class="regular-text" />';
+        echo '<p class="description">' . __('Title displayed on the registration page.', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Registration page description callback
+     */
+    public function register_page_description_callback() {
+        $description = get_option('lift_docs_register_page_description', __('Register for document access', 'lift-docs-system'));
+        echo '<textarea name="lift_docs_register_page_description" rows="3" class="large-text">' . esc_textarea($description) . '</textarea>';
+        echo '<p class="description">' . __('Description text displayed below the registration page title.', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Enable registration callback
+     */
+    public function enable_registration_callback() {
+        $enabled = get_option('lift_docs_enable_registration', true);
+        echo '<label>';
+        echo '<input type="checkbox" name="lift_docs_enable_registration" value="1" ' . checked(1, $enabled, false) . ' />';
+        echo ' ' . __('Allow public user registration', 'lift-docs-system');
+        echo '</label>';
+        echo '<p class="description">' . __('When enabled, visitors can register for document access. When disabled, only administrators can create document user accounts.', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Registration notification email callback
+     */
+    public function registration_notification_email_callback() {
+        $email = get_option('lift_docs_registration_notification_email', '');
+        echo '<input type="email" name="lift_docs_registration_notification_email" value="' . esc_attr($email) . '" class="regular-text" />';
+        echo '<p class="description">' . __('Email address to notify when new users register (optional). Leave empty to use the default admin email.', 'lift-docs-system') . '</p>';
+    }
+
+    /**
      * Secure document header background color callback
      */
     public function secure_header_bg_callback() {
@@ -1430,6 +1533,12 @@ class LIFT_Docs_Settings {
         delete_option('lift_docs_login_title');
         delete_option('lift_docs_login_description');
         delete_option('lift_docs_login_logo');
+
+        // Reset Registration page settings to defaults
+        update_option('lift_docs_register_page_title', __('Create Account', 'lift-docs-system'));
+        update_option('lift_docs_register_page_description', __('Register for document access', 'lift-docs-system'));
+        update_option('lift_docs_enable_registration', true);
+        delete_option('lift_docs_registration_notification_email');
 
         // Return success response
         wp_send_json_success(array(

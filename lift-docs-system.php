@@ -90,6 +90,7 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-secure-links.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-layout.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-frontend-login.php';
+        require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-register.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-forms.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-dashboard-widget.php';
         
@@ -117,6 +118,9 @@ class LIFT_Docs_System {
 
         // Initialize frontend login system
         new LIFT_Docs_Frontend_Login();
+
+        // Initialize registration system
+        LIFT_Docs_Register::get_instance();
 
         // Initialize LIFT Forms
         new LIFT_Forms();
