@@ -345,10 +345,10 @@ class LIFT_Docs_Admin {
                 'update_greeting' => sanitize_textarea_field($_POST['update_greeting']),
                 'update_message' => sanitize_textarea_field($_POST['update_message']),
                 'update_footer' => sanitize_textarea_field($_POST['update_footer']),
-                'logo_position' => sanitize_text_field($_POST['logo_position']),
-                'button_style' => sanitize_text_field($_POST['button_style']),
-                'color_scheme' => sanitize_text_field($_POST['color_scheme']),
-                'custom_css' => wp_kses_post($_POST['custom_css'])
+                'logo_position' => 'center', // Set default value
+                'button_style' => 'rounded', // Set default value
+                'color_scheme' => 'default', // Set default value
+                'custom_css' => '' // Remove custom CSS
             );
             
             update_option('lift_docs_email_templates', $templates);
@@ -393,55 +393,6 @@ class LIFT_Docs_Admin {
 
                 <div id="custom-templates-settings" style="<?php echo $template_settings['enable_custom_templates'] ? '' : 'display: none;'; ?>">
                     
-                    <div class="template-section">
-                        <h3>
-                            <span class="dashicons dashicons-admin-appearance" style="margin-right: 8px;"></span>
-                            <?php _e('Style Settings', 'lift-docs-system'); ?>
-                        </h3>
-                        <table class="form-table">
-                            <tr>
-                                <th scope="row"><?php _e('Logo Position', 'lift-docs-system'); ?></th>
-                                <td>
-                                    <select name="logo_position">
-                                        <option value="center" <?php selected($template_settings['logo_position'], 'center'); ?>><?php _e('Center', 'lift-docs-system'); ?></option>
-                                        <option value="left" <?php selected($template_settings['logo_position'], 'left'); ?>><?php _e('Left', 'lift-docs-system'); ?></option>
-                                        <option value="right" <?php selected($template_settings['logo_position'], 'right'); ?>><?php _e('Right', 'lift-docs-system'); ?></option>
-                                    </select>
-                                    <p class="description"><?php _e('Position of your logo in the email header.', 'lift-docs-system'); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php _e('Button Style', 'lift-docs-system'); ?></th>
-                                <td>
-                                    <select name="button_style">
-                                        <option value="rounded" <?php selected($template_settings['button_style'], 'rounded'); ?>><?php _e('Rounded', 'lift-docs-system'); ?></option>
-                                        <option value="square" <?php selected($template_settings['button_style'], 'square'); ?>><?php _e('Square', 'lift-docs-system'); ?></option>
-                                        <option value="pill" <?php selected($template_settings['button_style'], 'pill'); ?>><?php _e('Pill', 'lift-docs-system'); ?></option>
-                                    </select>
-                                    <p class="description"><?php _e('Style of action buttons in the email.', 'lift-docs-system'); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php _e('Color Scheme', 'lift-docs-system'); ?></th>
-                                <td>
-                                    <select name="color_scheme">
-                                        <option value="default" <?php selected($template_settings['color_scheme'], 'default'); ?>><?php _e('Default', 'lift-docs-system'); ?></option>
-                                        <option value="light" <?php selected($template_settings['color_scheme'], 'light'); ?>><?php _e('Light', 'lift-docs-system'); ?></option>
-                                        <option value="dark" <?php selected($template_settings['color_scheme'], 'dark'); ?>><?php _e('Dark', 'lift-docs-system'); ?></option>
-                                    </select>
-                                    <p class="description"><?php _e('Overall color theme for the email template.', 'lift-docs-system'); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php _e('Custom CSS', 'lift-docs-system'); ?></th>
-                                <td>
-                                    <textarea name="custom_css" rows="8" cols="80" class="large-text code" placeholder="/* Add your custom CSS here */"><?php echo esc_textarea($template_settings['custom_css']); ?></textarea>
-                                    <p class="description"><?php _e('Additional CSS to customize the email appearance. Use this for advanced styling customizations.', 'lift-docs-system'); ?></p>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-
                     <div class="template-section">
                         <h3>
                             <span class="dashicons dashicons-plus-alt" style="margin-right: 8px; color: #0073aa;"></span>
@@ -592,12 +543,6 @@ class LIFT_Docs_Admin {
                     $('textarea[name="update_greeting"]').val('<?php echo esc_js(__('Hi {{user_name}},', 'lift-docs-system')); ?>');
                     $('textarea[name="update_message"]').val('<?php echo esc_js(__('A document you have access to has been updated by {{current_user}}.', 'lift-docs-system')); ?>');
                     $('textarea[name="update_footer"]').val('<?php echo esc_js(__('Please review the updated document at your earliest convenience. If you have any questions about the changes, please contact the administrator.', 'lift-docs-system')); ?>');
-                    
-                    // Reset style settings
-                    $('select[name="logo_position"]').val('center');
-                    $('select[name="button_style"]').val('rounded');
-                    $('select[name="color_scheme"]').val('default');
-                    $('textarea[name="custom_css"]').val('');
                     
                     alert('<?php _e('Templates have been reset to defaults. Click "Save Templates" to apply changes.', 'lift-docs-system'); ?>');
                 }
@@ -5522,10 +5467,10 @@ class LIFT_Docs_Admin {
             'update_greeting' => sanitize_textarea_field($template_data['update_greeting'] ?? ''),
             'update_message' => sanitize_textarea_field($template_data['update_message'] ?? ''),
             'update_footer' => sanitize_textarea_field($template_data['update_footer'] ?? ''),
-            'logo_position' => sanitize_text_field($template_data['logo_position'] ?? 'center'),
-            'button_style' => sanitize_text_field($template_data['button_style'] ?? 'rounded'),
-            'color_scheme' => sanitize_text_field($template_data['color_scheme'] ?? 'default'),
-            'custom_css' => wp_kses_post($template_data['custom_css'] ?? '')
+            'logo_position' => 'center', // Use default values
+            'button_style' => 'rounded', // Use default values
+            'color_scheme' => 'default', // Use default values
+            'custom_css' => '' // No custom CSS
         );
         
         try {
