@@ -29,6 +29,7 @@ class LIFT_Docs_Secure_Links {
         add_filter('query_vars', array($this, 'add_query_vars'));
         add_action('template_redirect', array($this, 'handle_secure_access'));
         add_action('template_redirect', array($this, 'handle_secure_download'));
+        add_action('template_redirect', array($this, 'handle_secure_view'));
 
         // Block direct access to documents
         add_action('template_redirect', array($this, 'block_direct_access'));
@@ -55,6 +56,7 @@ class LIFT_Docs_Secure_Links {
         $vars[] = 'lift_secure_page';
         $vars[] = 'lift_secure';
         $vars[] = 'lift_download';
+        $vars[] = 'lift_view';
         return $vars;
     }
 
@@ -64,8 +66,10 @@ class LIFT_Docs_Secure_Links {
     public function add_rewrite_rules() {
         add_rewrite_rule('^document-files/secure/?$', 'index.php?lift_secure_page=1', 'top');
         add_rewrite_rule('^document-files/download/?$', 'index.php?lift_download=1', 'top');
+        add_rewrite_rule('^document-files/view/?$', 'index.php?lift_view=1', 'top');
         add_rewrite_tag('%lift_secure_page%', '([0-9]+)');
         add_rewrite_tag('%lift_download%', '([0-9]+)');
+        add_rewrite_tag('%lift_view%', '([0-9]+)');
     }
 
     /**
@@ -196,6 +200,87 @@ class LIFT_Docs_Secure_Links {
 
         // Serve file securely
         $this->serve_secure_file($file_url, $document->post_title);
+        exit;
+    }
+
+    /**
+     * Handle secure file view access
+     */
+    public function handle_secure_view() {
+        // Check both query var AND URL pattern for backwards compatibility
+        $is_view_request = get_query_var('lift_view') ||
+                          (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/document-files/view/') !== false);
+
+        if (!$is_view_request) {
+            return;
+        }
+
+        if (!isset($_GET['lift_secure'])) {
+            status_header(400);
+            die('Invalid request. Missing security token.');
+        }
+
+        $token = $_GET['lift_secure'] ?? '';
+
+        if (empty($token)) {
+            status_header(403);
+            die('Missing security token');
+        }
+
+        // Use primary verification method (decode token first)
+        $verification = LIFT_Docs_Settings::verify_secure_link(urldecode($token));
+
+        if (!$verification || !isset($verification['document_id'])) {
+            status_header(403);
+            die('Invalid or expired view link. Please request a new view link.');
+        }
+
+        $document_id = $verification['document_id'];
+
+        // Check if document exists and is published
+        $document = get_post($document_id);
+
+        if (!$document || $document->post_type !== 'lift_document' || $document->post_status !== 'publish') {
+            status_header(404);
+            die('Document not found');
+        }
+
+        // Check if user has permission to view document
+        if (!LIFT_Docs_Settings::user_can_download_document($document_id)) {
+            status_header(403);
+            die('You do not have permission to view this document');
+        }
+
+        // Get file URL(s) based on file index
+        $file_index = isset($verification['file_index']) ? intval($verification['file_index']) : 0;
+
+        // Try to get multiple file URLs first
+        $file_urls = get_post_meta($document_id, '_lift_doc_file_urls', true);
+        if (empty($file_urls)) {
+            // Fallback to single file URL for backward compatibility
+            $single_file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+            if ($single_file_url) {
+                $file_urls = array($single_file_url);
+            }
+        }
+
+        if (empty($file_urls) || !isset($file_urls[$file_index])) {
+            status_header(404);
+            die('File not found');
+        }
+
+        $file_url = $file_urls[$file_index];
+
+        if (empty($file_url)) {
+            status_header(404);
+            die('File not found');
+        }
+
+        // Track view (optional - you can use the same tracking or create a separate one)
+        $this->track_document_download($document_id);
+
+        // Serve file for viewing (inline display)
+        $this->serve_secure_file_inline($file_url, $document->post_title);
         exit;
     }
 
@@ -1089,6 +1174,7 @@ class LIFT_Docs_Secure_Links {
             $output .= "Disallow: /lift-docs/\n";
             $output .= "Disallow: /document-files/secure/\n";
             $output .= "Disallow: /document-files/download/\n";
+            $output .= "Disallow: /document-files/view/\n";
         }
 
         return $output;
@@ -1330,6 +1416,115 @@ class LIFT_Docs_Secure_Links {
         // Set headers
         header('Content-Type: ' . $mime_type);
         header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        if ($file_size) {
+            header('Content-Length: ' . $file_size);
+        }
+
+        header('Cache-Control: private');
+        header('Pragma: private');
+        header('Expires: 0');
+        header('X-Robots-Tag: noindex, nofollow');
+
+        // Stream file content
+        $file_response = wp_remote_get($file_url, array(
+            'timeout' => 300, // 5 minutes timeout
+            'stream' => true
+        ));
+
+        if (is_wp_error($file_response)) {
+            status_header(404);
+            die('File not accessible');
+        }
+
+        // Output file content
+        echo wp_remote_retrieve_body($file_response);
+    }
+
+    /**
+     * Serve file securely for inline viewing
+     */
+    private function serve_secure_file_inline($file_url, $filename) {
+        // Clean filename
+        $clean_filename = sanitize_file_name($filename);
+        $file_extension = pathinfo($file_url, PATHINFO_EXTENSION);
+
+        if ($file_extension) {
+            $clean_filename .= '.' . $file_extension;
+        }
+
+        // Get file path
+        $upload_dir = wp_upload_dir();
+        $file_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $file_url);
+
+        // Check if file exists locally
+        if (file_exists($file_path)) {
+            $this->serve_local_file_inline($file_path, $clean_filename);
+        } else {
+            // File is external or not found locally - serve remote file inline
+            $this->serve_remote_file_inline($file_url, $clean_filename);
+        }
+    }
+
+    /**
+     * Serve local file for inline viewing
+     */
+    private function serve_local_file_inline($file_path, $filename) {
+        $mime_type = wp_check_filetype($file_path)['type'] ?: 'application/octet-stream';
+        $file_size = filesize($file_path);
+
+        // Clear any previous output
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Set headers for inline display
+        header('Content-Type: ' . $mime_type);
+        header('Content-Disposition: inline; filename="' . $filename . '"');
+        header('Content-Length: ' . $file_size);
+        header('Cache-Control: private');
+        header('Pragma: private');
+        header('Expires: 0');
+
+        // Prevent direct file access disclosure
+        header('X-Robots-Tag: noindex, nofollow');
+
+        // Read and output file
+        $handle = fopen($file_path, 'rb');
+
+        if ($handle) {
+            while (!feof($handle)) {
+                echo fread($handle, 8192);
+                flush();
+            }
+            fclose($handle);
+        }
+    }
+
+    /**
+     * Serve remote file for inline viewing
+     */
+    private function serve_remote_file_inline($file_url, $filename) {
+        // Get file info
+        $response = wp_remote_head($file_url);
+
+        if (is_wp_error($response)) {
+            status_header(404);
+            die('File not accessible');
+        }
+
+        $headers = wp_remote_retrieve_headers($response);
+        $mime_type = $headers['content-type'] ?? 'application/octet-stream';
+        $file_size = $headers['content-length'] ?? '';
+
+        // Clear any previous output
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Set headers for inline display
+        header('Content-Type: ' . $mime_type);
+        header('Content-Disposition: inline; filename="' . $filename . '"');
 
         if ($file_size) {
             header('Content-Length: ' . $file_size);

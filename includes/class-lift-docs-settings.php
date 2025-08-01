@@ -1375,6 +1375,28 @@ class LIFT_Docs_Settings {
     }
 
     /**
+     * Generate permanent secure view URL for document file
+     */
+    public static function generate_secure_view_link($document_id, $expiry_hours = 0, $file_index = 0) {
+        // Get or create permanent token for this document
+        $permanent_token = get_post_meta($document_id, '_lift_doc_permanent_token', true);
+
+        if (empty($permanent_token)) {
+            // Use the secure link generation to create permanent token
+            self::generate_secure_link($document_id);
+            $permanent_token = get_post_meta($document_id, '_lift_doc_permanent_token', true);
+        }
+
+        // For view links, append file index if multiple files
+        $view_token = $permanent_token;
+        if ($file_index > 0) {
+            $view_token .= '_file_' . $file_index;
+        }
+
+        return home_url('/document-files/view/?lift_secure=' . $view_token);
+    }
+
+    /**
      * Verify secure link token (permanent tokens)
      */
     public static function verify_secure_link($token) {
