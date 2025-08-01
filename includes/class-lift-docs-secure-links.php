@@ -468,7 +468,7 @@ class LIFT_Docs_Secure_Links {
                 }
 
                 .file-details p {
-                    margin: 4px 0 0 0;
+                    margin: 0;
                     font-size: 14px;
                     color: #666;
                 }
@@ -502,8 +502,15 @@ class LIFT_Docs_Secure_Links {
                     color: white;
                 }
 
+                .btn-view {
+                    background: #28a745;
+                    color: white;
+                }
+
                 .btn:hover {
                     opacity: 0.9;
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
 
                 .download-info {
@@ -666,6 +673,8 @@ class LIFT_Docs_Secure_Links {
 
                         // Create secure download URL with file index
                         $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($document->ID, 0, $index);
+                        // Create secure view URL with file index
+                        $secure_view_url = LIFT_Docs_Settings::generate_secure_view_link($document->ID, 0, $index);
                         ?>
                         <div class="file-item">
                             <div class="file-info">
@@ -677,6 +686,11 @@ class LIFT_Docs_Secure_Links {
                             </div>
 
                             <div class="download-actions">
+                                <a href="<?php echo esc_url($secure_view_url); ?>"
+                                   class="btn btn-secondary"
+                                   target="_blank">
+                                    <i class="fas fa-eye"></i> <?php _e('View', 'lift-docs-system'); ?>
+                                </a>
                                 <a href="<?php echo esc_url($secure_download_url); ?>"
                                    class="btn btn-primary">
                                     <i class="fas fa-download"></i> <?php _e('Download', 'lift-docs-system'); ?>
@@ -812,11 +826,21 @@ class LIFT_Docs_Secure_Links {
 
                                         // Create secure download URL with file index
                                         $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($document->ID, 0, $index);
+                                        // Create secure view URL with file index
+                                        $secure_view_url = LIFT_Docs_Settings::generate_secure_view_link($document->ID, 0, $index);
                                         ?>
                                         <div class="download-item">
-                                            <a href="<?php echo esc_url($secure_download_url); ?>" class="download-button">
-                                                <?php echo esc_html($file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1)); ?>
-                                            </a>
+                                            <div class="file-actions">
+                                                <a href="<?php echo esc_url($secure_view_url); ?>" 
+                                                   class="view-button" 
+                                                   target="_blank">
+                                                    <i class="fas fa-eye"></i> <?php _e('View', 'lift-docs-system'); ?>
+                                                </a>
+                                                <a href="<?php echo esc_url($secure_download_url); ?>" 
+                                                   class="download-button">
+                                                    <i class="fas fa-download"></i> <?php echo esc_html($file_name ?: sprintf(__('Download File %d', 'lift-docs-system'), $index + 1)); ?>
+                                                </a>
+                                            </div>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
