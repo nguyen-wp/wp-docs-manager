@@ -501,7 +501,9 @@ class LIFT_Docs_Secure_Links {
                     display: inline-flex;
                     align-items: center;
                     gap: 8px;
-                    transition: opacity 0.2s ease;
+                    transition: all 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
                 }
 
                 .btn-primary {
@@ -521,8 +523,70 @@ class LIFT_Docs_Secure_Links {
 
                 .btn:hover {
                     opacity: 0.9;
-                    transform: translateY(-1px);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    transition: all 0.3s ease;
+                }
+
+                .btn-primary:hover {
+                    background: <?php echo esc_attr($accent_color ? 'rgba(' . implode(',', array_map('hexdec', str_split(ltrim($accent_color, '#'), 2))) . ',0.8)' : '#1565c0'); ?>;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(25, 101, 192, 0.3);
+                }
+
+                .btn-secondary:hover {
+                    background: #5a6268;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+                }
+
+                .btn-view:hover {
+                    background: #218838;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+                }
+
+                .btn:active {
+                    transform: translateY(0px);
                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+
+                .btn:focus {
+                    outline: none;
+                    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+                }
+
+                .btn:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
+                }
+
+                .btn:disabled:hover {
+                    background: inherit;
+                    transform: none;
+                    box-shadow: none;
+                }
+
+                /* Ripple effect on click */
+                .btn::after {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: 0;
+                    height: 0;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.3);
+                    transform: translate(-50%, -50%);
+                    transition: width 0.6s, height 0.6s;
+                    pointer-events: none;
+                }
+
+                .btn:active::after {
+                    width: 300px;
+                    height: 300px;
                 }
 
                 .download-info {
