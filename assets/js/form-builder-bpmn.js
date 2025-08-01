@@ -305,41 +305,6 @@
                     </div>
                 </div>
 
-                <!-- Column Settings Modal -->
-                <div id="column-settings-modal" class="field-modal" style="display: none;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4>Column Settings</h4>
-                            <button type="button" class="modal-close">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-field">
-                                <label>Column Width</label>
-                                <select id="column-width" class="widefat">
-                                    <option value="1">Auto</option>
-                                    <option value="0.16">16.67% (1/6)</option>
-                                    <option value="0.25">25% (1/4)</option>
-                                    <option value="0.33">33.33% (1/3)</option>
-                                    <option value="0.5">50% (1/2)</option>
-                                    <option value="0.66">66.67% (2/3)</option>
-                                    <option value="0.75">75% (3/4)</option>
-                                    <option value="0.83">83.33% (5/6)</option>
-                                    <option value="2">2x Width</option>
-                                    <option value="3">3x Width</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label>CSS Classes</label>
-                                <input type="text" id="column-classes" class="widefat" placeholder="custom-class another-class">
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="button button-primary" id="save-column-settings">Save Settings</button>
-                            <button type="button" class="button" id="cancel-column-settings">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Form Preview Modal -->
                 <div id="form-preview-modal" class="field-modal" style="display: none;">
                     <div class="modal-content modal-large">
@@ -499,15 +464,6 @@
 
         $(document).on('input', '.option-input', function() {
             // Auto-save option changes could be implemented here
-        });
-
-        // Column settings modal events
-        $(document).on('click', '.modal-close, #cancel-column-settings', function() {
-            $('#column-settings-modal').hide();
-        });
-
-        $(document).on('click', '#save-column-settings', function() {
-            saveColumnSettings();
         });
 
         // Form preview modal events
@@ -2315,9 +2271,6 @@
                                 <option value="2">2x Width</option>
                                 <option value="3">3x Width</option>
                             </select>
-                            <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
-                                <span class="dashicons dashicons-admin-generic"></span>
-                            </button>
                         </div>
                     </div>
                     <div class="column-placeholder">
@@ -2401,9 +2354,6 @@
                                 <option value="col-11">col-11</option>
                                 <option value="col-12">col-12</option>
                             </select>
-                            <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
-                                <span class="dashicons dashicons-admin-generic"></span>
-                            </button>
                         </div>
                     </div>
                     <div class="column-placeholder">
@@ -2509,9 +2459,6 @@
                             <option value="2">2x Width</option>
                             <option value="3">3x Width</option>
                         </select>
-                        <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
-                            <span class="dashicons dashicons-admin-generic"></span>
-                        </button>
                     </div>
                 </div>
                 <div class="column-placeholder">
@@ -2546,48 +2493,6 @@
     function changeColumnWidth(columnId, flexValue) {
         const column = $(`.form-column[data-column-id="${columnId}"]`);
         column.css('flex', flexValue);
-    }
-
-    function openColumnSettings(columnId) {
-        const column = $(`.form-column[data-column-id="${columnId}"]`);
-        if (!column.length) return;
-
-        // Get current column data
-        const currentFlex = column.css('flex') || '1';
-        const currentClasses = column.attr('data-custom-classes') || '';
-
-        // Populate modal fields
-        $('#column-width').val(currentFlex);
-        $('#column-classes').val(currentClasses);
-
-        // Store current editing column ID
-        $('#column-settings-modal').data('editing-column-id', columnId).show();
-    }
-
-    function saveColumnSettings() {
-        const columnId = $('#column-settings-modal').data('editing-column-id');
-        const column = $(`.form-column[data-column-id="${columnId}"]`);
-
-        if (!column.length) return;
-
-        // Get form values
-        const width = $('#column-width').val();
-        const classes = $('#column-classes').val();
-
-        // Update column width
-        column.css('flex', width);
-        column.find('.column-width-selector').val(width);
-
-        // Update custom classes
-        if (classes) {
-            column.attr('data-custom-classes', classes);
-            column.addClass(classes);
-        } else {
-            column.removeAttr('data-custom-classes');
-        }
-
-        // Close modal
-        $('#column-settings-modal').hide();
     }
 
     function initColumnResize() {
@@ -2672,7 +2577,6 @@
     window.addColumn = addColumn;
     window.removeColumn = removeColumn;
     window.changeColumnWidth = changeColumnWidth;
-    window.openColumnSettings = openColumnSettings;
 
     /**
      * Create field data object
