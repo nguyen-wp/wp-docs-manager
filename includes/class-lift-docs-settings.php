@@ -2570,7 +2570,7 @@ LIFT Docs System'),
                 button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> <?php _e('Sending...', 'lift-docs-system'); ?>');
                 
                 $.ajax({
-                    url: ajaxurl,
+                    url: liftDocsSettings.ajax_url,
                     type: 'POST',
                     data: {
                         action: 'lift_docs_send_test_email',
