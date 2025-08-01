@@ -1337,6 +1337,22 @@ class LIFT_Forms {
             global $wpdb;
             $forms_table = $wpdb->prefix . 'lift_forms';
             $form = $wpdb->get_row($wpdb->prepare("SELECT * FROM $forms_table WHERE id = %d", $form_id));
+            
+            // Parse settings to extract header and footer if form exists
+            if ($form && !empty($form->settings)) {
+                $settings_data = json_decode($form->settings, true);
+                if (is_array($settings_data)) {
+                    $form->form_header = $settings_data['form_header'] ?? '';
+                    $form->form_footer = $settings_data['form_footer'] ?? '';
+                } else {
+                    $form->form_header = '';
+                    $form->form_footer = '';
+                }
+            } elseif ($form) {
+                // Ensure properties exist even if settings is empty
+                $form->form_header = '';
+                $form->form_footer = '';
+            }
         }
 
         // Show success message if form was just created

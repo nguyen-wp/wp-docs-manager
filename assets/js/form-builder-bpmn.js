@@ -225,20 +225,7 @@
                         </div>
                     </div>
 
-                    <div id="form-header" class="form-action-builder-header">
-                        <div class="header-editor-container">
-                            <div class="editor-header">
-                                <h3>Form Header</h3>
-                            </div>
-                            <div class="editor-content" id="header-editor-content">
-                                <div class="editor-edit" id="header-editor">
-                                    <div id="form-header-editor-placeholder">
-                                        <!-- WordPress Editor will be inserted here via PHP -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                 
 
                     <div class="form-fields-area">
                         <div id="form-fields-list">
@@ -246,20 +233,7 @@
                         </div>
                     </div>
 
-                    <div id="form-footer" class="form-action-builder-footer">
-                        <div class="footer-editor-container">
-                            <div class="editor-header">
-                                <h3>Form Footer</h3>
-                            </div>
-                            <div class="editor-content" id="footer-editor-content">
-                                <div class="editor-edit" id="footer-editor">
-                                    <div id="form-footer-editor-placeholder">
-                                        <!-- WordPress Editor will be inserted here via PHP -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
 
                 </div>
 
