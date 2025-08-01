@@ -456,38 +456,124 @@ class LIFT_Docs_Secure_Links {
                     justify-content: space-between;
                     padding: 20px;
                     background: <?php echo esc_attr($file_item_bg ?: '#f8f9fa'); ?>;
-                    border-radius: 8px;
+                    border-radius: 12px;
                     margin-bottom: 15px;
-                    border: 1px solid <?php echo esc_attr($file_item_border ?: '#e9ecef'); ?>;
+                    border: 2px solid <?php echo esc_attr($file_item_border ?: '#e9ecef'); ?>;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    transition: all 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .file-item:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    border-color: <?php echo esc_attr($accent_color ?: '#1976d2'); ?>;
+                    background: <?php echo esc_attr($file_item_bg ? 'rgba(' . implode(',', array_map(function($c){ return hexdec($c); }, str_split(ltrim($file_item_bg, '#'), 2))) . ',0.9)' : 'rgba(248,249,250,0.9)'); ?>;
+                }
+
+                .file-item::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+                    transition: left 0.5s ease;
+                    pointer-events: none;
+                }
+
+                .file-item:hover::before {
+                    left: 100%;
+                }
+
+                .file-item::after {
+                    content: '';
+                    position: absolute;
+                    top: -2px;
+                    left: -2px;
+                    right: -2px;
+                    bottom: -2px;
+                    background: linear-gradient(45deg, <?php echo esc_attr($accent_color ?: '#1976d2'); ?>, #28a745, <?php echo esc_attr($accent_color ?: '#1976d2'); ?>);
+                    border-radius: 14px;
+                    opacity: 0;
+                    z-index: -1;
+                    transition: opacity 0.3s ease;
+                }
+
+                .file-item:hover::after {
+                    opacity: 0.7;
+                }
+
+                .file-item:active {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                 }
 
                 .file-info {
                     display: flex;
                     align-items: center;
-                    gap: 15px;
+                    gap: 20px;
                     flex: 1;
+                    position: relative;
+                    z-index: 2;
                 }
 
                 .file-icon {
-                    font-size: 28px;
+                    font-size: 32px;
+                    color: <?php echo esc_attr($accent_color ?: '#1976d2'); ?>;
+                    transition: all 0.3s ease;
+                    padding: 12px;
+                    background: rgba(255,255,255,0.8);
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+
+                .file-item:hover .file-icon {
+                    transform: scale(1.1) rotate(5deg);
+                    color: <?php echo esc_attr($accent_color ?: '#1976d2'); ?>;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                }
+
+                .file-details {
+                    flex: 1;
+                    position: relative;
                 }
 
                 .file-details h4 {
-                    margin: 0;
-                    font-size: 16px;
+                    margin: 0 0 5px 0;
+                    font-size: 18px;
                     color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                     font-weight: 600;
+                    transition: color 0.3s ease;
+                    line-height: 1.3;
+                }
+
+                .file-item:hover .file-details h4 {
+                    color: <?php echo esc_attr($accent_color ?: '#1976d2'); ?>;
                 }
 
                 .file-details p {
                     margin: 0;
                     font-size: 14px;
                     color: <?php echo esc_attr($download_info_text ?: '#666'); ?>;
+                    opacity: 0.8;
+                    transition: opacity 0.3s ease;
+                    text-transform: uppercase;
+                    font-weight: 500;
+                    letter-spacing: 0.5px;
+                }
+
+                .file-item:hover .file-details p {
+                    opacity: 1;
                 }
 
                 .download-actions {
                     display: flex;
-                    gap: 10px;
+                    gap: 12px;
+                    position: relative;
+                    z-index: 2;
                 }
 
                 .btn {
