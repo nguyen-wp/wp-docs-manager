@@ -1383,85 +1383,102 @@ class LIFT_Forms {
                             <p><?php _e('Loading form builder...', 'lift-docs-system'); ?></p>
                         </div>
                     </div>
+                    
+                    <!-- WordPress Editors for Form Header and Footer -->
+                    <div id="wp-editors-ready" style="display: block; margin-top: 20px;">
+                        <input type="hidden" id="editors-ready" value="1">
+                        <h3>Form Header & Footer Editors</h3>
+                        <div id="header-editor-ready">
+                            <h4>Header Editor</h4>
+                            <?php 
+                            $form_header_content = $form ? $form->form_header : '';
+                            wp_editor($form_header_content, 'form_header', array(
+                                'textarea_name' => 'form_header',
+                                'textarea_rows' => 6,
+                                'media_buttons' => true,
+                                'teeny' => false,
+                                'dfw' => false,
+                                'tinymce' => array(
+                                    'toolbar1' => 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more',
+                                    'toolbar2' => '',
+                                    'toolbar3' => '',
+                                    'height' => 120,
+                                    'menubar' => true,
+                                    'branding' => false,
+                                    'statusbar' => true,
+                                    'resize' => true,
+                                    'wordpress_adv_hidden' => false
+                                ),
+                                'quicktags' => array(
+                                    'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
+                                )
+                            )); 
+                            ?>
+                        </div>
+                        <div id="footer-editor-ready">
+                            <h4>Footer Editor</h4>
+                            <?php 
+                            $form_footer_content = $form ? $form->form_footer : '';
+                            wp_editor($form_footer_content, 'form_footer', array(
+                                'textarea_name' => 'form_footer',
+                                'textarea_rows' => 6,
+                                'media_buttons' => true,
+                                'teeny' => false,
+                                'dfw' => false,
+                                'tinymce' => array(
+                                    'toolbar1' => 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more',
+                                    'toolbar2' => '',
+                                    'toolbar3' => '',
+                                    'height' => 120,
+                                    'menubar' => true,
+                                    'branding' => false,
+                                    'statusbar' => true,
+                                    'resize' => true,
+                                    'wordpress_adv_hidden' => false
+                                ),
+                                'quicktags' => array(
+                                    'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
+                                )
+                            )); 
+                            ?>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <script type="text/javascript">
         jQuery(document).ready(function($) {
-            // Function to initialize editors
-            function initializeEditors() {
-                try {
-                    // Check if wp.editor is available
-                    if (typeof wp === 'undefined' || !wp.editor) {
-                        console.log('WordPress editor API not available, using fallback textareas');
-                        return;
-                    }
-                    
-                    // Initialize header editor
-                    if ($('#form-header-editor').length && !tinymce.get('form-header-editor')) {
-                        wp.editor.initialize('form-header-editor', {
-                            tinymce: {
-                                wpautop: true,
-                                plugins: 'charmap,colorpicker,hr,lists,media,paste,tabfocus,textcolor,fullscreen,wordpress,wpautoresize,wpeditimage,wpemoji,wpgallery,wplink,wpdialogs,wptextpattern,wpview',
-                                toolbar1: 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more,wp_help',
-                                toolbar2: '',
-                                toolbar3: '',
-                                height: 120,
-                                menubar: true,
-                                branding: false,
-                                statusbar: true,
-                                resize: true,
-                                wordpress_adv_hidden: false
-                            },
-                            quicktags: {
-                                buttons: 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
-                            },
-                            mediaButtons: true
-                        });
-                    }
-                    
-                    // Initialize footer editor
-                    if ($('#form-footer-editor').length && !tinymce.get('form-footer-editor')) {
-                        wp.editor.initialize('form-footer-editor', {
-                            tinymce: {
-                                wpautop: true,
-                                plugins: 'charmap,colorpicker,hr,lists,media,paste,tabfocus,textcolor,fullscreen,wordpress,wpautoresize,wpeditimage,wpemoji,wpgallery,wplink,wpdialogs,wptextpattern,wpview',
-                                toolbar1: 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more,wp_help',
-                                toolbar2: '',
-                                toolbar3: '',
-                                height: 120,
-                                menubar: true,
-                                branding: false,
-                                statusbar: true,
-                                resize: true,
-                                wordpress_adv_hidden: false
-                            },
-                            quicktags: {
-                                buttons: 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
-                            },
-                            mediaButtons: true
-                        });
-                    }
-                } catch (error) {
-                    console.log('Error initializing WordPress editors:', error);
-                }
-            }
+            console.log('Forms page script initialized with PHP wp_editor');
             
-            // Initialize editors after form builder is loaded
-            $(document).on('formBuilderLoaded', function() {
-                setTimeout(initializeEditors, 1000);
+            // Initialize form builder and handle editor movement when ready
+            $(window).on('load', function() {
+                // Wait for WordPress editors to be fully loaded
+                setTimeout(function() {
+                    if ($('#form_header').length && $('#form_footer').length) {
+                        console.log('WordPress PHP editors found and ready');
+                        
+                        // Check if editors are initialized
+                        if (typeof tinymce !== 'undefined') {
+                            var headerEditor = tinymce.get('form_header');
+                            var footerEditor = tinymce.get('form_footer');
+                            
+                            if (headerEditor && footerEditor) {
+                                console.log('TinyMCE editors are initialized and ready');
+                                // The form-builder-bpmn.js will handle moving editors to placeholders
+                            } else {
+                                console.log('TinyMCE editors not yet initialized, waiting...');
+                                // Wait a bit more for TinyMCE initialization
+                                setTimeout(function() {
+                                    console.log('Secondary check for TinyMCE initialization complete');
+                                }, 2000);
+                            }
+                        }
+                    } else {
+                        console.log('WordPress PHP editors not found yet');
+                    }
+                }, 1500);
             });
-            
-            // Also try to initialize after page load as backup
-            setTimeout(initializeEditors, 2000);
-            
-            // Additional backup for slow loading
-            setTimeout(function() {
-                if ($('#form-header-editor').length && $('#form-footer-editor').length) {
-                    initializeEditors();
-                }
-            }, 5000);
         });
         </script>
         <?php

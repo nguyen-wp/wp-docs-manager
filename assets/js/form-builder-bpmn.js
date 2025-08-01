@@ -232,8 +232,8 @@
                             </div>
                             <div class="editor-content" id="header-editor-content">
                                 <div class="editor-edit" id="header-editor">
-                                    <div class="wp-editor-wrap">
-                                        <textarea id="form-header-editor" name="form_header" rows="6" class="wp-editor-area" placeholder="Enter form header content..."></textarea>
+                                    <div id="form-header-editor-placeholder">
+                                        <!-- WordPress Editor will be inserted here via PHP -->
                                     </div>
                                 </div>
                             </div>
@@ -253,8 +253,8 @@
                             </div>
                             <div class="editor-content" id="footer-editor-content">
                                 <div class="editor-edit" id="footer-editor">
-                                    <div class="wp-editor-wrap">
-                                        <textarea id="form-footer-editor" name="form_footer" rows="6" class="wp-editor-area" placeholder="Enter form footer content..."></textarea>
+                                    <div id="form-footer-editor-placeholder">
+                                        <!-- WordPress Editor will be inserted here via PHP -->
                                     </div>
                                 </div>
                             </div>
@@ -397,6 +397,76 @@
 
         // Trigger event to notify that form builder is loaded
         $(document).trigger('formBuilderLoaded');
+        
+        // Move PHP editors to form builder placeholders after initialization
+        setTimeout(function() {
+            movePhpEditorsToPlaceholders();
+        }, 500);
+    }
+
+    /**
+     * Move PHP-generated editors to form builder placeholders
+     */
+    function movePhpEditorsToPlaceholders() {
+        console.log('Attempting to move PHP editors to placeholders');
+        
+        // Check if PHP editors exist and are ready
+        var headerEditorContainer = $('#header-editor-ready');
+        var footerEditorContainer = $('#footer-editor-ready');
+        
+        if (headerEditorContainer.length && footerEditorContainer.length) {
+            console.log('PHP editor containers found, moving to placeholders');
+            
+            // Move header editor
+            var headerPlaceholder = $('#header-editor-placeholder');
+            if (headerPlaceholder.length) {
+                headerPlaceholder.empty().append(headerEditorContainer.html());
+                console.log('Header editor moved to placeholder');
+            }
+            
+            // Move footer editor  
+            var footerPlaceholder = $('#footer-editor-placeholder');
+            if (footerPlaceholder.length) {
+                footerPlaceholder.empty().append(footerEditorContainer.html());
+                console.log('Footer editor moved to placeholder');
+            }
+            
+            // Initialize TinyMCE for moved editors if needed
+            setTimeout(function() {
+                if (typeof tinymce !== 'undefined') {
+                    var headerEditor = tinymce.get('form_header');
+                    var footerEditor = tinymce.get('form_footer');
+                    
+                    if (!headerEditor) {
+                        console.log('Reinitializing header editor');
+                        tinymce.init({
+                            selector: '#form_header',
+                            setup: function(editor) {
+                                editor.on('change', function() {
+                                    editor.save();
+                                });
+                            }
+                        });
+                    }
+                    
+                    if (!footerEditor) {
+                        console.log('Reinitializing footer editor');
+                        tinymce.init({
+                            selector: '#form_footer',
+                            setup: function(editor) {
+                                editor.on('change', function() {
+                                    editor.save();
+                                });
+                            }
+                        });
+                    }
+                }
+            }, 1000);
+        } else {
+            console.log('PHP editor containers not found, retrying...');
+            // Retry after a delay
+            setTimeout(movePhpEditorsToPlaceholders, 1000);
+        }
     }
 
     /**
@@ -1622,24 +1692,24 @@
         
         // Try to get content from TinyMCE editors first
         if (typeof tinymce !== 'undefined') {
-            const headerEditor = tinymce.get('form-header-editor');
-            const footerEditor = tinymce.get('form-footer-editor');
+            const headerEditor = tinymce.get('form_header');
+            const footerEditor = tinymce.get('form_footer');
             
             if (headerEditor) {
                 headerContent = headerEditor.getContent();
             } else {
-                headerContent = $('#form-header-editor').val() || '';
+                headerContent = $('#form_header').val() || '';
             }
             
             if (footerEditor) {
                 footerContent = footerEditor.getContent();
             } else {
-                footerContent = $('#form-footer-editor').val() || '';
+                footerContent = $('#form_footer').val() || '';
             }
         } else {
             // Fallback to textarea values
-            headerContent = $('#form-header-editor').val() || '';
-            footerContent = $('#form-footer-editor').val() || '';
+            headerContent = $('#form_header').val() || '';
+            footerContent = $('#form_footer').val() || '';
         }
 
         let previewHTML = '';
@@ -2859,24 +2929,24 @@
         
         // Try to get content from TinyMCE editors first
         if (typeof tinymce !== 'undefined') {
-            const headerEditor = tinymce.get('form-header-editor');
-            const footerEditor = tinymce.get('form-footer-editor');
+            const headerEditor = tinymce.get('form_header');
+            const footerEditor = tinymce.get('form_footer');
             
             if (headerEditor) {
                 headerContent = headerEditor.getContent();
             } else {
-                headerContent = $('#form-header-editor').val() || '';
+                headerContent = $('#form_header').val() || '';
             }
             
             if (footerEditor) {
                 footerContent = footerEditor.getContent();
             } else {
-                footerContent = $('#form-footer-editor').val() || '';
+                footerContent = $('#form_footer').val() || '';
             }
         } else {
             // Fallback to textarea values
-            headerContent = $('#form-header-editor').val() || '';
-            footerContent = $('#form-footer-editor').val() || '';
+            headerContent = $('#form_header').val() || '';
+            footerContent = $('#form_footer').val() || '';
         }
         
         return {
@@ -2890,20 +2960,20 @@
      */
     function loadHeaderFooterData(headerContent, footerContent) {
         // Set textarea values first as fallback
-        $('#form-header-editor').val(headerContent || '');
-        $('#form-footer-editor').val(footerContent || '');
+        $('#form_header').val(headerContent || '');
+        $('#form_footer').val(footerContent || '');
         
         // Load content into WordPress editors if available
         if (typeof wp !== 'undefined' && wp.editor) {
             setTimeout(function() {
                 // Set header content
-                if (typeof tinymce !== 'undefined' && tinymce.get('form-header-editor')) {
-                    tinymce.get('form-header-editor').setContent(headerContent || '');
+                if (typeof tinymce !== 'undefined' && tinymce.get('form_header')) {
+                    tinymce.get('form_header').setContent(headerContent || '');
                 }
                 
                 // Set footer content  
-                if (typeof tinymce !== 'undefined' && tinymce.get('form-footer-editor')) {
-                    tinymce.get('form-footer-editor').setContent(footerContent || '');
+                if (typeof tinymce !== 'undefined' && tinymce.get('form_footer')) {
+                    tinymce.get('form_footer').setContent(footerContent || '');
                 }
             }, 1500);
         }
