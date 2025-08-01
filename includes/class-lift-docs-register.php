@@ -407,6 +407,21 @@ class LIFT_Docs_Register {
                     border-radius: 8px;
                     color: #155724;
                     margin-bottom: 20px;
+                    position: relative;
+                }
+
+                .success-message.redirecting::after {
+                    content: '';
+                    position: absolute;
+                    right: 15px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #155724;
+                    border-radius: 50%;
+                    border-top-color: transparent;
+                    animation: spin 1s ease-in-out infinite;
                 }
 
                 .error-message-global {
@@ -634,6 +649,14 @@ class LIFT_Docs_Register {
                             showSuccess(data.data.message);
                             form.reset();
                             clearPasswordRequirements();
+                            
+                            // Add redirecting class for spinner
+                            document.getElementById('success-message').classList.add('redirecting');
+                            
+                            // Redirect to login page after 2 seconds
+                            setTimeout(function() {
+                                window.location.href = '<?php echo home_url('/document-login/'); ?>';
+                            }, 2000);
                         } else {
                             if (data.data && data.data.field_errors) {
                                 showFieldErrors(data.data.field_errors);
@@ -829,7 +852,7 @@ class LIFT_Docs_Register {
         $this->send_admin_notification_email($user_id, $user_code);
 
         wp_send_json_success(array(
-            'message' => __('Account created successfully! Please check your email for login information.', 'lift-docs-system'),
+            'message' => __('Account created successfully! Please check your email for login information. You will be redirected to the login page...', 'lift-docs-system'),
             'user_id' => $user_id
         ));
     }
