@@ -687,7 +687,7 @@ class LIFT_Docs_Secure_Links {
 
                             <div class="download-actions">
                                 <a href="<?php echo esc_url($secure_view_url); ?>"
-                                   class="btn btn-secondary"
+                                   class="btn btn-primary"
                                    target="_blank">
                                     <i class="fas fa-eye"></i> <?php _e('View', 'lift-docs-system'); ?>
                                 </a>
