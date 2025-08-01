@@ -73,9 +73,6 @@
 }
 /* Builder Content Layout */
 .form-builder-content {
-    display: flex;
-    flex: 1;
-    gap: 20px;
     min-height: 600px;
 }
 /* Field Palette */

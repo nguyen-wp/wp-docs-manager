@@ -398,75 +398,8 @@
         // Trigger event to notify that form builder is loaded
         $(document).trigger('formBuilderLoaded');
         
-        // Move PHP editors to form builder placeholders after initialization
-        setTimeout(function() {
-            movePhpEditorsToPlaceholders();
-        }, 500);
-    }
-
-    /**
-     * Move PHP-generated editors to form builder placeholders
-     */
-    function movePhpEditorsToPlaceholders() {
-        console.log('Attempting to move PHP editors to placeholders');
-        
-        // Check if PHP editors exist and are ready
-        var headerEditorContainer = $('#header-editor-ready');
-        var footerEditorContainer = $('#footer-editor-ready');
-        
-        if (headerEditorContainer.length && footerEditorContainer.length) {
-            console.log('PHP editor containers found, moving to placeholders');
-            
-            // Move header editor
-            var headerPlaceholder = $('#header-editor-placeholder');
-            if (headerPlaceholder.length) {
-                headerPlaceholder.empty().append(headerEditorContainer.html());
-                console.log('Header editor moved to placeholder');
-            }
-            
-            // Move footer editor  
-            var footerPlaceholder = $('#footer-editor-placeholder');
-            if (footerPlaceholder.length) {
-                footerPlaceholder.empty().append(footerEditorContainer.html());
-                console.log('Footer editor moved to placeholder');
-            }
-            
-            // Initialize TinyMCE for moved editors if needed
-            setTimeout(function() {
-                if (typeof tinymce !== 'undefined') {
-                    var headerEditor = tinymce.get('form_header');
-                    var footerEditor = tinymce.get('form_footer');
-                    
-                    if (!headerEditor) {
-                        console.log('Reinitializing header editor');
-                        tinymce.init({
-                            selector: '#form_header',
-                            setup: function(editor) {
-                                editor.on('change', function() {
-                                    editor.save();
-                                });
-                            }
-                        });
-                    }
-                    
-                    if (!footerEditor) {
-                        console.log('Reinitializing footer editor');
-                        tinymce.init({
-                            selector: '#form_footer',
-                            setup: function(editor) {
-                                editor.on('change', function() {
-                                    editor.save();
-                                });
-                            }
-                        });
-                    }
-                }
-            }, 1000);
-        } else {
-            console.log('PHP editor containers not found, retrying...');
-            // Retry after a delay
-            setTimeout(movePhpEditorsToPlaceholders, 1000);
-        }
+        // No need to move editors anymore - they are in their proper tab
+        console.log('Form builder loaded - editors are in Header & Footer tab');
     }
 
     /**

@@ -1377,70 +1377,98 @@ class LIFT_Forms {
 
                 <!-- Form Builder Content Area - BPMN.io Form Builder -->
                 <div class="form-builder-content">
-                    <div id="form-builder-container">
-                        <div class="loading-message">
-                            <div class="spinner"></div>
-                            <p><?php _e('Loading form builder...', 'lift-docs-system'); ?></p>
+                    <!-- Tab Navigation -->
+                    <div class="form-builder-tabs">
+                        <button type="button" class="tab-button active" data-tab="form-builder">
+                            <span class="dashicons dashicons-editor-table"></span>
+                            <?php _e('Form Builder', 'lift-docs-system'); ?>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="header-footer">
+                            <span class="dashicons dashicons-editor-code"></span>
+                            <?php _e('Header & Footer', 'lift-docs-system'); ?>
+                        </button>
+                    </div>
+
+                    <!-- Tab Content: Form Builder -->
+                    <div id="tab-form-builder" class="tab-content active">
+                        <div id="form-builder-container">
+                            <div class="loading-message">
+                                <div class="spinner"></div>
+                                <p><?php _e('Loading form builder...', 'lift-docs-system'); ?></p>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- WordPress Editors for Form Header and Footer -->
-                    <div id="wp-editors-ready" style="display: block; margin-top: 20px;">
-                        <input type="hidden" id="editors-ready" value="1">
-                        <h3>Form Header & Footer Editors</h3>
-                        <div id="header-editor-ready">
-                            <h4>Header Editor</h4>
-                            <?php 
-                            $form_header_content = $form ? $form->form_header : '';
-                            wp_editor($form_header_content, 'form_header', array(
-                                'textarea_name' => 'form_header',
-                                'textarea_rows' => 6,
-                                'media_buttons' => true,
-                                'teeny' => false,
-                                'dfw' => false,
-                                'tinymce' => array(
-                                    'toolbar1' => 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more',
-                                    'toolbar2' => '',
-                                    'toolbar3' => '',
-                                    'height' => 120,
-                                    'menubar' => true,
-                                    'branding' => false,
-                                    'statusbar' => true,
-                                    'resize' => true,
-                                    'wordpress_adv_hidden' => false
-                                ),
-                                'quicktags' => array(
-                                    'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
-                                )
-                            )); 
-                            ?>
-                        </div>
-                        <div id="footer-editor-ready">
-                            <h4>Footer Editor</h4>
-                            <?php 
-                            $form_footer_content = $form ? $form->form_footer : '';
-                            wp_editor($form_footer_content, 'form_footer', array(
-                                'textarea_name' => 'form_footer',
-                                'textarea_rows' => 6,
-                                'media_buttons' => true,
-                                'teeny' => false,
-                                'dfw' => false,
-                                'tinymce' => array(
-                                    'toolbar1' => 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more',
-                                    'toolbar2' => '',
-                                    'toolbar3' => '',
-                                    'height' => 120,
-                                    'menubar' => true,
-                                    'branding' => false,
-                                    'statusbar' => true,
-                                    'resize' => true,
-                                    'wordpress_adv_hidden' => false
-                                ),
-                                'quicktags' => array(
-                                    'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
-                                )
-                            )); 
-                            ?>
+
+                    <!-- Tab Content: Header & Footer Editors -->
+                    <div id="tab-header-footer" class="tab-content">
+                        <div class="header-footer-editors">
+                            <div class="editor-section">
+                                <h3>
+                                    <span class="dashicons dashicons-editor-alignleft"></span>
+                                    <?php _e('Form Header', 'lift-docs-system'); ?>
+                                </h3>
+                                <p class="description"><?php _e('Content that appears at the top of your form', 'lift-docs-system'); ?></p>
+                                <div id="header-editor-container">
+                                    <?php 
+                                    $form_header_content = $form ? $form->form_header : '';
+                                    wp_editor($form_header_content, 'form_header', array(
+                                        'textarea_name' => 'form_header',
+                                        'textarea_rows' => 8,
+                                        'media_buttons' => true,
+                                        'teeny' => false,
+                                        'dfw' => false,
+                                        'tinymce' => array(
+                                            'toolbar1' => 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more',
+                                            'toolbar2' => '',
+                                            'toolbar3' => '',
+                                            'height' => 200,
+                                            'menubar' => true,
+                                            'branding' => false,
+                                            'statusbar' => true,
+                                            'resize' => true,
+                                            'wordpress_adv_hidden' => false
+                                        ),
+                                        'quicktags' => array(
+                                            'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
+                                        )
+                                    )); 
+                                    ?>
+                                </div>
+                            </div>
+
+                            <div class="editor-section">
+                                <h3>
+                                    <span class="dashicons dashicons-editor-alignright"></span>
+                                    <?php _e('Form Footer', 'lift-docs-system'); ?>
+                                </h3>
+                                <p class="description"><?php _e('Content that appears at the bottom of your form', 'lift-docs-system'); ?></p>
+                                <div id="footer-editor-container">
+                                    <?php 
+                                    $form_footer_content = $form ? $form->form_footer : '';
+                                    wp_editor($form_footer_content, 'form_footer', array(
+                                        'textarea_name' => 'form_footer',
+                                        'textarea_rows' => 8,
+                                        'media_buttons' => true,
+                                        'teeny' => false,
+                                        'dfw' => false,
+                                        'tinymce' => array(
+                                            'toolbar1' => 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more',
+                                            'toolbar2' => '',
+                                            'toolbar3' => '',
+                                            'height' => 200,
+                                            'menubar' => true,
+                                            'branding' => false,
+                                            'statusbar' => true,
+                                            'resize' => true,
+                                            'wordpress_adv_hidden' => false
+                                        ),
+                                        'quicktags' => array(
+                                            'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
+                                        )
+                                    )); 
+                                    ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1450,6 +1478,41 @@ class LIFT_Forms {
         <script type="text/javascript">
         jQuery(document).ready(function($) {
             console.log('Forms page script initialized with PHP wp_editor');
+            
+            // Tab switching functionality
+            $('.tab-button').on('click', function() {
+                var targetTab = $(this).data('tab');
+                
+                // Remove active class from all tabs and content
+                $('.tab-button').removeClass('active');
+                $('.tab-content').removeClass('active');
+                
+                // Add active class to clicked tab and corresponding content
+                $(this).addClass('active');
+                $('#tab-' + targetTab).addClass('active');
+                
+                // If switching to header-footer tab, refresh TinyMCE editors
+                if (targetTab === 'header-footer') {
+                    setTimeout(function() {
+                        if (typeof tinymce !== 'undefined') {
+                            var headerEditor = tinymce.get('form_header');
+                            var footerEditor = tinymce.get('form_footer');
+                            
+                            if (headerEditor) {
+                                headerEditor.getDoc().designMode = 'on';
+                                headerEditor.focus();
+                                headerEditor.blur();
+                            }
+                            
+                            if (footerEditor) {
+                                footerEditor.getDoc().designMode = 'on';
+                            }
+                            
+                            console.log('TinyMCE editors refreshed for header-footer tab');
+                        }
+                    }, 100);
+                }
+            });
             
             // Initialize form builder and handle editor movement when ready
             $(window).on('load', function() {
@@ -1465,7 +1528,6 @@ class LIFT_Forms {
                             
                             if (headerEditor && footerEditor) {
                                 console.log('TinyMCE editors are initialized and ready');
-                                // The form-builder-bpmn.js will handle moving editors to placeholders
                             } else {
                                 console.log('TinyMCE editors not yet initialized, waiting...');
                                 // Wait a bit more for TinyMCE initialization
