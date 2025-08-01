@@ -33,6 +33,12 @@ class LIFT_Docs_Register {
         // AJAX handlers for registration
         add_action('wp_ajax_nopriv_lift_docs_register_user', array($this, 'ajax_register_user'));
         add_action('wp_ajax_lift_docs_register_user', array($this, 'ajax_register_user'));
+        
+        // AJAX handlers for validation
+        add_action('wp_ajax_nopriv_lift_docs_check_username', array($this, 'ajax_check_username'));
+        add_action('wp_ajax_lift_docs_check_username', array($this, 'ajax_check_username'));
+        add_action('wp_ajax_nopriv_lift_docs_check_email', array($this, 'ajax_check_email'));
+        add_action('wp_ajax_lift_docs_check_email', array($this, 'ajax_check_email'));
     }
 
     /**
