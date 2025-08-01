@@ -1993,9 +1993,6 @@
                     <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${row.id}')">
                         <span class="dashicons dashicons-minus"></span> Col
                     </button>
-                    <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                        <span class="dashicons dashicons-plus-alt"></span> Row
-                    </button>
                     <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
                         <span class="dashicons dashicons-trash"></span>
                     </button>
@@ -2185,7 +2182,7 @@
 
                 // Show drop indicator between rows for canvas-row dragging
                 if (draggedData.source === 'canvas-row') {
-                    showRowDropIndicator(e.originalEvent.clientY);
+                    showRowDropIndicator(e.originalEvent.clientY, draggedData);
                 }
             }
         });
@@ -2290,9 +2287,6 @@
                 <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${rowId}')">
                     <span class="dashicons dashicons-minus"></span> Col
                 </button>
-                <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                    <span class="dashicons dashicons-plus-alt"></span> Row
-                </button>
                 <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
                     <span class="dashicons dashicons-trash"></span>
                 </button>
@@ -2344,18 +2338,6 @@
     }
 
     function bindRowEvents() {
-        // Add row button
-        $(document).off('click', '.add-row').on('click', '.add-row', function() {
-            const currentRow = $(this).closest('.form-row');
-            const columns = currentRow.find('.form-column').length;
-            const newRowHTML = generateRowHTML(columns);
-            currentRow.after(newRowHTML);
-
-            // Re-bind events and initialize column resize for the new row
-            bindRowEvents();
-            initColumnResize();
-        });
-
         // Delete row button
         $(document).off('click', '.delete-row').on('click', '.delete-row', function() {
             if (confirm('Are you sure you want to delete this row and all its fields?')) {
@@ -2388,9 +2370,6 @@
                 </button>
                 <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${rowId}')">
                     <span class="dashicons dashicons-minus"></span> Col
-                </button>
-                <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                    <span class="dashicons dashicons-plus-alt"></span> Row
                 </button>
                 <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
                     <span class="dashicons dashicons-trash"></span>
@@ -2758,13 +2737,13 @@
     /**
      * Show drop indicator between rows
      */
-    function showRowDropIndicator(dropY) {
+    function showRowDropIndicator(dropY, draggedDataParam) {
         // Clear existing indicators
         clearRowDropIndicators();
 
-        if (!draggedData || draggedData.source !== 'canvas-row') return;
+        if (!draggedDataParam || draggedDataParam.source !== 'canvas-row') return;
 
-        const draggedRow = $(`.form-row[data-row-id="${draggedData.rowId}"]`);
+        const draggedRow = $(`.form-row[data-row-id="${draggedDataParam.rowId}"]`);
         const allRows = $('#form-fields-list .form-row').not(draggedRow);
 
         if (allRows.length === 0) return;
