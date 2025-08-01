@@ -325,11 +325,21 @@ class LIFT_Docs_Secure_Links {
         $file_size = get_post_meta($document->ID, '_lift_doc_file_size', true);
         $download_count = get_post_meta($document->ID, '_lift_doc_download_count', true);
 
-        // Get custom colors (can be added to admin settings later)
+        // Get custom colors from settings
+        $header_bg = get_option('lift_docs_secure_header_bg', '#1976d2');
+        $header_text = get_option('lift_docs_secure_header_text', '#ffffff');
+        $content_bg = get_option('lift_docs_secure_content_bg', '#ffffff');
+        $content_text = get_option('lift_docs_secure_content_text', '#333333');
+        $file_item_bg = get_option('lift_docs_secure_file_item_bg', '#f8f9fa');
+        $file_item_border = get_option('lift_docs_secure_file_item_border', '#e9ecef');
+        $download_info_bg = get_option('lift_docs_secure_download_info_bg', '#e3f2fd');
+        $download_info_text = get_option('lift_docs_secure_download_info_text', '#666666');
+        
+        // Fallback to default colors if empty
         $bg_color = get_option('lift_docs_secure_bg_color', '#f8f9fa');
-        $container_bg = get_option('lift_docs_secure_container_bg', '#ffffff');
-        $text_color = get_option('lift_docs_secure_text_color', '#333333');
-        $accent_color = get_option('lift_docs_secure_accent_color', '#1976d2');
+        $container_bg = $content_bg ?: '#ffffff';
+        $text_color = $content_text ?: '#333333';
+        $accent_color = $header_bg ?: '#1976d2';
 
         ?>
         <!DOCTYPE html>
@@ -365,8 +375,8 @@ class LIFT_Docs_Secure_Links {
                 }
 
                 .secure-header {
-                    background: <?php echo esc_attr($accent_color); ?>;
-                    color: white;
+                    background: <?php echo esc_attr($header_bg ?: $accent_color); ?>;
+                    color: <?php echo esc_attr($header_text ?: 'white'); ?>;
                     padding: 20px 30px;
                     text-align: center;
                 }
@@ -382,13 +392,15 @@ class LIFT_Docs_Secure_Links {
 
                 .document-content {
                     padding: 40px;
+                    background: <?php echo esc_attr($content_bg ?: $container_bg); ?>;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                 }
 
                 .document-title {
                     font-size: 32px;
                     font-weight: 600;
                     margin: 0 0 20px 0;
-                    color: <?php echo esc_attr($text_color); ?>;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                     line-height: 1.2;
                 }
 
@@ -398,17 +410,17 @@ class LIFT_Docs_Secure_Links {
                     gap: 20px;
                     margin-bottom: 30px;
                     padding: 20px;
-                    background: #f8f9fa;
+                    background: <?php echo esc_attr($file_item_bg ?: '#f8f9fa'); ?>;
                     border-radius: 8px;
                     font-size: 14px;
                 }
 
                 .document-meta span {
-                    color: #666;
+                    color: <?php echo esc_attr($download_info_text ?: '#666'); ?>;
                 }
 
                 .document-meta strong {
-                    color: <?php echo esc_attr($text_color); ?>;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                 }
 
                 .document-description {
@@ -443,10 +455,10 @@ class LIFT_Docs_Secure_Links {
                     align-items: center;
                     justify-content: space-between;
                     padding: 20px;
-                    background: #f8f9fa;
+                    background: <?php echo esc_attr($file_item_bg ?: '#f8f9fa'); ?>;
                     border-radius: 8px;
                     margin-bottom: 15px;
-                    border: 1px solid #e9ecef;
+                    border: 1px solid <?php echo esc_attr($file_item_border ?: '#e9ecef'); ?>;
                 }
 
                 .file-info {
@@ -463,14 +475,14 @@ class LIFT_Docs_Secure_Links {
                 .file-details h4 {
                     margin: 0;
                     font-size: 16px;
-                    color: <?php echo esc_attr($text_color); ?>;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                     font-weight: 600;
                 }
 
                 .file-details p {
                     margin: 0;
                     font-size: 14px;
-                    color: #666;
+                    color: <?php echo esc_attr($download_info_text ?: '#666'); ?>;
                 }
 
                 .download-actions {
@@ -515,11 +527,11 @@ class LIFT_Docs_Secure_Links {
 
                 .download-info {
                     font-size: 14px;
-                    color: #666;
+                    color: <?php echo esc_attr($download_info_text ?: '#666'); ?>;
                     text-align: center;
                     margin: 20px 0 0 0;
                     padding: 15px;
-                    background: #e3f2fd;
+                    background: <?php echo esc_attr($download_info_bg ?: '#e3f2fd'); ?>;
                     border-radius: 6px;
                 }
 
@@ -530,7 +542,7 @@ class LIFT_Docs_Secure_Links {
 
                 .document-categories strong,
                 .document-tags strong {
-                    color: <?php echo esc_attr($text_color); ?>;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                     display: block;
                     margin-bottom: 8px;
                 }
