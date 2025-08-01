@@ -608,6 +608,97 @@ class LIFT_Docs_Register {
                     }
                 });
 
+                // Real-time username validation
+                const usernameInput = document.getElementById('username');
+                let usernameTimeout;
+                
+                usernameInput.addEventListener('input', function() {
+                    const username = this.value.trim();
+                    const errorDiv = document.getElementById('username_error');
+                    
+                    // Clear previous timeout
+                    clearTimeout(usernameTimeout);
+                    
+                    if (username.length < 3) {
+                        return;
+                    }
+                    
+                    // Set timeout to avoid too many requests
+                    usernameTimeout = setTimeout(() => {
+                        checkUsername(username);
+                    }, 500);
+                });
+
+                // Real-time email validation
+                const emailInput = document.getElementById('email');
+                let emailTimeout;
+                
+                emailInput.addEventListener('blur', function() {
+                    const email = this.value.trim();
+                    
+                    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        checkEmail(email);
+                    }
+                });
+
+                // Check username availability
+                function checkUsername(username) {
+                    const formData = new FormData();
+                    formData.append('action', 'lift_docs_check_username');
+                    formData.append('username', username);
+
+                    fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const input = document.getElementById('username');
+                        const errorDiv = document.getElementById('username_error');
+                        
+                        if (data.success) {
+                            input.classList.remove('error');
+                            errorDiv.style.display = 'none';
+                        } else {
+                            input.classList.add('error');
+                            errorDiv.textContent = data.data.message;
+                            errorDiv.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Username check error:', error);
+                    });
+                }
+
+                // Check email availability
+                function checkEmail(email) {
+                    const formData = new FormData();
+                    formData.append('action', 'lift_docs_check_email');
+                    formData.append('email', email);
+
+                    fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const input = document.getElementById('email');
+                        const errorDiv = document.getElementById('email_error');
+                        
+                        if (data.success) {
+                            input.classList.remove('error');
+                            errorDiv.style.display = 'none';
+                        } else {
+                            input.classList.add('error');
+                            errorDiv.textContent = data.data.message;
+                            errorDiv.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Email check error:', error);
+                    });
+                }
+
                 // Confirm password validation
                 confirmPasswordInput.addEventListener('input', function() {
                     const password = passwordInput.value;
@@ -1292,6 +1383,48 @@ class LIFT_Docs_Register {
         </html>
         <?php
         return ob_get_clean();
+    }
+
+    /**
+     * AJAX handler for username availability check
+     */
+    public function ajax_check_username() {
+        $username = sanitize_user($_POST['username'] ?? '');
+        
+        if (empty($username)) {
+            wp_send_json_error(array('message' => __('Username is required.', 'lift-docs-system')));
+        }
+
+        if (!validate_username($username)) {
+            wp_send_json_error(array('message' => __('Username contains invalid characters.', 'lift-docs-system')));
+        }
+
+        if (username_exists($username)) {
+            wp_send_json_error(array('message' => __('This username is already taken.', 'lift-docs-system')));
+        }
+
+        wp_send_json_success(array('message' => __('Username is available.', 'lift-docs-system')));
+    }
+
+    /**
+     * AJAX handler for email availability check
+     */
+    public function ajax_check_email() {
+        $email = sanitize_email($_POST['email'] ?? '');
+        
+        if (empty($email)) {
+            wp_send_json_error(array('message' => __('Email is required.', 'lift-docs-system')));
+        }
+
+        if (!is_email($email)) {
+            wp_send_json_error(array('message' => __('Please enter a valid email address.', 'lift-docs-system')));
+        }
+
+        if (email_exists($email)) {
+            wp_send_json_error(array('message' => __('An account with this email already exists.', 'lift-docs-system')));
+        }
+
+        wp_send_json_success(array('message' => __('Email is available.', 'lift-docs-system')));
     }
 }
 
