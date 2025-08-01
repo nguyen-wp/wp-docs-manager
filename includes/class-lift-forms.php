@@ -155,7 +155,7 @@ class LIFT_Forms {
         global $wpdb;
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
 
-        // Check if user_id column exists
+        // Check if user_id column exists - Using proper wpdb::prepare() with SQL query and placeholder
         $column_exists = $wpdb->get_results($wpdb->prepare(
             "SHOW COLUMNS FROM {$submissions_table} LIKE %s",
             'user_id'
@@ -167,7 +167,7 @@ class LIFT_Forms {
             $wpdb->query("ALTER TABLE {$submissions_table} ADD INDEX user_id (user_id)");
         }
 
-        // Check if updated_at column exists
+        // Check if updated_at column exists - Using proper wpdb::prepare() with SQL query and placeholder
         $updated_at_exists = $wpdb->get_results($wpdb->prepare(
             "SHOW COLUMNS FROM {$submissions_table} LIKE %s",
             'updated_at'
@@ -535,7 +535,7 @@ class LIFT_Forms {
         $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
         
         if (!empty($params)) {
-            $query = $wpdb->prepare("SELECT * FROM $forms_table $where_clause ORDER BY created_at DESC", $params);
+            $query = $wpdb->prepare("SELECT * FROM $forms_table $where_clause ORDER BY created_at DESC", ...$params);
         } else {
             $query = "SELECT * FROM $forms_table $where_clause ORDER BY created_at DESC";
         }

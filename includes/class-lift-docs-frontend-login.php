@@ -1908,13 +1908,13 @@ class LIFT_Docs_Frontend_Login {
         global $wpdb;
         
         // Get all documents with their assigned users in one query
-        $document_assignments = $wpdb->get_results($wpdb->prepare("
+        $document_assignments = $wpdb->get_results("
             SELECT p.ID, pm.meta_value 
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
             WHERE p.post_type = 'lift_document' 
             AND p.post_status = 'publish'
-        "));
+        ");
 
         $user_documents_count = 0;
         foreach ($document_assignments as $doc_assignment) {
@@ -1940,14 +1940,14 @@ class LIFT_Docs_Frontend_Login {
         global $wpdb;
         
         // Get all documents with their assigned users in one query
-        $document_assignments = $wpdb->get_results($wpdb->prepare("
+        $document_assignments = $wpdb->get_results("
             SELECT p.*, pm.meta_value as assigned_users
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
             WHERE p.post_type = 'lift_document' 
             AND p.post_status = 'publish'
             ORDER BY p.post_date DESC
-        "));
+        ");
 
         $user_documents = array();
         foreach ($document_assignments as $doc_assignment) {
@@ -1975,13 +1975,13 @@ class LIFT_Docs_Frontend_Login {
         global $wpdb;
         
         // Get all documents with their assigned users in one query
-        $document_assignments = $wpdb->get_results($wpdb->prepare("
+        $document_assignments = $wpdb->get_results("
             SELECT p.ID, pm.meta_value 
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
             WHERE p.post_type = 'lift_document' 
             AND p.post_status = 'publish'
-        "));
+        ");
 
         $accessible_doc_ids = array();
         foreach ($document_assignments as $doc_assignment) {
@@ -2021,7 +2021,7 @@ class LIFT_Docs_Frontend_Login {
         $placeholders = implode(',', array_fill(0, count($accessible_doc_ids), '%d'));
         $query = $wpdb->prepare(
             "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'download' AND document_id IN ($placeholders)",
-            array_merge([$user_id], $accessible_doc_ids)
+            array_merge(array($user_id), $accessible_doc_ids)
         );
 
         $count = $wpdb->get_var($query);
