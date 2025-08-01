@@ -1491,26 +1491,24 @@ class LIFT_Forms {
                 $(this).addClass('active');
                 $('#tab-' + targetTab).addClass('active');
                 
-                // If switching to header-footer tab, refresh TinyMCE editors
+                // If switching to header-footer tab, just log for now
                 if (targetTab === 'header-footer') {
+                    console.log('Switched to Header & Footer tab');
+                    
+                    // Simple check for editors without calling methods that might not exist
                     setTimeout(function() {
                         if (typeof tinymce !== 'undefined') {
                             var headerEditor = tinymce.get('form_header');
                             var footerEditor = tinymce.get('form_footer');
                             
                             if (headerEditor) {
-                                headerEditor.getDoc().designMode = 'on';
-                                headerEditor.focus();
-                                headerEditor.blur();
+                                console.log('Header editor found and ready');
                             }
-                            
                             if (footerEditor) {
-                                footerEditor.getDoc().designMode = 'on';
+                                console.log('Footer editor found and ready');
                             }
-                            
-                            console.log('TinyMCE editors refreshed for header-footer tab');
                         }
-                    }, 100);
+                    }, 300);
                 }
             });
             
