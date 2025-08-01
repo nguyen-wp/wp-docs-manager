@@ -1308,13 +1308,12 @@ body.document-form-page .file-icon-large .file-name-overlay {
 .file-icon .fas,
 .file-icon .far,
 .file-icon .fab {
-    font-size: 20px;
+    font-size: 40px;
     color: #6b7280;
 }
 .file-details {
     display: flex;
     flex-direction: column;
-    gap: 4px;
 }
 
 .file-name {
