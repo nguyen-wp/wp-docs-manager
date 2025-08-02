@@ -36,10 +36,15 @@ class LIFT_Docs_CSS_JS_Editor {
         // AJAX handlers (work in both admin and frontend)
         add_action('wp_ajax_save_custom_css', array($this, 'ajax_save_custom_css'));
         add_action('wp_ajax_save_custom_js', array($this, 'ajax_save_custom_js'));
+        add_action('wp_ajax_reset_custom_css', array($this, 'ajax_reset_custom_css'));
+        add_action('wp_ajax_reset_custom_js', array($this, 'ajax_reset_custom_js'));
         
-        // Frontend output (always load)
-        add_action('wp_head', array($this, 'output_custom_css'));
-        add_action('wp_footer', array($this, 'output_custom_js'));
+        // Frontend output (always load with high priority)
+        add_action('wp_head', array($this, 'output_custom_css'), 999);
+        add_action('wp_footer', array($this, 'output_custom_js'), 999);
+        
+        // Add shortcode for testing
+        add_shortcode('lift_css_js_test', array($this, 'css_js_test_shortcode'));
     }
 
     /**
@@ -119,6 +124,7 @@ class LIFT_Docs_CSS_JS_Editor {
                         <div class="editor-actions">
                             <button type="button" id="format-css" class="button"><?php _e('Format Code', 'lift-docs-system'); ?></button>
                             <button type="button" id="clear-css" class="button"><?php _e('Clear All', 'lift-docs-system'); ?></button>
+                            <button type="button" id="reset-css" class="button"><?php _e('Reset to Default', 'lift-docs-system'); ?></button>
                             <button type="submit" id="save-css" class="button button-primary"><?php _e('Save CSS', 'lift-docs-system'); ?></button>
                         </div>
                     </div>
@@ -160,6 +166,7 @@ class LIFT_Docs_CSS_JS_Editor {
                         <div class="editor-actions">
                             <button type="button" id="format-js" class="button"><?php _e('Format Code', 'lift-docs-system'); ?></button>
                             <button type="button" id="clear-js" class="button"><?php _e('Clear All', 'lift-docs-system'); ?></button>
+                            <button type="button" id="reset-js" class="button"><?php _e('Reset to Default', 'lift-docs-system'); ?></button>
                             <button type="submit" id="save-js" class="button button-primary"><?php _e('Save JavaScript', 'lift-docs-system'); ?></button>
                         </div>
                     </div>
@@ -228,14 +235,58 @@ class LIFT_Docs_CSS_JS_Editor {
     }
 
     /**
+     * AJAX handler for resetting custom CSS to default
+     */
+    public function ajax_reset_custom_css() {
+        check_ajax_referer('lift_editor_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+
+        // Reset to default CSS
+        delete_option('lift_docs_custom_css');
+        $default_css = $this->get_default_css();
+        update_option('lift_docs_custom_css', $default_css);
+        
+        wp_send_json_success(array(
+            'message' => __('CSS reset to default successfully!', 'lift-docs-system'),
+            'default_css' => $default_css
+        ));
+    }
+
+    /**
+     * AJAX handler for resetting custom JS to default
+     */
+    public function ajax_reset_custom_js() {
+        check_ajax_referer('lift_editor_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+
+        // Reset to default JS
+        delete_option('lift_docs_custom_js');
+        $default_js = $this->get_default_js();
+        update_option('lift_docs_custom_js', $default_js);
+        
+        wp_send_json_success(array(
+            'message' => __('JavaScript reset to default successfully!', 'lift-docs-system'),
+            'default_js' => $default_js
+        ));
+    }
+
+    /**
      * Output custom CSS in head
      */
     public function output_custom_css() {
         $custom_css = get_option('lift_docs_custom_css', '');
         if (!empty($custom_css)) {
+            // Basic sanitization for CSS output
+            $custom_css = $this->sanitize_css_for_output($custom_css);
             echo "\n<!-- LIFT Docs Custom CSS -->\n";
             echo '<style type="text/css" id="lift-docs-custom-css">' . "\n";
-            echo wp_strip_all_tags($custom_css) . "\n";
+            echo $custom_css . "\n";
             echo '</style>' . "\n";
         } elseif (WP_DEBUG) {
             echo "\n<!-- LIFT Docs: No custom CSS found -->\n";
@@ -248,9 +299,11 @@ class LIFT_Docs_CSS_JS_Editor {
     public function output_custom_js() {
         $custom_js = get_option('lift_docs_custom_js', '');
         if (!empty($custom_js)) {
+            // Basic sanitization for JS output
+            $custom_js = $this->sanitize_js_for_output($custom_js);
             echo "\n<!-- LIFT Docs Custom JavaScript -->\n";
             echo '<script type="text/javascript" id="lift-docs-custom-js">' . "\n";
-            echo wp_strip_all_tags($custom_js) . "\n";
+            echo $custom_js . "\n";
             echo '</script>' . "\n";
         } elseif (WP_DEBUG) {
             echo "\n<!-- LIFT Docs: No custom JS found -->\n";
@@ -286,6 +339,34 @@ class LIFT_Docs_CSS_JS_Editor {
     }
 
     /**
+     * Sanitize CSS for output (lighter sanitization)
+     */
+    private function sanitize_css_for_output($css) {
+        // Remove any potential PHP tags
+        $css = preg_replace('/<\?php.*?\?>/is', '', $css);
+        $css = preg_replace('/<\?.*?\?>/is', '', $css);
+        
+        // Remove script tags but keep CSS intact
+        $css = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi', '', $css);
+        
+        return $css;
+    }
+
+    /**
+     * Sanitize JS for output (lighter sanitization)
+     */
+    private function sanitize_js_for_output($js) {
+        // Remove any potential PHP tags
+        $js = preg_replace('/<\?php.*?\?>/is', '', $js);
+        $js = preg_replace('/<\?.*?\?>/is', '', $js);
+        
+        // Remove HTML tags but keep JavaScript intact
+        $js = preg_replace('/<(?!\/?(script|noscript)\b)[^>]*>/i', '', $js);
+        
+        return $js;
+    }
+
+    /**
      * Add default styles if none exist
      */
     private function maybe_add_default_styles() {
@@ -294,115 +375,41 @@ class LIFT_Docs_CSS_JS_Editor {
         $custom_js = get_option('lift_docs_custom_js', '');
         
         if (empty($custom_css)) {
-            $default_css = '/* LIFT Docs System - Custom CSS */
-/* Add your custom styles here */
-
-/* Document Meta Styling */
-.lift-docs-meta {
-    background: #f9f9f9;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 20px 0;
-    border-left: 4px solid #0073aa;
-}
-
-.lift-docs-meta .meta-label {
-    font-weight: bold;
-    color: #333;
-    margin-right: 5px;
-}
-
-.lift-docs-meta .meta-value {
-    color: #666;
-}
-
-/* Document Actions Styling */
-.lift-docs-actions {
-    margin: 20px 0;
-    padding: 15px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.lift-docs-download-btn,
-.lift-docs-share-btn {
-    background: #0073aa;
-    color: white;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 5px;
-    margin: 0 5px;
-    display: inline-block;
-    transition: all 0.3s ease;
-}
-
-.lift-docs-download-btn:hover,
-.lift-docs-share-btn:hover {
-    background: #005177;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-/* Related Documents */
-.lift-docs-related {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin: 30px 0;
-    border: 1px solid #e9ecef;
-}
-
-.lift-docs-related h3 {
-    color: #0073aa;
-    border-bottom: 2px solid #0073aa;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-
-/* Login Required Message */
-.lift-docs-restricted,
-.lift-docs-login-required {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    color: #856404;
-    padding: 15px;
-    border-radius: 5px;
-    margin: 15px 0;
-}
-
-.lift-docs-restricted a,
-.lift-docs-login-required a {
-    color: #0073aa;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.lift-docs-restricted a:hover,
-.lift-docs-login-required a:hover {
-    text-decoration: underline;
-}';
+            $default_css = $this->get_default_css();
             update_option('lift_docs_custom_css', $default_css);
         }
         
         if (empty($custom_js)) {
-            $default_js = '/* LIFT Docs System - Custom JavaScript */
-/* Add your custom JavaScript here */
-
-jQuery(document).ready(function($) {
-    // Example: Add fade-in animation to documents
-    $(".lift-doc-item").css("opacity", "0").animate({opacity: 1}, 500);
-    
-    // Example: Console log when document is clicked
-    $(".lift-doc-item").on("click", function() {
-        console.log("Document clicked:", $(this).find(".lift-doc-title").text());
-    });
-    
-    // Add your custom JavaScript code here
-});';
+            $default_js = $this->get_default_js();
             update_option('lift_docs_custom_js', $default_js);
         }
+    }
+
+    /**
+     * Get default CSS
+     */
+    private function get_default_css() {
+        return '/* LIFT Docs System - Custom CSS */
+/* Add your custom styles here */
+';
+    }
+
+    /**
+     * Get default JS
+     */
+    private function get_default_js() {
+        return '/* LIFT Docs System - Custom JavaScript */
+jQuery(document).ready(function($) {
+    console.log("LIFT Docs Custom JS loaded!");
+});';
+    }
+
+    /**
+     * Force initialize default styles (for testing)
+     */
+    public function force_init_default_styles() {
+        delete_option('lift_docs_custom_css');
+        delete_option('lift_docs_custom_js');
+        $this->maybe_add_default_styles();
     }
 }

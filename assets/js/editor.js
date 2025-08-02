@@ -219,6 +219,74 @@ jQuery(document).ready(function($) {
         }
     }
 
+    // Reset CSS to default
+    function resetCSS() {
+        if (confirm('Are you sure you want to reset CSS to default? This will overwrite your current changes.')) {
+            $('.editor-container').addClass('editor-loading');
+            
+            $.ajax({
+                url: lift_editor_vars.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'reset_custom_css',
+                    nonce: lift_editor_vars.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (cssEditor) {
+                            cssEditor.codemirror.setValue(response.data.default_css);
+                        } else {
+                            $('#custom-css-editor').val(response.data.default_css);
+                        }
+                        showMessage(response.data.message, 'success');
+                    } else {
+                        showMessage('Error resetting CSS', 'error');
+                    }
+                },
+                error: function() {
+                    showMessage('Error resetting CSS', 'error');
+                },
+                complete: function() {
+                    $('.editor-container').removeClass('editor-loading');
+                }
+            });
+        }
+    }
+
+    // Reset JS to default
+    function resetJS() {
+        if (confirm('Are you sure you want to reset JavaScript to default? This will overwrite your current changes.')) {
+            $('.editor-container').addClass('editor-loading');
+            
+            $.ajax({
+                url: lift_editor_vars.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'reset_custom_js',
+                    nonce: lift_editor_vars.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (jsEditor) {
+                            jsEditor.codemirror.setValue(response.data.default_js);
+                        } else {
+                            $('#custom-js-editor').val(response.data.default_js);
+                        }
+                        showMessage(response.data.message, 'success');
+                    } else {
+                        showMessage('Error resetting JavaScript', 'error');
+                    }
+                },
+                error: function() {
+                    showMessage('Error resetting JavaScript', 'error');
+                },
+                complete: function() {
+                    $('.editor-container').removeClass('editor-loading');
+                }
+            });
+        }
+    }
+
     // Event handlers
     $(document).on('click', '#save-css', function(e) {
         e.preventDefault();
@@ -248,6 +316,16 @@ jQuery(document).ready(function($) {
     $(document).on('click', '#clear-js', function(e) {
         e.preventDefault();
         clearJS();
+    });
+
+    $(document).on('click', '#reset-css', function(e) {
+        e.preventDefault();
+        resetCSS();
+    });
+
+    $(document).on('click', '#reset-js', function(e) {
+        e.preventDefault();
+        resetJS();
     });
 
     // Form submission handlers
