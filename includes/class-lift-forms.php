@@ -560,7 +560,7 @@ class LIFT_Forms {
             </div>
 
             <!-- Search and Filter Form -->
-            <div class="lift-forms-search-form" style="background: #f9f9f9; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <div class="lift-forms-search-form" style="background: #fff; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
                 <h3 style="margin-top: 0;"><?php _e('Search & Filter Forms', 'lift-docs-system'); ?></h3>
                 <form method="get" action="">
                     <?php foreach ($_GET as $key => $value): ?>
@@ -1712,7 +1712,7 @@ class LIFT_Forms {
             <h1><?php _e('Form Submissions', 'lift-docs-system'); ?></h1>
 
             <!-- Enhanced Search and Filter Form -->
-            <div class="lift-submissions-search-form" style="background: #f9f9f9; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <div class="lift-submissions-search-form" style="background: #fff; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
                 <h3 style="margin-top: 0;"><?php _e('Search & Filter Submissions', 'lift-docs-system'); ?></h3>
                 <form method="get" action="<?php echo admin_url('admin.php'); ?>">
                     <input type="hidden" name="page" value="lift-forms-submissions">
