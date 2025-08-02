@@ -11,8 +11,6 @@
     let layoutData = {
         rows: []
     };
-    let autoSaveTimeout = null;
-    let formModified = false;
 
     // Initialize when DOM is ready
     $(document).ready(function() {
@@ -46,18 +44,6 @@
         window.liftCurrentFormFields = dataToSave;
         if (window.formBuilder) {
             window.formBuilder.formData = dataToSave;
-        }
-    }
-
-    /**
-     * Mark form as modified
-     */
-    function markFormAsModified() {
-        formModified = true;
-        // Change save button text to indicate unsaved changes
-        const saveBtn = $('#save-form');
-        if (saveBtn.length && !saveBtn.hasClass('saving')) {
-            saveBtn.text('Save Changes *');
         }
     }
 
@@ -102,7 +88,7 @@
 
                 columns.push({
                     id: columnId,
-                    width: columnElement.css('flex') || '1',
+                    width: columnElement.find('.column-width-selector').val() || '1',
                     fields: fields
                 });
             });
@@ -225,10 +211,6 @@
                                 <button type="button" class="field-type-btn draggable" data-type="signature" draggable="true">
                                     <span class="dashicons dashicons-edit"></span> Signature
                                 </button>
-
-                                <div class="copyright-type-buttons">
-                Copyright © LIFT Creations
-            </div>
                             </div>
                         </div>
                     </div>
@@ -236,18 +218,23 @@
                 </div>
 
                 <div class="form-builder-canvas">
-                    <div class="form-builder-header">
+                    <div class="form-action-builder">
                         <div class="builder-actions">
                             <button type="button" class="button" id="preview-form">Preview</button>
                             <button type="button" class="button button-secondary" id="clear-form">Clear All</button>
                         </div>
                     </div>
 
+                 
+
                     <div class="form-fields-area">
                         <div id="form-fields-list">
                             <div class="no-fields-message"><p>No rows added yet. Drag a row layout from the palette to get started.</p></div>
                         </div>
                     </div>
+
+                    
+
                 </div>
 
                 <!-- Field Edit Modal -->
@@ -292,50 +279,15 @@
                     </div>
                 </div>
 
-                <!-- Column Settings Modal -->
-                <div id="column-settings-modal" class="field-modal" style="display: none;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4>Column Settings</h4>
-                            <button type="button" class="modal-close">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-field">
-                                <label>Column Width</label>
-                                <select id="column-width" class="widefat">
-                                    <option value="1">Auto</option>
-                                    <option value="0.16">16.67% (1/6)</option>
-                                    <option value="0.25">25% (1/4)</option>
-                                    <option value="0.33">33.33% (1/3)</option>
-                                    <option value="0.5">50% (1/2)</option>
-                                    <option value="0.66">66.67% (2/3)</option>
-                                    <option value="0.75">75% (3/4)</option>
-                                    <option value="0.83">83.33% (5/6)</option>
-                                    <option value="2">2x Width</option>
-                                    <option value="3">3x Width</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label>CSS Classes</label>
-                                <input type="text" id="column-classes" class="widefat" placeholder="custom-class another-class">
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="button button-primary" id="save-column-settings">Save Settings</button>
-                            <button type="button" class="button" id="cancel-column-settings">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Form Preview Modal -->
-                <div id="form-preview-modal" class="field-modal form-preview-modal" style="display: none;">
-                    <div class="modal-content modal-extra-large">
+                <div id="form-preview-modal" class="field-modal" style="display: none;">
+                    <div class="modal-content modal-large">
                         <div class="modal-header">
                             <h4>Form Preview</h4>
                             <button type="button" class="modal-close">&times;</button>
                         </div>
                         <div class="modal-body">
-                            <div id="form-preview-content" class="form-preview-wrapper">
+                            <div id="form-preview-content">
                                 <!-- Preview content will be inserted here -->
                             </div>
                         </div>
@@ -345,7 +297,9 @@
                     </div>
                 </div>
             </div>
-            
+            <div class="copyright-type-buttons">
+                Copyright © LIFT Creations
+            </div>
         `;
 
         container.html(builderHTML);
@@ -379,6 +333,12 @@
 
         // Bind form builder events
         bindFormBuilderEvents();
+
+        // Trigger event to notify that form builder is loaded
+        $(document).trigger('formBuilderLoaded');
+        
+        // No need to move editors anymore - they are in their proper tab
+        console.log('Form builder loaded - editors are in Header & Footer tab');
     }
 
     /**
@@ -478,15 +438,6 @@
 
         $(document).on('input', '.option-input', function() {
             // Auto-save option changes could be implemented here
-        });
-
-        // Column settings modal events
-        $(document).on('click', '.modal-close, #cancel-column-settings', function() {
-            $('#column-settings-modal').hide();
-        });
-
-        $(document).on('click', '#save-column-settings', function() {
-            saveColumnSettings();
         });
 
         // Form preview modal events
@@ -1598,19 +1549,50 @@
             return;
         }
 
+        // Get header and footer content from WordPress editors
+        let headerContent = '';
+        let footerContent = '';
+        
+        // Try to get content from TinyMCE editors first
+        if (typeof tinymce !== 'undefined') {
+            const headerEditor = tinymce.get('form_header');
+            const footerEditor = tinymce.get('form_footer');
+            
+            if (headerEditor) {
+                headerContent = headerEditor.getContent();
+            } else {
+                headerContent = $('#form_header').val() || '';
+            }
+            
+            if (footerEditor) {
+                footerContent = footerEditor.getContent();
+            } else {
+                footerContent = $('#form_footer').val() || '';
+            }
+        } else {
+            // Fallback to textarea values
+            headerContent = $('#form_header').val() || '';
+            footerContent = $('#form_footer').val() || '';
+        }
+
         let previewHTML = '';
 
         // Check if we have row/column structure
         if ($('#form-fields-list .form-row').length > 0) {
-            // Generate preview with row/column structure matching form builder
+            // Generate preview with row/column structure
             previewHTML = '<div class="form-preview-container">';
+
+            // Add header if exists
+            if (headerContent.trim()) {
+                previewHTML += '<div class="form-header-content">' + headerContent + '</div>';
+            }
 
             $('#form-fields-list .form-row').each(function() {
                 const rowElement = $(this);
                 const columns = rowElement.find('.form-column');
 
                 if (columns.length > 0) {
-                    previewHTML += '<div class="preview-row" style="display: flex; margin-bottom: 20px; gap: 15px;">';
+                    previewHTML += '<div class="preview-row">';
 
                     columns.each(function() {
                         const columnElement = $(this);
@@ -1628,22 +1610,14 @@
                             }
                         });
 
-                        // Get actual flex value from the column element
-                        const flexValue = columnElement.css('flex') || '1';
-                        previewHTML += `<div class="preview-column" style="flex: ${flexValue}; padding: 0 10px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 15px; background: #fafafa;">`;
-
-                        // Add column title for clarity
-                        previewHTML += `<div class="preview-column-header" style="font-weight: bold; color: #666; margin-bottom: 10px; font-size: 12px; text-transform: uppercase;">Column</div>`;
+                        // Calculate column width based on flex or data attributes
+                        const columnWidth = Math.floor(100 / columns.length);
+                        previewHTML += `<div class="preview-column" style="width: ${columnWidth}%; padding: 0 10px;">`;
 
                         // Add fields in this column
                         columnFields.forEach(field => {
                             previewHTML += generateFullFormPreview(field);
                         });
-
-                        // Show placeholder if column is empty
-                        if (columnFields.length === 0) {
-                            previewHTML += '<div style="color: #999; font-style: italic; padding: 20px; text-align: center;">No fields in this column</div>';
-                        }
 
                         previewHTML += '</div>';
                     });
@@ -1652,17 +1626,13 @@
                 }
             });
 
-            previewHTML += '</div>';
-        } else {
-            // Fallback for single column layout
-            previewHTML = '<div class="form-preview-container single-column">';
-            formData.forEach(field => {
-                previewHTML += generateFullFormPreview(field);
-            });
+            // Add footer if exists
+            if (footerContent.trim()) {
+                previewHTML += '<div class="form-footer-content">' + footerContent + '</div>';
+            }
+
             previewHTML += '</div>';
         }
-
-        // Remove submit button - don't add it
 
         // Insert into modal and show
         $('#form-preview-content').html(previewHTML);
@@ -1691,28 +1661,15 @@
             });
         });
 
-        // Column settings modal handlers
-        $(document).on('click', '#save-column-settings', function() {
-            saveColumnSettings();
-        });
-
-        $(document).on('click', '.column-settings-close, #column-settings-modal .modal-close', function() {
-            $('#column-settings-modal').hide();
-        });
-
-        // Close modal on backdrop click
-        $(document).on('click', '#column-settings-modal', function(e) {
-            if (e.target === this) {
-                $('#column-settings-modal').hide();
-            }
-        });
-
-        // Auto-save every 30 seconds
+        // Auto-save every 30 seconds - DISABLED for debugging
         // setInterval(function() {
         //     if (formData.length > 0) {
         //         saveForm(true); // Silent save
         //     }
         // }, 30000);
+
+        // Header and Footer Editor Events
+        bindHeaderFooterEvents();
     }
 
     /**
@@ -1766,6 +1723,9 @@
             updateGlobalFormData();
         }
 
+        // Get header and footer data
+        const headerFooterData = getHeaderFooterData();
+
         $.ajax({
             url: (window.liftFormBuilder && liftFormBuilder.ajaxurl) || ajaxurl || '/wp-admin/admin-ajax.php',
             type: 'POST',
@@ -1776,14 +1736,12 @@
                 name: $('#form-name').val() || 'Untitled Form',
                 description: $('#form-description').val() || '',
                 fields: typeof saveData === 'string' ? saveData : JSON.stringify(saveData),
-                settings: JSON.stringify({})
+                settings: JSON.stringify({}),
+                form_header: headerFooterData.form_header,
+                form_footer: headerFooterData.form_footer
             },
             success: function(response) {
                 if (response.success) {
-                    // Reset form modified state
-                    formModified = false;
-                    $('#save-form').text('Save Form');
-                    
                     if (!silent) {
                         $('.lift-save-indicator').text('Saved').removeClass('error');
                         setTimeout(() => $('.lift-save-indicator').fadeOut(), 2000);
@@ -1909,6 +1867,12 @@
                         }
 
                         updateGlobalFormData();
+
+                        // Load header and footer data
+                        const headerContent = response.data.form_header || '';
+                        const footerContent = response.data.form_footer || '';
+                        loadHeaderFooterData(headerContent, footerContent);
+
                     } catch (error) {
                         // JSON parse error - create default UI
                         createFormBuilderUI();
@@ -1959,9 +1923,6 @@
                     <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${row.id}')">
                         <span class="dashicons dashicons-minus"></span> Col
                     </button>
-                    <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                        <span class="dashicons dashicons-plus-alt"></span> Row
-                    </button>
                     <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
                         <span class="dashicons dashicons-trash"></span>
                     </button>
@@ -1974,22 +1935,19 @@
                 rowHTML += `
                     <div class="form-column" data-column-id="${column.id}" style="flex: ${columnWidth}; position: relative;">
                         <div class="column-header">
-                            <span class="column-title">C ${columnIndex + 1}</span>
+                            <span class="column-title">Column ${columnIndex + 1}</span>
                             <div class="column-actions">
                                 <select class="column-width-selector" onchange="changeColumnWidth('${column.id}', this.value)">
-                                    <option value="1" ${columnWidth == '1' ? 'selected' : ''}>Auto</option>
-                                    <option value="0.16" ${columnWidth == '0.16' ? 'selected' : ''}>16.67% (1/6)</option>
-                                    <option value="0.25" ${columnWidth == '0.25' ? 'selected' : ''}>25% (1/4)</option>
-                                    <option value="0.33" ${columnWidth == '0.33' ? 'selected' : ''}>33.33% (1/3)</option>
-                                    <option value="0.5" ${columnWidth == '0.5' ? 'selected' : ''}>50% (1/2)</option>
-                                    <option value="0.66" ${columnWidth == '0.66' ? 'selected' : ''}>66.67% (2/3)</option>
-                                    <option value="0.75" ${columnWidth == '0.75' ? 'selected' : ''}>75% (3/4)</option>
-                                    <option value="0.83" ${columnWidth == '0.83' ? 'selected' : ''}>83.33% (5/6)</option>
-                                    <option value="1" ${columnWidth == '1' ? 'selected' : ''}>100%</option>
+                                    <option value="1" ${columnWidth === '1' ? 'selected' : ''}>Auto</option>
+                                    <option value="0.16" ${columnWidth === '0.16' ? 'selected' : ''}>16.67% (1/6)</option>
+                                    <option value="0.25" ${columnWidth === '0.25' ? 'selected' : ''}>25% (1/4)</option>
+                                    <option value="0.33" ${columnWidth === '0.33' ? 'selected' : ''}>33.33% (1/3)</option>
+                                    <option value="0.5" ${columnWidth === '0.5' ? 'selected' : ''}>50% (1/2)</option>
+                                    <option value="0.66" ${columnWidth === '0.66' ? 'selected' : ''}>66.67% (2/3)</option>
+                                    <option value="0.75" ${columnWidth === '0.75' ? 'selected' : ''}>75% (3/4)</option>
+                                    <option value="0.83" ${columnWidth === '0.83' ? 'selected' : ''}>83.33% (5/6)</option>
+                                    <option value="2" ${columnWidth === '2' ? 'selected' : ''}>100%</option>
                                 </select>
-                                <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${column.id}')">
-                                    <span class="dashicons dashicons-admin-generic"></span>
-                                </button>
                             </div>
                         </div>
                         <div class="column-content">
@@ -2005,7 +1963,7 @@
                     });
                     rowHTML += '</div>'; // Close column-content
                 } else {
-                    // rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
+                    rowHTML += '<div class="column-placeholder">Drop fields here</div></div>';
                 }
 
                 rowHTML += '</div>'; // Close form-column
@@ -2046,6 +2004,32 @@
         } catch (error) {
             // Error in initDragAndDrop
         }
+
+        // Sync select boxes with actual column widths
+        syncColumnSelectors();
+    }
+
+    /**
+     * Sync column width selectors with actual column flex values
+     */
+    function syncColumnSelectors() {
+        $('#form-fields-list .form-column').each(function() {
+            const column = $(this);
+            const currentFlex = column.css('flex');
+            const selector = column.find('.column-width-selector');
+            
+            // Extract the flex-grow value from CSS flex property
+            let flexValue = '1'; // default
+            if (currentFlex) {
+                const flexParts = currentFlex.split(' ');
+                if (flexParts.length > 0) {
+                    flexValue = flexParts[0];
+                }
+            }
+            
+            // Set the select box to the correct value
+            selector.val(flexValue);
+        });
     }
 
     /**
@@ -2155,7 +2139,7 @@
 
                 // Show drop indicator between rows for canvas-row dragging
                 if (draggedData.source === 'canvas-row') {
-                    showRowDropIndicator(e.originalEvent.clientY);
+                    showRowDropIndicator(e.originalEvent.clientY, draggedData);
                 }
             }
         });
@@ -2260,9 +2244,6 @@
                 <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${rowId}')">
                     <span class="dashicons dashicons-minus"></span> Col
                 </button>
-                <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                    <span class="dashicons dashicons-plus-alt"></span> Row
-                </button>
                 <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
                     <span class="dashicons dashicons-trash"></span>
                 </button>
@@ -2277,7 +2258,7 @@
             rowHTML += `
                 <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                     <div class="column-header">
-                        <span class="column-title">C ${i + 1}</span>
+                        <span class="column-title">Column ${i + 1}</span>
                         <div class="column-actions">
                             <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
                                 <option value="1" selected>Auto</option>
@@ -2288,12 +2269,8 @@
                                 <option value="0.66">66.67% (2/3)</option>
                                 <option value="0.75">75% (3/4)</option>
                                 <option value="0.83">83.33% (5/6)</option>
-                                <option value="2">2x Width</option>
-                                <option value="3">3x Width</option>
+                                <option value="2">100%</option>
                             </select>
-                            <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
-                                <span class="dashicons dashicons-admin-generic"></span>
-                            </button>
                         </div>
                     </div>
                     <div class="column-placeholder">
@@ -2314,18 +2291,6 @@
     }
 
     function bindRowEvents() {
-        // Add row button
-        $(document).off('click', '.add-row').on('click', '.add-row', function() {
-            const currentRow = $(this).closest('.form-row');
-            const columns = currentRow.find('.form-column').length;
-            const newRowHTML = generateRowHTML(columns);
-            currentRow.after(newRowHTML);
-
-            // Re-bind events and initialize column resize for the new row
-            bindRowEvents();
-            initColumnResize();
-        });
-
         // Delete row button
         $(document).off('click', '.delete-row').on('click', '.delete-row', function() {
             if (confirm('Are you sure you want to delete this row and all its fields?')) {
@@ -2337,74 +2302,6 @@
                 }
             }
         });
-    }
-
-    function generateRowHTML(columns) {
-        const rowId = 'row-' + Date.now();
-        let rowHTML = `<div class="form-row" data-row-id="${rowId}" draggable="true">`;
-
-        // Add row drag handle
-        rowHTML += `
-            <div class="row-drag-handle" title="Drag to reorder row">
-                ⋮⋮
-            </div>
-        `;
-
-        // Add row controls with full functionality
-        rowHTML += `
-            <div class="row-controls">
-                <button type="button" class="row-control-btn" title="Add Column" onclick="addColumn('${rowId}')">
-                    <span class="dashicons dashicons-plus-alt"></span> Col
-                </button>
-                <button type="button" class="row-control-btn" title="Remove Column" onclick="removeColumn('${rowId}')">
-                    <span class="dashicons dashicons-minus"></span> Col
-                </button>
-                <button type="button" class="row-control-btn add-row" title="Add Row Below">
-                    <span class="dashicons dashicons-plus-alt"></span> Row
-                </button>
-                <button type="button" class="row-control-btn delete delete-row" title="Delete Row">
-                    <span class="dashicons dashicons-trash"></span>
-                </button>
-            </div>
-        `;
-
-        // Add columns with full functionality including width selector and settings
-        for (let i = 0; i < columns; i++) {
-            const columnId = `${rowId}-col-${i}`;
-
-            rowHTML += `
-                <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
-                    <div class="column-header">
-                        <span class="column-title">C ${i + 1}</span>
-                        <div class="column-actions">
-                            <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
-                                <option value="1" selected>Auto</option>
-                                <option value="0.16">16.67% (1/6)</option>
-                                <option value="0.25">25% (1/4)</option>
-                                <option value="0.33">33.33% (1/3)</option>
-                                <option value="0.5">50% (1/2)</option>
-                                <option value="0.66">66.67% (2/3)</option>
-                                <option value="0.75">75% (3/4)</option>
-                                <option value="0.83">83.33% (5/6)</option>
-                                <option value="1">100%</option>
-                            </select>
-                            <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
-                                <span class="dashicons dashicons-admin-generic"></span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="column-placeholder">
-                    </div>
-                    ${i < columns - 1 ? '<div class="column-resize-handle"></div>' : ''}
-                </div>
-            `;
-        }
-
-        return rowHTML + '</div>';
-    }
-
-    function getCurrentLayout() {
-        return parseInt($('.column-btn.active').data('columns')) || 1;
     }
 
     function addFieldToColumn(fieldType, column) {
@@ -2449,23 +2346,6 @@
         }
     }
 
-    function convertToSingleColumn() {
-        const container = $('#form-fields-list');
-        const allFields = container.find('.form-field-item').detach();
-
-        // Remove all rows
-        container.find('.form-row').remove();
-
-        // Add fields back to single column
-        allFields.each(function() {
-            container.append(this);
-        });
-
-        if (allFields.length === 0) {
-            container.find('.no-fields-message').show();
-        }
-    }
-
     /**
      * Column and Row Management Functions
      */
@@ -2482,7 +2362,7 @@
         const columnHTML = `
             <div class="form-column" data-column-id="${columnId}" style="flex: 1; position: relative;">
                 <div class="column-header">
-                    <span class="column-title">C ${currentColumns + 1}</span>
+                    <span class="column-title">Column ${currentColumns + 1}</span>
                     <div class="column-actions">
                         <select class="column-width-selector" onchange="changeColumnWidth('${columnId}', this.value)">
                             <option value="1" selected>Auto</option>
@@ -2493,11 +2373,8 @@
                             <option value="0.66">66.67% (2/3)</option>
                             <option value="0.75">75% (3/4)</option>
                             <option value="0.83">83.33% (5/6)</option>
-                            <option value="1">100%</option>
+                            <option value="2">100%</option>
                         </select>
-                        <button type="button" class="column-action-btn" title="Column Settings" onclick="openColumnSettings('${columnId}')">
-                            <span class="dashicons dashicons-admin-generic"></span>
-                        </button>
                     </div>
                 </div>
                 <div class="column-placeholder">
@@ -2532,73 +2409,6 @@
     function changeColumnWidth(columnId, flexValue) {
         const column = $(`.form-column[data-column-id="${columnId}"]`);
         column.css('flex', flexValue);
-        
-        // Also update the column width selector to reflect the change
-        column.find('.column-width-selector').val(flexValue);
-        
-        // Mark form as modified to enable save
-        markFormAsModified();
-        
-        // Optional: Auto-save after a short delay
-        if (autoSaveTimeout) {
-            clearTimeout(autoSaveTimeout);
-        }
-        autoSaveTimeout = setTimeout(function() {
-            saveForm(true); // Silent save
-        }, 2000);
-    }
-
-    function openColumnSettings(columnId) {
-        const column = $(`.form-column[data-column-id="${columnId}"]`);
-        if (!column.length) return;
-
-        // Get current column data
-        const currentFlex = column.css('flex') || '1';
-        const currentClasses = column.attr('data-custom-classes') || '';
-
-        // Populate modal fields
-        $('#column-width').val(currentFlex);
-        $('#column-classes').val(currentClasses);
-
-        // Store current editing column ID
-        $('#column-settings-modal').data('editing-column-id', columnId).show();
-    }
-
-    function saveColumnSettings() {
-        const columnId = $('#column-settings-modal').data('editing-column-id');
-        const column = $(`.form-column[data-column-id="${columnId}"]`);
-
-        if (!column.length) return;
-
-        // Get form values
-        const width = $('#column-width').val();
-        const classes = $('#column-classes').val();
-
-        // Update column width
-        column.css('flex', width);
-        column.find('.column-width-selector').val(width);
-
-        // Update custom classes
-        if (classes) {
-            column.attr('data-custom-classes', classes);
-            column.addClass(classes);
-        } else {
-            column.removeAttr('data-custom-classes');
-        }
-
-        // Mark form as modified and trigger save
-        markFormAsModified();
-        
-        // Auto-save after changes
-        if (autoSaveTimeout) {
-            clearTimeout(autoSaveTimeout);
-        }
-        autoSaveTimeout = setTimeout(function() {
-            saveForm(true); // Silent save
-        }, 1000);
-
-        // Close modal
-        $('#column-settings-modal').hide();
     }
 
     function initColumnResize() {
@@ -2683,7 +2493,6 @@
     window.addColumn = addColumn;
     window.removeColumn = removeColumn;
     window.changeColumnWidth = changeColumnWidth;
-    window.openColumnSettings = openColumnSettings;
 
     /**
      * Create field data object
@@ -2748,13 +2557,13 @@
     /**
      * Show drop indicator between rows
      */
-    function showRowDropIndicator(dropY) {
+    function showRowDropIndicator(dropY, draggedDataParam) {
         // Clear existing indicators
         clearRowDropIndicators();
 
-        if (!draggedData || draggedData.source !== 'canvas-row') return;
+        if (!draggedDataParam || draggedDataParam.source !== 'canvas-row') return;
 
-        const draggedRow = $(`.form-row[data-row-id="${draggedData.rowId}"]`);
+        const draggedRow = $(`.form-row[data-row-id="${draggedDataParam.rowId}"]`);
         const allRows = $('#form-fields-list .form-row').not(draggedRow);
 
         if (allRows.length === 0) return;
@@ -2836,6 +2645,96 @@
         }];
     }
 
-    // Form data debugging functionality has been removed for production
+    /**
+     * Bind Header and Footer Editor Events
+     */
+    function bindHeaderFooterEvents() {
+        // No toggle events needed since editors are always visible
+    }
+
+    /**
+     * Get Header and Footer Content for Saving
+     */
+    function getHeaderFooterData() {
+        let headerContent = '';
+        let footerContent = '';
+        
+        // Try to get content from TinyMCE editors first
+        if (typeof tinymce !== 'undefined') {
+            const headerEditor = tinymce.get('form_header');
+            const footerEditor = tinymce.get('form_footer');
+            
+            if (headerEditor) {
+                headerContent = headerEditor.getContent();
+            } else {
+                headerContent = $('#form_header').val() || '';
+            }
+            
+            if (footerEditor) {
+                footerContent = footerEditor.getContent();
+            } else {
+                footerContent = $('#form_footer').val() || '';
+            }
+        } else {
+            // Fallback to textarea values
+            headerContent = $('#form_header').val() || '';
+            footerContent = $('#form_footer').val() || '';
+        }
+        
+        return {
+            form_header: headerContent,
+            form_footer: footerContent
+        };
+    }
+
+    /**
+     * Load Header and Footer Content
+     */
+    function loadHeaderFooterData(headerContent, footerContent) {
+        // Set textarea values first as fallback
+        $('#form_header').val(headerContent || '');
+        $('#form_footer').val(footerContent || '');
+        
+        // Load content into WordPress editors if available
+        if (typeof wp !== 'undefined' && wp.editor) {
+            setTimeout(function() {
+                // Set header content
+                if (typeof tinymce !== 'undefined' && tinymce.get('form_header')) {
+                    tinymce.get('form_header').setContent(headerContent || '');
+                }
+                
+                // Set footer content  
+                if (typeof tinymce !== 'undefined' && tinymce.get('form_footer')) {
+                    tinymce.get('form_footer').setContent(footerContent || '');
+                }
+            }, 1500);
+        }
+    }
+
+    /**
+     * Sync column width selectors with actual column flex values
+     */
+    function syncColumnSelectors() {
+        $('#form-fields-list .form-column').each(function() {
+            const column = $(this);
+            const currentFlex = column.css('flex');
+            const selector = column.find('.column-width-selector');
+            
+            // Extract the flex-grow value from CSS flex property
+            let flexValue = '1'; // default
+            if (currentFlex) {
+                const flexParts = currentFlex.split(' ');
+                if (flexParts.length > 0) {
+                    flexValue = flexParts[0];
+                }
+            }
+            
+            // Set the select box to the correct value
+            selector.val(flexValue);
+        });
+    }
+
+    // Expose debug function globally for testing
+    // window.debugFormData = debugFormData;
 
 })(jQuery);

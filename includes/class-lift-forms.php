@@ -155,7 +155,7 @@ class LIFT_Forms {
         global $wpdb;
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
 
-        // Check if user_id column exists
+        // Check if user_id column exists - Using proper wpdb::prepare() with SQL query and placeholder
         $column_exists = $wpdb->get_results($wpdb->prepare(
             "SHOW COLUMNS FROM {$submissions_table} LIKE %s",
             'user_id'
@@ -167,7 +167,7 @@ class LIFT_Forms {
             $wpdb->query("ALTER TABLE {$submissions_table} ADD INDEX user_id (user_id)");
         }
 
-        // Check if updated_at column exists
+        // Check if updated_at column exists - Using proper wpdb::prepare() with SQL query and placeholder
         $updated_at_exists = $wpdb->get_results($wpdb->prepare(
             "SHOW COLUMNS FROM {$submissions_table} LIKE %s",
             'updated_at'
@@ -224,6 +224,11 @@ class LIFT_Forms {
 
         // Enqueue Dashicons for admin interface
         wp_enqueue_style('dashicons');
+
+        // Enqueue WordPress editor for form builder
+        if (isset($_GET['page']) && $_GET['page'] === 'lift-forms-builder') {
+            wp_enqueue_editor();
+        }
 
         // Minimal admin JavaScript
         wp_enqueue_script(
@@ -530,7 +535,7 @@ class LIFT_Forms {
         $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
         
         if (!empty($params)) {
-            $query = $wpdb->prepare("SELECT * FROM $forms_table $where_clause ORDER BY created_at DESC", $params);
+            $query = $wpdb->prepare("SELECT * FROM $forms_table $where_clause ORDER BY created_at DESC", ...$params);
         } else {
             $query = "SELECT * FROM $forms_table $where_clause ORDER BY created_at DESC";
         }
@@ -1332,6 +1337,22 @@ class LIFT_Forms {
             global $wpdb;
             $forms_table = $wpdb->prefix . 'lift_forms';
             $form = $wpdb->get_row($wpdb->prepare("SELECT * FROM $forms_table WHERE id = %d", $form_id));
+            
+            // Parse settings to extract header and footer if form exists
+            if ($form && !empty($form->settings)) {
+                $settings_data = json_decode($form->settings, true);
+                if (is_array($settings_data)) {
+                    $form->form_header = $settings_data['form_header'] ?? '';
+                    $form->form_footer = $settings_data['form_footer'] ?? '';
+                } else {
+                    $form->form_header = '';
+                    $form->form_footer = '';
+                }
+            } elseif ($form) {
+                // Ensure properties exist even if settings is empty
+                $form->form_header = '';
+                $form->form_footer = '';
+            }
         }
 
         // Show success message if form was just created
@@ -1372,15 +1393,170 @@ class LIFT_Forms {
 
                 <!-- Form Builder Content Area - BPMN.io Form Builder -->
                 <div class="form-builder-content">
-                    <div id="form-builder-container">
-                        <div class="loading-message">
-                            <div class="spinner"></div>
-                            <p><?php _e('Loading form builder...', 'lift-docs-system'); ?></p>
+                    <!-- Tab Navigation -->
+                    <div class="form-builder-tabs">
+                        <button type="button" class="tab-button active" data-tab="form-builder">
+                            <span class="dashicons dashicons-editor-table"></span>
+                            <?php _e('Form Builder', 'lift-docs-system'); ?>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="header-footer">
+                            <span class="dashicons dashicons-editor-code"></span>
+                            <?php _e('Header & Footer', 'lift-docs-system'); ?>
+                        </button>
+                    </div>
+
+                    <!-- Tab Content: Form Builder -->
+                    <div id="tab-form-builder" class="tab-content active">
+                        <div id="form-builder-container">
+                            <div class="loading-message">
+                                <div class="spinner"></div>
+                                <p><?php _e('Loading form builder...', 'lift-docs-system'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content: Header & Footer Editors -->
+                    <div id="tab-header-footer" class="tab-content">
+                        <div class="header-footer-editors">
+                            <div class="editor-section">
+                                <h3>
+                                    <span class="dashicons dashicons-editor-alignleft"></span>
+                                    <?php _e('Form Header', 'lift-docs-system'); ?>
+                                </h3>
+                                <p class="description"><?php _e('Content that appears at the top of your form', 'lift-docs-system'); ?></p>
+                                <div id="header-editor-container">
+                                    <?php 
+                                    $form_header_content = $form ? $form->form_header : '';
+                                    wp_editor($form_header_content, 'form_header', array(
+                                        'textarea_name' => 'form_header',
+                                        'textarea_rows' => 8,
+                                        'media_buttons' => true,
+                                        'teeny' => false,
+                                        'dfw' => false,
+                                        'tinymce' => array(
+                                            'toolbar1' => 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more',
+                                            'toolbar2' => '',
+                                            'toolbar3' => '',
+                                            'height' => 200,
+                                            'menubar' => true,
+                                            'branding' => false,
+                                            'statusbar' => true,
+                                            'resize' => true,
+                                            'wordpress_adv_hidden' => false
+                                        ),
+                                        'quicktags' => array(
+                                            'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
+                                        )
+                                    )); 
+                                    ?>
+                                </div>
+                            </div>
+
+                            <div class="editor-section">
+                                <h3>
+                                    <span class="dashicons dashicons-editor-alignright"></span>
+                                    <?php _e('Form Footer', 'lift-docs-system'); ?>
+                                </h3>
+                                <p class="description"><?php _e('Content that appears at the bottom of your form', 'lift-docs-system'); ?></p>
+                                <div id="footer-editor-container">
+                                    <?php 
+                                    $form_footer_content = $form ? $form->form_footer : '';
+                                    wp_editor($form_footer_content, 'form_footer', array(
+                                        'textarea_name' => 'form_footer',
+                                        'textarea_rows' => 8,
+                                        'media_buttons' => true,
+                                        'teeny' => false,
+                                        'dfw' => false,
+                                        'tinymce' => array(
+                                            'toolbar1' => 'formatselect,fontselect,fontsizeselect,|,bold,italic,underline,strikethrough,|,forecolor,backcolor,|,alignleft,aligncenter,alignright,alignjustify,|,bullist,numlist,blockquote,|,outdent,indent,|,link,unlink,|,charmap,hr,|,undo,redo,|,pastetext,removeformat,|,fullscreen,wp_more',
+                                            'toolbar2' => '',
+                                            'toolbar3' => '',
+                                            'height' => 200,
+                                            'menubar' => true,
+                                            'branding' => false,
+                                            'statusbar' => true,
+                                            'resize' => true,
+                                            'wordpress_adv_hidden' => false
+                                        ),
+                                        'quicktags' => array(
+                                            'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'
+                                        )
+                                    )); 
+                                    ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            console.log('Forms page script initialized with PHP wp_editor');
+            
+            // Tab switching functionality
+            $('.tab-button').on('click', function() {
+                var targetTab = $(this).data('tab');
+                
+                // Remove active class from all tabs and content
+                $('.tab-button').removeClass('active');
+                $('.tab-content').removeClass('active');
+                
+                // Add active class to clicked tab and corresponding content
+                $(this).addClass('active');
+                $('#tab-' + targetTab).addClass('active');
+                
+                // If switching to header-footer tab, just log for now
+                if (targetTab === 'header-footer') {
+                    console.log('Switched to Header & Footer tab');
+                    
+                    // Simple check for editors without calling methods that might not exist
+                    setTimeout(function() {
+                        if (typeof tinymce !== 'undefined') {
+                            var headerEditor = tinymce.get('form_header');
+                            var footerEditor = tinymce.get('form_footer');
+                            
+                            if (headerEditor) {
+                                console.log('Header editor found and ready');
+                            }
+                            if (footerEditor) {
+                                console.log('Footer editor found and ready');
+                            }
+                        }
+                    }, 300);
+                }
+            });
+            
+            // Initialize form builder and handle editor movement when ready
+            $(window).on('load', function() {
+                // Wait for WordPress editors to be fully loaded
+                setTimeout(function() {
+                    if ($('#form_header').length && $('#form_footer').length) {
+                        console.log('WordPress PHP editors found and ready');
+                        
+                        // Check if editors are initialized
+                        if (typeof tinymce !== 'undefined') {
+                            var headerEditor = tinymce.get('form_header');
+                            var footerEditor = tinymce.get('form_footer');
+                            
+                            if (headerEditor && footerEditor) {
+                                console.log('TinyMCE editors are initialized and ready');
+                            } else {
+                                console.log('TinyMCE editors not yet initialized, waiting...');
+                                // Wait a bit more for TinyMCE initialization
+                                setTimeout(function() {
+                                    console.log('Secondary check for TinyMCE initialization complete');
+                                }, 2000);
+                            }
+                        }
+                    } else {
+                        console.log('WordPress PHP editors not found yet');
+                    }
+                }, 1500);
+            });
+        });
+        </script>
         <?php
     }
 
@@ -1440,11 +1616,8 @@ class LIFT_Forms {
 
         // Get search and filter parameters
         $form_id = isset($_GET['form_id']) ? intval($_GET['form_id']) : 0;
-        $user_filter = isset($_GET['user_filter']) ? sanitize_text_field($_GET['user_filter']) : '';
         $document_id = isset($_GET['document_id']) ? intval($_GET['document_id']) : 0;
         $status_filter = isset($_GET['status_filter']) ? sanitize_text_field($_GET['status_filter']) : '';
-        $search_user = isset($_GET['search_user']) ? sanitize_text_field($_GET['search_user']) : '';
-        $search_ip = isset($_GET['search_ip']) ? sanitize_text_field($_GET['search_ip']) : '';
         $date_from = isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '';
         $date_to = isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : '';
 
@@ -1465,20 +1638,9 @@ class LIFT_Forms {
             $params[] = '%"_document_id":' . $document_id . '%';
         }
 
-        if ($user_filter === 'logged_in') {
-            $where .= ' AND user_id IS NOT NULL';
-        } elseif ($user_filter === 'guest') {
-            $where .= ' AND user_id IS NULL';
-        }
-
         if ($status_filter) {
             $where .= ' AND status = %s';
             $params[] = $status_filter;
-        }
-
-        if (!empty($search_ip)) {
-            $where .= ' AND user_ip LIKE %s';
-            $params[] = '%' . $wpdb->esc_like($search_ip) . '%';
         }
 
         if (!empty($date_from)) {
@@ -1581,40 +1743,7 @@ class LIFT_Forms {
                             </select>
                         </div>
 
-                        <div>
-                            <label for="user_filter" style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                <?php _e('User Type', 'lift-docs-system'); ?>
-                            </label>
-                            <select name="user_filter" id="user_filter" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
-                                <option value=""><?php _e('All Users', 'lift-docs-system'); ?></option>
-                                <option value="logged_in" <?php selected($user_filter, 'logged_in'); ?>><?php _e('Registered Users', 'lift-docs-system'); ?></option>
-                                <option value="guest" <?php selected($user_filter, 'guest'); ?>><?php _e('Guest Users', 'lift-docs-system'); ?></option>
-                            </select>
-                        </div>
 
-                        <div>
-                            <label for="search_user" style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                <?php _e('Search User', 'lift-docs-system'); ?>
-                            </label>
-                            <input type="text" 
-                                   id="search_user" 
-                                   name="search_user" 
-                                   value="<?php echo esc_attr($search_user); ?>" 
-                                   placeholder="<?php _e('Search by username or email', 'lift-docs-system'); ?>"
-                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
-                        </div>
-
-                        <div>
-                            <label for="search_ip" style="display: block; margin-bottom: 5px; font-weight: 600;">
-                                <?php _e('IP Address', 'lift-docs-system'); ?>
-                            </label>
-                            <input type="text" 
-                                   id="search_ip" 
-                                   name="search_ip" 
-                                   value="<?php echo esc_attr($search_ip); ?>" 
-                                   placeholder="<?php _e('Search by IP address', 'lift-docs-system'); ?>"
-                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
-                        </div>
 
                         <div>
                             <label for="date_from" style="display: block; margin-bottom: 5px; font-weight: 600;">
@@ -1645,7 +1774,7 @@ class LIFT_Forms {
                             <?php _e('Search Submissions', 'lift-docs-system'); ?>
                         </button>
                         
-                        <?php if (!empty($form_id) || !empty($status_filter) || !empty($user_filter) || !empty($search_user) || !empty($search_ip) || !empty($date_from) || !empty($date_to)): ?>
+                        <?php if (!empty($form_id) || !empty($status_filter) || !empty($date_from) || !empty($date_to)): ?>
                         <a href="<?php echo admin_url('admin.php?page=lift-forms-submissions'); ?>" class="button">
                             <span class="dashicons dashicons-dismiss" style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;"></span>
                             <?php _e('Clear Filters', 'lift-docs-system'); ?>
@@ -1712,17 +1841,6 @@ class LIFT_Forms {
                                     $document_title = $document_post ? $document_post->post_title : '';
                                 }
 
-                                // Filter by user search if provided
-                                if (!empty($search_user)) {
-                                    $user_match = false;
-                                    if (stripos($submission->user_name, $search_user) !== false || 
-                                        stripos($submission->user_email, $search_user) !== false) {
-                                        $user_match = true;
-                                    }
-                                    if (!$user_match) {
-                                        continue;
-                                    }
-                                }
                                 ?>
                                 <tr>
                                     <th scope="row" class="check-column">
@@ -1810,17 +1928,6 @@ class LIFT_Forms {
                         <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #0073aa;"></i><br><br>
                         <?php _e('Loading submission details...', 'lift-docs-system'); ?>
                     </div>
-                </div>
-
-                <div class="lift-modal-footer">
-                    <button type="button" class="button button-primary" onclick="closeLiftModal()">
-                        <?php _e('Close', 'lift-docs-system'); ?>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="lift-modal-backdrop" class="lift-modal-backdrop" style="display: none;"></div>
                 </div>
 
                 <div class="lift-modal-footer">
@@ -2630,6 +2737,23 @@ class LIFT_Forms {
             }
         }
 
+        // Parse settings to extract header and footer
+        $settings_data = array();
+        $form_header = '';
+        $form_footer = '';
+        
+        if (!empty($form->settings)) {
+            $settings_data = json_decode($form->settings, true);
+            if (is_array($settings_data)) {
+                $form_header = $settings_data['form_header'] ?? '';
+                $form_footer = $settings_data['form_footer'] ?? '';
+            }
+        }
+        
+        // Add header and footer to form object
+        $form->form_header = $form_header;
+        $form->form_footer = $form_footer;
+
         wp_send_json_success($form);
     }
 
@@ -2651,16 +2775,33 @@ class LIFT_Forms {
         $description = sanitize_textarea_field($_POST['description'] ?? '');
         $fields = $_POST['fields'] ?? ''; // JSON data
         $settings = $_POST['settings'] ?? '{}'; // JSON data
+        
+        // Handle form header and footer content
+        $form_header = wp_kses_post($_POST['form_header'] ?? '');
+        $form_footer = wp_kses_post($_POST['form_footer'] ?? '');
 
         // Ensure fields is a string
         if (!is_string($fields)) {
             $fields = '';
         }
 
-        // Ensure settings is a string
+        // Ensure settings is a string, then decode and add header/footer
         if (!is_string($settings)) {
             $settings = '{}';
         }
+        
+        // Parse settings and add header/footer
+        $settings_data = json_decode($settings, true);
+        if (!is_array($settings_data)) {
+            $settings_data = array();
+        }
+        
+        // Add form header and footer to settings
+        $settings_data['form_header'] = $form_header;
+        $settings_data['form_footer'] = $form_footer;
+        
+        // Re-encode settings
+        $settings = json_encode($settings_data);
 
         // Enhanced form name validation
         if (empty($name)) {
@@ -3625,6 +3766,24 @@ class LIFT_Forms {
             return '<p>' . __('This form has no fields configured', 'lift-docs-system') . '</p>';
         }
 
+        // Parse form settings for header and footer
+        $form_header = '';
+        $form_footer = '';
+        if (!empty($form->settings)) {
+            $settings = json_decode($form->settings, true);
+            if (is_array($settings)) {
+                $form_header = $settings['form_header'] ?? '';
+                $form_footer = $settings['form_footer'] ?? '';
+            }
+        }
+
+        // Debug: Check if header/footer exist
+        if (isset($_GET['debug']) && current_user_can('manage_options')) {
+            echo '<!-- Debug: Form settings: ' . esc_html($form->settings) . ' -->';
+            echo '<!-- Debug: Form header: ' . esc_html($form_header) . ' -->';
+            echo '<!-- Debug: Form footer: ' . esc_html($form_footer) . ' -->';
+        }
+
         // Check if admin is viewing with submission data
         $submission_data = array();
         $submission_info = null;
@@ -3724,7 +3883,19 @@ class LIFT_Forms {
 
                         <!-- Admin view - show read-only form with submitted data -->
                         <div class="lift-form admin-readonly-form">
+                            <?php if (!empty($form_header)): ?>
+                                <div class="form-header-content">
+                                    <?php echo wp_kses_post($form_header); ?>
+                                </div>
+                            <?php endif; ?>
+
                             <?php echo $this->render_form_fields($fields, $submission_data, true); ?>
+
+                            <?php if (!empty($form_footer)): ?>
+                                <div class="form-footer-content">
+                                    <?php echo wp_kses_post($form_footer); ?>
+                                </div>
+                            <?php endif; ?>
 
                             <?php if ($submission_info): ?>
                                 <div class="admin-form-actions" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
@@ -3745,7 +3916,19 @@ class LIFT_Forms {
                             <?php wp_nonce_field('lift_forms_submit_nonce', 'lift_forms_nonce'); ?>
                             <input type="hidden" name="form_id" value="<?php echo $form_id; ?>">
 
+                            <?php if (!empty($form_header)): ?>
+                                <div class="form-header-content">
+                                    <?php echo wp_kses_post($form_header); ?>
+                                </div>
+                            <?php endif; ?>
+
                             <?php echo $this->render_form_fields($fields); ?>
+
+                            <?php if (!empty($form_footer)): ?>
+                                <div class="form-footer-content">
+                                    <?php echo wp_kses_post($form_footer); ?>
+                                </div>
+                            <?php endif; ?>
 
                             <div class="lift-form-submit">
                                 <button type="submit" class="lift-form-submit-btn btn button-primary">

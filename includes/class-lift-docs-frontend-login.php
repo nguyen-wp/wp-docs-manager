@@ -234,6 +234,7 @@ class LIFT_Docs_Frontend_Login {
         $existing_submission = null;
         $is_edit_mode = false;
 
+        // ADMIN VIEW DEBUG - Add here where form rendering happens
         // Check for both admin view and admin edit modes
         $is_admin_view = isset($_GET['admin_view']) && $_GET['admin_view'] == '1';
         $is_admin_edit = isset($_GET['admin_edit']) && $_GET['admin_edit'] == '1';
@@ -305,14 +306,7 @@ class LIFT_Docs_Frontend_Login {
                                         $field['row'] = $row_index;
                                         $field['column'] = $col_index;
                                         if (isset($column['width'])) {
-                                            // Parse width value - could be numeric (0.16) or CSS style (0.16 1 0%)
-                                            $width_value = $column['width'];
-                                            if (is_string($width_value) && strpos($width_value, ' ') !== false) {
-                                                // Extract first number from CSS flex shorthand "0.16 1 0%"
-                                                $parts = explode(' ', trim($width_value));
-                                                $width_value = $parts[0];
-                                            }
-                                            $field['width'] = $width_value;
+                                            $field['width'] = $column['width'];
                                         }
                                         $form_fields[] = $field;
                                     }
@@ -327,6 +321,17 @@ class LIFT_Docs_Frontend_Login {
                     // Legacy or other structure - try to extract fields
                     $form_fields = $parsed_data;
                 }
+            }
+        }
+
+        // Parse form settings for header and footer
+        $form_header = '';
+        $form_footer = '';
+        if (!empty($form->settings)) {
+            $settings = json_decode($form->settings, true);
+            if (is_array($settings)) {
+                $form_header = $settings['form_header'] ?? '';
+                $form_footer = $settings['form_footer'] ?? '';
             }
         }
 
@@ -374,6 +379,7 @@ class LIFT_Docs_Frontend_Login {
             wp_head();
             ?>
             <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/secure-frontend.css'; ?>">
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/forms-frontend.css'; ?>">
             <style>
                 /* Admin View Styles for File and Signature Display */
                 .file-image-link,
@@ -539,7 +545,7 @@ class LIFT_Docs_Frontend_Login {
                             }
                             // Form is disabled only for admin view (not admin edit) or when document status prevents editing
                             $form_fields_disabled = ($is_admin_view && !$is_admin_edit) || $is_form_disabled;
-                            $this->render_form_builder_layout($form_fields, $render_data, $form_fields_disabled, $is_admin_view);
+                            $this->render_form_builder_layout($form_fields, $render_data, $form_fields_disabled, $is_admin_view, $form_header, $form_footer);
                             ?>
                         </div>
                     </form>
@@ -962,7 +968,15 @@ class LIFT_Docs_Frontend_Login {
     /**
      * Render form builder layout with rows, columns, and fields
      */
-    private function render_form_builder_layout($form_fields, $existing_data = array(), $is_disabled = false, $is_admin_view = false) {
+    private function render_form_builder_layout($form_fields, $existing_data = array(), $is_disabled = false, $is_admin_view = false, $form_header = '', $form_footer = '') {
+        
+        // Render header if present
+        if (!empty($form_header)) {
+            echo '<div class="form-header-content">';
+            echo wp_kses_post($form_header);
+            echo '</div>';
+        }
+        
         if (empty($form_fields)) {
             echo '<p>' . __('This form has no fields configured.', 'lift-docs-system') . '</p>';
             return;
@@ -974,6 +988,13 @@ class LIFT_Docs_Frontend_Login {
         } else {
             // Fallback to simple linear layout
             $this->render_simple_layout($form_fields, $existing_data, $is_disabled, $is_admin_view);
+        }
+        
+        // Render footer if present
+        if (!empty($form_footer)) {
+            echo '<div class="form-footer-content">';
+            echo wp_kses_post($form_footer);
+            echo '</div>';
         }
     }
 
@@ -1008,7 +1029,6 @@ class LIFT_Docs_Frontend_Login {
         ksort($rows);
 
         foreach ($rows as $row_index => $row_fields) {
-            // Always use flexbox layout like form builder backend
             echo '<div class="form-row" data-row="' . esc_attr($row_index) . '">';
 
             // Group fields by columns within this row
@@ -1025,29 +1045,8 @@ class LIFT_Docs_Frontend_Login {
             ksort($columns);
 
             foreach ($columns as $col_index => $col_fields) {
-                // Always use flexbox with width values like form builder backend
-                $column_width = 1; // Default flex value as number
-                
-                // Check if any field in this column has a custom width value
-                foreach ($col_fields as $field) {
-                    if (isset($field['width']) && is_numeric($field['width'])) {
-                        $column_width = floatval($field['width']);
-                        break;
-                    }
-                }
-                
-                // Calculate default width based on number of columns if no custom width
-                if ($column_width == 1 && count($columns) > 1) {
-                    $column_width = 1 / count($columns);
-                }
-                
-                // Format for clean output - remove unnecessary decimals
-                $flex_grow = ($column_width == intval($column_width)) ? intval($column_width) : rtrim(rtrim(number_format($column_width, 6), '0'), '.');
-                
-                // Use full flex notation like backend: flex-grow flex-shrink flex-basis
-                $flex_style = "flex: {$flex_grow} 1 0%; position: relative;";
-                
-                echo '<div class="form-column" data-column="' . esc_attr($col_index) . '" style="' . esc_attr($flex_style) . '">';
+                $column_width = $this->calculate_column_width(count($columns), $col_fields);
+                echo '<div class="form-column ' . esc_attr($column_width) . '" data-column="' . esc_attr($col_index) . '">';
 
                 foreach ($col_fields as $field) {
                     $this->render_field_container($field, $existing_data, $is_disabled, $is_admin_view);
@@ -1152,6 +1151,8 @@ class LIFT_Docs_Frontend_Login {
         $logo_id = !empty($interface_logo_id) ? $interface_logo_id : get_option('lift_docs_login_logo', '');
         $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : '';
         $logo_width = !empty($interface_logo_width) ? $interface_logo_width . 'px' : '200px';
+
+        // Debug: Log logo values for troubleshooting
 
         // Use Interface tab title/description if set, otherwise use defaults
         $display_title = !empty($interface_title) ? $interface_title : __('Document Access Portal', 'lift-docs-system');
@@ -1621,6 +1622,12 @@ class LIFT_Docs_Frontend_Login {
                     text-decoration: underline;
                 }
 
+                .login-help .separator {
+                    color: #ccc;
+                    margin: 0 10px;
+                    font-weight: normal;
+                }
+
                 /* Responsive Design */
                 @media (max-width: 768px) {
                     body {
@@ -1702,10 +1709,13 @@ class LIFT_Docs_Frontend_Login {
         </head>
         <body class="lift-docs-login-page">
             <div class="lift-simple-login-container">
+                <!-- Logo Debug: <?php echo 'ID=' . $logo_id . ', URL=' . $logo_url . ', Time=' . time(); ?> -->
                 <?php if ($logo_url): ?>
                 <div class="lift-login-logo">
                     <img src="<?php echo esc_url($logo_url); ?>" alt="<?php bloginfo('name'); ?>">
                 </div>
+                <?php else: ?>
+                <!-- No logo: ID empty or URL failed -->
                 <?php endif; ?>
 
                 <div class="lift-login-form-wrapper">
@@ -1764,6 +1774,12 @@ class LIFT_Docs_Frontend_Login {
                         <a href="<?php echo wp_lostpassword_url(); ?>">
                             <?php _e('Forgot your password?', 'lift-docs-system'); ?>
                         </a>
+                        <?php if (get_option('lift_docs_enable_registration', true)): ?>
+                        <span class="separator">|</span>
+                        <a href="<?php echo home_url('/document-register/'); ?>">
+                            <?php _e('Create Account', 'lift-docs-system'); ?>
+                        </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -1892,13 +1908,13 @@ class LIFT_Docs_Frontend_Login {
         global $wpdb;
         
         // Get all documents with their assigned users in one query
-        $document_assignments = $wpdb->get_results($wpdb->prepare("
+        $document_assignments = $wpdb->get_results("
             SELECT p.ID, pm.meta_value 
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
             WHERE p.post_type = 'lift_document' 
             AND p.post_status = 'publish'
-        "));
+        ");
 
         $user_documents_count = 0;
         foreach ($document_assignments as $doc_assignment) {
@@ -1924,14 +1940,14 @@ class LIFT_Docs_Frontend_Login {
         global $wpdb;
         
         // Get all documents with their assigned users in one query
-        $document_assignments = $wpdb->get_results($wpdb->prepare("
+        $document_assignments = $wpdb->get_results("
             SELECT p.*, pm.meta_value as assigned_users
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
             WHERE p.post_type = 'lift_document' 
             AND p.post_status = 'publish'
             ORDER BY p.post_date DESC
-        "));
+        ");
 
         $user_documents = array();
         foreach ($document_assignments as $doc_assignment) {
@@ -1959,13 +1975,13 @@ class LIFT_Docs_Frontend_Login {
         global $wpdb;
         
         // Get all documents with their assigned users in one query
-        $document_assignments = $wpdb->get_results($wpdb->prepare("
+        $document_assignments = $wpdb->get_results("
             SELECT p.ID, pm.meta_value 
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_lift_doc_assigned_users'
             WHERE p.post_type = 'lift_document' 
             AND p.post_status = 'publish'
-        "));
+        ");
 
         $accessible_doc_ids = array();
         foreach ($document_assignments as $doc_assignment) {
@@ -2005,7 +2021,7 @@ class LIFT_Docs_Frontend_Login {
         $placeholders = implode(',', array_fill(0, count($accessible_doc_ids), '%d'));
         $query = $wpdb->prepare(
             "SELECT COUNT(*) FROM $table_name WHERE user_id = %d AND action = 'download' AND document_id IN ($placeholders)",
-            array_merge([$user_id], $accessible_doc_ids)
+            array_merge(array($user_id), $accessible_doc_ids)
         );
 
         $count = $wpdb->get_var($query);
@@ -2419,6 +2435,13 @@ class LIFT_Docs_Frontend_Login {
     }
 
     /**
+     * Public method for debugging - find user by login
+     */
+    public function debug_find_user($login) {
+        return $this->find_user_by_login($login);
+    }
+
+    /**
      * Log user login
      */
     private function log_user_login($user_id) {
@@ -2814,10 +2837,13 @@ class LIFT_Docs_Frontend_Login {
         </style>
 
         <div class="lift-docs-login-container shortcode-version">
+            <!-- Shortcode Logo Debug: <?php echo 'ID=' . $logo_id . ', URL=' . $logo_url . ', Time=' . time(); ?> -->
             <?php if ($logo_url): ?>
             <div class="lift-login-logo">
                 <img src="<?php echo esc_url($logo_url); ?>" alt="<?php bloginfo('name'); ?>">
             </div>
+            <?php else: ?>
+            <!-- No logo in shortcode: ID empty or URL failed -->
             <?php endif; ?>
 
             <div class="lift-docs-login-form-container">

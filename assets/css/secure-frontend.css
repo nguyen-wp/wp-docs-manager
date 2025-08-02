@@ -442,29 +442,27 @@ body.document-form-page .form-header {
 }
 
 .form-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
     margin-bottom: 16px;
-    flex-wrap: wrap;
 }
 
 .form-column {
     min-width: 0;
-    flex: 1; /* Default flex, will be overridden by inline style */
 }
+
+/* Column width classes for specific layouts */
+.form-column.col-1 { grid-column: 1 / -1; }
+.form-column.col-2 { grid-column: span 2; }
+.form-column.col-3 { grid-column: span 3; }
+.form-column.col-4 { grid-column: span 4; }
 
 /* ========================================
    Form Fields & Controls - OS-Native Compact Design
    ======================================== */
 
-.form-field {
-    margin-bottom: 8px;
-}
-
 /* PDF-style form fields */
-body.document-form-page .form-field {
-    margin-bottom: 24px;
-}
 
 .form-field label {
     display: block;
@@ -1310,13 +1308,12 @@ body.document-form-page .file-icon-large .file-name-overlay {
 .file-icon .fas,
 .file-icon .far,
 .file-icon .fab {
-    font-size: 20px;
+    font-size: 40px;
     color: #6b7280;
 }
 .file-details {
     display: flex;
     flex-direction: column;
-    gap: 4px;
 }
 
 .file-name {
@@ -1541,13 +1538,7 @@ body.document-form-page .lift-field-signature label {
 
 /* Ensure form fields have consistent structure */
 body.document-form-page .lift-form-field {
-    margin-bottom: 24px;
     width: 100%;
-}
-
-body.document-form-page .lift-form-field.lift-field-file,
-body.document-form-page .lift-form-field.lift-field-signature {
-    margin-bottom: 28px;
 }
 
 /* Mobile Responsive for Upload/Signature - PDF Style */
@@ -1870,13 +1861,14 @@ body.document-form-page .lift-form-field.lift-field-signature {
     }
 
     .form-row {
-        flex-direction: column;
+        grid-template-columns: 1fr;
         gap: 12px;
     }
 
-    .form-column {
-        flex: none !important;
-        width: 100% !important;
+    .form-column.col-2,
+    .form-column.col-3,
+    .form-column.col-4 {
+        grid-column: span 1;
     }
 
     .form-actions {

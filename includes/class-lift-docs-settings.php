@@ -97,6 +97,8 @@ class LIFT_Docs_Settings {
         wp_enqueue_script('media-upload');
         wp_enqueue_script('thickbox');
         wp_enqueue_style('thickbox');
+
+        // Debug info
     }
 
     /**
@@ -145,6 +147,46 @@ class LIFT_Docs_Settings {
         ));
         register_setting('lift_docs_settings_group', 'lift_docs_login_text_color', array(
             'sanitize_callback' => array($this, 'validate_text_color')
+        ));
+
+        // Register registration page settings
+        register_setting('lift_docs_settings_group', 'lift_docs_register_page_title', array(
+            'sanitize_callback' => 'sanitize_text_field'
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_register_page_description', array(
+            'sanitize_callback' => 'sanitize_textarea_field'
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_enable_registration', array(
+            'sanitize_callback' => array($this, 'validate_checkbox')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_registration_notification_email', array(
+            'sanitize_callback' => 'sanitize_email'
+        ));
+
+        // Register secure document style settings with validation
+        register_setting('lift_docs_settings_group', 'lift_docs_secure_header_bg', array(
+            'sanitize_callback' => array($this, 'validate_color_field')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_secure_header_text', array(
+            'sanitize_callback' => array($this, 'validate_color_field')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_secure_content_bg', array(
+            'sanitize_callback' => array($this, 'validate_color_field')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_secure_content_text', array(
+            'sanitize_callback' => array($this, 'validate_color_field')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_secure_file_item_bg', array(
+            'sanitize_callback' => array($this, 'validate_color_field')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_secure_file_item_border', array(
+            'sanitize_callback' => array($this, 'validate_color_field')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_secure_download_info_bg', array(
+            'sanitize_callback' => array($this, 'validate_color_field')
+        ));
+        register_setting('lift_docs_settings_group', 'lift_docs_secure_download_info_text', array(
+            'sanitize_callback' => array($this, 'validate_color_field')
         ));
 
         // General Tab Settings
@@ -249,6 +291,78 @@ class LIFT_Docs_Settings {
             'lift-docs-display',
             'lift_docs_display_section',
             array('field' => 'show_secure_access_notice', 'description' => __('Display notice when accessing via secure link', 'lift-docs-system'))
+        );
+
+        // Secure Document Style Settings
+        add_settings_section(
+            'lift_docs_secure_style_section',
+            __('Secure Document Page Style', 'lift-docs-system'),
+            array($this, 'secure_style_section_callback'),
+            'lift-docs-display'
+        );
+
+        add_settings_field(
+            'lift_docs_secure_header_bg',
+            __('Header Background Color', 'lift-docs-system'),
+            array($this, 'secure_header_bg_callback'),
+            'lift-docs-display',
+            'lift_docs_secure_style_section'
+        );
+
+        add_settings_field(
+            'lift_docs_secure_header_text',
+            __('Header Text Color', 'lift-docs-system'),
+            array($this, 'secure_header_text_callback'),
+            'lift-docs-display',
+            'lift_docs_secure_style_section'
+        );
+
+        add_settings_field(
+            'lift_docs_secure_content_bg',
+            __('Content Background Color', 'lift-docs-system'),
+            array($this, 'secure_content_bg_callback'),
+            'lift-docs-display',
+            'lift_docs_secure_style_section'
+        );
+
+        add_settings_field(
+            'lift_docs_secure_content_text',
+            __('Content Text Color', 'lift-docs-system'),
+            array($this, 'secure_content_text_callback'),
+            'lift-docs-display',
+            'lift_docs_secure_style_section'
+        );
+
+        add_settings_field(
+            'lift_docs_secure_file_item_bg',
+            __('File Item Background Color', 'lift-docs-system'),
+            array($this, 'secure_file_item_bg_callback'),
+            'lift-docs-display',
+            'lift_docs_secure_style_section'
+        );
+
+        add_settings_field(
+            'lift_docs_secure_file_item_border',
+            __('File Item Border Color', 'lift-docs-system'),
+            array($this, 'secure_file_item_border_callback'),
+            'lift-docs-display',
+            'lift_docs_secure_style_section'
+        );
+
+        add_settings_field(
+            'lift_docs_secure_download_info_bg',
+            __('Download Info Background Color', 'lift-docs-system'),
+            array($this, 'secure_download_info_bg_callback'),
+            'lift-docs-display',
+            'lift_docs_secure_style_section'
+        );
+
+        add_settings_field(
+            'lift_docs_secure_download_info_text',
+            __('Download Info Text Color', 'lift-docs-system'),
+            array($this, 'secure_download_info_text_callback'),
+            'lift-docs-display',
+            'lift_docs_secure_style_section'
         );
 
         // Login Page Customization Settings
@@ -361,6 +475,46 @@ class LIFT_Docs_Settings {
             array($this, 'login_text_color_callback'),
             'lift-docs-interface',
             'lift_docs_interface_section'
+        );
+
+        // Registration Page Settings
+        add_settings_section(
+            'lift_docs_register_section',
+            __('Registration Page Settings', 'lift-docs-system'),
+            array($this, 'register_section_callback'),
+            'lift-docs-interface'
+        );
+
+        add_settings_field(
+            'lift_docs_register_page_title',
+            __('Registration Page Title', 'lift-docs-system'),
+            array($this, 'register_page_title_callback'),
+            'lift-docs-interface',
+            'lift_docs_register_section'
+        );
+
+        add_settings_field(
+            'lift_docs_register_page_description',
+            __('Registration Page Description', 'lift-docs-system'),
+            array($this, 'register_page_description_callback'),
+            'lift-docs-interface',
+            'lift_docs_register_section'
+        );
+
+        add_settings_field(
+            'lift_docs_enable_registration',
+            __('Enable Public Registration', 'lift-docs-system'),
+            array($this, 'enable_registration_callback'),
+            'lift-docs-interface',
+            'lift_docs_register_section'
+        );
+
+        add_settings_field(
+            'lift_docs_registration_notification_email',
+            __('Admin Notification Email', 'lift-docs-system'),
+            array($this, 'registration_notification_email_callback'),
+            'lift-docs-interface',
+            'lift_docs_register_section'
         );
     }
 
@@ -676,6 +830,14 @@ class LIFT_Docs_Settings {
     }
 
     /**
+     * Secure style section callback
+     */
+    public function secure_style_section_callback() {
+        echo '<p>' . __('Customize the colors and appearance of secure document pages (/document-files/secure/). These settings control the visual style of secure document viewing pages.', 'lift-docs-system') . '</p>';
+        echo '<p><em>' . __('Leave colors empty to use default values. All colors support transparency (RGBA).', 'lift-docs-system') . '</em></p>';
+    }
+
+    /**
      * Help content display
      */
     public function display_help_content() {
@@ -811,38 +973,59 @@ class LIFT_Docs_Settings {
 
             // Color picker with alpha support
             if ($.fn.wpColorPicker) {
-                $('.color-picker-alpha').wpColorPicker({
-                    change: function(event, ui) {
-                        // No animation on color change
-                    },
-                    // Enable alpha transparency
-                    alpha: true,
-                    // Set default alpha to 1 (fully opaque)
-                    defaultColor: false,
-                    // Hide the color picker on outside click
-                    hide: true,
-                    // Custom palettes for common transparent colors
-                    palettes: [
-                        'rgba(255,255,255,0)',   // Transparent white
-                        'rgba(0,0,0,0)',         // Transparent black
-                        'rgba(255,255,255,0.1)', // 10% white
-                        'rgba(255,255,255,0.3)', // 30% white
-                        'rgba(255,255,255,0.5)', // 50% white
-                        'rgba(255,255,255,0.7)', // 70% white
-                        'rgba(255,255,255,0.9)', // 90% white
-                        'rgba(0,0,0,0.1)',       // 10% black
-                        'rgba(0,0,0,0.3)',       // 30% black
-                        'rgba(0,0,0,0.5)',       // 50% black
-                        'rgba(0,0,0,0.7)',       // 70% black
-                        'rgba(0,0,0,0.9)'        // 90% black
-                    ]
+                $('.color-picker-alpha').each(function() {
+                    var $this = $(this);
+                    var defaultColor = $this.data('default-color');
+                    
+                    // If field is empty, set default color
+                    if (!$this.val() && defaultColor) {
+                        $this.val(defaultColor);
+                    }
+                    
+                    $this.wpColorPicker({
+                        change: function(event, ui) {
+                            // No animation on color change
+                        },
+                        // Enable alpha transparency
+                        alpha: true,
+                        // Set default color from data attribute
+                        defaultColor: defaultColor || false,
+                        // Hide the color picker on outside click
+                        hide: true,
+                        // Custom palettes for common transparent colors
+                        palettes: [
+                            'rgba(255,255,255,0)',   // Transparent white
+                            'rgba(0,0,0,0)',         // Transparent black
+                            'rgba(255,255,255,0.1)', // 10% white
+                            'rgba(255,255,255,0.3)', // 30% white
+                            'rgba(255,255,255,0.5)', // 50% white
+                            'rgba(255,255,255,0.7)', // 70% white
+                            'rgba(255,255,255,0.9)', // 90% white
+                            'rgba(0,0,0,0.1)',       // 10% black
+                            'rgba(0,0,0,0.3)',       // 30% black
+                            'rgba(0,0,0,0.5)',       // 50% black
+                            'rgba(0,0,0,0.7)',       // 70% black
+                            'rgba(0,0,0,0.9)'        // 90% black
+                        ]
+                    });
                 });
 
                 // Also initialize regular color pickers for backwards compatibility
-                $('.color-picker').wpColorPicker({
-                    change: function(event, ui) {
-                        // No animation on color change
+                $('.color-picker').each(function() {
+                    var $this = $(this);
+                    var defaultColor = $this.data('default-color');
+                    
+                    // If field is empty, set default color
+                    if (!$this.val() && defaultColor) {
+                        $this.val(defaultColor);
                     }
+                    
+                    $this.wpColorPicker({
+                        change: function(event, ui) {
+                            // No animation on color change
+                        },
+                        defaultColor: defaultColor || false
+                    });
                 });
             }
 
@@ -985,6 +1168,143 @@ class LIFT_Docs_Settings {
 
         echo '</div>';
         echo '<p class="description">' . __('Main text color (supports transparency). Leave empty for default text color.', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Registration section callback
+     */
+    public function register_section_callback() {
+        echo '<p>' . __('Configure the document registration page settings and user registration options.', 'lift-docs-system') . '</p>';
+        echo '<div class="lift-settings-note">';
+        echo '<p><strong>' . __('Registration Page URL:', 'lift-docs-system') . '</strong> <code>' . home_url('/document-register/') . '</code></p>';
+        echo '</div>';
+    }
+
+    /**
+     * Registration page title callback
+     */
+    public function register_page_title_callback() {
+        $title = get_option('lift_docs_register_page_title', __('Create Account', 'lift-docs-system'));
+        echo '<input type="text" name="lift_docs_register_page_title" value="' . esc_attr($title) . '" class="regular-text" />';
+        echo '<p class="description">' . __('Title displayed on the registration page.', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Registration page description callback
+     */
+    public function register_page_description_callback() {
+        $description = get_option('lift_docs_register_page_description', __('Register for document access', 'lift-docs-system'));
+        echo '<textarea name="lift_docs_register_page_description" rows="3" class="large-text">' . esc_textarea($description) . '</textarea>';
+        echo '<p class="description">' . __('Description text displayed below the registration page title.', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Enable registration callback
+     */
+    public function enable_registration_callback() {
+        $enabled = get_option('lift_docs_enable_registration', true);
+        echo '<label>';
+        echo '<input type="checkbox" name="lift_docs_enable_registration" value="1" ' . checked(1, $enabled, false) . ' />';
+        echo ' ' . __('Allow public user registration', 'lift-docs-system');
+        echo '</label>';
+        echo '<p class="description">' . __('When enabled, visitors can register for document access. When disabled, only administrators can create document user accounts.', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Registration notification email callback
+     */
+    public function registration_notification_email_callback() {
+        $email = get_option('lift_docs_registration_notification_email', '');
+        echo '<input type="email" name="lift_docs_registration_notification_email" value="' . esc_attr($email) . '" class="regular-text" />';
+        echo '<p class="description">' . __('Email address to notify when new users register (optional). Leave empty to use the default admin email.', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Secure document header background color callback
+     */
+    public function secure_header_bg_callback() {
+        $color = get_option('lift_docs_secure_header_bg', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_secure_header_bg" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="#1976d2">';
+        echo '</div>';
+        echo '<p class="description">' . __('Background color for secure document header section (supports transparency). Default: #1976d2', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Secure document header text color callback
+     */
+    public function secure_header_text_callback() {
+        $color = get_option('lift_docs_secure_header_text', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_secure_header_text" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="#ffffff">';
+        echo '</div>';
+        echo '<p class="description">' . __('Text color for secure document header section (supports transparency). Default: #ffffff', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Secure document content background color callback
+     */
+    public function secure_content_bg_callback() {
+        $color = get_option('lift_docs_secure_content_bg', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_secure_content_bg" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="#ffffff">';
+        echo '</div>';
+        echo '<p class="description">' . __('Background color for secure document content area (supports transparency). Default: #ffffff', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Secure document content text color callback
+     */
+    public function secure_content_text_callback() {
+        $color = get_option('lift_docs_secure_content_text', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_secure_content_text" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="#333333">';
+        echo '</div>';
+        echo '<p class="description">' . __('Text color for secure document content area (supports transparency). Default: #333333', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Secure document file item background color callback
+     */
+    public function secure_file_item_bg_callback() {
+        $color = get_option('lift_docs_secure_file_item_bg', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_secure_file_item_bg" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="#f8f9fa">';
+        echo '</div>';
+        echo '<p class="description">' . __('Background color for file download items (supports transparency). Default: #f8f9fa', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Secure document file item border color callback
+     */
+    public function secure_file_item_border_callback() {
+        $color = get_option('lift_docs_secure_file_item_border', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_secure_file_item_border" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="#e9ecef">';
+        echo '</div>';
+        echo '<p class="description">' . __('Border color for file download items (supports transparency). Default: #e9ecef', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Secure document download info background color callback
+     */
+    public function secure_download_info_bg_callback() {
+        $color = get_option('lift_docs_secure_download_info_bg', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_secure_download_info_bg" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="#e3f2fd">';
+        echo '</div>';
+        echo '<p class="description">' . __('Background color for download info section (supports transparency). Default: #e3f2fd', 'lift-docs-system') . '</p>';
+    }
+
+    /**
+     * Secure document download info text color callback
+     */
+    public function secure_download_info_text_callback() {
+        $color = get_option('lift_docs_secure_download_info_text', '');
+        echo '<div class="color-field-wrapper">';
+        echo '<input type="text" name="lift_docs_secure_download_info_text" value="' . esc_attr($color) . '" class="color-picker-alpha" data-alpha="true" data-default-color="#666666">';
+        echo '</div>';
+        echo '<p class="description">' . __('Text color for download info section (supports transparency). Default: #666666', 'lift-docs-system') . '</p>';
     }
 
     /**
@@ -1187,12 +1507,42 @@ class LIFT_Docs_Settings {
             'secure_link_expiry' => 24
         );
 
-        // Update the settings
+        // Update the main settings
         update_option('lift_docs_settings', $default_settings);
+
+        // Reset Secure Document Page Style colors to default
+        delete_option('lift_docs_secure_header_bg');
+        delete_option('lift_docs_secure_header_text');
+        delete_option('lift_docs_secure_content_bg');
+        delete_option('lift_docs_secure_content_text');
+        delete_option('lift_docs_secure_file_item_bg');
+        delete_option('lift_docs_secure_file_item_border');
+        delete_option('lift_docs_secure_download_info_bg');
+        delete_option('lift_docs_secure_download_info_text');
+
+        // Reset Login Page Appearance colors to default
+        delete_option('lift_docs_login_bg_color');
+        delete_option('lift_docs_login_form_bg');
+        delete_option('lift_docs_login_btn_color');
+        delete_option('lift_docs_login_input_color');
+        delete_option('lift_docs_login_text_color');
+
+        // Reset Interface tab settings
+        delete_option('lift_docs_logo_upload');
+        delete_option('lift_docs_custom_logo_width');
+        delete_option('lift_docs_login_title');
+        delete_option('lift_docs_login_description');
+        delete_option('lift_docs_login_logo');
+
+        // Reset Registration page settings to defaults
+        update_option('lift_docs_register_page_title', __('Create Account', 'lift-docs-system'));
+        update_option('lift_docs_register_page_description', __('Register for document access', 'lift-docs-system'));
+        update_option('lift_docs_enable_registration', true);
+        delete_option('lift_docs_registration_notification_email');
 
         // Return success response
         wp_send_json_success(array(
-            'message' => __('All settings have been reset to default values.', 'lift-docs-system')
+            'message' => __('All settings have been reset to default values including colors and interface settings.', 'lift-docs-system')
         ));
     }
 
@@ -1277,6 +1627,13 @@ class LIFT_Docs_Settings {
      * Validate text color - allows empty values
      */
     public function validate_text_color($input) {
+        return $this->validate_color($input, '', true);
+    }
+
+    /**
+     * Validate color field - general color validation for secure document colors
+     */
+    public function validate_color_field($input) {
         return $this->validate_color($input, '', true);
     }
 
@@ -1370,6 +1727,28 @@ class LIFT_Docs_Settings {
         }
 
         return home_url('/document-files/download/?lift_secure=' . $download_token);
+    }
+
+    /**
+     * Generate permanent secure view URL for document file
+     */
+    public static function generate_secure_view_link($document_id, $expiry_hours = 0, $file_index = 0) {
+        // Get or create permanent token for this document
+        $permanent_token = get_post_meta($document_id, '_lift_doc_permanent_token', true);
+
+        if (empty($permanent_token)) {
+            // Use the secure link generation to create permanent token
+            self::generate_secure_link($document_id);
+            $permanent_token = get_post_meta($document_id, '_lift_doc_permanent_token', true);
+        }
+
+        // For view links, append file index if multiple files
+        $view_token = $permanent_token;
+        if ($file_index > 0) {
+            $view_token .= '_file_' . $file_index;
+        }
+
+        return home_url('/document-files/view/?lift_secure=' . $view_token);
     }
 
     /**

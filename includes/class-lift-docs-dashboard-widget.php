@@ -104,10 +104,9 @@ class LIFT_Docs_Dashboard_Widget {
         }
         
         .lift-docs-stat-label {
-            font-size: 12px;
+            font-size: 10px;
             color: #666;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .lift-docs-documents-table {
@@ -126,14 +125,45 @@ class LIFT_Docs_Dashboard_Widget {
             border-bottom: 2px solid #ddd;
         }
         
+        .lift-docs-documents-table th:first-child {
+            width: 70%;
+        }
+        
+        .lift-docs-documents-table th:last-child {
+            width: 30%;
+            text-align: right;
+        }
+        
         .lift-docs-documents-table td {
             padding: 12px 8px;
             border-bottom: 1px solid #e1e5e9;
             vertical-align: middle;
         }
         
+        .lift-docs-documents-table td:last-child {
+            text-align: right;
+        }
+        
         .lift-docs-documents-table tr:hover {
             background-color: #f8f9fa;
+        }
+        
+        .lift-docs-combined-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .lift-docs-doc-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .lift-docs-separator {
+            color: #ccc;
+            font-weight: bold;
         }
         
         .lift-docs-doc-name {
@@ -146,11 +176,12 @@ class LIFT_Docs_Dashboard_Widget {
         }
         
         .lift-docs-status {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
+            display: inline-block;
         }
         
         .lift-docs-status.pending {
@@ -174,8 +205,12 @@ class LIFT_Docs_Dashboard_Widget {
         }
         
         .lift-docs-assigned-users {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
+        }
+        
+        .lift-docs-assigned-users span {
+            font-size: 11px;
         }
         
         .lift-docs-user-count {
@@ -209,9 +244,8 @@ class LIFT_Docs_Dashboard_Widget {
         
         .lift-docs-widget-footer {
             margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e1e5e9;
             text-align: center;
+            padding: 15px 0 12px ;
         }
         
         .lift-docs-view-all-btn {
@@ -292,9 +326,7 @@ class LIFT_Docs_Dashboard_Widget {
                 <table class="lift-docs-documents-table">
                     <thead>
                         <tr>
-                            <th><?php _e('Name', 'lift-docs-system'); ?></th>
-                            <th><?php _e('Status', 'lift-docs-system'); ?></th>
-                            <th><?php _e('Assigned Users', 'lift-docs-system'); ?></th>
+                            <th><?php _e('Document Details', 'lift-docs-system'); ?></th>
                             <th><?php _e('Action', 'lift-docs-system'); ?></th>
                         </tr>
                     </thead>
@@ -307,20 +339,23 @@ class LIFT_Docs_Dashboard_Widget {
                             ?>
                             <tr>
                                 <td>
-                                    <div class="lift-docs-doc-name" title="<?php echo esc_attr($doc->post_title); ?>">
-                                        <?php echo esc_html($doc->post_title); ?>
+                                    <div class="lift-docs-combined-info">
+                                        <div class="lift-docs-doc-name" title="<?php echo esc_attr($doc->post_title); ?>">
+                                            <?php echo esc_html($doc->post_title); ?>
+                                        </div>
+                                        <div class="lift-docs-doc-meta">
+                                            <span class="lift-docs-status <?php echo esc_attr($status); ?>">
+                                                <?php echo esc_html(ucfirst($status)); ?>
+                                            </span>
+                                            <span class="lift-docs-separator">•</span>
+                                            <span class="lift-docs-assigned-users">
+                                                <?php echo $this->render_assigned_users_column($assigned_users); ?>
+                                            </span>
+                                        </div>
+                                        <small style="color: #666; display: block;">
+                                            <?php echo date_i18n(get_option('date_format'), strtotime($doc->post_date)); ?>
+                                        </small>
                                     </div>
-                                    <small style="color: #666;">
-                                        <?php echo date_i18n(get_option('date_format'), strtotime($doc->post_date)); ?>
-                                    </small>
-                                </td>
-                                <td>
-                                    <span class="lift-docs-status <?php echo esc_attr($status); ?>">
-                                        <?php echo esc_html(ucfirst($status)); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php echo $this->render_assigned_users_column($assigned_users); ?>
                                 </td>
                                 <td>
                                     <a href="<?php echo esc_url($filter_url); ?>" class="lift-docs-action-btn">

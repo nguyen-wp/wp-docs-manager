@@ -107,5 +107,3 @@ $cleanup_data = get_option('lift_docs_cleanup_on_uninstall', false);
 if ($cleanup_data) {
     lift_docs_cleanup();
 }
-
-?>

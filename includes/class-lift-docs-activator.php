@@ -131,6 +131,13 @@ class LIFT_Docs_Activator {
             $login_page_id = wp_insert_post($login_page);
             if ($login_page_id && !is_wp_error($login_page_id)) {
                 update_option('lift_docs_login_page_id', $login_page_id);
+                // Debug log
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                }
+            } else {
+                // Debug log for errors
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                }
             }
         }
 
@@ -148,11 +155,46 @@ class LIFT_Docs_Activator {
             $dashboard_page_id = wp_insert_post($dashboard_page);
             if ($dashboard_page_id && !is_wp_error($dashboard_page_id)) {
                 update_option('lift_docs_dashboard_page_id', $dashboard_page_id);
+                // Debug log
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                }
+            } else {
+                // Debug log for errors
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                }
+            }
+        }
+
+        // Create registration page
+        $register_page_id = get_option('lift_docs_register_page_id');
+        if (!$register_page_id || !get_post($register_page_id)) {
+            $register_page = array(
+                'post_title' => __('Document Registration', 'lift-docs-system'),
+                'post_content' => __('This page provides user registration for document access. The registration form is handled by the plugin.', 'lift-docs-system'),
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_name' => 'document-register'
+            );
+
+            $register_page_id = wp_insert_post($register_page);
+            if ($register_page_id && !is_wp_error($register_page_id)) {
+                update_option('lift_docs_register_page_id', $register_page_id);
+                // Debug log
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                }
+            } else {
+                // Debug log for errors
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                }
             }
         }
 
         // Set flag that pages have been created
         update_option('lift_docs_default_pages_created', true);
+
+        // Debug log
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+        }
     }
 
     /**

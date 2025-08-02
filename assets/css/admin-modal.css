@@ -80,7 +80,7 @@
     padding: 0;
     max-height: calc(95vh - 180px);
     overflow-y: auto;
-    background: #f2f2f2;
+    background: #fafbfc;
 }
 
 /* Scientific Layout Grid System */
@@ -1001,7 +1001,7 @@
     max-height: calc(90vh - 170px);
     overflow-y: auto;
     flex: 1;
-    background: #f2f2f2;
+    background: #fafbfc;
 }
 
 /* Enhanced scrollbar */
@@ -1238,7 +1238,30 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
+#submission-detail-modal-from-doc .submission-fields h3 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    margin: 20px -20px 15px -20px;
+    border-radius: 0;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
+#submission-detail-modal-from-doc .submission-context h3,
+#submission-detail-modal-from-doc .submission-meta h3 {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    padding: 12px 20px;
+    margin: 20px -20px 15px -20px;
+    border-radius: 0;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
 #submission-detail-modal-from-doc .submission-meta h3:first-child {
     margin-top: 0;
@@ -1332,6 +1355,20 @@
     font-size: 13px;
     line-height: 1.5;
     color: #495057;
+}
+
+/* Enhanced links */
+#submission-detail-modal-from-doc .form-table a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+#submission-detail-modal-from-doc .form-table a:hover {
+    color: #5a6fd8;
+    border-bottom-color: #5a6fd8;
 }
 
 /* Loading state */

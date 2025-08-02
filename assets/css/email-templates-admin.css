@@ -1,0 +1,253 @@
+/* Email Templates Admin Page Styles */
+
+.email-templates-page .form-table th {
+    width: 200px;
+    vertical-align: top;
+    padding-top: 15px;
+}
+
+.email-templates-page .form-table td {
+    padding-bottom: 20px;
+}
+
+.email-templates-page h2 {
+    background: #f1f1f1;
+    padding: 15px 20px;
+    margin: 30px 0 20px 0;
+    border-left: 4px solid #0073aa;
+    font-size: 18px;
+}
+
+.email-templates-page h2:first-of-type {
+    margin-top: 20px;
+}
+
+.email-template-variables {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.email-template-variables h3 {
+    margin-top: 0;
+    color: #0073aa;
+}
+
+.email-template-variables ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 10px 0;
+    columns: 2;
+    column-gap: 30px;
+}
+
+.email-template-variables li {
+    margin: 8px 0;
+    break-inside: avoid;
+}
+
+.email-template-variables code {
+    background: #e3f2fd;
+    color: #0d47a1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.email-template-preview {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 30px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.email-template-preview h2 {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0 0 15px 0;
+    color: #23282d;
+}
+
+.email-template-preview .button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+#custom-templates-settings {
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.template-section {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    margin: 20px 0;
+    padding: 0;
+}
+
+.template-section h3 {
+    background: #f7f7f7;
+    margin: 0;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.template-section .form-table {
+    margin: 0;
+}
+
+.template-section .form-table tr:last-child th,
+.template-section .form-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Textarea styles */
+.email-templates-page textarea.large-text {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 10px;
+    line-height: 1.5;
+}
+
+.email-templates-page textarea.code {
+    font-family: 'Courier New', monospace;
+    background: #f7f7f7;
+}
+
+/* Input styles */
+.email-templates-page input[type="text"].large-text {
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+/* Select styles */
+.email-templates-page select {
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+/* Description text */
+.email-templates-page .description {
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+/* Toggle checkbox */
+.email-templates-page input[type="checkbox"] {
+    transform: scale(1.2);
+    margin-right: 8px;
+}
+
+/* Submit button */
+.email-templates-page .submit {
+    background: #f1f1f1;
+    padding: 20px;
+    margin: 30px 0 0 0;
+    border-top: 1px solid #ddd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .email-template-variables ul {
+        columns: 1;
+    }
+    
+    .email-templates-page .form-table th,
+    .email-templates-page .form-table td {
+        display: block;
+        width: 100%;
+        padding: 10px 0;
+    }
+    
+    .email-templates-page .form-table th {
+        border-bottom: none;
+        padding-bottom: 5px;
+    }
+}
+
+/* Loading and success states */
+.email-template-preview .button.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.email-template-preview .button.loading:after {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-left: 8px;
+    border: 2px solid #666;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Syntax highlighting for template variables */
+.template-variable-highlight {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+/* Help tooltips */
+.help-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+    color: #0073aa;
+    margin-left: 5px;
+}
+
+.help-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.help-tooltip:hover::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+}

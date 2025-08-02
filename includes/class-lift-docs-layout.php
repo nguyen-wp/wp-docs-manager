@@ -42,12 +42,6 @@ class LIFT_Docs_Layout {
         }
 
         add_rewrite_rule(
-            '^document-files/view/([^/]+)/?$',
-            'index.php?lift_custom_view=1&lift_doc_id=$matches[1]',
-            'top'
-        );
-
-        add_rewrite_rule(
             '^document-files/download/?$',
             'index.php?lift_custom_download=1',
             'top'
@@ -577,13 +571,6 @@ class LIFT_Docs_Layout {
     }
 
     /**
-     * Generate custom Attached files
-     */
-    public static function generate_custom_view_url($doc_id) {
-        return home_url('/document-files/view/' . $doc_id . '/');
-    }
-
-    /**
      * Generate secure download URL
      */
     public static function generate_secure_download_url($doc_id) {
@@ -663,7 +650,8 @@ class LIFT_Docs_Layout {
 
         // Check if this is a secure link page
         if ((strpos($request_uri, '/document-files/secure/') !== false ||
-             strpos($request_uri, '/document-files/view/') !== false) &&
+             strpos($request_uri, '/document-files/view/') !== false ||
+             strpos($request_uri, '/document-files/download/') !== false) &&
             isset($_GET['lift_secure'])) {
             add_filter('show_admin_bar', '__return_false');
             remove_action('wp_head', '_admin_bar_bump_cb');

@@ -29,6 +29,7 @@ class LIFT_Docs_Secure_Links {
         add_filter('query_vars', array($this, 'add_query_vars'));
         add_action('template_redirect', array($this, 'handle_secure_access'));
         add_action('template_redirect', array($this, 'handle_secure_download'));
+        add_action('template_redirect', array($this, 'handle_secure_view'));
 
         // Block direct access to documents
         add_action('template_redirect', array($this, 'block_direct_access'));
@@ -55,6 +56,7 @@ class LIFT_Docs_Secure_Links {
         $vars[] = 'lift_secure_page';
         $vars[] = 'lift_secure';
         $vars[] = 'lift_download';
+        $vars[] = 'lift_view';
         return $vars;
     }
 
@@ -64,8 +66,10 @@ class LIFT_Docs_Secure_Links {
     public function add_rewrite_rules() {
         add_rewrite_rule('^document-files/secure/?$', 'index.php?lift_secure_page=1', 'top');
         add_rewrite_rule('^document-files/download/?$', 'index.php?lift_download=1', 'top');
+        add_rewrite_rule('^document-files/view/?$', 'index.php?lift_view=1', 'top');
         add_rewrite_tag('%lift_secure_page%', '([0-9]+)');
         add_rewrite_tag('%lift_download%', '([0-9]+)');
+        add_rewrite_tag('%lift_view%', '([0-9]+)');
     }
 
     /**
@@ -200,6 +204,87 @@ class LIFT_Docs_Secure_Links {
     }
 
     /**
+     * Handle secure file view access
+     */
+    public function handle_secure_view() {
+        // Check both query var AND URL pattern for backwards compatibility
+        $is_view_request = get_query_var('lift_view') ||
+                          (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/document-files/view/') !== false);
+
+        if (!$is_view_request) {
+            return;
+        }
+
+        if (!isset($_GET['lift_secure'])) {
+            status_header(400);
+            die('Invalid request. Missing security token.');
+        }
+
+        $token = $_GET['lift_secure'] ?? '';
+
+        if (empty($token)) {
+            status_header(403);
+            die('Missing security token');
+        }
+
+        // Use primary verification method (decode token first)
+        $verification = LIFT_Docs_Settings::verify_secure_link(urldecode($token));
+
+        if (!$verification || !isset($verification['document_id'])) {
+            status_header(403);
+            die('Invalid or expired view link. Please request a new view link.');
+        }
+
+        $document_id = $verification['document_id'];
+
+        // Check if document exists and is published
+        $document = get_post($document_id);
+
+        if (!$document || $document->post_type !== 'lift_document' || $document->post_status !== 'publish') {
+            status_header(404);
+            die('Document not found');
+        }
+
+        // Check if user has permission to view document
+        if (!LIFT_Docs_Settings::user_can_download_document($document_id)) {
+            status_header(403);
+            die('You do not have permission to view this document');
+        }
+
+        // Get file URL(s) based on file index
+        $file_index = isset($verification['file_index']) ? intval($verification['file_index']) : 0;
+
+        // Try to get multiple file URLs first
+        $file_urls = get_post_meta($document_id, '_lift_doc_file_urls', true);
+        if (empty($file_urls)) {
+            // Fallback to single file URL for backward compatibility
+            $single_file_url = get_post_meta($document_id, '_lift_doc_file_url', true);
+            if ($single_file_url) {
+                $file_urls = array($single_file_url);
+            }
+        }
+
+        if (empty($file_urls) || !isset($file_urls[$file_index])) {
+            status_header(404);
+            die('File not found');
+        }
+
+        $file_url = $file_urls[$file_index];
+
+        if (empty($file_url)) {
+            status_header(404);
+            die('File not found');
+        }
+
+        // Track view (optional - you can use the same tracking or create a separate one)
+        $this->track_document_download($document_id);
+
+        // Serve file for viewing (inline display)
+        $this->serve_secure_file_inline($file_url, $document->post_title);
+        exit;
+    }
+
+    /**
      * Display secure document content
      */
     private function display_secure_document($document) {
@@ -240,11 +325,21 @@ class LIFT_Docs_Secure_Links {
         $file_size = get_post_meta($document->ID, '_lift_doc_file_size', true);
         $download_count = get_post_meta($document->ID, '_lift_doc_download_count', true);
 
-        // Get custom colors (can be added to admin settings later)
+        // Get custom colors from settings
+        $header_bg = get_option('lift_docs_secure_header_bg', '#1976d2');
+        $header_text = get_option('lift_docs_secure_header_text', '#ffffff');
+        $content_bg = get_option('lift_docs_secure_content_bg', '#ffffff');
+        $content_text = get_option('lift_docs_secure_content_text', '#333333');
+        $file_item_bg = get_option('lift_docs_secure_file_item_bg', '#f8f9fa');
+        $file_item_border = get_option('lift_docs_secure_file_item_border', '#e9ecef');
+        $download_info_bg = get_option('lift_docs_secure_download_info_bg', '#e3f2fd');
+        $download_info_text = get_option('lift_docs_secure_download_info_text', '#666666');
+        
+        // Fallback to default colors if empty
         $bg_color = get_option('lift_docs_secure_bg_color', '#f8f9fa');
-        $container_bg = get_option('lift_docs_secure_container_bg', '#ffffff');
-        $text_color = get_option('lift_docs_secure_text_color', '#333333');
-        $accent_color = get_option('lift_docs_secure_accent_color', '#1976d2');
+        $container_bg = $content_bg ?: '#ffffff';
+        $text_color = $content_text ?: '#333333';
+        $accent_color = $header_bg ?: '#1976d2';
 
         ?>
         <!DOCTYPE html>
@@ -280,8 +375,8 @@ class LIFT_Docs_Secure_Links {
                 }
 
                 .secure-header {
-                    background: <?php echo esc_attr($accent_color); ?>;
-                    color: white;
+                    background: <?php echo esc_attr($header_bg ?: $accent_color); ?>;
+                    color: <?php echo esc_attr($header_text ?: 'white'); ?>;
                     padding: 20px 30px;
                     text-align: center;
                 }
@@ -297,13 +392,15 @@ class LIFT_Docs_Secure_Links {
 
                 .document-content {
                     padding: 40px;
+                    background: <?php echo esc_attr($content_bg ?: $container_bg); ?>;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                 }
 
                 .document-title {
                     font-size: 32px;
                     font-weight: 600;
                     margin: 0 0 20px 0;
-                    color: <?php echo esc_attr($text_color); ?>;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                     line-height: 1.2;
                 }
 
@@ -313,17 +410,17 @@ class LIFT_Docs_Secure_Links {
                     gap: 20px;
                     margin-bottom: 30px;
                     padding: 20px;
-                    background: #f8f9fa;
+                    background: <?php echo esc_attr($file_item_bg ?: '#f8f9fa'); ?>;
                     border-radius: 8px;
                     font-size: 14px;
                 }
 
                 .document-meta span {
-                    color: #666;
+                    color: <?php echo esc_attr($download_info_text ?: '#666'); ?>;
                 }
 
                 .document-meta strong {
-                    color: <?php echo esc_attr($text_color); ?>;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                 }
 
                 .document-description {
@@ -358,39 +455,91 @@ class LIFT_Docs_Secure_Links {
                     align-items: center;
                     justify-content: space-between;
                     padding: 20px;
-                    background: #f8f9fa;
-                    border-radius: 8px;
+                    background: <?php echo esc_attr($file_item_bg ?: '#f8f9fa'); ?>;
+                    border-radius: 12px;
                     margin-bottom: 15px;
-                    border: 1px solid #e9ecef;
+                    border: 2px solid <?php echo esc_attr($file_item_border ?: '#e9ecef'); ?>;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    transition: all 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .file-item:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    border-color: <?php echo esc_attr($accent_color ?: '#1976d2'); ?>;
+                    background: <?php echo esc_attr($file_item_bg ? 'rgba(' . implode(',', array_map(function($c){ return hexdec($c); }, str_split(ltrim($file_item_bg, '#'), 2))) . ',0.9)' : 'rgba(248,249,250,0.9)'); ?>;
+                }
+
+                .file-item:active {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                 }
 
                 .file-info {
                     display: flex;
                     align-items: center;
-                    gap: 15px;
+                    gap: 20px;
                     flex: 1;
+                    position: relative;
+                    z-index: 2;
                 }
 
                 .file-icon {
-                    font-size: 28px;
+                    font-size: 32px;
+                    color: <?php echo esc_attr($accent_color ?: '#1976d2'); ?>;
+                    transition: all 0.3s ease;
+                    padding: 12px;
+                    background: rgba(255,255,255,0.8);
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+
+                .file-item:hover .file-icon {
+                    transform: scale(1.1) rotate(5deg);
+                    color: <?php echo esc_attr($accent_color ?: '#1976d2'); ?>;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                }
+
+                .file-details {
+                    flex: 1;
+                    position: relative;
                 }
 
                 .file-details h4 {
-                    margin: 0;
-                    font-size: 16px;
-                    color: <?php echo esc_attr($text_color); ?>;
+                    margin: 0 0 5px 0;
+                    font-size: 18px;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                     font-weight: 600;
+                    transition: color 0.3s ease;
+                    line-height: 1.3;
+                }
+
+                .file-item:hover .file-details h4 {
+                    color: <?php echo esc_attr($accent_color ?: '#1976d2'); ?>;
                 }
 
                 .file-details p {
-                    margin: 4px 0 0 0;
+                    margin: 0;
                     font-size: 14px;
-                    color: #666;
+                    color: <?php echo esc_attr($download_info_text ?: '#666'); ?>;
+                    opacity: 0.8;
+                    transition: opacity 0.3s ease;
+                    text-transform: uppercase;
+                    font-weight: 500;
+                    letter-spacing: 0.5px;
+                }
+
+                .file-item:hover .file-details p {
+                    opacity: 1;
                 }
 
                 .download-actions {
                     display: flex;
-                    gap: 10px;
+                    gap: 12px;
+                    position: relative;
+                    z-index: 2;
                 }
 
                 .btn {
@@ -404,7 +553,9 @@ class LIFT_Docs_Secure_Links {
                     display: inline-flex;
                     align-items: center;
                     gap: 8px;
-                    transition: opacity 0.2s ease;
+                    transition: all 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
                 }
 
                 .btn-primary {
@@ -417,17 +568,86 @@ class LIFT_Docs_Secure_Links {
                     color: white;
                 }
 
+                .btn-view {
+                    background: #28a745;
+                    color: white;
+                }
+
                 .btn:hover {
                     opacity: 0.9;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    transition: all 0.3s ease;
+                }
+
+                .btn-primary:hover {
+                    background: <?php echo esc_attr($accent_color ? 'rgba(' . implode(',', array_map('hexdec', str_split(ltrim($accent_color, '#'), 2))) . ',0.8)' : '#1565c0'); ?>;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(25, 101, 192, 0.3);
+                }
+
+                .btn-secondary:hover {
+                    background: #5a6268;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+                }
+
+                .btn-view:hover {
+                    background: #218838;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+                }
+
+                .btn:active {
+                    transform: translateY(0px);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+
+                .btn:focus {
+                    outline: none;
+                    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+                }
+
+                .btn:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
+                }
+
+                .btn:disabled:hover {
+                    background: inherit;
+                    transform: none;
+                    box-shadow: none;
+                }
+
+                /* Ripple effect on click */
+                .btn::after {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: 0;
+                    height: 0;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.3);
+                    transform: translate(-50%, -50%);
+                    transition: width 0.6s, height 0.6s;
+                    pointer-events: none;
+                }
+
+                .btn:active::after {
+                    width: 300px;
+                    height: 300px;
                 }
 
                 .download-info {
                     font-size: 14px;
-                    color: #666;
+                    color: <?php echo esc_attr($download_info_text ?: '#666'); ?>;
                     text-align: center;
                     margin: 20px 0 0 0;
                     padding: 15px;
-                    background: #e3f2fd;
+                    background: <?php echo esc_attr($download_info_bg ?: '#e3f2fd'); ?>;
                     border-radius: 6px;
                 }
 
@@ -438,7 +658,7 @@ class LIFT_Docs_Secure_Links {
 
                 .document-categories strong,
                 .document-tags strong {
-                    color: <?php echo esc_attr($text_color); ?>;
+                    color: <?php echo esc_attr($content_text ?: $text_color); ?>;
                     display: block;
                     margin-bottom: 8px;
                 }
@@ -581,6 +801,8 @@ class LIFT_Docs_Secure_Links {
 
                         // Create secure download URL with file index
                         $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($document->ID, 0, $index);
+                        // Create secure view URL with file index
+                        $secure_view_url = LIFT_Docs_Settings::generate_secure_view_link($document->ID, 0, $index);
                         ?>
                         <div class="file-item">
                             <div class="file-info">
@@ -592,6 +814,11 @@ class LIFT_Docs_Secure_Links {
                             </div>
 
                             <div class="download-actions">
+                                <a href="<?php echo esc_url($secure_view_url); ?>"
+                                   class="btn btn-primary"
+                                   target="_blank">
+                                    <i class="fas fa-eye"></i> <?php _e('View', 'lift-docs-system'); ?>
+                                </a>
                                 <a href="<?php echo esc_url($secure_download_url); ?>"
                                    class="btn btn-primary">
                                     <i class="fas fa-download"></i> <?php _e('Download', 'lift-docs-system'); ?>
@@ -727,11 +954,21 @@ class LIFT_Docs_Secure_Links {
 
                                         // Create secure download URL with file index
                                         $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($document->ID, 0, $index);
+                                        // Create secure view URL with file index
+                                        $secure_view_url = LIFT_Docs_Settings::generate_secure_view_link($document->ID, 0, $index);
                                         ?>
                                         <div class="download-item">
-                                            <a href="<?php echo esc_url($secure_download_url); ?>" class="download-button">
-                                                <?php echo esc_html($file_name ?: sprintf(__('File %d', 'lift-docs-system'), $index + 1)); ?>
-                                            </a>
+                                            <div class="file-actions">
+                                                <a href="<?php echo esc_url($secure_view_url); ?>" 
+                                                   class="view-button" 
+                                                   target="_blank">
+                                                    <i class="fas fa-eye"></i> <?php _e('View', 'lift-docs-system'); ?>
+                                                </a>
+                                                <a href="<?php echo esc_url($secure_download_url); ?>" 
+                                                   class="download-button">
+                                                    <i class="fas fa-download"></i> <?php echo esc_html($file_name ?: sprintf(__('Download File %d', 'lift-docs-system'), $index + 1)); ?>
+                                                </a>
+                                            </div>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -1089,6 +1326,7 @@ class LIFT_Docs_Secure_Links {
             $output .= "Disallow: /lift-docs/\n";
             $output .= "Disallow: /document-files/secure/\n";
             $output .= "Disallow: /document-files/download/\n";
+            $output .= "Disallow: /document-files/view/\n";
         }
 
         return $output;
@@ -1356,6 +1594,115 @@ class LIFT_Docs_Secure_Links {
     }
 
     /**
+     * Serve file securely for inline viewing
+     */
+    private function serve_secure_file_inline($file_url, $filename) {
+        // Clean filename
+        $clean_filename = sanitize_file_name($filename);
+        $file_extension = pathinfo($file_url, PATHINFO_EXTENSION);
+
+        if ($file_extension) {
+            $clean_filename .= '.' . $file_extension;
+        }
+
+        // Get file path
+        $upload_dir = wp_upload_dir();
+        $file_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $file_url);
+
+        // Check if file exists locally
+        if (file_exists($file_path)) {
+            $this->serve_local_file_inline($file_path, $clean_filename);
+        } else {
+            // File is external or not found locally - serve remote file inline
+            $this->serve_remote_file_inline($file_url, $clean_filename);
+        }
+    }
+
+    /**
+     * Serve local file for inline viewing
+     */
+    private function serve_local_file_inline($file_path, $filename) {
+        $mime_type = wp_check_filetype($file_path)['type'] ?: 'application/octet-stream';
+        $file_size = filesize($file_path);
+
+        // Clear any previous output
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Set headers for inline display
+        header('Content-Type: ' . $mime_type);
+        header('Content-Disposition: inline; filename="' . $filename . '"');
+        header('Content-Length: ' . $file_size);
+        header('Cache-Control: private');
+        header('Pragma: private');
+        header('Expires: 0');
+
+        // Prevent direct file access disclosure
+        header('X-Robots-Tag: noindex, nofollow');
+
+        // Read and output file
+        $handle = fopen($file_path, 'rb');
+
+        if ($handle) {
+            while (!feof($handle)) {
+                echo fread($handle, 8192);
+                flush();
+            }
+            fclose($handle);
+        }
+    }
+
+    /**
+     * Serve remote file for inline viewing
+     */
+    private function serve_remote_file_inline($file_url, $filename) {
+        // Get file info
+        $response = wp_remote_head($file_url);
+
+        if (is_wp_error($response)) {
+            status_header(404);
+            die('File not accessible');
+        }
+
+        $headers = wp_remote_retrieve_headers($response);
+        $mime_type = $headers['content-type'] ?? 'application/octet-stream';
+        $file_size = $headers['content-length'] ?? '';
+
+        // Clear any previous output
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Set headers for inline display
+        header('Content-Type: ' . $mime_type);
+        header('Content-Disposition: inline; filename="' . $filename . '"');
+
+        if ($file_size) {
+            header('Content-Length: ' . $file_size);
+        }
+
+        header('Cache-Control: private');
+        header('Pragma: private');
+        header('Expires: 0');
+        header('X-Robots-Tag: noindex, nofollow');
+
+        // Stream file content
+        $file_response = wp_remote_get($file_url, array(
+            'timeout' => 300, // 5 minutes timeout
+            'stream' => true
+        ));
+
+        if (is_wp_error($file_response)) {
+            status_header(404);
+            die('File not accessible');
+        }
+
+        // Output file content
+        echo wp_remote_retrieve_body($file_response);
+    }
+
+    /**
      * Get global layout settings
      */
     private function get_global_layout_settings() {
@@ -1378,6 +1725,13 @@ class LIFT_Docs_Secure_Links {
         }
 
         return $layout_settings;
+    }
+
+    /**
+     * Public debug method to get layout settings
+     */
+    public function debug_get_layout_settings() {
+        return $this->get_global_layout_settings();
     }
 
     /**
