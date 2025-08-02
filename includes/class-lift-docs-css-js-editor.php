@@ -412,4 +412,43 @@ jQuery(document).ready(function($) {
         delete_option('lift_docs_custom_js');
         $this->maybe_add_default_styles();
     }
+
+    /**
+     * Shortcode to test CSS/JS functionality
+     */
+    public function css_js_test_shortcode($atts) {
+        $output = '<div class="lift-css-js-test" style="padding: 20px; background: #f9f9f9; border: 1px solid #ddd; margin: 20px 0;">';
+        $output .= '<h3>LIFT Docs CSS/JS Test</h3>';
+        
+        // Test elements with LIFT Docs classes
+        $output .= '<div class="lift-docs-meta">';
+        $output .= '<span class="meta-label">Test Label:</span> ';
+        $output .= '<span class="meta-value">This should be styled by custom CSS</span>';
+        $output .= '</div>';
+        
+        $output .= '<div class="lift-docs-actions">';
+        $output .= '<button class="lift-docs-download-btn">Test Download Button</button>';
+        $output .= '<button class="lift-docs-share-btn" data-url="' . get_permalink() . '">Test Share Button</button>';
+        $output .= '</div>';
+        
+        $output .= '<div class="lift-docs-related">';
+        $output .= '<h3>Test Related Section</h3>';
+        $output .= '<p>This section should have custom styling applied.</p>';
+        $output .= '</div>';
+        
+        $output .= '<div class="lift-docs-restricted">';
+        $output .= '<p>Test restricted message styling</p>';
+        $output .= '<a href="#">Test link</a>';
+        $output .= '</div>';
+        
+        // Status indicators
+        $css_active = !empty(get_option('lift_docs_custom_css', '')) ? 'Yes' : 'No';
+        $js_active = !empty(get_option('lift_docs_custom_js', '')) ? 'Yes' : 'No';
+        
+        $output .= '<p><strong>CSS Active:</strong> ' . $css_active . ' | <strong>JS Active:</strong> ' . $js_active . '</p>';
+        $output .= '<p><em>Check browser console for JavaScript messages.</em></p>';
+        $output .= '</div>';
+        
+        return $output;
+    }
 }
