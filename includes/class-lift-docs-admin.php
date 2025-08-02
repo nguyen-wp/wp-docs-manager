@@ -156,7 +156,7 @@ class LIFT_Docs_Admin {
             array($this, 'forms_submissions_page')
         );
 
-           add_submenu_page(
+        add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Document Users', 'lift-docs-system'),
             __('Document Users', 'lift-docs-system'),
@@ -165,7 +165,7 @@ class LIFT_Docs_Admin {
             array($this, 'users_page')
         );
 
-          add_submenu_page(
+        add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Email Templates', 'lift-docs-system'),
             __('Email Templates', 'lift-docs-system'),
@@ -174,7 +174,7 @@ class LIFT_Docs_Admin {
             array($this, 'email_templates_page')
         );
 
-          add_submenu_page(
+        add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Settings', 'lift-docs-system'),
             __('Settings', 'lift-docs-system'),
@@ -360,7 +360,6 @@ class LIFT_Docs_Admin {
         ?>
         <div class="wrap email-templates-page">
             <h1>
-                <span class="dashicons dashicons-email-alt" style="font-size: 24px; margin-right: 8px; vertical-align: middle;"></span>
                 <?php _e('Email Templates', 'lift-docs-system'); ?>
             </h1>
             <p class="description" style="font-size: 16px; margin-bottom: 30px;">
@@ -504,11 +503,9 @@ class LIFT_Docs_Admin {
                 <p><?php _e('Preview how your email templates will look before saving. The preview uses sample data to show the final result.', 'lift-docs-system'); ?></p>
                 
                 <button type="button" id="preview-assignment-email" class="button button-secondary">
-                    <span class="dashicons dashicons-plus-alt" style="margin-right: 5px;"></span>
                     <?php _e('Preview Assignment Email', 'lift-docs-system'); ?>
                 </button>
                 <button type="button" id="preview-update-email" class="button button-secondary">
-                    <span class="dashicons dashicons-update" style="margin-right: 5px;"></span>
                     <?php _e('Preview Update Email', 'lift-docs-system'); ?>
                 </button>
                 
