@@ -816,7 +816,7 @@
 /* Row Controls - Cleaner Design */
 .row-controls {
     position: absolute;
-    top: -12px;
+    top: -40px;
     right: 15px;
     background: #fff;
     border: 1px solid #e2e8f0;
