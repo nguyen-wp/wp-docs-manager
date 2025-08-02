@@ -122,8 +122,6 @@ class LIFT_Docs_CSS_JS_Editor {
                     <div class="editor-header">
                         <h3><?php _e('Custom CSS', 'lift-docs-system'); ?></h3>
                         <div class="editor-actions">
-                            <button type="button" id="format-css" class="button"><?php _e('Format Code', 'lift-docs-system'); ?></button>
-                            <button type="button" id="clear-css" class="button"><?php _e('Clear All', 'lift-docs-system'); ?></button>
                             <button type="button" id="reset-css" class="button"><?php _e('Reset to Default', 'lift-docs-system'); ?></button>
                             <button type="submit" id="save-css" class="button button-primary"><?php _e('Save CSS', 'lift-docs-system'); ?></button>
                         </div>
@@ -164,8 +162,6 @@ class LIFT_Docs_CSS_JS_Editor {
                     <div class="editor-header">
                         <h3><?php _e('Custom JavaScript', 'lift-docs-system'); ?></h3>
                         <div class="editor-actions">
-                            <button type="button" id="format-js" class="button"><?php _e('Format Code', 'lift-docs-system'); ?></button>
-                            <button type="button" id="clear-js" class="button"><?php _e('Clear All', 'lift-docs-system'); ?></button>
                             <button type="button" id="reset-js" class="button"><?php _e('Reset to Default', 'lift-docs-system'); ?></button>
                             <button type="submit" id="save-js" class="button button-primary"><?php _e('Save JavaScript', 'lift-docs-system'); ?></button>
                         </div>

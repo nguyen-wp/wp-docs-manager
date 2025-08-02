@@ -138,87 +138,6 @@ jQuery(document).ready(function($) {
         }, 3000);
     }
 
-    // Format CSS code
-    function formatCSS() {
-        if (cssEditor) {
-            var code = cssEditor.codemirror.getValue();
-            var formatted = formatCSSString(code);
-            cssEditor.codemirror.setValue(formatted);
-        }
-    }
-
-    // Format JavaScript code
-    function formatJS() {
-        if (jsEditor) {
-            var code = jsEditor.codemirror.getValue();
-            var formatted = formatJSString(code);
-            jsEditor.codemirror.setValue(formatted);
-        }
-    }
-
-    // Simple CSS formatter
-    function formatCSSString(css) {
-        return css
-            .replace(/\s*{\s*/g, ' {\n    ')
-            .replace(/;\s*/g, ';\n    ')
-            .replace(/\s*}\s*/g, '\n}\n\n')
-            .replace(/,\s*/g, ',\n')
-            .replace(/^\s+/gm, function(match) {
-                return match.replace(/\s/g, '    ');
-            })
-            .trim();
-    }
-
-    // Simple JS formatter
-    function formatJSString(js) {
-        var formatted = js;
-        var indent = 0;
-        var lines = formatted.split('\n');
-        var result = [];
-
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].trim();
-            
-            if (line.match(/^[\}\]]/)) {
-                indent--;
-            }
-            
-            if (line.length > 0) {
-                result.push('    '.repeat(Math.max(0, indent)) + line);
-            } else {
-                result.push('');
-            }
-            
-            if (line.match(/[\{\[]$/)) {
-                indent++;
-            }
-        }
-        
-        return result.join('\n');
-    }
-
-    // Clear CSS code
-    function clearCSS() {
-        if (confirm('Are you sure you want to clear all CSS code? This action cannot be undone.')) {
-            if (cssEditor) {
-                cssEditor.codemirror.setValue('');
-            } else {
-                $('#custom-css-editor').val('');
-            }
-        }
-    }
-
-    // Clear JS code
-    function clearJS() {
-        if (confirm('Are you sure you want to clear all JavaScript code? This action cannot be undone.')) {
-            if (jsEditor) {
-                jsEditor.codemirror.setValue('');
-            } else {
-                $('#custom-js-editor').val('');
-            }
-        }
-    }
-
     // Reset CSS to default
     function resetCSS() {
         if (confirm('Are you sure you want to reset CSS to default? This will overwrite your current changes.')) {
@@ -296,26 +215,6 @@ jQuery(document).ready(function($) {
     $(document).on('click', '#save-js', function(e) {
         e.preventDefault();
         saveJSCode();
-    });
-
-    $(document).on('click', '#format-css', function(e) {
-        e.preventDefault();
-        formatCSS();
-    });
-
-    $(document).on('click', '#format-js', function(e) {
-        e.preventDefault();
-        formatJS();
-    });
-
-    $(document).on('click', '#clear-css', function(e) {
-        e.preventDefault();
-        clearCSS();
-    });
-
-    $(document).on('click', '#clear-js', function(e) {
-        e.preventDefault();
-        clearJS();
     });
 
     $(document).on('click', '#reset-css', function(e) {
