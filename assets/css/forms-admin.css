@@ -558,30 +558,6 @@
 .lift-forms-overview {
     margin: 20px 0;
 }
-.lift-forms-stats {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 30px;
-}
-.stat-box {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    flex: 1;
-}
-.stat-box h3 {
-    margin: 0 0 10px 0;
-    font-size: 32px;
-    color: #0073aa;
-    font-weight: 700;
-}
-.stat-box p {
-    margin: 0;
-    color: #666;
-    font-size: 14px;
-}
 .lift-forms-empty {
     text-align: center;
     padding: 60px 20px;
@@ -1161,9 +1137,6 @@
 @media (max-width: 768px) {
 
     .form-basic-settings {
-        flex-direction: column;
-    }
-    .lift-forms-stats {
         flex-direction: column;
     }
     .field-palette {

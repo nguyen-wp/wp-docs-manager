@@ -669,21 +669,6 @@ class LIFT_Forms {
             </div>
 
             <div class="lift-forms-overview">
-                <div class="lift-forms-stats">
-                    <div class="stat-box">
-                        <h3><?php echo count($forms); ?></h3>
-                        <p><?php _e('Found Forms', 'lift-docs-system'); ?></p>
-                    </div>
-                    <div class="stat-box">
-                        <h3><?php echo $this->get_total_submissions(); ?></h3>
-                        <p><?php _e('Total Submissions', 'lift-docs-system'); ?></p>
-                    </div>
-                    <div class="stat-box">
-                        <h3><?php echo $this->get_unread_submissions(); ?></h3>
-                        <p><?php _e('Unread Submissions', 'lift-docs-system'); ?></p>
-                    </div>
-                </div>
-
                 <?php if (empty($forms)): ?>
                     <div class="lift-forms-empty">
                         <h2><?php _e('No Forms Found', 'lift-docs-system'); ?></h2>
@@ -4744,18 +4729,6 @@ class LIFT_Forms {
     /**
      * Helper methods
      */
-    private function get_total_submissions() {
-        global $wpdb;
-        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
-        return $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table");
-    }
-
-    private function get_unread_submissions() {
-        global $wpdb;
-        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
-        return $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table WHERE status = 'unread'");
-    }
-
     private function get_form_submissions_count($form_id) {
         global $wpdb;
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
