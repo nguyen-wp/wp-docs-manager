@@ -5488,7 +5488,6 @@ class LIFT_Forms {
 
         // Check permissions
         if (!current_user_can('manage_options')) {
-            error_log('LIFT Forms Import: Permission check failed');
             wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
         }
 
@@ -5507,17 +5506,13 @@ class LIFT_Forms {
 
         // Read and parse JSON
         $json_content = file_get_contents($file['tmp_name']);
-        error_log('LIFT Forms Import: Raw JSON length: ' . strlen($json_content));
-        error_log('LIFT Forms Import: First 200 chars: ' . substr($json_content, 0, 200));
         
         $form_data = json_decode($json_content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log('LIFT Forms Import: JSON decode error: ' . json_last_error_msg());
             wp_send_json_error(__('Invalid JSON format: ', 'lift-docs-system') . json_last_error_msg());
         }
 
-        error_log('LIFT Forms Import: Decoded data keys: ' . implode(', ', array_keys($form_data)));
 
         // Validate form structure
         $validation_result = $this->validate_form_import_data($form_data);
@@ -5648,11 +5643,6 @@ class LIFT_Forms {
         );
         
         // Debug final export data
-        error_log('LIFT Forms Export: Final export data keys: ' . implode(', ', array_keys($export_data)));
-        error_log('LIFT Forms Export: Layout null check: ' . ($export_data['layout'] === null ? 'NULL' : 'NOT NULL'));
-        error_log('LIFT Forms Export: Fields null check: ' . ($export_data['fields'] === null ? 'NULL' : 'NOT NULL'));
-        error_log('LIFT Forms Export: Header content length: ' . strlen($export_data['form_header']));
-        error_log('LIFT Forms Export: Footer content length: ' . strlen($export_data['form_footer']));
 
         // Set headers for download
         $filename = 'lift-form-' . sanitize_file_name($form->name) . '-' . date('Y-m-d') . '.json';
@@ -5980,7 +5970,6 @@ class LIFT_Forms {
             return array('success' => false, 'error' => __('Failed to insert form into database', 'lift-docs-system') . ': ' . $wpdb->last_error);
         }
 
-        error_log('LIFT Forms Import: Successfully inserted form with ID: ' . $wpdb->insert_id);
         return array('success' => true, 'form_id' => $wpdb->insert_id);
     }
 
@@ -6033,11 +6022,20 @@ class LIFT_Forms {
 
         $template_name = sanitize_text_field($_POST['template_name']);
         $template_description = sanitize_textarea_field($_POST['template_description']);
-        $template_data = $_POST['template_data'];
-
-        // Debug logging
-        error_log('LIFT Forms Save Template - Name: ' . $template_name);
-        error_log('LIFT Forms Save Template - Data: ' . substr($template_data, 0, 500));
+        
+        // Validate and sanitize template data input
+        if (!isset($_POST['template_data']) || empty($_POST['template_data'])) {
+            wp_send_json_error(__('Template data is required', 'lift-docs-system'));
+            return;
+        }
+        
+        $template_data = wp_unslash($_POST['template_data']);
+        
+        // Validate JSON data size (prevent DoS)
+        if (strlen($template_data) > 5000000) { // 5MB limit
+            wp_send_json_error(__('Template data too large', 'lift-docs-system'));
+            return;
+        }
 
         if (empty($template_name)) {
             wp_send_json_error(__('Template name is required', 'lift-docs-system'));
@@ -6047,8 +6045,7 @@ class LIFT_Forms {
         // Validate and decode template data
         $template_data_decoded = json_decode(stripslashes($template_data), true);
         if (!$template_data_decoded) {
-            error_log('LIFT Forms Save Template - JSON decode error: ' . json_last_error_msg());
-            wp_send_json_error(__('Invalid template data: ', 'lift-docs-system') . json_last_error_msg());
+            wp_send_json_error(__('Invalid template data format', 'lift-docs-system'));
             return;
         }
 

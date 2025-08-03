@@ -187,8 +187,8 @@ class LIFT_Docs_Frontend_Login {
         }
 
         // Get document_id and form_id from query vars (URL segments) or fallback to $_GET
-        $document_id = intval(get_query_var('document_id', $_GET['document_id'] ?? 0));
-        $form_id = intval(get_query_var('form_id', $_GET['form_id'] ?? 0));
+        $document_id = intval(get_query_var('document_id', isset($_GET['document_id']) ? intval($_GET['document_id']) : 0));
+        $form_id = intval(get_query_var('form_id', isset($_GET['form_id']) ? intval($_GET['form_id']) : 0));
 
         if (!$document_id || !$form_id) {
             wp_die(__('Invalid parameters.', 'lift-docs-system'), __('Error', 'lift-docs-system'));
@@ -236,8 +236,8 @@ class LIFT_Docs_Frontend_Login {
 
         // ADMIN VIEW DEBUG - Add here where form rendering happens
         // Check for both admin view and admin edit modes
-        $is_admin_view = isset($_GET['admin_view']) && $_GET['admin_view'] == '1';
-        $is_admin_edit = isset($_GET['admin_edit']) && $_GET['admin_edit'] == '1';
+        $is_admin_view = isset($_GET['admin_view']) && sanitize_text_field($_GET['admin_view']) === '1';
+        $is_admin_edit = isset($_GET['admin_edit']) && sanitize_text_field($_GET['admin_edit']) === '1';
 
         if (($is_admin_view || $is_admin_edit) && !current_user_can('manage_options')) {
             $is_admin_view = false;
@@ -248,7 +248,7 @@ class LIFT_Docs_Frontend_Login {
         $submission_info = null;
 
         if (($is_admin_view || $is_admin_edit) && isset($_GET['submission_id'])) {
-            $submission_id = intval($_GET['submission_id']);
+            $submission_id = intval(sanitize_text_field($_GET['submission_id']));
 
             if ($submission_id) {
                 $submissions_table = $wpdb->prefix . 'lift_form_submissions';

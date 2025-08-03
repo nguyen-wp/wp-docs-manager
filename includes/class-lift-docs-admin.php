@@ -4132,11 +4132,6 @@ class LIFT_Docs_Admin {
         // Send email
         $sent = wp_mail($user->user_email, $subject, $message, $headers);
 
-        // Log email sending result
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs: Assignment email ' . ($sent ? 'sent' : 'failed') . ' to ' . $user->user_email . ' for document: ' . $document->post_title);
-        }
-
         return $sent;
     }
 
@@ -4199,11 +4194,6 @@ class LIFT_Docs_Admin {
 
         // Send email
         $sent = wp_mail($user->user_email, $subject, $message, $headers);
-
-        // Log email sending result
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs: Update email ' . ($sent ? 'sent' : 'failed') . ' to ' . $user->user_email . ' for document: ' . $document->post_title);
-        }
 
         return $sent;
     }
