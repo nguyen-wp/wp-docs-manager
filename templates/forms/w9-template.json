@@ -1,0 +1,340 @@
+{
+    "name": "Form W-9: Request for Taxpayer Identification",
+    "description": "Request for Taxpayer Identification Number and Certification - Give Form to the requester. Do not send to the IRS.",
+    "layout": {
+        "rows": [
+            {
+                "id": "row-1754182222010-o5uytj9hu",
+                "columns": [
+                    {
+                        "id": "col-1754182222010-f2pu543ol",
+                        "width": "1",
+                        "fields": [
+                            {
+                                "id": "field-1754182411522-zevtk0lp0",
+                                "type": "paragraph",
+                                "label": "Name of entity\/individual. An entry is required. (For a sole proprietor or disregarded entity, enter the owners name on line 1, and enter the business\/disregarded entitys name on line 2.)",
+                                "content": "Paragraph",
+                                "name": "",
+                                "placeholder": "",
+                                "required": false
+                            },
+                            {
+                                "id": "field-1754182404442-4vymn9t5b",
+                                "type": "text",
+                                "label": "1",
+                                "name": "text_1754182404442",
+                                "required": false,
+                                "placeholder": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "row-1754182449329",
+                "columns": [
+                    {
+                        "id": "row-1754182449329-col-0",
+                        "width": "1",
+                        "fields": [
+                            {
+                                "id": "field-1754182455017-0yptx7hu3",
+                                "type": "paragraph",
+                                "label": "Business name\/disregarded entity name, if different from above.",
+                                "content": "Paragraph",
+                                "name": "",
+                                "placeholder": "",
+                                "required": false
+                            },
+                            {
+                                "id": "field-1754182461345-8lu4g3szi",
+                                "type": "text",
+                                "label": "2",
+                                "name": "text_1754182461345",
+                                "required": false,
+                                "placeholder": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "row-1754182501005",
+                "columns": [
+                    {
+                        "id": "row-1754182501005-col-0",
+                        "width": "1",
+                        "fields": [
+                            {
+                                "id": "field-1754182504719-3jfa34vl8",
+                                "type": "header",
+                                "label": "Taxpayer Identification Number (TIN)",
+                                "content": "Header",
+                                "name": "",
+                                "placeholder": "",
+                                "required": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "row-1754182485409",
+                "columns": [
+                    {
+                        "id": "row-1754182485409-col-0",
+                        "width": "1",
+                        "fields": [
+                            {
+                                "id": "field-1754182517143-u1mw8vxna",
+                                "type": "paragraph",
+                                "label": "Enter your TIN in the appropriate box. The TIN provided must match the name given on line 1 to avoid backup withholding. For individuals, this is generally your social security number (SSN). However, for a resident alien, sole proprietor, or disregarded entity, see the instructions for Part I, later. For other entities, it is your employer identification number (EIN). If you do not have a number, see How to get a TIN, later.",
+                                "content": "Paragraph",
+                                "name": "",
+                                "placeholder": "",
+                                "required": false
+                            }
+                        ]
+                    },
+                    {
+                        "id": "row-1754182485409-col-1",
+                        "width": "1",
+                        "fields": [
+                            {
+                                "id": "field-1754182539685-9g00p835i",
+                                "type": "paragraph",
+                                "label": "Social security number",
+                                "content": "Paragraph",
+                                "name": "",
+                                "placeholder": "",
+                                "required": false
+                            },
+                            {
+                                "id": "field-1754182549900-f5rdcn6jb",
+                                "type": "text",
+                                "label": "3",
+                                "name": "text_1754182549900",
+                                "required": false,
+                                "placeholder": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "row-1754182565386",
+                "columns": [
+                    {
+                        "id": "row-1754182565386-col-0",
+                        "width": "1",
+                        "fields": [
+                            {
+                                "id": "field-1754182568979-pctq84luq",
+                                "type": "paragraph",
+                                "label": "Note: If the account is in more than one name, see the instructions for line 1. See also What Name and Number To Give the Requester for guidelines on whose number to enter.",
+                                "content": "Paragraph",
+                                "name": "",
+                                "placeholder": "",
+                                "required": false
+                            }
+                        ]
+                    },
+                    {
+                        "id": "row-1754182565386-col-1",
+                        "width": "1",
+                        "fields": [
+                            {
+                                "id": "field-1754182588576-p1ywbiml7",
+                                "type": "paragraph",
+                                "label": "Employer identification number",
+                                "content": "Paragraph",
+                                "name": "",
+                                "placeholder": "",
+                                "required": false
+                            },
+                            {
+                                "id": "field-1754182593288-ykpe7mb23",
+                                "type": "text",
+                                "label": "4",
+                                "name": "text_1754182593288",
+                                "required": false,
+                                "placeholder": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "row-1754182620510",
+                "columns": [
+                    {
+                        "id": "row-1754182620510-col-0",
+                        "width": "1",
+                        "fields": [
+                            {
+                                "id": "field-1754182634982-skll56gy6",
+                                "type": "header",
+                                "label": "Full Name",
+                                "content": "Header",
+                                "name": "",
+                                "placeholder": "",
+                                "required": false
+                            },
+                            {
+                                "id": "field-1754182629278-tvgovj862",
+                                "type": "text",
+                                "label": "5",
+                                "name": "text_1754182629278",
+                                "required": false,
+                                "placeholder": ""
+                            }
+                        ]
+                    },
+                    {
+                        "id": "row-1754182620510-col-1",
+                        "width": "1",
+                        "fields": [
+                            {
+                                "id": "field-1754182623342-2n250mu8v",
+                                "type": "signature",
+                                "label": "Signature",
+                                "name": "signature_1754182623342",
+                                "placeholder": "",
+                                "required": false
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "fields": [
+        {
+            "id": "field-1754182411522-zevtk0lp0",
+            "type": "paragraph",
+            "label": "Name of entity\/individual. An entry is required. (For a sole proprietor or disregarded entity, enter the owners name on line 1, and enter the business\/disregarded entitys name on line 2.)",
+            "content": "Paragraph",
+            "name": "",
+            "placeholder": "",
+            "required": false
+        },
+        {
+            "id": "field-1754182404442-4vymn9t5b",
+            "type": "text",
+            "label": "1",
+            "name": "text_1754182404442",
+            "required": false,
+            "placeholder": ""
+        },
+        {
+            "id": "field-1754182455017-0yptx7hu3",
+            "type": "paragraph",
+            "label": "Business name\/disregarded entity name, if different from above.",
+            "content": "Paragraph",
+            "name": "",
+            "placeholder": "",
+            "required": false
+        },
+        {
+            "id": "field-1754182461345-8lu4g3szi",
+            "type": "text",
+            "label": "2",
+            "name": "text_1754182461345",
+            "required": false,
+            "placeholder": ""
+        },
+        {
+            "id": "field-1754182504719-3jfa34vl8",
+            "type": "header",
+            "label": "Taxpayer Identification Number (TIN)",
+            "content": "Header",
+            "name": "",
+            "placeholder": "",
+            "required": false
+        },
+        {
+            "id": "field-1754182517143-u1mw8vxna",
+            "type": "paragraph",
+            "label": "Enter your TIN in the appropriate box. The TIN provided must match the name given on line 1 to avoid backup withholding. For individuals, this is generally your social security number (SSN). However, for a resident alien, sole proprietor, or disregarded entity, see the instructions for Part I, later. For other entities, it is your employer identification number (EIN). If you do not have a number, see How to get a TIN, later.",
+            "content": "Paragraph",
+            "name": "",
+            "placeholder": "",
+            "required": false
+        },
+        {
+            "id": "field-1754182539685-9g00p835i",
+            "type": "paragraph",
+            "label": "Social security number",
+            "content": "Paragraph",
+            "name": "",
+            "placeholder": "",
+            "required": false
+        },
+        {
+            "id": "field-1754182549900-f5rdcn6jb",
+            "type": "text",
+            "label": "3",
+            "name": "text_1754182549900",
+            "required": false,
+            "placeholder": ""
+        },
+        {
+            "id": "field-1754182568979-pctq84luq",
+            "type": "paragraph",
+            "label": "Note: If the account is in more than one name, see the instructions for line 1. See also What Name and Number To Give the Requester for guidelines on whose number to enter.",
+            "content": "Paragraph",
+            "name": "",
+            "placeholder": "",
+            "required": false
+        },
+        {
+            "id": "field-1754182588576-p1ywbiml7",
+            "type": "paragraph",
+            "label": "Employer identification number",
+            "content": "Paragraph",
+            "name": "",
+            "placeholder": "",
+            "required": false
+        },
+        {
+            "id": "field-1754182593288-ykpe7mb23",
+            "type": "text",
+            "label": "4",
+            "name": "text_1754182593288",
+            "required": false,
+            "placeholder": ""
+        },
+        {
+            "id": "field-1754182634982-skll56gy6",
+            "type": "header",
+            "label": "Full Name",
+            "content": "Header",
+            "name": "",
+            "placeholder": "",
+            "required": false
+        },
+        {
+            "id": "field-1754182629278-tvgovj862",
+            "type": "text",
+            "label": "5",
+            "name": "text_1754182629278",
+            "required": false,
+            "placeholder": ""
+        },
+        {
+            "id": "field-1754182623342-2n250mu8v",
+            "type": "signature",
+            "label": "Signature",
+            "name": "signature_1754182623342",
+            "placeholder": "",
+            "required": false
+        }
+    ],
+    "export_info": {
+        "exported_at": "2025-08-03 00:57:49",
+        "exported_by": "admin",
+        "plugin_version": "1.0.0",
+        "wp_version": "6.8.2"
+    }
+}

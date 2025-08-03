@@ -57,11 +57,11 @@
 
             // Check for valid characters (letters, numbers, spaces, basic punctuation)
             const validNamePattern = /^[a-zA-Z0-9\s\-_.()]+$/;
-            if (!validNamePattern.test(formName)) {
-                showMessage('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation.', 'error');
-                $('#form-name').focus().addClass('error');
-                return;
-            }
+            // if (!validNamePattern.test(formName)) {
+            //     showMessage('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation.', 'error');
+            //     $('#form-name').focus().addClass('error');
+            //     return;
+            // }
 
             // Remove error styling if validation passes
             $('#form-name').removeClass('error');

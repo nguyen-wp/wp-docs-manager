@@ -1694,12 +1694,12 @@
             }
 
             // Check for valid characters
-            const validNamePattern = /^[a-zA-Z0-9\s\-_.()]+$/;
-            if (!validNamePattern.test(formName)) {
-                showFormMessage('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation.', 'error');
-                $('#form-name').focus().addClass('error');
-                return;
-            }
+            // const validNamePattern = /^[a-zA-Z0-9\s\-_.()]+$/;
+            // if (!validNamePattern.test(formName)) {
+            //     showFormMessage('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation.', 'error');
+            //     $('#form-name').focus().addClass('error');
+            //     return;
+            // }
 
             // Remove error styling if validation passes
             $('#form-name').removeClass('error');

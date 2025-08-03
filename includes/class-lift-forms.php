@@ -2819,9 +2819,9 @@ class LIFT_Forms {
         }
 
         // Check for valid characters
-        if (!preg_match('/^[a-zA-Z0-9\s\-_.()]+$/', $name)) {
-            wp_send_json_error(__('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation', 'lift-docs-system'));
-        }
+        // if (!preg_match('/^[a-zA-Z0-9\s\-_.()]+$/', $name)) {
+        //     wp_send_json_error(__('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation', 'lift-docs-system'));
+        // }
 
         // Check for duplicate form names (excluding current form if editing)
         global $wpdb;
