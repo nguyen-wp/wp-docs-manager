@@ -1,0 +1,177 @@
+{
+  "name": "Contact Form Template",
+  "description": "A basic contact form with header and footer",
+  "layout": {
+    "rows": [
+      {
+        "id": "row_1",
+        "columns": [
+          {
+            "id": "col_1_1",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field_header_1",
+                "type": "header",
+                "label": "Contact Us",
+                "content": "Contact Us"
+              },
+              {
+                "id": "field_paragraph_1",
+                "type": "paragraph",
+                "label": "Please fill out the form below and we'll get back to you as soon as possible.",
+                "content": "Please fill out the form below and we'll get back to you as soon as possible."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_2",
+        "columns": [
+          {
+            "id": "col_2_1",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field_name_1",
+                "type": "text",
+                "label": "Full Name",
+                "name": "full_name",
+                "placeholder": "Enter your full name",
+                "required": true
+              },
+              {
+                "id": "field_email_1",
+                "type": "email",
+                "label": "Email Address",
+                "name": "email",
+                "placeholder": "Enter your email address",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "col_2_2",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field_phone_1",
+                "type": "text",
+                "label": "Phone Number",
+                "name": "phone",
+                "placeholder": "Enter your phone number",
+                "required": false
+              },
+              {
+                "id": "field_company_1",
+                "type": "text",
+                "label": "Company",
+                "name": "company",
+                "placeholder": "Enter your company name",
+                "required": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_3",
+        "columns": [
+          {
+            "id": "col_3_1",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field_subject_1",
+                "type": "text",
+                "label": "Subject",
+                "name": "subject",
+                "placeholder": "Enter the subject of your message",
+                "required": true
+              },
+              {
+                "id": "field_message_1",
+                "type": "textarea",
+                "label": "Message",
+                "name": "message",
+                "placeholder": "Enter your message here...",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "fields": [
+    {
+      "id": "field_header_1",
+      "type": "header",
+      "label": "Contact Us",
+      "content": "Contact Us"
+    },
+    {
+      "id": "field_paragraph_1",
+      "type": "paragraph",
+      "label": "Please fill out the form below and we'll get back to you as soon as possible.",
+      "content": "Please fill out the form below and we'll get back to you as soon as possible."
+    },
+    {
+      "id": "field_name_1",
+      "type": "text",
+      "label": "Full Name",
+      "name": "full_name",
+      "placeholder": "Enter your full name",
+      "required": true
+    },
+    {
+      "id": "field_email_1",
+      "type": "email",
+      "label": "Email Address",
+      "name": "email",
+      "placeholder": "Enter your email address",
+      "required": true
+    },
+    {
+      "id": "field_phone_1",
+      "type": "text",
+      "label": "Phone Number",
+      "name": "phone",
+      "placeholder": "Enter your phone number",
+      "required": false
+    },
+    {
+      "id": "field_company_1",
+      "type": "text",
+      "label": "Company",
+      "name": "company",
+      "placeholder": "Enter your company name",
+      "required": false
+    },
+    {
+      "id": "field_subject_1",
+      "type": "text",
+      "label": "Subject",
+      "name": "subject",
+      "placeholder": "Enter the subject of your message",
+      "required": true
+    },
+    {
+      "id": "field_message_1",
+      "type": "textarea",
+      "label": "Message",
+      "name": "message",
+      "placeholder": "Enter your message here...",
+      "required": true
+    }
+  ],
+  "form_header": "<h2 style=\"text-align: center; color: #2271b1;\">Get in Touch</h2>\n<p style=\"text-align: center;\">We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>",
+  "form_footer": "<div style=\"text-align: center; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;\">\n<p><strong>Need immediate assistance?</strong></p>\n<p>Call us at: <a href=\"tel:+1234567890\">(123) 456-7890</a> | Email: <a href=\"mailto:info@example.com\">info@example.com</a></p>\n<p><small>We typically respond within 24 hours during business days.</small></p>\n</div>",
+  "export_info": {
+    "exported_at": "2025-08-02 12:00:00",
+    "exported_by": "Template Creator",
+    "plugin_version": "1.0.0",
+    "wp_version": "6.3"
+  }
+}

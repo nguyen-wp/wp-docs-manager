@@ -1,0 +1,130 @@
+{
+  "name": "Simple Registration Form",
+  "description": "A simple user registration form",
+  "layout": {
+    "rows": [
+      {
+        "id": "row_1",
+        "columns": [
+          {
+            "id": "col_1_1",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field_header_1",
+                "type": "header",
+                "label": "User Registration",
+                "content": "User Registration"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "row_2",
+        "columns": [
+          {
+            "id": "col_2_1",
+            "width": "1",
+            "fields": [
+              {
+                "id": "field_firstname_1",
+                "type": "text",
+                "label": "First Name",
+                "name": "first_name",
+                "placeholder": "Enter your first name",
+                "required": true
+              },
+              {
+                "id": "field_lastname_1",
+                "type": "text",
+                "label": "Last Name",
+                "name": "last_name",
+                "placeholder": "Enter your last name",
+                "required": true
+              },
+              {
+                "id": "field_email_1",
+                "type": "email",
+                "label": "Email Address",
+                "name": "email",
+                "placeholder": "Enter your email address",
+                "required": true
+              },
+              {
+                "id": "field_password_1",
+                "type": "text",
+                "label": "Password",
+                "name": "password",
+                "placeholder": "Create a password",
+                "required": true
+              },
+              {
+                "id": "field_terms_1",
+                "type": "checkbox",
+                "label": "I agree to the Terms and Conditions",
+                "name": "terms_agreement",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "fields": [
+    {
+      "id": "field_header_1",
+      "type": "header",
+      "label": "User Registration",
+      "content": "User Registration"
+    },
+    {
+      "id": "field_firstname_1",
+      "type": "text",
+      "label": "First Name",
+      "name": "first_name",
+      "placeholder": "Enter your first name",
+      "required": true
+    },
+    {
+      "id": "field_lastname_1",
+      "type": "text",
+      "label": "Last Name",
+      "name": "last_name",
+      "placeholder": "Enter your last name",
+      "required": true
+    },
+    {
+      "id": "field_email_1",
+      "type": "email",
+      "label": "Email Address",
+      "name": "email",
+      "placeholder": "Enter your email address",
+      "required": true
+    },
+    {
+      "id": "field_password_1",
+      "type": "text",
+      "label": "Password",
+      "name": "password",
+      "placeholder": "Create a password",
+      "required": true
+    },
+    {
+      "id": "field_terms_1",
+      "type": "checkbox",
+      "label": "I agree to the Terms and Conditions",
+      "name": "terms_agreement",
+      "required": true
+    }
+  ],
+  "form_header": "<div style=\"text-align: center; margin-bottom: 30px;\">\n<h1 style=\"color: #2271b1; margin-bottom: 10px;\">Create Your Account</h1>\n<p style=\"color: #666; font-size: 16px;\">Join our community today! Fill out the form below to get started.</p>\n</div>",
+  "form_footer": "<div style=\"text-align: center; margin-top: 25px; padding: 20px; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #2271b1;\">\n<p><strong>Already have an account?</strong> <a href=\"#login\" style=\"color: #2271b1; text-decoration: none;\">Sign in here</a></p>\n<p style=\"font-size: 14px; color: #666; margin-top: 10px;\">By registering, you agree to our <a href=\"#privacy\" style=\"color: #2271b1;\">Privacy Policy</a> and <a href=\"#terms\" style=\"color: #2271b1;\">Terms of Service</a>.</p>\n</div>",
+  "export_info": {
+    "exported_at": "2025-08-02 12:15:00",
+    "exported_by": "Template Creator",
+    "plugin_version": "1.0.0",
+    "wp_version": "6.3"
+  }
+}

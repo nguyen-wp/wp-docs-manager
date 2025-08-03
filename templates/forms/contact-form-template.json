@@ -1,0 +1,89 @@
+{
+    "name": "Contact Form",
+    "description": "A professional contact form with all essential fields for customer inquiries",
+    "form_header": "<h2 style=\"color: #0073aa; text-align: center; margin-bottom: 20px;\">Contact Us</h2><p style=\"text-align: center; color: #666; margin-bottom: 30px;\">We'd love to hear from you! Please fill out the form below and we'll get back to you as soon as possible.</p>",
+    "form_footer": "<p style=\"text-align: center; color: #888; font-size: 12px; margin-top: 20px;\">Your information is secure and will not be shared with third parties. We typically respond within 24 hours.</p>",
+    "fields": [
+        {
+            "type": "text",
+            "label": "Full Name",
+            "name": "full_name",
+            "placeholder": "Enter your full name",
+            "required": true,
+            "validation": {
+                "min_length": 2,
+                "max_length": 100
+            }
+        },
+        {
+            "type": "email",
+            "label": "Email Address",
+            "name": "email",
+            "placeholder": "your.email@example.com",
+            "required": true,
+            "validation": {
+                "email": true
+            }
+        },
+        {
+            "type": "tel",
+            "label": "Phone Number",
+            "name": "phone",
+            "placeholder": "(555) 123-4567",
+            "required": false,
+            "validation": {
+                "pattern": "^[\\+]?[1-9][\\d]{0,15}$"
+            }
+        },
+        {
+            "type": "select",
+            "label": "Subject",
+            "name": "subject",
+            "required": true,
+            "options": [
+                {"value": "", "label": "Select a subject..."},
+                {"value": "general", "label": "General Inquiry"},
+                {"value": "support", "label": "Technical Support"},
+                {"value": "sales", "label": "Sales Question"},
+                {"value": "partnership", "label": "Partnership Opportunity"},
+                {"value": "other", "label": "Other"}
+            ]
+        },
+        {
+            "type": "textarea",
+            "label": "Message",
+            "name": "message",
+            "placeholder": "Please describe your inquiry in detail...",
+            "required": true,
+            "validation": {
+                "min_length": 10,
+                "max_length": 1000
+            },
+            "rows": 5
+        },
+        {
+            "type": "checkbox",
+            "label": "Communication Preferences",
+            "name": "preferences",
+            "required": false,
+            "options": [
+                {"value": "newsletter", "label": "Subscribe to our newsletter"},
+                {"value": "promotions", "label": "Receive promotional offers"},
+                {"value": "updates", "label": "Get product updates"}
+            ]
+        },
+        {
+            "type": "radio",
+            "label": "How did you hear about us?",
+            "name": "referral_source",
+            "required": false,
+            "options": [
+                {"value": "search", "label": "Search Engine"},
+                {"value": "social", "label": "Social Media"},
+                {"value": "referral", "label": "Friend/Colleague Referral"},
+                {"value": "advertising", "label": "Online Advertisement"},
+                {"value": "other", "label": "Other"}
+            ]
+        }
+    ]
+}
