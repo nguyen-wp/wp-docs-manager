@@ -1753,79 +1753,11 @@ class LIFT_Forms {
                 });
             });
 
-            // Handle template preview
-            $(document).on('click', '.preview-template-btn', function() {
-                var filename = $(this).data('filename');
-                loadTemplatePreview(filename);
+            // Close modal events
+            $('.lift-modal-close, .lift-modal-cancel').on('click', function() {
+                $('#template-loader-modal').hide();
+                resetTemplateModal();
             });
-
-            // Load template preview
-            function loadTemplatePreview(filename) {
-                $('.template-preview-content').html('<div class="loading"><span class="dashicons dashicons-update spin"></span> <?php _e('Loading preview...', 'lift-docs-system'); ?></div>');
-                $('.template-preview').show();
-                
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'lift_forms_load_template',
-                        filename: filename,
-                        nonce: '<?php echo wp_create_nonce('lift_forms_templates_nonce'); ?>'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            displayTemplatePreview(response.data);
-                        } else {
-                            $('.template-preview-content').html('<div class="error"><p><?php _e('Error loading template: ', 'lift-docs-system'); ?>' + response.data + '</p></div>');
-                        }
-                    },
-                    error: function() {
-                        $('.template-preview-content').html('<div class="error"><p><?php _e('Error loading template from server', 'lift-docs-system'); ?></p></div>');
-                    }
-                });
-            }
-
-            // Display template preview
-            function displayTemplatePreview(templateData) {
-                var html = '<div class="template-preview-details">';
-                html += '<div class="preview-header">';
-                html += '<h4>' + templateData.name + '</h4>';
-                if (templateData.description) {
-                    html += '<p class="template-desc">' + templateData.description + '</p>';
-                }
-                html += '</div>';
-                
-                if (templateData.form_header) {
-                    html += '<div class="preview-section">';
-                    html += '<h5><span class="dashicons dashicons-editor-alignleft"></span> <?php _e('Form Header', 'lift-docs-system'); ?></h5>';
-                    html += '<div class="preview-content">' + templateData.form_header + '</div>';
-                    html += '</div>';
-                }
-                
-                html += '<div class="preview-section">';
-                html += '<h5><span class="dashicons dashicons-editor-table"></span> <?php _e('Form Fields', 'lift-docs-system'); ?> (' + templateData.fields.length + ')</h5>';
-                html += '<div class="fields-preview">';
-                templateData.fields.forEach(function(field) {
-                    var requiredText = field.required ? ' <span class="required">*</span>' : '';
-                    html += '<div class="field-preview-item">';
-                    html += '<span class="field-type">' + field.type.toUpperCase() + '</span>';
-                    html += '<span class="field-label">' + field.label + requiredText + '</span>';
-                    html += '</div>';
-                });
-                html += '</div>';
-                html += '</div>';
-                
-                if (templateData.form_footer) {
-                    html += '<div class="preview-section">';
-                    html += '<h5><span class="dashicons dashicons-editor-alignright"></span> <?php _e('Form Footer', 'lift-docs-system'); ?></h5>';
-                    html += '<div class="preview-content">' + templateData.form_footer + '</div>';
-                    html += '</div>';
-                }
-                
-                html += '</div>';
-                
-                $('.template-preview-content').html(html);
-            }
 
             // Close modal events
             $('.lift-modal-close, .lift-modal-cancel').on('click', function() {
@@ -1846,7 +1778,6 @@ class LIFT_Forms {
                 $('#template-loader-form')[0].reset();
                 $('#template-load-progress').hide();
                 $('#template-load-result').hide();
-                $('.template-preview').hide();
                 $('.template-card').removeClass('selected');
                 
                 // Switch back to preset templates tab
@@ -1895,7 +1826,7 @@ class LIFT_Forms {
                         setTimeout(function() {
                             $('#template-loader-modal').hide();
                             resetTemplateModal();
-                        }, 2000);
+                        }, 1500);
                         
                     } catch (error) {
                         $('#template-load-progress').hide();
@@ -1915,13 +1846,16 @@ class LIFT_Forms {
 
             // Load template data into form builder
             function loadTemplateData(templateData, useTemplateName) {
+                console.log('Loading template data:', templateData);
+                
+                // Set form name if requested
                 if (useTemplateName && templateData.name) {
                     $('#form-name').val(templateData.name);
                 }
                 
-                // Load form fields
-                if (templateData.fields && Array.isArray(templateData.fields)) {
-                    rebuildFormBuilderWithData(templateData.fields);
+                // Set form description if exists
+                if (templateData.description) {
+                    $('#form-description').val(templateData.description);
                 }
                 
                 // Load header if exists
@@ -1943,6 +1877,42 @@ class LIFT_Forms {
                         }, 500);
                     }
                 }
+                
+                // Load form fields and layout into form builder
+                if (templateData.fields && Array.isArray(templateData.fields)) {
+                    // Try to use existing form builder integration first
+                    if (window.formBuilder && typeof window.formBuilder.loadTemplate === 'function') {
+                        // Use the form builder's method to load template data
+                        window.formBuilder.loadTemplate(templateData);
+                        console.log('Template loaded via formBuilder.loadTemplate');
+                    } else if (typeof rebuildFormBuilderWithData === 'function') {
+                        // Use our custom function
+                        rebuildFormBuilderWithData(templateData.fields);
+                        console.log('Template loaded via rebuildFormBuilderWithData');
+                    } else {
+                        // Fallback: wait for form builder to load then set data
+                        let attempts = 0;
+                        const maxAttempts = 10;
+                        
+                        const checkFormBuilder = function() {
+                            attempts++;
+                            if (window.formBuilder && typeof window.formBuilder.loadTemplate === 'function') {
+                                window.formBuilder.loadTemplate(templateData);
+                                console.log('Template loaded into form builder after ' + attempts + ' attempts');
+                            } else if (attempts < maxAttempts) {
+                                setTimeout(checkFormBuilder, 500);
+                            } else {
+                                console.error('Form builder not found after ' + maxAttempts + ' attempts');
+                                // Try to reload form fields directly
+                                rebuildFormBuilderWithData(templateData.fields);
+                            }
+                        };
+                        
+                        setTimeout(checkFormBuilder, 100);
+                    }
+                }
+                
+                console.log('Template loading completed:', templateData.name);
             }
 
             // Rebuild form builder with template data
