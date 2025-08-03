@@ -1649,29 +1649,32 @@ class LIFT_Forms {
         <div id="save-template-modal" class="lift-modal" style="display: none;">
             <div class="lift-modal-content">
                 <div class="lift-modal-header">
-                    <h3><?php _e('Save as Template', 'lift-docs-system'); ?></h3>
+                    <h2>
+                        <?php _e('Save as Template', 'lift-docs-system'); ?>
+                    </h2>
                     <button type="button" class="lift-modal-close">&times;</button>
                 </div>
                 <div class="lift-modal-body">
                     <form id="save-template-form">
-                        <div class="form-field">
+                        <div class="lift-form-field">
                             <label for="template-name"><?php _e('Template Name', 'lift-docs-system'); ?></label>
                             <input type="text" id="template-name" name="template_name" class="regular-text" required>
                             <p class="description"><?php _e('Enter a descriptive name for this template', 'lift-docs-system'); ?></p>
                         </div>
                         
-                        <div class="form-field">
+                        <div class="lift-form-field">
                             <label for="template-description"><?php _e('Description', 'lift-docs-system'); ?></label>
                             <textarea id="template-description" name="template_description" class="large-text" rows="3"></textarea>
                             <p class="description"><?php _e('Optional description of what this template is for', 'lift-docs-system'); ?></p>
                         </div>
 
-                        <div class="form-actions">
+                        <div class="lift-form-actions">
                             <button type="submit" class="button button-primary">
-                                <span class="dashicons dashicons-download"></span>
+                                <span class="dashicons dashicons-yes"></span>
                                 <?php _e('Save Template', 'lift-docs-system'); ?>
                             </button>
                             <button type="button" class="button lift-modal-cancel">
+                                <span class="dashicons dashicons-dismiss"></span>
                                 <?php _e('Cancel', 'lift-docs-system'); ?>
                             </button>
                         </div>
@@ -2337,6 +2340,8 @@ class LIFT_Forms {
                 $('#save-template-form')[0].reset();
                 $('#save-template-progress').hide();
                 $('#save-template-result').hide();
+                $('#template-name').removeClass('error');
+                $('#template-description').removeClass('error');
             }
         });
         </script>

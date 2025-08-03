@@ -321,6 +321,27 @@
     height: 16px;
 }
 
+#save-template-btn {
+    background: #0073aa;
+    color: white;
+    border: none;
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#save-template-btn:hover {
+    background: #005a87;
+    color: white;
+}
+
+#save-template-btn .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
 /* Template Modal Specific Styles */
 #template-loader-modal .lift-form-field {
     margin-bottom: 20px;
@@ -684,21 +705,88 @@
 }
 
 /* Save Template Modal */
-#save-template-modal .form-field {
+#template-loader-modal .lift-modal-header h2,
+#save-template-modal .lift-modal-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+#save-template-modal .lift-modal-header .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #0073aa;
+}
+
+#save-template-modal .lift-form-field {
     margin-bottom: 20px;
 }
 
-#save-template-modal .form-field label {
+#save-template-modal .lift-form-field label {
     display: block;
+    margin-bottom: 8px;
     font-weight: 600;
-    margin-bottom: 5px;
-    color: #1d2327;
+    color: #23282d;
 }
 
-#save-template-modal .description {
-    font-size: 13px;
-    color: #646970;
+#save-template-modal .lift-form-field input[type="text"],
+#save-template-modal .lift-form-field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+#save-template-modal .lift-form-field input[type="text"]:focus,
+#save-template-modal .lift-form-field textarea:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.1);
+}
+
+#save-template-modal .lift-form-field .description {
     margin-top: 5px;
+    color: #666;
+    font-size: 13px;
+    font-style: italic;
+}
+
+#save-template-modal .lift-form-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: right;
+}
+
+#save-template-modal .lift-form-actions .button {
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#save-template-modal .lift-form-actions .button .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+#save-template-modal .lift-modal-cancel {
+    background: #f1f1f1;
+    color: #555;
+    border-color: #ccc;
+}
+
+#save-template-modal .lift-modal-cancel:hover {
+    background: #e1e1e1;
+    color: #333;
 }
 
 /* Save Template Progress */
@@ -707,13 +795,19 @@
     text-align: center;
 }
 
+#save-template-progress p {
+    margin: 10px 0 0 0;
+    color: #666;
+    font-weight: 500;
+}
+
 #save-template-result {
     margin-top: 15px;
 }
 
 #save-template-result .notice {
     margin: 0;
-    padding: 10px 15px;
+    padding: 12px 15px;
     border-radius: 4px;
 }
 
@@ -727,4 +821,23 @@
     background: #f8d7da;
     border-left: 4px solid #d63638;
     color: #842029;
+}
+
+/* Save Template Modal Responsive */
+@media (max-width: 768px) {
+    #save-template-modal .lift-form-actions {
+        text-align: center;
+    }
+    
+    #save-template-modal .lift-form-actions .button {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    #save-template-modal .lift-modal-header h2 {
+        font-size: 18px;
+    }
 }
