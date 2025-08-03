@@ -1697,12 +1697,18 @@
             });
         });
 
-        // Auto-save every 30 seconds - DISABLED for debugging
-        // setInterval(function() {
-        //     if (formData.length > 0) {
-        //         saveForm(true); // Silent save
-        //     }
-        // }, 30000);
+        // Auto-save with security and rate limiting
+        let lastAutoSave = 0;
+        const autoSaveInterval = 30000; // 30 seconds
+        const minSaveInterval = 5000; // Minimum 5 seconds between saves
+        
+        setInterval(function() {
+            const now = Date.now();
+            if (formData.length > 0 && (now - lastAutoSave) >= minSaveInterval) {
+                lastAutoSave = now;
+                saveForm(true); // Silent save
+            }
+        }, autoSaveInterval);
 
         // Header and Footer Editor Events
         bindHeaderFooterEvents();
@@ -2824,7 +2830,6 @@
         $(document).trigger('formBuilderDataLoaded', [data]);
     }
 
-    // Expose debug function globally for testing
-    // window.debugFormData = debugFormData;
+    // Production build - debug functions removed for security
 
 })(jQuery);

@@ -61,6 +61,37 @@ class LIFT_Forms {
     }
 
     /**
+     * Security logging for production monitoring
+     */
+    private function log_security_event($event_type, $message, $data = array()) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $log_entry = array(
+                'timestamp' => current_time('mysql'),
+                'event_type' => $event_type,
+                'message' => $message,
+                'user_id' => get_current_user_id(),
+                'ip_address' => $this->get_client_ip(),
+                'data' => $data
+            );
+            error_log('LIFT Security: ' . json_encode($log_entry));
+        }
+    }
+
+    /**
+     * Validate file path to prevent directory traversal attacks
+     */
+    private function validate_file_path($file_path, $base_dir) {
+        $real_base = realpath($base_dir);
+        $real_file = realpath($file_path);
+        
+        if ($real_file === false || $real_base === false) {
+            return false;
+        }
+        
+        return strpos($real_file, $real_base) === 0;
+    }
+
+    /**
      * Initialize
      */
     public function init() {
@@ -5359,11 +5390,13 @@ class LIFT_Forms {
     public function ajax_update_form_status() {
         // Check nonce
         if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_admin_nonce')) {
+            $this->log_security_event('nonce_failure', 'Form status update nonce verification failed');
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
 
         // Check permissions
         if (!current_user_can('manage_options')) {
+            $this->log_security_event('permission_denied', 'Unauthorized form status update attempt');
             wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
         }
 
@@ -5498,10 +5531,29 @@ class LIFT_Forms {
 
         $file = $_FILES['import_file'];
         
-        // Validate file type
+        // Enhanced file security validation
+        $max_file_size = 2 * 1024 * 1024; // 2MB limit
+        if ($file['size'] > $max_file_size) {
+            wp_send_json_error(__('File too large. Maximum size is 2MB', 'lift-docs-system'));
+        }
+        
+        // Validate file type and MIME type
         $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if ($file['type'] !== 'application/json' && $file_extension !== 'json') {
+        $allowed_mime_types = array('application/json', 'text/json', 'text/plain');
+        
+        if (!in_array($file['type'], $allowed_mime_types) || $file_extension !== 'json') {
             wp_send_json_error(__('Please upload a valid JSON file', 'lift-docs-system'));
+        }
+        
+        // Additional MIME type check using finfo
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $detected_type = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+            
+            if (!in_array($detected_type, $allowed_mime_types)) {
+                wp_send_json_error(__('Invalid file type detected', 'lift-docs-system'));
+            }
         }
 
         // Read and parse JSON
