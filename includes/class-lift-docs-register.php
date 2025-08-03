@@ -666,7 +666,7 @@ class LIFT_Docs_Register {
                         }
                     })
                     .catch(error => {
-                        console.error('Username check error:', error);
+                        // Username check error occurred
                     });
                 }
 
@@ -695,7 +695,7 @@ class LIFT_Docs_Register {
                         }
                     })
                     .catch(error => {
-                        console.error('Email check error:', error);
+                        // Email check error occurred
                     });
                 }
 
@@ -762,7 +762,7 @@ class LIFT_Docs_Register {
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
+                        // Network error occurred
                         showError('<?php _e('Network error. Please try again.', 'lift-docs-system'); ?>');
                     })
                     .finally(() => {

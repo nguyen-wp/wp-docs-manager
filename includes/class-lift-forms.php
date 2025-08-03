@@ -877,7 +877,6 @@ class LIFT_Forms {
                     processData: false,
                     contentType: false,
                     success: function(response) {
-                        console.log('LIFT Forms Import: Server response:', response);
                         $('#lift-import-progress').hide();
                         if (response.success) {
                             $('#lift-import-result')
@@ -889,14 +888,12 @@ class LIFT_Forms {
                                 window.location.reload();
                             }, 2000);
                         } else {
-                            console.error('LIFT Forms Import: Error:', response.data);
                             $('#lift-import-result')
                                 .html('<div class="notice notice-error"><p>' + response.data + '</p></div>')
                                 .show();
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('LIFT Forms Import: AJAX error:', xhr.responseText);
                         $('#lift-import-progress').hide();
                         $('#lift-import-result')
                             .html('<div class="notice notice-error"><p><?php _e('An error occurred during import', 'lift-docs-system'); ?></p></div>')
@@ -1499,7 +1496,6 @@ class LIFT_Forms {
 
         <script type="text/javascript">
         jQuery(document).ready(function($) {
-            console.log('Forms page script initialized with PHP wp_editor');
             
             // Tab switching functionality
             $('.tab-button').on('click', function() {
@@ -1524,10 +1520,10 @@ class LIFT_Forms {
                             var footerEditor = tinymce.get('form_footer');
                             
                             if (headerEditor) {
-                                console.log('Header editor found and ready');
+                                // Header editor found and ready
                             }
                             if (footerEditor) {
-                                console.log('Footer editor found and ready');
+                                // Footer editor found and ready
                             }
                         }
                     }, 300);
@@ -1539,7 +1535,7 @@ class LIFT_Forms {
                 // Wait for WordPress editors to be fully loaded
                 setTimeout(function() {
                     if ($('#form_header').length && $('#form_footer').length) {
-                        console.log('WordPress PHP editors found and ready');
+                        // WordPress PHP editors found and ready
                         
                         // Check if editors are initialized
                         if (typeof tinymce !== 'undefined') {
@@ -1547,17 +1543,17 @@ class LIFT_Forms {
                             var footerEditor = tinymce.get('form_footer');
                             
                             if (headerEditor && footerEditor) {
-                                console.log('TinyMCE editors are initialized and ready');
+                                // TinyMCE editors are initialized and ready
                             } else {
-                                console.log('TinyMCE editors not yet initialized, waiting...');
+                                // TinyMCE editors not yet initialized, waiting...
                                 // Wait a bit more for TinyMCE initialization
                                 setTimeout(function() {
-                                    console.log('Secondary check for TinyMCE initialization complete');
+                                    // Secondary check for TinyMCE initialization complete
                                 }, 2000);
                             }
                         }
                     } else {
-                        console.log('WordPress PHP editors not found yet');
+                        // WordPress PHP editors not found yet
                     }
                 }, 1500);
             });
@@ -1881,7 +1877,7 @@ class LIFT_Forms {
 
             // Load template data into form builder
             function loadTemplateData(templateData, useTemplateName) {
-                console.log('Loading template data:', templateData);
+                // Loading template data
                 
                 // Set form name if requested
                 if (useTemplateName && templateData.name) {
@@ -1919,11 +1915,11 @@ class LIFT_Forms {
                     if (window.formBuilder && typeof window.formBuilder.loadTemplate === 'function') {
                         // Use the form builder's method to load template data
                         window.formBuilder.loadTemplate(templateData);
-                        console.log('Template loaded via formBuilder.loadTemplate');
+                        // Template loaded via formBuilder.loadTemplate
                     } else if (typeof rebuildFormBuilderWithData === 'function') {
                         // Use our custom function
                         rebuildFormBuilderWithData(templateData.fields);
-                        console.log('Template loaded via rebuildFormBuilderWithData');
+                        // Template loaded via rebuildFormBuilderWithData
                     } else {
                         // Fallback: wait for form builder to load then set data
                         let attempts = 0;
@@ -1933,11 +1929,11 @@ class LIFT_Forms {
                             attempts++;
                             if (window.formBuilder && typeof window.formBuilder.loadTemplate === 'function') {
                                 window.formBuilder.loadTemplate(templateData);
-                                console.log('Template loaded into form builder after ' + attempts + ' attempts');
+                                // Template loaded into form builder after attempts
                             } else if (attempts < maxAttempts) {
                                 setTimeout(checkFormBuilder, 500);
                             } else {
-                                console.error('Form builder not found after ' + maxAttempts + ' attempts');
+                                // Form builder not found after max attempts
                                 // Try to reload form fields directly
                                 rebuildFormBuilderWithData(templateData.fields);
                             }
@@ -1947,7 +1943,7 @@ class LIFT_Forms {
                     }
                 }
                 
-                console.log('Template loading completed:', templateData.name);
+                // Template loading completed
             }
 
             // Rebuild form builder with template data
@@ -2035,7 +2031,7 @@ class LIFT_Forms {
 
             // Save Template functionality
             $('#save-template-btn').on('click', function() {
-                console.log('Save Template button clicked');
+                // Save Template button clicked
                 $('#save-template-modal').show();
             });
 
@@ -2090,7 +2086,7 @@ class LIFT_Forms {
                     if (allData && allData.fields && Array.isArray(allData.fields) && allData.fields.length > 0) {
                         fieldsFound = allData.fields;
                         layoutData = allData.layout;
-                        console.log('Got complete data from formBuilder.getAllData():', allData);
+                        // Got complete data from formBuilder.getAllData()
                     }
                 }
                 
@@ -2100,17 +2096,17 @@ class LIFT_Forms {
                         var builderData = window.formBuilder.getFormData();
                         if (builderData && Array.isArray(builderData) && builderData.length > 0) {
                             fieldsFound = builderData;
-                            console.log('Got form data from formBuilder API:', fieldsFound);
+                            // Got form data from formBuilder API
                         }
                     }
                     
                     // Get layout data separately
                     if (window.formBuilder && typeof window.formBuilder.getLayoutData === 'function') {
                         layoutData = window.formBuilder.getLayoutData();
-                        console.log('Got layout data from getLayoutData():', layoutData);
+                        // Got layout data from getLayoutData()
                     } else if (window.formBuilder && window.formBuilder.layoutData) {
                         layoutData = window.formBuilder.layoutData;
-                        console.log('Got layout data from formBuilder.layoutData:', layoutData);
+                        // Got layout data from formBuilder.layoutData
                     }
                 }
                 
@@ -2118,12 +2114,12 @@ class LIFT_Forms {
                 if (fieldsFound.length === 0 && window.formBuilder && window.formBuilder.formData) {
                     if (Array.isArray(window.formBuilder.formData) && window.formBuilder.formData.length > 0) {
                         fieldsFound = window.formBuilder.formData;
-                        console.log('Got form data from formBuilder.formData:', fieldsFound);
+                        // Got form data from formBuilder.formData
                     }
                     
                     if (!layoutData && window.formBuilder.layoutData) {
                         layoutData = window.formBuilder.layoutData;
-                        console.log('Got layout data from formBuilder.layoutData:', layoutData);
+                        // Got layout data from formBuilder.layoutData
                     }
                 }
                 
@@ -2299,7 +2295,7 @@ class LIFT_Forms {
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('AJAX Error:', xhr.responseText);
+                        // AJAX Error occurred
                         $('#save-template-progress').hide();
                         $('#save-template-result').html('<div class="notice notice-error"><p><?php _e('Error saving template: ', 'lift-docs-system'); ?>' + error + '</p></div>').show();
                     }

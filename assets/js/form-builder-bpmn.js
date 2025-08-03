@@ -374,7 +374,7 @@
         $(document).trigger('formBuilderLoaded');
         
         // No need to move editors anymore - they are in their proper tab
-        console.log('Form builder loaded - editors are in Header & Footer tab');
+        // Form builder loaded - editors are in Header & Footer tab
     }
 
     /**
@@ -2774,7 +2774,7 @@
      * Rebuild form builder with new template data
      */
     function rebuildFormBuilderWithData(data) {
-        console.log('Rebuilding form builder with data:', data);
+        // Rebuilding form builder with data
         
         // Clear existing form fields
         $('#form-fields-list').empty();
@@ -2818,7 +2818,7 @@
         // Update global form data
         updateGlobalFormData();
         
-        console.log('Form builder rebuilt with template data');
+        // Form builder rebuilt with template data
         
         // Trigger a custom event
         $(document).trigger('formBuilderDataLoaded', [data]);

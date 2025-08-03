@@ -1877,7 +1877,7 @@ class LIFT_Docs_Admin {
             function addUser(userId, userName, userCode) {
                 // Validate input parameters to prevent undefined values
                 if (!userId || !userName) {
-                    console.warn('addUser called with invalid parameters:', userId, userName, userCode);
+                    // addUser called with invalid parameters
                     return;
                 }
 
