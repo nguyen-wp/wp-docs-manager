@@ -1602,10 +1602,6 @@ class LIFT_Forms {
                                 <?php _e('Loading templates...', 'lift-docs-system'); ?>
                             </div>
                         </div>
-                        <div class="template-preview" style="display: none;">
-                            <h4><?php _e('Template Preview', 'lift-docs-system'); ?></h4>
-                            <div class="template-preview-content"></div>
-                        </div>
                     </div>
 
                     <!-- Upload Template Tab -->
@@ -1712,8 +1708,7 @@ class LIFT_Forms {
                         html += '</div>';
                         html += '</div>';
                         html += '<div class="template-card-actions">';
-                        html += '<button type="button" class="button button-secondary preview-template-btn" data-filename="' + template.filename + '"><?php _e('Preview', 'lift-docs-system'); ?></button>';
-                        html += '<button type="button" class="button button-primary select-template-btn" data-filename="' + template.filename + '"><?php _e('Select', 'lift-docs-system'); ?></button>';
+                        html += '<button type="button" class="button button-primary select-template-btn" data-filename="' + template.filename + '"><?php _e('Use Template', 'lift-docs-system'); ?></button>';
                         html += '</div>';
                         html += '</div>';
                     });
@@ -1743,22 +1738,17 @@ class LIFT_Forms {
                             // Load template data into form builder
                             loadTemplateData(response.data, true); // Always use template name
                             
-                            // Show success message
-                            $('.template-preview-content').html('<div class="success"><p><?php _e('Template loaded successfully!', 'lift-docs-system'); ?></p></div>');
-                            
-                            // Close modal after short delay
-                            setTimeout(function() {
-                                $('#template-loader-modal').hide();
-                                resetTemplateModal();
-                            }, 1500);
+                            // Close modal immediately
+                            $('#template-loader-modal').hide();
+                            resetTemplateModal();
                         } else {
                             alert('<?php _e('Error loading template: ', 'lift-docs-system'); ?>' + response.data);
-                            $(this).text('<?php _e('Select', 'lift-docs-system'); ?>').prop('disabled', false);
+                            $(this).text('<?php _e('Use Template', 'lift-docs-system'); ?>').prop('disabled', false);
                         }
                     }.bind(this),
                     error: function() {
                         alert('<?php _e('Error loading template from server', 'lift-docs-system'); ?>');
-                        $(this).text('<?php _e('Select', 'lift-docs-system'); ?>').prop('disabled', false);
+                        $(this).text('<?php _e('Use Template', 'lift-docs-system'); ?>').prop('disabled', false);
                     }.bind(this)
                 });
             });
