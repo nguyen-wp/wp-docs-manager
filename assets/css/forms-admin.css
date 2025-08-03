@@ -579,6 +579,35 @@
     color: #666;
     font-size: 16px;
 }
+
+/* Forms Table Checkboxes */
+#forms-bulk-action-form .check-column {
+    width: 2.2em;
+    text-align: center;
+}
+
+#forms-bulk-action-form .check-column input[type="checkbox"] {
+    margin: 0 auto;
+    display: block;
+}
+
+#forms-bulk-action-form .manage-column.column-cb {
+    width: 2.2em;
+    padding: 8px 10px;
+}
+
+#forms-bulk-action-form .manage-column.column-cb input[type="checkbox"] {
+    margin: 0 auto;
+    display: block;
+}
+
+#forms-bulk-action-form th.check-column,
+#forms-bulk-action-form td.check-column {
+    padding: 8px 10px;
+    text-align: center;
+    vertical-align: middle;
+}
+
 /* Status Badges */
 .status {
     padding: 4px 12px;
