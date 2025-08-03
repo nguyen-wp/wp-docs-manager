@@ -4768,22 +4768,38 @@ class LIFT_Forms {
             wp_send_json_error(__('Invalid form structure: ', 'lift-docs-system') . $validation_result['error']);
         }
 
-        // Use custom name if provided
-        $custom_name = sanitize_text_field($_POST['form_name']);
-        if (!empty($custom_name)) {
-            $form_data['name'] = $custom_name;
-        }
-
-        // Import the form
-        $import_result = $this->import_form_from_data($form_data);
-        
-        if ($import_result['success']) {
-            wp_send_json_success(array(
-                'message' => sprintf(__('Form "%s" imported successfully!', 'lift-docs-system'), $form_data['name']),
-                'form_id' => $import_result['form_id']
-            ));
+        // Check if it's multiple forms or single form
+        if (isset($form_data['forms']) && is_array($form_data['forms'])) {
+            // Multiple forms import
+            $import_results = $this->import_multiple_forms_from_data($form_data);
+            
+            if ($import_results['success']) {
+                wp_send_json_success(array(
+                    'message' => sprintf(__('%d forms imported successfully!', 'lift-docs-system'), $import_results['imported_count']),
+                    'imported_count' => $import_results['imported_count'],
+                    'failed_count' => $import_results['failed_count']
+                ));
+            } else {
+                wp_send_json_error($import_results['error']);
+            }
         } else {
-            wp_send_json_error($import_result['error']);
+            // Single form import
+            // Use custom name if provided
+            $custom_name = sanitize_text_field($_POST['form_name']);
+            if (!empty($custom_name)) {
+                $form_data['name'] = $custom_name;
+            }
+
+            $import_result = $this->import_form_from_data($form_data);
+            
+            if ($import_result['success']) {
+                wp_send_json_success(array(
+                    'message' => sprintf(__('Form "%s" imported successfully!', 'lift-docs-system'), $form_data['name']),
+                    'form_id' => $import_result['form_id']
+                ));
+            } else {
+                wp_send_json_error($import_result['error']);
+            }
         }
     }
 
@@ -4814,6 +4830,7 @@ class LIFT_Forms {
 
         // Prepare export data
         $form_fields_data = json_decode($form->form_fields, true);
+        $form_settings_data = json_decode($form->settings, true);
         
         // Extract layout and fields from form_fields data
         $layout_data = null;
@@ -4829,6 +4846,14 @@ class LIFT_Forms {
                 // If no separate fields, use the entire form_fields as fields
                 $fields_data = $form_fields_data;
             }
+        }
+        
+        // Extract header and footer from settings
+        $form_header = '';
+        $form_footer = '';
+        if (is_array($form_settings_data)) {
+            $form_header = $form_settings_data['form_header'] ?? '';
+            $form_footer = $form_settings_data['form_footer'] ?? '';
         }
         
         // If layout is null, create a simple default structure
@@ -4855,6 +4880,8 @@ class LIFT_Forms {
             'description' => $form->description,
             'layout' => $layout_data,
             'fields' => $fields_data,
+            'form_header' => $form_header,
+            'form_footer' => $form_footer,
             'export_info' => array(
                 'exported_at' => current_time('mysql'),
                 'exported_by' => wp_get_current_user()->display_name,
@@ -4867,6 +4894,8 @@ class LIFT_Forms {
         error_log('LIFT Forms Export: Final export data keys: ' . implode(', ', array_keys($export_data)));
         error_log('LIFT Forms Export: Layout null check: ' . ($export_data['layout'] === null ? 'NULL' : 'NOT NULL'));
         error_log('LIFT Forms Export: Fields null check: ' . ($export_data['fields'] === null ? 'NULL' : 'NOT NULL'));
+        error_log('LIFT Forms Export: Header content length: ' . strlen($export_data['form_header']));
+        error_log('LIFT Forms Export: Footer content length: ' . strlen($export_data['form_footer']));
 
         // Set headers for download
         $filename = 'lift-form-' . sanitize_file_name($form->name) . '-' . date('Y-m-d') . '.json';
@@ -4917,6 +4946,7 @@ class LIFT_Forms {
 
         foreach ($forms as $form) {
             $form_fields_data = json_decode($form->form_fields, true);
+            $form_settings_data = json_decode($form->settings, true);
             
             // Extract layout and fields from form_fields data
             $layout_data = null;
@@ -4932,6 +4962,14 @@ class LIFT_Forms {
                     // If no separate fields, use the entire form_fields as fields
                     $fields_data = $form_fields_data;
                 }
+            }
+            
+            // Extract header and footer from settings
+            $form_header = '';
+            $form_footer = '';
+            if (is_array($form_settings_data)) {
+                $form_header = $form_settings_data['form_header'] ?? '';
+                $form_footer = $form_settings_data['form_footer'] ?? '';
             }
             
             // If layout is null, create a simple default structure
@@ -4958,6 +4996,8 @@ class LIFT_Forms {
                 'description' => $form->description,
                 'layout' => $layout_data,
                 'fields' => $fields_data,
+                'form_header' => $form_header,
+                'form_footer' => $form_footer,
                 'status' => $form->status,
                 'created_at' => $form->created_at
             );
@@ -4986,9 +5026,30 @@ class LIFT_Forms {
         
         // Check if it's a single form or multiple forms backup
         if (isset($data['forms']) && is_array($data['forms'])) {
-            return array('valid' => false, 'error' => __('Multiple forms backup detected. Please import forms one by one.', 'lift-docs-system'));
+            // Validate multiple forms structure
+            if (empty($data['forms'])) {
+                return array('valid' => false, 'error' => __('No forms found in backup file', 'lift-docs-system'));
+            }
+            
+            // Validate each form in the backup
+            foreach ($data['forms'] as $index => $form) {
+                $form_validation = $this->validate_single_form_data($form);
+                if (!$form_validation['valid']) {
+                    return array('valid' => false, 'error' => sprintf(__('Form #%d validation failed: %s', 'lift-docs-system'), $index + 1, $form_validation['error']));
+                }
+            }
+            
+            return array('valid' => true);
+        } else {
+            // Single form validation
+            return $this->validate_single_form_data($data);
         }
+    }
 
+    /**
+     * Validate single form data structure
+     */
+    private function validate_single_form_data($data) {
         // Required fields for single form
         $required_fields = array('name', 'layout', 'fields');
         
@@ -5041,11 +5102,21 @@ class LIFT_Forms {
             $form_fields_data['fields'] = $data['fields'];
         }
 
+        // Prepare settings data with header and footer
+        $settings_data = array();
+        if (isset($data['form_header'])) {
+            $settings_data['form_header'] = $data['form_header'];
+        }
+        if (isset($data['form_footer'])) {
+            $settings_data['form_footer'] = $data['form_footer'];
+        }
+
         // Prepare data for insertion
         $insert_data = array(
             'name' => sanitize_text_field($data['name']),
             'description' => isset($data['description']) ? sanitize_textarea_field($data['description']) : '',
             'form_fields' => json_encode($form_fields_data),
+            'settings' => json_encode($settings_data),
             'status' => isset($data['status']) ? sanitize_text_field($data['status']) : 'draft',
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql')
@@ -5060,6 +5131,40 @@ class LIFT_Forms {
 
         error_log('LIFT Forms Import: Successfully inserted form with ID: ' . $wpdb->insert_id);
         return array('success' => true, 'form_id' => $wpdb->insert_id);
+    }
+
+    /**
+     * Import multiple forms from validated data
+     */
+    private function import_multiple_forms_from_data($data) {
+        $imported_count = 0;
+        $failed_count = 0;
+        $errors = array();
+
+        foreach ($data['forms'] as $form_data) {
+            $result = $this->import_form_from_data($form_data);
+            
+            if ($result['success']) {
+                $imported_count++;
+            } else {
+                $failed_count++;
+                $errors[] = sprintf(__('Failed to import form "%s": %s', 'lift-docs-system'), $form_data['name'], $result['error']);
+            }
+        }
+
+        if ($imported_count > 0) {
+            return array(
+                'success' => true, 
+                'imported_count' => $imported_count,
+                'failed_count' => $failed_count,
+                'errors' => $errors
+            );
+        } else {
+            return array(
+                'success' => false, 
+                'error' => __('No forms could be imported', 'lift-docs-system') . ': ' . implode('; ', $errors)
+            );
+        }
     }
 }
 
