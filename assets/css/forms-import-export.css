@@ -682,3 +682,49 @@
 .loading .dashicons {
     margin-right: 8px;
 }
+
+/* Save Template Modal */
+#save-template-modal .form-field {
+    margin-bottom: 20px;
+}
+
+#save-template-modal .form-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #1d2327;
+}
+
+#save-template-modal .description {
+    font-size: 13px;
+    color: #646970;
+    margin-top: 5px;
+}
+
+/* Save Template Progress */
+#save-template-progress {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#save-template-result {
+    margin-top: 15px;
+}
+
+#save-template-result .notice {
+    margin: 0;
+    padding: 10px 15px;
+    border-radius: 4px;
+}
+
+#save-template-result .notice-success {
+    background: #d1e7dd;
+    border-left: 4px solid #00a32a;
+    color: #0f5132;
+}
+
+#save-template-result .notice-error {
+    background: #f8d7da;
+    border-left: 4px solid #d63638;
+    color: #842029;
+}

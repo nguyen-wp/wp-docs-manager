@@ -20,8 +20,18 @@
             // Expose form builder to global scope for minimal admin access
             window.formBuilder = {
                 formData: formData,
+                layoutData: layoutData,
                 getFormData: function() {
                     return formData;
+                },
+                getLayoutData: function() {
+                    return layoutData;
+                },
+                getAllData: function() {
+                    return {
+                        fields: formData,
+                        layout: layoutData
+                    };
                 },
                 setFormData: function(data) {
                     if (data && data.fields) {
