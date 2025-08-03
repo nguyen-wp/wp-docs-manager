@@ -196,9 +196,10 @@ class LIFT_Forms {
         ));
 
         if (empty($column_exists)) {
-            // Add user_id column
-            $wpdb->query("ALTER TABLE {$submissions_table} ADD COLUMN user_id bigint(20) UNSIGNED DEFAULT NULL AFTER form_data");
-            $wpdb->query("ALTER TABLE {$submissions_table} ADD INDEX user_id (user_id)");
+            // Add user_id column - Using escaped table name for security
+            $escaped_table = esc_sql($submissions_table);
+            $wpdb->query("ALTER TABLE `{$escaped_table}` ADD COLUMN user_id bigint(20) UNSIGNED DEFAULT NULL AFTER form_data");
+            $wpdb->query("ALTER TABLE `{$escaped_table}` ADD INDEX user_id (user_id)");
         }
 
         // Check if updated_at column exists - Using proper wpdb::prepare() with SQL query and placeholder
@@ -208,8 +209,9 @@ class LIFT_Forms {
         ));
 
         if (empty($updated_at_exists)) {
-            // Add updated_at column
-            $wpdb->query("ALTER TABLE {$submissions_table} ADD COLUMN updated_at datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP AFTER submitted_at");
+            // Add updated_at column - Using escaped table name for security
+            $escaped_table = esc_sql($submissions_table);
+            $wpdb->query("ALTER TABLE `{$escaped_table}` ADD COLUMN updated_at datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP AFTER submitted_at");
         }
     }
 
@@ -826,6 +828,7 @@ class LIFT_Forms {
                 </div>
                 <div class="lift-modal-body">
                     <form id="lift-import-form" enctype="multipart/form-data">
+                        <?php wp_nonce_field('lift_forms_import', 'lift_forms_import_nonce'); ?>
                         <div class="lift-form-field">
                             <label for="lift-import-file"><?php _e('Select JSON File', 'lift-docs-system'); ?></label>
                             <input type="file" id="lift-import-file" name="import_file" accept=".json" required>
@@ -5007,11 +5010,38 @@ class LIFT_Forms {
                     if (!is_numeric($field_value)) {
                         $errors[$field_name] = __('Please enter a valid number', 'lift-docs-system');
                     }
+                    // Check min/max values if specified
+                    if (isset($field['min']) && $field_value < $field['min']) {
+                        $errors[$field_name] = sprintf(__('Value must be at least %s', 'lift-docs-system'), $field['min']);
+                    }
+                    if (isset($field['max']) && $field_value > $field['max']) {
+                        $errors[$field_name] = sprintf(__('Value must be no more than %s', 'lift-docs-system'), $field['max']);
+                    }
+                    break;
+
+                case 'text':
+                case 'textarea':
+                    // Check max length
+                    $max_length = $field['maxlength'] ?? 1000;
+                    if (strlen($field_value) > $max_length) {
+                        $errors[$field_name] = sprintf(__('Text too long. Maximum %d characters allowed', 'lift-docs-system'), $max_length);
+                    }
+                    // Sanitize for security
+                    $sanitized_value = sanitize_textarea_field($field_value);
+                    if ($sanitized_value !== $field_value) {
+                        $errors[$field_name] = __('Invalid characters detected', 'lift-docs-system');
+                    }
                     break;
 
                 case 'date':
                     if (!strtotime($field_value)) {
                         $errors[$field_name] = __('Please enter a valid date', 'lift-docs-system');
+                    }
+                    break;
+
+                case 'url':
+                    if (!filter_var($field_value, FILTER_VALIDATE_URL)) {
+                        $errors[$field_name] = __('Please enter a valid URL', 'lift-docs-system');
                     }
                     break;
 
@@ -5515,7 +5545,11 @@ class LIFT_Forms {
      */
     public function ajax_import_form() {
         // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_import_nonce')) {
+        if (!wp_verify_nonce($_POST['lift_forms_import_nonce'], 'lift_forms_import')) {
+            $this->log_security_event('Failed nonce check in import form', array(
+                'user_id' => get_current_user_id(),
+                'action' => 'import_form'
+            ));
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
 
