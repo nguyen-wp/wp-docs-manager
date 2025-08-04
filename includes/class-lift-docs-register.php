@@ -666,7 +666,7 @@ class LIFT_Docs_Register {
                         }
                     })
                     .catch(error => {
-                        console.error('Username check error:', error);
+                        // Username check error occurred
                     });
                 }
 
@@ -695,7 +695,7 @@ class LIFT_Docs_Register {
                         }
                     })
                     .catch(error => {
-                        console.error('Email check error:', error);
+                        // Email check error occurred
                     });
                 }
 
@@ -762,7 +762,7 @@ class LIFT_Docs_Register {
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
+                        // Network error occurred
                         showError('<?php _e('Network error. Please try again.', 'lift-docs-system'); ?>');
                     })
                     .finally(() => {
@@ -1022,11 +1022,6 @@ class LIFT_Docs_Register {
         // Send email
         $sent = wp_mail($user->user_email, $subject, $message, $headers);
 
-        // Log email sending result
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs: Welcome email ' . ($sent ? 'sent' : 'failed') . ' to ' . $user->user_email);
-        }
-
         return $sent;
     }
 
@@ -1074,11 +1069,6 @@ class LIFT_Docs_Register {
 
         // Send email
         $sent = wp_mail($notification_email, $subject, $message, $headers);
-
-        // Log email sending result
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs: Admin notification email ' . ($sent ? 'sent' : 'failed') . ' to ' . $notification_email);
-        }
 
         return $sent;
     }

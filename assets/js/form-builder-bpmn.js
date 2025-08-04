@@ -20,12 +20,48 @@
             // Expose form builder to global scope for minimal admin access
             window.formBuilder = {
                 formData: formData,
+                layoutData: layoutData,
                 getFormData: function() {
                     return formData;
                 },
+                getLayoutData: function() {
+                    return layoutData;
+                },
+                getAllData: function() {
+                    return {
+                        fields: formData,
+                        layout: layoutData
+                    };
+                },
                 setFormData: function(data) {
-                    formData = data;
+                    if (data && data.fields) {
+                        formData = data.fields;
+                    }
+                    if (data && data.layout) {
+                        layoutData = data.layout;
+                    }
                     updateGlobalFormData();
+                    
+                    // Rebuild the form builder UI with the new data
+                    if (data.fields && data.fields.length > 0) {
+                        rebuildFormBuilderWithData(data);
+                    }
+                },
+                loadTemplate: function(templateData) {
+                    // Clear current form data
+                    formData = [];
+                    layoutData = { rows: [] };
+                    
+                    // Load template data
+                    if (templateData.fields) {
+                        formData = templateData.fields;
+                    }
+                    if (templateData.layout) {
+                        layoutData = templateData.layout;
+                    }
+                    
+                    updateGlobalFormData();
+                    rebuildFormBuilderWithData(templateData);
                 }
             };
         }
@@ -338,7 +374,7 @@
         $(document).trigger('formBuilderLoaded');
         
         // No need to move editors anymore - they are in their proper tab
-        console.log('Form builder loaded - editors are in Header & Footer tab');
+        // Form builder loaded - editors are in Header & Footer tab
     }
 
     /**
@@ -1661,12 +1697,18 @@
             });
         });
 
-        // Auto-save every 30 seconds - DISABLED for debugging
-        // setInterval(function() {
-        //     if (formData.length > 0) {
-        //         saveForm(true); // Silent save
-        //     }
-        // }, 30000);
+        // Auto-save with security and rate limiting
+        let lastAutoSave = 0;
+        const autoSaveInterval = 30000; // 30 seconds
+        const minSaveInterval = 5000; // Minimum 5 seconds between saves
+        
+        setInterval(function() {
+            const now = Date.now();
+            if (formData.length > 0 && (now - lastAutoSave) >= minSaveInterval) {
+                lastAutoSave = now;
+                saveForm(true); // Silent save
+            }
+        }, autoSaveInterval);
 
         // Header and Footer Editor Events
         bindHeaderFooterEvents();
@@ -1694,12 +1736,12 @@
             }
 
             // Check for valid characters
-            const validNamePattern = /^[a-zA-Z0-9\s\-_.()]+$/;
-            if (!validNamePattern.test(formName)) {
-                showFormMessage('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation.', 'error');
-                $('#form-name').focus().addClass('error');
-                return;
-            }
+            // const validNamePattern = /^[a-zA-Z0-9\s\-_.()]+$/;
+            // if (!validNamePattern.test(formName)) {
+            //     showFormMessage('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation.', 'error');
+            //     $('#form-name').focus().addClass('error');
+            //     return;
+            // }
 
             // Remove error styling if validation passes
             $('#form-name').removeClass('error');
@@ -2734,7 +2776,60 @@
         });
     }
 
-    // Expose debug function globally for testing
-    // window.debugFormData = debugFormData;
+    /**
+     * Rebuild form builder with new template data
+     */
+    function rebuildFormBuilderWithData(data) {
+        // Rebuilding form builder with data
+        
+        // Clear existing form fields
+        $('#form-fields-list').empty();
+        $('.no-fields-message').hide();
+        
+        // Reset data arrays
+        formData = data.fields || [];
+        layoutData = data.layout || { rows: [] };
+        
+        // Ensure all fields have IDs
+        formData = formData.map(field => {
+            if (!field.id) {
+                field.id = 'field-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            }
+            return field;
+        });
+        
+        // If there's layout data, load it; otherwise create default structure
+        if (layoutData.rows && layoutData.rows.length > 0) {
+            loadLayout(layoutData);
+        } else if (formData.length > 0) {
+            // Create default row structure and place all fields in first column
+            createDefaultRow();
+            setTimeout(() => {
+                const firstColumn = $('#form-fields-list .form-column').first();
+                if (firstColumn.length) {
+                    firstColumn.find('.column-placeholder').hide();
+                    formData.forEach(field => {
+                        const fieldHTML = generateFieldPreview(field);
+                        firstColumn.append(fieldHTML);
+                    });
+                    firstColumn.addClass('has-fields');
+                }
+            }, 100);
+        } else {
+            // No fields, just create empty default structure
+            createDefaultRow();
+            loadLayout(layoutData);
+        }
+        
+        // Update global form data
+        updateGlobalFormData();
+        
+        // Form builder rebuilt with template data
+        
+        // Trigger a custom event
+        $(document).trigger('formBuilderDataLoaded', [data]);
+    }
+
+    // Production build - debug functions removed for security
 
 })(jQuery);

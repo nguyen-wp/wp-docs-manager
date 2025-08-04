@@ -156,7 +156,7 @@ class LIFT_Docs_Admin {
             array($this, 'forms_submissions_page')
         );
 
-           add_submenu_page(
+        add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Document Users', 'lift-docs-system'),
             __('Document Users', 'lift-docs-system'),
@@ -165,7 +165,7 @@ class LIFT_Docs_Admin {
             array($this, 'users_page')
         );
 
-          add_submenu_page(
+        add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Email Templates', 'lift-docs-system'),
             __('Email Templates', 'lift-docs-system'),
@@ -174,7 +174,7 @@ class LIFT_Docs_Admin {
             array($this, 'email_templates_page')
         );
 
-          add_submenu_page(
+        add_submenu_page(
             'edit.php?post_type=lift_document',
             __('Settings', 'lift-docs-system'),
             __('Settings', 'lift-docs-system'),
@@ -360,7 +360,6 @@ class LIFT_Docs_Admin {
         ?>
         <div class="wrap email-templates-page">
             <h1>
-                <span class="dashicons dashicons-email-alt" style="font-size: 24px; margin-right: 8px; vertical-align: middle;"></span>
                 <?php _e('Email Templates', 'lift-docs-system'); ?>
             </h1>
             <p class="description" style="font-size: 16px; margin-bottom: 30px;">
@@ -504,11 +503,9 @@ class LIFT_Docs_Admin {
                 <p><?php _e('Preview how your email templates will look before saving. The preview uses sample data to show the final result.', 'lift-docs-system'); ?></p>
                 
                 <button type="button" id="preview-assignment-email" class="button button-secondary">
-                    <span class="dashicons dashicons-plus-alt" style="margin-right: 5px;"></span>
                     <?php _e('Preview Assignment Email', 'lift-docs-system'); ?>
                 </button>
                 <button type="button" id="preview-update-email" class="button button-secondary">
-                    <span class="dashicons dashicons-update" style="margin-right: 5px;"></span>
                     <?php _e('Preview Update Email', 'lift-docs-system'); ?>
                 </button>
                 
@@ -1880,7 +1877,7 @@ class LIFT_Docs_Admin {
             function addUser(userId, userName, userCode) {
                 // Validate input parameters to prevent undefined values
                 if (!userId || !userName) {
-                    console.warn('addUser called with invalid parameters:', userId, userName, userCode);
+                    // addUser called with invalid parameters
                     return;
                 }
 
@@ -3145,9 +3142,14 @@ class LIFT_Docs_Admin {
             });
         }
 
+        if (empty($document_users)) {
+            echo '<p>' . __('No users with Documents role found.', 'lift-docs-system') . '</p>';
+            return;
+        }
+
         ?>
         <!-- Search Form -->
-        <div class="lift-docs-user-search-form" style="background: #f9f9f9; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px;">
+        <div class="lift-docs-user-search-form" style="background: #fff; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px;">
             <h3 style="margin-top: 0;"><?php _e('Search Users', 'lift-docs-system'); ?></h3>
             <form method="get" action="">
                 <?php foreach ($_GET as $key => $value): ?>
@@ -3230,10 +3232,6 @@ class LIFT_Docs_Admin {
                 </div>
             </form>
         </div>
-
-        <?php if (empty($document_users)): ?>
-            <p><?php _e('No users with Documents role found.', 'lift-docs-system'); ?></p>
-        <?php else: ?>
 
         <table class="wp-list-table widefat fixed striped">
             <thead>
@@ -3325,7 +3323,6 @@ class LIFT_Docs_Admin {
                 <?php endforeach; ?>
             </tbody>
         </table>
-        <?php endif; ?>
 
         <script type="text/javascript">
         jQuery(document).ready(function($) {
@@ -4135,11 +4132,6 @@ class LIFT_Docs_Admin {
         // Send email
         $sent = wp_mail($user->user_email, $subject, $message, $headers);
 
-        // Log email sending result
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs: Assignment email ' . ($sent ? 'sent' : 'failed') . ' to ' . $user->user_email . ' for document: ' . $document->post_title);
-        }
-
         return $sent;
     }
 
@@ -4202,11 +4194,6 @@ class LIFT_Docs_Admin {
 
         // Send email
         $sent = wp_mail($user->user_email, $subject, $message, $headers);
-
-        // Log email sending result
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LIFT Docs: Update email ' . ($sent ? 'sent' : 'failed') . ' to ' . $user->user_email . ' for document: ' . $document->post_title);
-        }
 
         return $sent;
     }

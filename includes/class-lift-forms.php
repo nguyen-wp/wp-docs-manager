@@ -41,6 +41,9 @@ class LIFT_Forms {
         add_action('wp_ajax_lift_forms_import', array($this, 'ajax_import_form'));
         add_action('wp_ajax_lift_forms_export', array($this, 'ajax_export_form'));
         add_action('wp_ajax_lift_forms_export_all', array($this, 'ajax_export_all_forms'));
+        add_action('wp_ajax_lift_forms_get_templates', array($this, 'ajax_get_templates'));
+        add_action('wp_ajax_lift_forms_load_template', array($this, 'ajax_load_template'));
+        add_action('wp_ajax_lift_forms_save_template', array($this, 'ajax_save_template'));
 
         // BPMN.io form builder AJAX actions
         add_action('wp_ajax_lift_form_builder_save', array($this, 'ajax_save_form_schema'));
@@ -55,6 +58,37 @@ class LIFT_Forms {
 
         // Register shortcode
         add_shortcode('lift_form', array($this, 'render_form_shortcode'));
+    }
+
+    /**
+     * Security logging for production monitoring
+     */
+    private function log_security_event($event_type, $message, $data = array()) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $log_entry = array(
+                'timestamp' => current_time('mysql'),
+                'event_type' => $event_type,
+                'message' => $message,
+                'user_id' => get_current_user_id(),
+                'ip_address' => $this->get_client_ip(),
+                'data' => $data
+            );
+            error_log('LIFT Security: ' . json_encode($log_entry));
+        }
+    }
+
+    /**
+     * Validate file path to prevent directory traversal attacks
+     */
+    private function validate_file_path($file_path, $base_dir) {
+        $real_base = realpath($base_dir);
+        $real_file = realpath($file_path);
+        
+        if ($real_file === false || $real_base === false) {
+            return false;
+        }
+        
+        return strpos($real_file, $real_base) === 0;
     }
 
     /**
@@ -162,9 +196,10 @@ class LIFT_Forms {
         ));
 
         if (empty($column_exists)) {
-            // Add user_id column
-            $wpdb->query("ALTER TABLE {$submissions_table} ADD COLUMN user_id bigint(20) UNSIGNED DEFAULT NULL AFTER form_data");
-            $wpdb->query("ALTER TABLE {$submissions_table} ADD INDEX user_id (user_id)");
+            // Add user_id column - Using escaped table name for security
+            $escaped_table = esc_sql($submissions_table);
+            $wpdb->query("ALTER TABLE `{$escaped_table}` ADD COLUMN user_id bigint(20) UNSIGNED DEFAULT NULL AFTER form_data");
+            $wpdb->query("ALTER TABLE `{$escaped_table}` ADD INDEX user_id (user_id)");
         }
 
         // Check if updated_at column exists - Using proper wpdb::prepare() with SQL query and placeholder
@@ -174,8 +209,9 @@ class LIFT_Forms {
         ));
 
         if (empty($updated_at_exists)) {
-            // Add updated_at column
-            $wpdb->query("ALTER TABLE {$submissions_table} ADD COLUMN updated_at datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP AFTER submitted_at");
+            // Add updated_at column - Using escaped table name for security
+            $escaped_table = esc_sql($submissions_table);
+            $wpdb->query("ALTER TABLE `{$escaped_table}` ADD COLUMN updated_at datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP AFTER submitted_at");
         }
     }
 
@@ -282,6 +318,14 @@ class LIFT_Forms {
             'lift-forms-form-builder-bpmn',
             plugin_dir_url(__FILE__) . '../assets/css/form-builder-bpmn.css',
             array('lift-forms-minimal-admin'),
+            '3.0.0'
+        );
+
+        // Import/Export styles for template loader
+        wp_enqueue_style(
+            'lift-forms-import-export',
+            plugin_dir_url(__FILE__) . '../assets/css/forms-import-export.css',
+            array('lift-forms-form-builder-bpmn'),
             '3.0.0'
         );
 
@@ -560,7 +604,7 @@ class LIFT_Forms {
             </div>
 
             <!-- Search and Filter Form -->
-            <div class="lift-forms-search-form" style="background: #f9f9f9; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <div class="lift-forms-search-form" style="background: #fff; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
                 <h3 style="margin-top: 0;"><?php _e('Search & Filter Forms', 'lift-docs-system'); ?></h3>
                 <form method="get" action="">
                     <?php foreach ($_GET as $key => $value): ?>
@@ -658,21 +702,6 @@ class LIFT_Forms {
             </div>
 
             <div class="lift-forms-overview">
-                <div class="lift-forms-stats">
-                    <div class="stat-box">
-                        <h3><?php echo count($forms); ?></h3>
-                        <p><?php _e('Found Forms', 'lift-docs-system'); ?></p>
-                    </div>
-                    <div class="stat-box">
-                        <h3><?php echo $this->get_total_submissions(); ?></h3>
-                        <p><?php _e('Total Submissions', 'lift-docs-system'); ?></p>
-                    </div>
-                    <div class="stat-box">
-                        <h3><?php echo $this->get_unread_submissions(); ?></h3>
-                        <p><?php _e('Unread Submissions', 'lift-docs-system'); ?></p>
-                    </div>
-                </div>
-
                 <?php if (empty($forms)): ?>
                     <div class="lift-forms-empty">
                         <h2><?php _e('No Forms Found', 'lift-docs-system'); ?></h2>
@@ -799,6 +828,7 @@ class LIFT_Forms {
                 </div>
                 <div class="lift-modal-body">
                     <form id="lift-import-form" enctype="multipart/form-data">
+                        <?php wp_nonce_field('lift_forms_import', 'lift_forms_import_nonce'); ?>
                         <div class="lift-form-field">
                             <label for="lift-import-file"><?php _e('Select JSON File', 'lift-docs-system'); ?></label>
                             <input type="file" id="lift-import-file" name="import_file" accept=".json" required>
@@ -881,7 +911,6 @@ class LIFT_Forms {
                     processData: false,
                     contentType: false,
                     success: function(response) {
-                        console.log('LIFT Forms Import: Server response:', response);
                         $('#lift-import-progress').hide();
                         if (response.success) {
                             $('#lift-import-result')
@@ -893,14 +922,12 @@ class LIFT_Forms {
                                 window.location.reload();
                             }, 2000);
                         } else {
-                            console.error('LIFT Forms Import: Error:', response.data);
                             $('#lift-import-result')
                                 .html('<div class="notice notice-error"><p>' + response.data + '</p></div>')
                                 .show();
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('LIFT Forms Import: AJAX error:', xhr.responseText);
                         $('#lift-import-progress').hide();
                         $('#lift-import-result')
                             .html('<div class="notice notice-error"><p><?php _e('An error occurred during import', 'lift-docs-system'); ?></p></div>')
@@ -1387,6 +1414,16 @@ class LIFT_Forms {
                             <button type="button" id="save-form" class="button button-primary">
                                 <?php _e('Save Form', 'lift-docs-system'); ?>
                             </button>
+                            <?php if (!$form): // Only show for new forms ?>
+                            <button type="button" id="load-template-btn" class="button button-secondary">
+                                <span class="dashicons dashicons-upload"></span>
+                                <?php _e('Load from Template', 'lift-docs-system'); ?>
+                            </button>
+                            <?php endif; ?>
+                            <button type="button" id="save-template-btn" class="button button-secondary">
+                                <span class="dashicons dashicons-download"></span>
+                                <?php _e('Save as Template', 'lift-docs-system'); ?>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1493,7 +1530,6 @@ class LIFT_Forms {
 
         <script type="text/javascript">
         jQuery(document).ready(function($) {
-            console.log('Forms page script initialized with PHP wp_editor');
             
             // Tab switching functionality
             $('.tab-button').on('click', function() {
@@ -1518,10 +1554,10 @@ class LIFT_Forms {
                             var footerEditor = tinymce.get('form_footer');
                             
                             if (headerEditor) {
-                                console.log('Header editor found and ready');
+                                // Header editor found and ready
                             }
                             if (footerEditor) {
-                                console.log('Footer editor found and ready');
+                                // Footer editor found and ready
                             }
                         }
                     }, 300);
@@ -1533,7 +1569,7 @@ class LIFT_Forms {
                 // Wait for WordPress editors to be fully loaded
                 setTimeout(function() {
                     if ($('#form_header').length && $('#form_footer').length) {
-                        console.log('WordPress PHP editors found and ready');
+                        // WordPress PHP editors found and ready
                         
                         // Check if editors are initialized
                         if (typeof tinymce !== 'undefined') {
@@ -1541,20 +1577,787 @@ class LIFT_Forms {
                             var footerEditor = tinymce.get('form_footer');
                             
                             if (headerEditor && footerEditor) {
-                                console.log('TinyMCE editors are initialized and ready');
+                                // TinyMCE editors are initialized and ready
                             } else {
-                                console.log('TinyMCE editors not yet initialized, waiting...');
+                                // TinyMCE editors not yet initialized, waiting...
                                 // Wait a bit more for TinyMCE initialization
                                 setTimeout(function() {
-                                    console.log('Secondary check for TinyMCE initialization complete');
+                                    // Secondary check for TinyMCE initialization complete
                                 }, 2000);
                             }
                         }
                     } else {
-                        console.log('WordPress PHP editors not found yet');
+                        // WordPress PHP editors not found yet
                     }
                 }, 1500);
             });
+        });
+        </script>
+
+        <!-- Template Loader Modal -->
+        <div id="template-loader-modal" class="lift-modal" style="display: none;">
+            <div class="lift-modal-content">
+                <div class="lift-modal-header">
+                    <h2><?php _e('Load Form Template', 'lift-docs-system'); ?></h2>
+                    <button type="button" class="lift-modal-close">&times;</button>
+                </div>
+                <div class="lift-modal-body">
+                    <!-- Template Tabs -->
+                    <div class="template-tabs">
+                        <button type="button" class="template-tab-btn active" data-tab="preset-templates">
+                            <span class="dashicons dashicons-portfolio"></span>
+                            <?php _e('Built-in Templates', 'lift-docs-system'); ?>
+                        </button>
+                        <button type="button" class="template-tab-btn" data-tab="upload-template">
+                            <span class="dashicons dashicons-upload"></span>
+                            <?php _e('Upload Template', 'lift-docs-system'); ?>
+                        </button>
+                    </div>
+
+                    <!-- Preset Templates Tab -->
+                    <div id="preset-templates" class="template-tab-content active">
+                        <div class="preset-templates-grid">
+                            <div class="template-loading">
+                                <span class="dashicons dashicons-update spin"></span>
+                                <?php _e('Loading templates...', 'lift-docs-system'); ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Template Tab -->
+                    <div id="upload-template" class="template-tab-content">
+                        <form id="template-loader-form" enctype="multipart/form-data">
+                            <div class="lift-form-field">
+                                <label for="template-file"><?php _e('Select Template File', 'lift-docs-system'); ?></label>
+                                <input type="file" id="template-file" name="template_file" accept=".json" required>
+                                <p class="description"><?php _e('Upload a JSON template file exported from LIFT Forms', 'lift-docs-system'); ?></p>
+                            </div>
+                            <div class="lift-form-field">
+                                <label>
+                                    <input type="checkbox" id="load-template-name" checked>
+                                    <?php _e('Use template form name', 'lift-docs-system'); ?>
+                                </label>
+                                <p class="description"><?php _e('If unchecked, you can set a custom name for this form', 'lift-docs-system'); ?></p>
+                            </div>
+                            <div class="lift-form-actions">
+                                <button type="submit" class="button button-primary">
+                                    <?php _e('Load Template', 'lift-docs-system'); ?>
+                                </button>
+                                <button type="button" class="button lift-modal-cancel">
+                                    <?php _e('Cancel', 'lift-docs-system'); ?>
+                                </button>
+                            </div>
+                            <div id="template-load-progress" style="display: none;">
+                                <div class="lift-progress-bar">
+                                    <div class="lift-progress-fill"></div>
+                                </div>
+                                <p><?php _e('Loading template...', 'lift-docs-system'); ?></p>
+                            </div>
+                            <div id="template-load-result" style="display: none;"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Template Modal -->
+        <div id="save-template-modal" class="lift-modal" style="display: none;">
+            <div class="lift-modal-content">
+                <div class="lift-modal-header">
+                    <h2>
+                        <?php _e('Save as Template', 'lift-docs-system'); ?>
+                    </h2>
+                    <button type="button" class="lift-modal-close">&times;</button>
+                </div>
+                <div class="lift-modal-body">
+                    <form id="save-template-form">
+                        <div class="lift-form-field">
+                            <label for="template-name"><?php _e('Template Name', 'lift-docs-system'); ?></label>
+                            <input type="text" id="template-name" name="template_name" class="regular-text" required>
+                            <p class="description"><?php _e('Enter a descriptive name for this template', 'lift-docs-system'); ?></p>
+                        </div>
+                        
+                        <div class="lift-form-field">
+                            <label for="template-description"><?php _e('Description', 'lift-docs-system'); ?></label>
+                            <textarea id="template-description" name="template_description" class="large-text" rows="3"></textarea>
+                            <p class="description"><?php _e('Optional description of what this template is for', 'lift-docs-system'); ?></p>
+                        </div>
+
+                        <div class="lift-form-actions">
+                            <button type="submit" class="button button-primary">
+                                <span class="dashicons dashicons-yes"></span>
+                                <?php _e('Save Template', 'lift-docs-system'); ?>
+                            </button>
+                            <button type="button" class="button lift-modal-cancel">
+                                <span class="dashicons dashicons-dismiss"></span>
+                                <?php _e('Cancel', 'lift-docs-system'); ?>
+                            </button>
+                        </div>
+                        <div id="save-template-progress" style="display: none;">
+                            <div class="lift-progress-bar">
+                                <div class="lift-progress-fill"></div>
+                            </div>
+                            <p><?php _e('Saving template...', 'lift-docs-system'); ?></p>
+                        </div>
+                        <div id="save-template-result" style="display: none;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            // Template Loader functionality
+            $('#load-template-btn').on('click', function() {
+                $('#template-loader-modal').show();
+                loadPresetTemplates();
+            });
+
+            // Tab switching
+            $('.template-tab-btn').on('click', function() {
+                var targetTab = $(this).data('tab');
+                
+                // Switch tab buttons
+                $('.template-tab-btn').removeClass('active');
+                $(this).addClass('active');
+                
+                // Switch tab content
+                $('.template-tab-content').removeClass('active');
+                $('#' + targetTab).addClass('active');
+            });
+
+            // Load preset templates from server
+            function loadPresetTemplates() {
+                $('.preset-templates-grid').html('<div class="template-loading"><span class="dashicons dashicons-update spin"></span><?php _e('Loading templates...', 'lift-docs-system'); ?></div>');
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'lift_forms_get_templates',
+                        nonce: '<?php echo wp_create_nonce('lift_forms_templates_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            displayPresetTemplates(response.data);
+                        } else {
+                            $('.preset-templates-grid').html('<div class="template-error"><p><?php _e('Error loading templates: ', 'lift-docs-system'); ?>' + response.data + '</p></div>');
+                        }
+                    },
+                    error: function() {
+                        $('.preset-templates-grid').html('<div class="template-error"><p><?php _e('Error loading templates from server', 'lift-docs-system'); ?></p></div>');
+                    }
+                });
+            }
+
+            // Display preset templates grid
+            function displayPresetTemplates(templates) {
+                var html = '';
+                
+                if (templates.length === 0) {
+                    html = '<div class="no-templates"><p><?php _e('No templates found in templates directory', 'lift-docs-system'); ?></p></div>';
+                } else {
+                    templates.forEach(function(template) {
+                        var headerBadge = template.has_header ? '<span class="template-badge header-badge" title="<?php _e('Has Header', 'lift-docs-system'); ?>">H</span>' : '';
+                        var footerBadge = template.has_footer ? '<span class="template-badge footer-badge" title="<?php _e('Has Footer', 'lift-docs-system'); ?>">F</span>' : '';
+                        
+                        html += '<div class="template-card" data-filename="' + template.filename + '">';
+                        html += '<div class="template-card-header">';
+                        html += '<h4>' + template.name + '</h4>';
+                        html += '<div class="template-badges">' + headerBadge + footerBadge + '</div>';
+                        html += '</div>';
+                        html += '<div class="template-card-body">';
+                        html += '<p class="template-description">' + (template.description || '<?php _e('No description available', 'lift-docs-system'); ?>') + '</p>';
+                        html += '<div class="template-meta">';
+                        html += '<span class="fields-count"><span class="dashicons dashicons-editor-table"></span> ' + template.fields_count + ' <?php _e('fields', 'lift-docs-system'); ?></span>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '<div class="template-card-actions">';
+                        html += '<button type="button" class="button button-primary select-template-btn" data-filename="' + template.filename + '"><?php _e('Use Template', 'lift-docs-system'); ?></button>';
+                        html += '</div>';
+                        html += '</div>';
+                    });
+                }
+                
+                $('.preset-templates-grid').html(html);
+            }
+
+            // Handle template selection - immediately load template
+            $(document).on('click', '.select-template-btn', function() {
+                var filename = $(this).data('filename');
+                
+                // Show loading state
+                $(this).text('<?php _e('Loading...', 'lift-docs-system'); ?>').prop('disabled', true);
+                
+                // Load template directly
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'lift_forms_load_template',
+                        filename: filename,
+                        nonce: '<?php echo wp_create_nonce('lift_forms_templates_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Load template data into form builder
+                            loadTemplateData(response.data, true); // Always use template name
+                            
+                            // Close modal immediately
+                            $('#template-loader-modal').hide();
+                            resetTemplateModal();
+                        } else {
+                            alert('<?php _e('Error loading template: ', 'lift-docs-system'); ?>' + response.data);
+                            $(this).text('<?php _e('Use Template', 'lift-docs-system'); ?>').prop('disabled', false);
+                        }
+                    }.bind(this),
+                    error: function() {
+                        alert('<?php _e('Error loading template from server', 'lift-docs-system'); ?>');
+                        $(this).text('<?php _e('Use Template', 'lift-docs-system'); ?>').prop('disabled', false);
+                    }.bind(this)
+                });
+            });
+
+            // Close modal events
+            $('.lift-modal-close, .lift-modal-cancel').on('click', function() {
+                $('#template-loader-modal').hide();
+                resetTemplateModal();
+            });
+
+            // Close modal events
+            $('.lift-modal-close, .lift-modal-cancel').on('click', function() {
+                $('#template-loader-modal').hide();
+                resetTemplateModal();
+            });
+
+            // Close modal when clicking outside
+            $('#template-loader-modal').on('click', function(e) {
+                if (e.target === this) {
+                    $(this).hide();
+                    resetTemplateModal();
+                }
+            });
+
+            // Reset modal state
+            function resetTemplateModal() {
+                $('#template-loader-form')[0].reset();
+                $('#template-load-progress').hide();
+                $('#template-load-result').hide();
+                $('.template-card').removeClass('selected');
+                
+                // Switch back to preset templates tab
+                $('.template-tab-btn').removeClass('active');
+                $('.template-tab-btn[data-tab="preset-templates"]').addClass('active');
+                $('.template-tab-content').removeClass('active');
+                $('#preset-templates').addClass('active');
+            }
+
+            // Handle file upload template loading (Upload Template tab)
+            $('#template-loader-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                var fileInput = $('#template-file')[0];
+                var useTemplateName = $('#use-template-name').is(':checked');
+                
+                if (!fileInput.files.length) {
+                    alert('<?php _e('Please select a template file', 'lift-docs-system'); ?>');
+                    return;
+                }
+                
+                var file = fileInput.files[0];
+                if (file.type !== 'application/json' && !file.name.toLowerCase().endsWith('.json')) {
+                    alert('<?php _e('Please select a valid JSON file', 'lift-docs-system'); ?>');
+                    return;
+                }
+                
+                $('#template-load-progress').show();
+                $('#template-load-result').hide();
+                
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        var templateData = JSON.parse(e.target.result);
+                        
+                        // Validate template structure
+                        if (!validateTemplateStructure(templateData)) {
+                            throw new Error('<?php _e('Invalid template structure', 'lift-docs-system'); ?>');
+                        }
+                        
+                        loadTemplateData(templateData, useTemplateName);
+                        
+                        $('#template-load-progress').hide();
+                        $('#template-load-result').html('<div class="notice notice-success"><p><?php _e('Template loaded successfully!', 'lift-docs-system'); ?></p></div>').show();
+                        
+                        setTimeout(function() {
+                            $('#template-loader-modal').hide();
+                            resetTemplateModal();
+                        }, 1500);
+                        
+                    } catch (error) {
+                        $('#template-load-progress').hide();
+                        $('#template-load-result').html('<div class="notice notice-error"><p><?php _e('Error loading template: ', 'lift-docs-system'); ?>' + error.message + '</p></div>').show();
+                    }
+                };
+                
+                reader.readAsText(file);
+            });
+
+            // Validate template structure
+            function validateTemplateStructure(templateData) {
+                return templateData && 
+                       Array.isArray(templateData.fields) && 
+                       templateData.fields.length > 0;
+            }
+
+            // Load template data into form builder
+            function loadTemplateData(templateData, useTemplateName) {
+                // Loading template data
+                
+                // Set form name if requested
+                if (useTemplateName && templateData.name) {
+                    $('#form-name').val(templateData.name);
+                }
+                
+                // Set form description if exists
+                if (templateData.description) {
+                    $('#form-description').val(templateData.description);
+                }
+                
+                // Load header if exists
+                if (templateData.form_header) {
+                    $('#form_header').val(templateData.form_header);
+                    if (typeof tinymce !== 'undefined' && tinymce.get('form_header')) {
+                        setTimeout(function() {
+                            tinymce.get('form_header').setContent(templateData.form_header);
+                        }, 500);
+                    }
+                }
+                
+                // Load footer if exists
+                if (templateData.form_footer) {
+                    $('#form_footer').val(templateData.form_footer);
+                    if (typeof tinymce !== 'undefined' && tinymce.get('form_footer')) {
+                        setTimeout(function() {
+                            tinymce.get('form_footer').setContent(templateData.form_footer);
+                        }, 500);
+                    }
+                }
+                
+                // Load form fields and layout into form builder
+                if (templateData.fields && Array.isArray(templateData.fields)) {
+                    // Try to use existing form builder integration first
+                    if (window.formBuilder && typeof window.formBuilder.loadTemplate === 'function') {
+                        // Use the form builder's method to load template data
+                        window.formBuilder.loadTemplate(templateData);
+                        // Template loaded via formBuilder.loadTemplate
+                    } else if (typeof rebuildFormBuilderWithData === 'function') {
+                        // Use our custom function
+                        rebuildFormBuilderWithData(templateData.fields);
+                        // Template loaded via rebuildFormBuilderWithData
+                    } else {
+                        // Fallback: wait for form builder to load then set data
+                        let attempts = 0;
+                        const maxAttempts = 10;
+                        
+                        const checkFormBuilder = function() {
+                            attempts++;
+                            if (window.formBuilder && typeof window.formBuilder.loadTemplate === 'function') {
+                                window.formBuilder.loadTemplate(templateData);
+                                // Template loaded into form builder after attempts
+                            } else if (attempts < maxAttempts) {
+                                setTimeout(checkFormBuilder, 500);
+                            } else {
+                                // Form builder not found after max attempts
+                                // Try to reload form fields directly
+                                rebuildFormBuilderWithData(templateData.fields);
+                            }
+                        };
+                        
+                        setTimeout(checkFormBuilder, 100);
+                    }
+                }
+                
+                // Template loading completed
+            }
+
+            // Rebuild form builder with template data
+            function rebuildFormBuilderWithData(fields) {
+                // Clear existing fields
+                $('#form-builder').empty();
+                
+                // Add each field from template
+                fields.forEach(function(fieldData, index) {
+                    var fieldElement = createFieldElementFromData(fieldData, index + 1);
+                    $('#form-builder').append(fieldElement);
+                });
+                
+                // Update field counter if it exists
+                if (typeof fieldCounter !== 'undefined') {
+                    fieldCounter = fields.length;
+                }
+                
+                // Reinitialize sortable and other interactions if the function exists
+                if (typeof initializeFormBuilder === 'function') {
+                    initializeFormBuilder();
+                }
+            }
+
+            // Create field element from template data
+            function createFieldElementFromData(fieldData, fieldNumber) {
+                var fieldId = 'field_' + fieldNumber;
+                var fieldElement = $('<div class="form-field" data-field-type="' + fieldData.type + '" data-field-id="' + fieldId + '">');
+                
+                // Field header
+                var fieldHeader = $('<div class="field-header">');
+                fieldHeader.append('<span class="field-type-label">' + fieldData.type.toUpperCase() + '</span>');
+                fieldHeader.append('<div class="field-actions">');
+                fieldHeader.find('.field-actions').append('<button type="button" class="edit-field-btn button button-small"><?php _e('Edit', 'lift-docs-system'); ?></button>');
+                fieldHeader.find('.field-actions').append('<button type="button" class="delete-field-btn button button-small"><?php _e('Delete', 'lift-docs-system'); ?></button>');
+                fieldHeader.find('.field-actions').append('</div>');
+                fieldElement.append(fieldHeader);
+                
+                // Field preview
+                var fieldPreview = $('<div class="field-preview">');
+                fieldPreview.append('<label>' + fieldData.label + (fieldData.required ? ' <span class="required">*</span>' : '') + '</label>');
+                
+                // Create preview based on field type
+                switch(fieldData.type) {
+                    case 'text':
+                    case 'email':
+                    case 'tel':
+                        fieldPreview.append('<input type="' + fieldData.type + '" placeholder="' + (fieldData.placeholder || '') + '" disabled>');
+                        break;
+                    case 'textarea':
+                        fieldPreview.append('<textarea placeholder="' + (fieldData.placeholder || '') + '" disabled></textarea>');
+                        break;
+                    case 'select':
+                        var select = $('<select disabled>');
+                        if (fieldData.options && Array.isArray(fieldData.options)) {
+                            fieldData.options.forEach(function(option) {
+                                select.append('<option value="' + option.value + '">' + option.label + '</option>');
+                            });
+                        }
+                        fieldPreview.append(select);
+                        break;
+                    case 'radio':
+                    case 'checkbox':
+                        if (fieldData.options && Array.isArray(fieldData.options)) {
+                            fieldData.options.forEach(function(option, optIndex) {
+                                var input = $('<div class="option-item">');
+                                input.append('<input type="' + fieldData.type + '" name="' + fieldId + '" value="' + option.value + '" disabled>');
+                                input.append('<label>' + option.label + '</label>');
+                                fieldPreview.append(input);
+                            });
+                        }
+                        break;
+                    case 'file':
+                        fieldPreview.append('<input type="file" disabled>');
+                        break;
+                }
+                
+                fieldElement.append(fieldPreview);
+                
+                // Store field data
+                fieldElement.data('field-data', fieldData);
+                
+                return fieldElement;
+            }
+
+            // Save Template functionality
+            $('#save-template-btn').on('click', function() {
+                // Save Template button clicked
+                $('#save-template-modal').show();
+            });
+
+            // Save template form submission
+            $('#save-template-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                var templateName = $('#template-name').val().trim();
+                var templateDescription = $('#template-description').val().trim();
+                
+                if (!templateName) {
+                    alert('<?php _e('Please enter a template name', 'lift-docs-system'); ?>');
+                    return;
+                }
+                
+                // Collect current form data
+                var currentFormData = {
+                    name: templateName,
+                    description: templateDescription,
+                    form_header: '',
+                    form_footer: '',
+                    fields: [],
+                    export_info: {
+                        created_at: new Date().toISOString(),
+                        created_by: '<?php echo wp_get_current_user()->display_name; ?>',
+                        wp_version: '<?php echo get_bloginfo('version'); ?>',
+                        plugin_version: '1.0.0'
+                    }
+                };
+                
+                // Get header content
+                if (typeof tinymce !== 'undefined' && tinymce.get('form_header')) {
+                    currentFormData.form_header = tinymce.get('form_header').getContent();
+                } else {
+                    currentFormData.form_header = $('#form_header').val() || '';
+                }
+                
+                // Get footer content
+                if (typeof tinymce !== 'undefined' && tinymce.get('form_footer')) {
+                    currentFormData.form_footer = tinymce.get('form_footer').getContent();
+                } else {
+                    currentFormData.form_footer = $('#form_footer').val() || '';
+                }
+                
+                // Get fields from form builder
+                var fieldsFound = [];
+                var layoutData = null;
+                
+                // Method 1: Use form builder getAllData API if available (best method)
+                if (window.formBuilder && typeof window.formBuilder.getAllData === 'function') {
+                    var allData = window.formBuilder.getAllData();
+                    if (allData && allData.fields && Array.isArray(allData.fields) && allData.fields.length > 0) {
+                        fieldsFound = allData.fields;
+                        layoutData = allData.layout;
+                        // Got complete data from formBuilder.getAllData()
+                    }
+                }
+                
+                // Method 2: Use separate API calls if getAllData not available
+                if (fieldsFound.length === 0) {
+                    if (window.formBuilder && typeof window.formBuilder.getFormData === 'function') {
+                        var builderData = window.formBuilder.getFormData();
+                        if (builderData && Array.isArray(builderData) && builderData.length > 0) {
+                            fieldsFound = builderData;
+                            // Got form data from formBuilder API
+                        }
+                    }
+                    
+                    // Get layout data separately
+                    if (window.formBuilder && typeof window.formBuilder.getLayoutData === 'function') {
+                        layoutData = window.formBuilder.getLayoutData();
+                        // Got layout data from getLayoutData()
+                    } else if (window.formBuilder && window.formBuilder.layoutData) {
+                        layoutData = window.formBuilder.layoutData;
+                        // Got layout data from formBuilder.layoutData
+                    }
+                }
+                
+                // Method 3: Try to get from formBuilder direct properties
+                if (fieldsFound.length === 0 && window.formBuilder && window.formBuilder.formData) {
+                    if (Array.isArray(window.formBuilder.formData) && window.formBuilder.formData.length > 0) {
+                        fieldsFound = window.formBuilder.formData;
+                        // Got form data from formBuilder.formData
+                    }
+                    
+                    if (!layoutData && window.formBuilder.layoutData) {
+                        layoutData = window.formBuilder.layoutData;
+                        // Got layout data from formBuilder.layoutData
+                    }
+                }
+                
+                // Method 4: From form-field elements with data (fallback)
+                if (fieldsFound.length === 0) {
+                    $('#form-builder .form-field, #form-builder-container .form-field').each(function() {
+                        var fieldData = $(this).data('field-data');
+                        if (fieldData) {
+                            fieldsFound.push(fieldData);
+                        }
+                    });
+                    console.log('Got form data from DOM elements:', fieldsFound);
+                }
+                
+                // Method 5: Try to extract from form elements in form builder container
+                if (fieldsFound.length === 0) {
+                    $('#form-builder-container .form-field, #form-builder .form-field').each(function(index) {
+                        var $field = $(this);
+                        var fieldType = $field.data('field-type') || 'text';
+                        var $label = $field.find('label').first();
+                        var labelText = $label.text().replace(' *', '').trim();
+                        
+                        if (labelText) {
+                            var fieldData = {
+                                type: fieldType,
+                                label: labelText,
+                                required: $label.find('.required').length > 0,
+                                placeholder: $field.find('input, textarea, select').attr('placeholder') || ''
+                            };
+                            
+                            // Get options for select/radio/checkbox
+                            if (fieldType === 'select' || fieldType === 'radio' || fieldType === 'checkbox') {
+                                var options = [];
+                                $field.find('option, .option-item').each(function() {
+                                    var optionText = $(this).text().trim();
+                                    var optionValue = $(this).val() || optionText.toLowerCase().replace(/\s+/g, '_');
+                                    if (optionText) {
+                                        options.push({label: optionText, value: optionValue});
+                                    }
+                                });
+                                if (options.length > 0) {
+                                    fieldData.options = options;
+                                }
+                            }
+                            
+                            fieldsFound.push(fieldData);
+                        }
+                    });
+                    console.log('Got form data from DOM extraction:', fieldsFound);
+                }
+                
+                // Method 6: Try to collect from any visible form inputs if still no fields
+                if (fieldsFound.length === 0) {
+                    // Look for any form inputs in the builder area
+                    $('#form-builder-container input, #form-builder-container textarea, #form-builder-container select').each(function(index) {
+                        var $input = $(this);
+                        var inputType = $input.attr('type') || $input.prop('tagName').toLowerCase();
+                        var inputName = $input.attr('name') || 'field_' + (index + 1);
+                        var inputLabel = '';
+                        
+                        // Try to find associated label
+                        var $prevLabel = $input.prev('label');
+                        var $parentLabel = $input.parent().prev('label');
+                        var $closestLabel = $input.closest('.form-field').find('label').first();
+                        
+                        if ($prevLabel.length) {
+                            inputLabel = $prevLabel.text().replace(' *', '').trim();
+                        } else if ($parentLabel.length) {
+                            inputLabel = $parentLabel.text().replace(' *', '').trim();
+                        } else if ($closestLabel.length) {
+                            inputLabel = $closestLabel.text().replace(' *', '').trim();
+                        } else {
+                            inputLabel = $input.attr('placeholder') || inputName;
+                        }
+                        
+                        if (inputLabel && inputLabel !== '' && inputType !== 'submit' && inputType !== 'button') {
+                            fieldsFound.push({
+                                type: inputType === 'textarea' ? 'textarea' : (inputType || 'text'),
+                                label: inputLabel,
+                                name: inputName,
+                                required: $input.attr('required') !== undefined,
+                                placeholder: $input.attr('placeholder') || ''
+                            });
+                        }
+                    });
+                    console.log('Got form data from input elements:', fieldsFound);
+                }
+                
+                // Method 7: If still no fields, create a basic sample field
+                if (fieldsFound.length === 0) {
+                    fieldsFound.push({
+                        type: 'text',
+                        label: 'Sample Text Field',
+                        name: 'sample_text',
+                        placeholder: 'Enter text here',
+                        required: false
+                    });
+                    
+                    fieldsFound.push({
+                        type: 'email',
+                        label: 'Email Address',
+                        name: 'email',
+                        placeholder: 'your.email@example.com',
+                        required: true
+                    });
+                    
+                    fieldsFound.push({
+                        type: 'textarea',
+                        label: 'Message',
+                        name: 'message',
+                        placeholder: 'Enter your message here',
+                        required: false
+                    });
+                    
+                    console.log('No form fields detected, created sample fields');
+                }
+                
+                // Get form name and description from the form itself
+                var formName = $('#form-name').val() || templateName;
+                var formDescription = $('#form-description').val() || templateDescription;
+                
+                currentFormData.fields = fieldsFound;
+                
+                // Add layout data if available (for advanced form builders)
+                if (layoutData && (layoutData.rows || Object.keys(layoutData).length > 0)) {
+                    currentFormData.layout = layoutData;
+                    console.log('Added layout data to template:', layoutData);
+                }
+                
+                console.log('Collected form data:', currentFormData);
+                console.log('Fields found:', fieldsFound.length);
+                console.log('Has layout:', !!currentFormData.layout);
+                
+                if (currentFormData.fields.length === 0) {
+                    alert('<?php _e('Cannot save template: No form fields found. Please create some form fields first.', 'lift-docs-system'); ?>');
+                    return;
+                }
+                
+                // Show progress
+                $('#save-template-progress').show();
+                $('#save-template-result').hide();
+                
+                console.log('About to send AJAX request with data:', {
+                    template_name: templateName,
+                    template_description: templateDescription,
+                    fields_count: currentFormData.fields.length,
+                    has_header: !!currentFormData.form_header,
+                    has_footer: !!currentFormData.form_footer
+                });
+                
+                // Save template via AJAX
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'lift_forms_save_template',
+                        template_name: templateName,
+                        template_description: templateDescription,
+                        template_data: JSON.stringify(currentFormData),
+                        nonce: '<?php echo wp_create_nonce('lift_forms_templates_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        console.log('AJAX Response:', response);
+                        $('#save-template-progress').hide();
+                        if (response.success) {
+                            $('#save-template-result').html('<div class="notice notice-success"><p>' + response.data + '</p></div>').show();
+                            setTimeout(function() {
+                                $('#save-template-modal').hide();
+                                resetSaveTemplateModal();
+                            }, 2000);
+                        } else {
+                            $('#save-template-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>').show();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // AJAX Error occurred
+                        $('#save-template-progress').hide();
+                        $('#save-template-result').html('<div class="notice notice-error"><p><?php _e('Error saving template: ', 'lift-docs-system'); ?>' + error + '</p></div>').show();
+                    }
+                });
+            });
+
+            // Modal close events for save template modal
+            $('.lift-modal-close, .lift-modal-cancel').on('click', function() {
+                $('#save-template-modal').hide();
+                resetSaveTemplateModal();
+            });
+
+            // Close save template modal when clicking outside
+            $('#save-template-modal').on('click', function(e) {
+                if (e.target === this) {
+                    $(this).hide();
+                    resetSaveTemplateModal();
+                }
+            });
+
+            // Reset save template modal
+            function resetSaveTemplateModal() {
+                $('#save-template-form')[0].reset();
+                $('#save-template-progress').hide();
+                $('#save-template-result').hide();
+                $('#template-name').removeClass('error');
+                $('#template-description').removeClass('error');
+            }
         });
         </script>
         <?php
@@ -1712,7 +2515,7 @@ class LIFT_Forms {
             <h1><?php _e('Form Submissions', 'lift-docs-system'); ?></h1>
 
             <!-- Enhanced Search and Filter Form -->
-            <div class="lift-submissions-search-form" style="background: #f9f9f9; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <div class="lift-submissions-search-form" style="background: #fff; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
                 <h3 style="margin-top: 0;"><?php _e('Search & Filter Submissions', 'lift-docs-system'); ?></h3>
                 <form method="get" action="<?php echo admin_url('admin.php'); ?>">
                     <input type="hidden" name="page" value="lift-forms-submissions">
@@ -2819,9 +3622,9 @@ class LIFT_Forms {
         }
 
         // Check for valid characters
-        if (!preg_match('/^[a-zA-Z0-9\s\-_.()]+$/', $name)) {
-            wp_send_json_error(__('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation', 'lift-docs-system'));
-        }
+        // if (!preg_match('/^[a-zA-Z0-9\s\-_.()]+$/', $name)) {
+        //     wp_send_json_error(__('Form name contains invalid characters. Please use only letters, numbers, spaces, and basic punctuation', 'lift-docs-system'));
+        // }
 
         // Check for duplicate form names (excluding current form if editing)
         global $wpdb;
@@ -4001,18 +4804,6 @@ class LIFT_Forms {
     /**
      * Helper methods
      */
-    private function get_total_submissions() {
-        global $wpdb;
-        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
-        return $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table");
-    }
-
-    private function get_unread_submissions() {
-        global $wpdb;
-        $submissions_table = $wpdb->prefix . 'lift_form_submissions';
-        return $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table WHERE status = 'unread'");
-    }
-
     private function get_form_submissions_count($form_id) {
         global $wpdb;
         $submissions_table = $wpdb->prefix . 'lift_form_submissions';
@@ -4264,11 +5055,38 @@ class LIFT_Forms {
                     if (!is_numeric($field_value)) {
                         $errors[$field_name] = __('Please enter a valid number', 'lift-docs-system');
                     }
+                    // Check min/max values if specified
+                    if (isset($field['min']) && $field_value < $field['min']) {
+                        $errors[$field_name] = sprintf(__('Value must be at least %s', 'lift-docs-system'), $field['min']);
+                    }
+                    if (isset($field['max']) && $field_value > $field['max']) {
+                        $errors[$field_name] = sprintf(__('Value must be no more than %s', 'lift-docs-system'), $field['max']);
+                    }
+                    break;
+
+                case 'text':
+                case 'textarea':
+                    // Check max length
+                    $max_length = $field['maxlength'] ?? 1000;
+                    if (strlen($field_value) > $max_length) {
+                        $errors[$field_name] = sprintf(__('Text too long. Maximum %d characters allowed', 'lift-docs-system'), $max_length);
+                    }
+                    // Sanitize for security
+                    $sanitized_value = sanitize_textarea_field($field_value);
+                    if ($sanitized_value !== $field_value) {
+                        $errors[$field_name] = __('Invalid characters detected', 'lift-docs-system');
+                    }
                     break;
 
                 case 'date':
                     if (!strtotime($field_value)) {
                         $errors[$field_name] = __('Please enter a valid date', 'lift-docs-system');
+                    }
+                    break;
+
+                case 'url':
+                    if (!filter_var($field_value, FILTER_VALIDATE_URL)) {
+                        $errors[$field_name] = __('Please enter a valid URL', 'lift-docs-system');
                     }
                     break;
 
@@ -4647,11 +5465,13 @@ class LIFT_Forms {
     public function ajax_update_form_status() {
         // Check nonce
         if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_admin_nonce')) {
+            $this->log_security_event('nonce_failure', 'Form status update nonce verification failed');
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
 
         // Check permissions
         if (!current_user_can('manage_options')) {
+            $this->log_security_event('permission_denied', 'Unauthorized form status update attempt');
             wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
         }
 
@@ -4770,13 +5590,16 @@ class LIFT_Forms {
      */
     public function ajax_import_form() {
         // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_import_nonce')) {
+        if (!wp_verify_nonce($_POST['lift_forms_import_nonce'], 'lift_forms_import')) {
+            $this->log_security_event('Failed nonce check in import form', array(
+                'user_id' => get_current_user_id(),
+                'action' => 'import_form'
+            ));
             wp_send_json_error(__('Security check failed', 'lift-docs-system'));
         }
 
         // Check permissions
         if (!current_user_can('manage_options')) {
-            error_log('LIFT Forms Import: Permission check failed');
             wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
         }
 
@@ -4787,25 +5610,40 @@ class LIFT_Forms {
 
         $file = $_FILES['import_file'];
         
-        // Validate file type
+        // Enhanced file security validation
+        $max_file_size = 2 * 1024 * 1024; // 2MB limit
+        if ($file['size'] > $max_file_size) {
+            wp_send_json_error(__('File too large. Maximum size is 2MB', 'lift-docs-system'));
+        }
+        
+        // Validate file type and MIME type
         $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if ($file['type'] !== 'application/json' && $file_extension !== 'json') {
+        $allowed_mime_types = array('application/json', 'text/json', 'text/plain');
+        
+        if (!in_array($file['type'], $allowed_mime_types) || $file_extension !== 'json') {
             wp_send_json_error(__('Please upload a valid JSON file', 'lift-docs-system'));
+        }
+        
+        // Additional MIME type check using finfo
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $detected_type = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+            
+            if (!in_array($detected_type, $allowed_mime_types)) {
+                wp_send_json_error(__('Invalid file type detected', 'lift-docs-system'));
+            }
         }
 
         // Read and parse JSON
         $json_content = file_get_contents($file['tmp_name']);
-        error_log('LIFT Forms Import: Raw JSON length: ' . strlen($json_content));
-        error_log('LIFT Forms Import: First 200 chars: ' . substr($json_content, 0, 200));
         
         $form_data = json_decode($json_content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log('LIFT Forms Import: JSON decode error: ' . json_last_error_msg());
             wp_send_json_error(__('Invalid JSON format: ', 'lift-docs-system') . json_last_error_msg());
         }
 
-        error_log('LIFT Forms Import: Decoded data keys: ' . implode(', ', array_keys($form_data)));
 
         // Validate form structure
         $validation_result = $this->validate_form_import_data($form_data);
@@ -4813,22 +5651,38 @@ class LIFT_Forms {
             wp_send_json_error(__('Invalid form structure: ', 'lift-docs-system') . $validation_result['error']);
         }
 
-        // Use custom name if provided
-        $custom_name = sanitize_text_field($_POST['form_name']);
-        if (!empty($custom_name)) {
-            $form_data['name'] = $custom_name;
-        }
-
-        // Import the form
-        $import_result = $this->import_form_from_data($form_data);
-        
-        if ($import_result['success']) {
-            wp_send_json_success(array(
-                'message' => sprintf(__('Form "%s" imported successfully!', 'lift-docs-system'), $form_data['name']),
-                'form_id' => $import_result['form_id']
-            ));
+        // Check if it's multiple forms or single form
+        if (isset($form_data['forms']) && is_array($form_data['forms'])) {
+            // Multiple forms import
+            $import_results = $this->import_multiple_forms_from_data($form_data);
+            
+            if ($import_results['success']) {
+                wp_send_json_success(array(
+                    'message' => sprintf(__('%d forms imported successfully!', 'lift-docs-system'), $import_results['imported_count']),
+                    'imported_count' => $import_results['imported_count'],
+                    'failed_count' => $import_results['failed_count']
+                ));
+            } else {
+                wp_send_json_error($import_results['error']);
+            }
         } else {
-            wp_send_json_error($import_result['error']);
+            // Single form import
+            // Use custom name if provided
+            $custom_name = sanitize_text_field($_POST['form_name']);
+            if (!empty($custom_name)) {
+                $form_data['name'] = $custom_name;
+            }
+
+            $import_result = $this->import_form_from_data($form_data);
+            
+            if ($import_result['success']) {
+                wp_send_json_success(array(
+                    'message' => sprintf(__('Form "%s" imported successfully!', 'lift-docs-system'), $form_data['name']),
+                    'form_id' => $import_result['form_id']
+                ));
+            } else {
+                wp_send_json_error($import_result['error']);
+            }
         }
     }
 
@@ -4859,6 +5713,7 @@ class LIFT_Forms {
 
         // Prepare export data
         $form_fields_data = json_decode($form->form_fields, true);
+        $form_settings_data = json_decode($form->settings, true);
         
         // Extract layout and fields from form_fields data
         $layout_data = null;
@@ -4874,6 +5729,14 @@ class LIFT_Forms {
                 // If no separate fields, use the entire form_fields as fields
                 $fields_data = $form_fields_data;
             }
+        }
+        
+        // Extract header and footer from settings
+        $form_header = '';
+        $form_footer = '';
+        if (is_array($form_settings_data)) {
+            $form_header = $form_settings_data['form_header'] ?? '';
+            $form_footer = $form_settings_data['form_footer'] ?? '';
         }
         
         // If layout is null, create a simple default structure
@@ -4900,6 +5763,8 @@ class LIFT_Forms {
             'description' => $form->description,
             'layout' => $layout_data,
             'fields' => $fields_data,
+            'form_header' => $form_header,
+            'form_footer' => $form_footer,
             'export_info' => array(
                 'exported_at' => current_time('mysql'),
                 'exported_by' => wp_get_current_user()->display_name,
@@ -4909,9 +5774,6 @@ class LIFT_Forms {
         );
         
         // Debug final export data
-        error_log('LIFT Forms Export: Final export data keys: ' . implode(', ', array_keys($export_data)));
-        error_log('LIFT Forms Export: Layout null check: ' . ($export_data['layout'] === null ? 'NULL' : 'NOT NULL'));
-        error_log('LIFT Forms Export: Fields null check: ' . ($export_data['fields'] === null ? 'NULL' : 'NOT NULL'));
 
         // Set headers for download
         $filename = 'lift-form-' . sanitize_file_name($form->name) . '-' . date('Y-m-d') . '.json';
@@ -4962,6 +5824,7 @@ class LIFT_Forms {
 
         foreach ($forms as $form) {
             $form_fields_data = json_decode($form->form_fields, true);
+            $form_settings_data = json_decode($form->settings, true);
             
             // Extract layout and fields from form_fields data
             $layout_data = null;
@@ -4977,6 +5840,14 @@ class LIFT_Forms {
                     // If no separate fields, use the entire form_fields as fields
                     $fields_data = $form_fields_data;
                 }
+            }
+            
+            // Extract header and footer from settings
+            $form_header = '';
+            $form_footer = '';
+            if (is_array($form_settings_data)) {
+                $form_header = $form_settings_data['form_header'] ?? '';
+                $form_footer = $form_settings_data['form_footer'] ?? '';
             }
             
             // If layout is null, create a simple default structure
@@ -5003,6 +5874,8 @@ class LIFT_Forms {
                 'description' => $form->description,
                 'layout' => $layout_data,
                 'fields' => $fields_data,
+                'form_header' => $form_header,
+                'form_footer' => $form_footer,
                 'status' => $form->status,
                 'created_at' => $form->created_at
             );
@@ -5021,6 +5894,100 @@ class LIFT_Forms {
     }
 
     /**
+     * AJAX handler for getting available templates  
+     */
+    public function ajax_get_templates() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_templates_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
+        }
+
+        $include_meta = isset($_POST['include_meta']) && $_POST['include_meta'];
+        $templates_dir = plugin_dir_path(__FILE__) . '../templates/forms/';
+        $templates = array();
+        $builtin_templates = array('contact-form-template.json', 'feedback-form-template.json', 'registration-form-template.json', 'w9-template.json');
+
+        if (is_dir($templates_dir)) {
+            $files = glob($templates_dir . '*.json');
+            
+            foreach ($files as $file) {
+                if (is_readable($file)) {
+                    $content = file_get_contents($file);
+                    $template_data = json_decode($content, true);
+                    
+                    if ($template_data && isset($template_data['name'])) {
+                        $filename = basename($file);
+                        $template_info = array(
+                            'filename' => $filename,
+                            'name' => $template_data['name'],
+                            'description' => $template_data['description'] ?? '',
+                            'fields_count' => is_array($template_data['fields']) ? count($template_data['fields']) : 0,
+                            'has_header' => !empty($template_data['form_header']),
+                            'has_footer' => !empty($template_data['form_footer']),
+                            'export_info' => $template_data['export_info'] ?? array()
+                        );
+
+                        // Add metadata for management interface
+                        if ($include_meta) {
+                            $template_info['is_builtin'] = in_array($filename, $builtin_templates);
+                            $template_info['file_size'] = filesize($file);
+                            $template_info['modified_date'] = date('Y-m-d H:i:s', filemtime($file));
+                        }
+
+                        $templates[] = $template_info;
+                    }
+                }
+            }
+        }
+
+        wp_send_json_success($templates);
+    }
+
+    /**
+     * AJAX handler for loading a specific template
+     */
+    public function ajax_load_template() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_templates_nonce')) {
+            wp_send_json_error(__('Security check failed', 'lift-docs-system'));
+        }
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Sorry, you are not allowed to access this page.', 'lift-docs-system'));
+        }
+
+        $filename = sanitize_file_name($_POST['filename']);
+        $templates_dir = plugin_dir_path(__FILE__) . '../templates/forms/';
+        $file_path = $templates_dir . $filename;
+
+        // Security check - ensure file is in templates directory and is .json
+        if (!file_exists($file_path) || !is_readable($file_path) || pathinfo($filename, PATHINFO_EXTENSION) !== 'json') {
+            wp_send_json_error(__('Template file not found or not accessible', 'lift-docs-system'));
+        }
+
+        // Read and validate template
+        $content = file_get_contents($file_path);
+        $template_data = json_decode($content, true);
+
+        if (!$template_data) {
+            wp_send_json_error(__('Invalid template format', 'lift-docs-system'));
+        }
+
+        // Validate required fields
+        if (!isset($template_data['name']) || !isset($template_data['fields'])) {
+            wp_send_json_error(__('Template missing required fields (name, fields)', 'lift-docs-system'));
+        }
+
+        wp_send_json_success($template_data);
+    }
+
+    /**
      * Validate form import data structure
      */
     private function validate_form_import_data($data) {
@@ -5031,9 +5998,30 @@ class LIFT_Forms {
         
         // Check if it's a single form or multiple forms backup
         if (isset($data['forms']) && is_array($data['forms'])) {
-            return array('valid' => false, 'error' => __('Multiple forms backup detected. Please import forms one by one.', 'lift-docs-system'));
+            // Validate multiple forms structure
+            if (empty($data['forms'])) {
+                return array('valid' => false, 'error' => __('No forms found in backup file', 'lift-docs-system'));
+            }
+            
+            // Validate each form in the backup
+            foreach ($data['forms'] as $index => $form) {
+                $form_validation = $this->validate_single_form_data($form);
+                if (!$form_validation['valid']) {
+                    return array('valid' => false, 'error' => sprintf(__('Form #%d validation failed: %s', 'lift-docs-system'), $index + 1, $form_validation['error']));
+                }
+            }
+            
+            return array('valid' => true);
+        } else {
+            // Single form validation
+            return $this->validate_single_form_data($data);
         }
+    }
 
+    /**
+     * Validate single form data structure
+     */
+    private function validate_single_form_data($data) {
         // Required fields for single form
         $required_fields = array('name', 'layout', 'fields');
         
@@ -5086,11 +6074,21 @@ class LIFT_Forms {
             $form_fields_data['fields'] = $data['fields'];
         }
 
+        // Prepare settings data with header and footer
+        $settings_data = array();
+        if (isset($data['form_header'])) {
+            $settings_data['form_header'] = $data['form_header'];
+        }
+        if (isset($data['form_footer'])) {
+            $settings_data['form_footer'] = $data['form_footer'];
+        }
+
         // Prepare data for insertion
         $insert_data = array(
             'name' => sanitize_text_field($data['name']),
             'description' => isset($data['description']) ? sanitize_textarea_field($data['description']) : '',
             'form_fields' => json_encode($form_fields_data),
+            'settings' => json_encode($settings_data),
             'status' => isset($data['status']) ? sanitize_text_field($data['status']) : 'draft',
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql')
@@ -5103,8 +6101,124 @@ class LIFT_Forms {
             return array('success' => false, 'error' => __('Failed to insert form into database', 'lift-docs-system') . ': ' . $wpdb->last_error);
         }
 
-        error_log('LIFT Forms Import: Successfully inserted form with ID: ' . $wpdb->insert_id);
         return array('success' => true, 'form_id' => $wpdb->insert_id);
+    }
+
+    /**
+     * Import multiple forms from validated data
+     */
+    private function import_multiple_forms_from_data($data) {
+        $imported_count = 0;
+        $failed_count = 0;
+        $errors = array();
+
+        foreach ($data['forms'] as $form_data) {
+            $result = $this->import_form_from_data($form_data);
+            
+            if ($result['success']) {
+                $imported_count++;
+            } else {
+                $failed_count++;
+                $errors[] = sprintf(__('Failed to import form "%s": %s', 'lift-docs-system'), $form_data['name'], $result['error']);
+            }
+        }
+
+        if ($imported_count > 0) {
+            return array(
+                'success' => true, 
+                'imported_count' => $imported_count,
+                'failed_count' => $failed_count,
+                'errors' => $errors
+            );
+        } else {
+            return array(
+                'success' => false, 
+                'error' => __('No forms could be imported', 'lift-docs-system') . ': ' . implode('; ', $errors)
+            );
+        }
+    }
+
+    /**
+     * AJAX handler for saving template
+     */
+    public function ajax_save_template() {
+        // Security check
+        if (!wp_verify_nonce($_POST['nonce'], 'lift_forms_templates_nonce')) {
+            wp_die(__('Security check failed', 'lift-docs-system'));
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Permission denied', 'lift-docs-system'));
+        }
+
+        $template_name = sanitize_text_field($_POST['template_name']);
+        $template_description = sanitize_textarea_field($_POST['template_description']);
+        
+        // Validate and sanitize template data input
+        if (!isset($_POST['template_data']) || empty($_POST['template_data'])) {
+            wp_send_json_error(__('Template data is required', 'lift-docs-system'));
+            return;
+        }
+        
+        $template_data = wp_unslash($_POST['template_data']);
+        
+        // Validate JSON data size (prevent DoS)
+        if (strlen($template_data) > 5000000) { // 5MB limit
+            wp_send_json_error(__('Template data too large', 'lift-docs-system'));
+            return;
+        }
+
+        if (empty($template_name)) {
+            wp_send_json_error(__('Template name is required', 'lift-docs-system'));
+            return;
+        }
+
+        // Validate and decode template data
+        $template_data_decoded = json_decode(stripslashes($template_data), true);
+        if (!$template_data_decoded) {
+            wp_send_json_error(__('Invalid template data format', 'lift-docs-system'));
+            return;
+        }
+
+        // Validate required template structure
+        if (!isset($template_data_decoded['fields']) || !is_array($template_data_decoded['fields'])) {
+            wp_send_json_error(__('Template must contain fields array', 'lift-docs-system'));
+            return;
+        }
+
+        if (empty($template_data_decoded['fields'])) {
+            wp_send_json_error(__('Template must contain at least one field', 'lift-docs-system'));
+            return;
+        }
+
+        // Create safe filename
+        $filename = sanitize_file_name(strtolower(str_replace(' ', '-', $template_name))) . '.json';
+        
+        // Check if filename already exists and make it unique
+        $templates_dir = plugin_dir_path(__FILE__) . '../templates/forms/';
+        $original_filename = $filename;
+        $counter = 1;
+        
+        while (file_exists($templates_dir . $filename)) {
+            $name_part = pathinfo($original_filename, PATHINFO_FILENAME);
+            $filename = $name_part . '-' . $counter . '.json';
+            $counter++;
+        }
+
+        // Ensure templates directory exists
+        if (!file_exists($templates_dir)) {
+            wp_mkdir_p($templates_dir);
+        }
+
+        // Save template to file
+        $template_content = json_encode($template_data_decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $file_path = $templates_dir . $filename;
+        
+        if (file_put_contents($file_path, $template_content)) {
+            wp_send_json_success(sprintf(__('Template "%s" saved successfully as %s', 'lift-docs-system'), $template_name, $filename));
+        } else {
+            wp_send_json_error(__('Failed to save template file', 'lift-docs-system'));
+        }
     }
 }
 

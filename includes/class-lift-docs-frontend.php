@@ -351,9 +351,9 @@ class LIFT_Docs_Frontend {
             return;
         }
 
-        $document_id = intval($_GET['lift_download']);
-        $nonce = $_GET['nonce'];
-        $file_index = isset($_GET['file_index']) ? intval($_GET['file_index']) : 0;
+        $document_id = intval(sanitize_text_field($_GET['lift_download']));
+        $nonce = sanitize_text_field(wp_unslash($_GET['nonce']));
+        $file_index = isset($_GET['file_index']) ? intval(sanitize_text_field($_GET['file_index'])) : 0;
 
         if (!wp_verify_nonce($nonce, 'lift_download_' . $document_id)) {
             wp_die(__('Security check failed.', 'lift-docs-system'));

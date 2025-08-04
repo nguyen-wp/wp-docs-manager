@@ -299,7 +299,7 @@
                 });
 
                 $img.on('error', function() {
-                    console.warn('Failed to load image:', fileUrl);
+                    // Failed to load image
                     $imagePreview.html('<div class="image-error"><i class="fas fa-exclamation-triangle"></i> Could not load image preview</div>');
                 });
 
@@ -679,7 +679,7 @@
         };
 
         img.onerror = function() {
-            console.warn('Could not load existing signature image:', signatureUrl);
+            // Could not load existing signature image
         };
 
         img.src = signatureUrl;

@@ -14,15 +14,11 @@
             var $button = $(this);
             var documentId = $button.data('document-id') || $button.data('post-id');
 
-            if (!documentId) {
-                console.error('No document ID found');
-                return;
-            }
+            if (documentId) {
+                // Show loading modal
+                showModalLoading();
 
-            // Show loading modal
-            showModalLoading();
-
-            // Make AJAX request to get document details
+                // Make AJAX request to get document details
             $.ajax({
                 url: liftDocsAdmin.ajaxUrl,
                 type: 'POST',
@@ -51,6 +47,10 @@
                     hideModal();
                 }
             });
+            } else {
+                // No document ID found
+                return;
+            }
         });
 
         // Handle modal close
@@ -67,10 +67,10 @@
             var submissionId = $button.data('submission-id');
             var nonce = $button.data('nonce');
 
-            console.log('Submission button clicked:', submissionId, nonce); // Debug
+            // Submission button clicked
 
             if (!submissionId) {
-                console.error('No submission ID found');
+                // No submission ID found
                 return;
             }
 
@@ -87,7 +87,7 @@
                     nonce: nonce
                 },
                 success: function(response) {
-                    console.log('Submission response:', response); // Debug
+                    // Submission response received
                     if (response.success) {
                         // Populate submission modal with detailed content
                         $('#submission-detail-content-from-doc').html(response.data);
@@ -95,13 +95,13 @@
                         // Show submission modal
                         showSubmissionModal();
                     } else {
-                        console.error('Submission error:', response.data);
+                        // Submission error occurred
                         alert(response.data || 'Error loading submission details');
                         hideSubmissionModal();
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('AJAX error:', xhr, status, error);
+                    // AJAX error occurred
                     alert('Error loading submission details');
                     hideSubmissionModal();
                 }

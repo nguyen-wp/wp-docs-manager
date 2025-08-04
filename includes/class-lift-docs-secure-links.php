@@ -84,7 +84,7 @@ class LIFT_Docs_Secure_Links {
             return;
         }
 
-        $token = $_GET['lift_secure'] ?? '';
+        $token = isset($_GET['lift_secure']) ? sanitize_text_field(wp_unslash($_GET['lift_secure'])) : '';
 
         if (empty($token)) {
             $this->show_access_denied('Missing security token');
@@ -139,7 +139,7 @@ class LIFT_Docs_Secure_Links {
             return;
         }
 
-        $token = $_GET['lift_secure'] ?? '';
+        $token = isset($_GET['lift_secure']) ? sanitize_text_field(wp_unslash($_GET['lift_secure'])) : '';
 
         if (empty($token)) {
             status_header(403);
@@ -220,7 +220,7 @@ class LIFT_Docs_Secure_Links {
             die('Invalid request. Missing security token.');
         }
 
-        $token = $_GET['lift_secure'] ?? '';
+        $token = isset($_GET['lift_secure']) ? sanitize_text_field(wp_unslash($_GET['lift_secure'])) : '';
 
         if (empty($token)) {
             status_header(403);
@@ -950,7 +950,7 @@ class LIFT_Docs_Secure_Links {
                                     <?php foreach ($file_urls as $index => $url): ?>
                                         <?php
                                         $file_name = basename(parse_url($url, PHP_URL_PATH));
-                                        $download_token = $_GET['lift_secure'] ?? '';
+                                        $download_token = isset($_GET['lift_secure']) ? sanitize_text_field(wp_unslash($_GET['lift_secure'])) : '';
 
                                         // Create secure download URL with file index
                                         $secure_download_url = LIFT_Docs_Settings::generate_secure_download_link($document->ID, 0, $index);

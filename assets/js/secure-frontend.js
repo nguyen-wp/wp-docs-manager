@@ -5,7 +5,7 @@
 
 // Ensure jQuery is available
 if (typeof jQuery === 'undefined') {
-    console.error('LIFT Docs: jQuery is required but not loaded');
+    // LIFT Docs: jQuery is required but not loaded
 } else {
     jQuery(document).ready(function($) {
         'use strict';
