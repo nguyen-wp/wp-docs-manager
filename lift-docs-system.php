@@ -3,7 +3,7 @@
  * Plugin Name: LIFT Documents System
  * Plugin URI: https://liftcreations.com
  * Description: A comprehensive document management system for WordPress with user assignments, forms, and status tracking.
- * Version: 2.5.0
+ * Version: 2.6.2
  * Author: Nguyen Pham
  * Author URI: https://nguyenpham.pro
  * License: GPL v2 or later
@@ -21,7 +21,7 @@ if (!function_exists('plugin_dir_path')) {
 }
 
 // Define plugin constants
-define('LIFT_DOCS_VERSION', '2.5.0');
+define('LIFT_DOCS_VERSION', '2.6.2');
 define('LIFT_DOCS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('LIFT_DOCS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('LIFT_DOCS_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -93,6 +93,7 @@ class LIFT_Docs_System {
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-register.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-forms.php';
         require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-dashboard-widget.php';
+        require_once LIFT_DOCS_PLUGIN_DIR . 'includes/class-lift-docs-css-js-editor.php';
         
         // Emergency JSON fixer
         require_once LIFT_DOCS_PLUGIN_DIR . 'lib/emergency-json-fixer.php';
@@ -109,6 +110,9 @@ class LIFT_Docs_System {
             LIFT_Docs_Settings::get_instance();
             LIFT_Docs_Dashboard_Widget::get_instance();
         }
+
+        // Initialize CSS/JS Editor for both admin and frontend
+        LIFT_Docs_CSS_JS_Editor::get_instance();
 
         LIFT_Docs_Post_Types::get_instance();
         LIFT_Docs_Frontend::get_instance();
